@@ -10,7 +10,9 @@ pup="./pup"
 wget -q -O ./APKEditor.jar https://github.com/REAndroid/APKEditor/releases/download/V1.4.9/APKEditor-1.4.9.jar
 APKEditor="./APKEditor.jar"
 #Find lastest user_agent
-user_agent=$(wget -qO- https://www.whatismybrowser.com/guides/the-latest-user-agent/firefox | tr '\n' ' ' | sed 's#</tr>#\n#g' | grep 'Firefox (Standard)' | sed -n 's/.*<span class="code">\([^<]*Android[^<]*\)<\/span>.*/\1/p') \
+user_agent=$(wget -qO- https://www.whatismybrowser.com/guides/the-latest-user-agent/firefox | tr '
+' ' ' | sed 's#</tr>#
+#g' | grep 'Firefox (Standard)' | sed -n 's/.*<span class="code">\([^<]*Android[^<]*\)<\/span>.*//p') \
 || user_agent=
 [ -z "$user_agent" ] && {
   user_agent='Mozilla/5.0 (Android 16; Mobile; rv:146.0) Gecko/146.0 Firefox/146.0'
@@ -21,13 +23,13 @@ user_agent=$(wget -qO- https://www.whatismybrowser.com/guides/the-latest-user-ag
 
 # Colored output logs
 green_log() {
-    echo -e "\e[32m$1\e[0m"
+    echo -e "[32m$1[0m"
 }
 red_log() {
-    echo -e "\e[31m$1\e[0m"
+    echo -e "[31m$1[0m"
 }
 yellow_log() {
-    echo -e "\e[33m$1\e[0m"
+    echo -e "[33m$1[0m"
 }
 
 #################################################
@@ -143,8 +145,8 @@ get_patches_key() {
 	local patchDir="src/patches/$1"
 	local patch_name line1 line2
 
-	sed -i 's/\r$//' "$patchDir/include-patches"
-	sed -i 's/\r$//' "$patchDir/exclude-patches"
+	sed -i 's/$//' "$patchDir/include-patches"
+	sed -i 's/$//' "$patchDir/exclude-patches"
 
 	while IFS= read -r line1 || [[ -n "$line1" ]]; do
 		[[ -z "$line1" ]] && continue
@@ -297,7 +299,8 @@ get_apk() {
 	fi
 
 	detect_version "$pkg_name"
-	version=$(printf '%s\n' "$version" "$prefer_version" | sort -V | tail -n1)
+	version=$(printf '%s
+' "$version" "$prefer_version" | sort -V | tail -n1)
 	unset prefer_version
 	export version
 
@@ -359,11 +362,13 @@ get_apk() {
 					jq -r --arg v "$target_ver_dot" '.[] | select(.text | contains($v)) | .href' | head -1)
 				if [[ -z "$version_href" && "$allow_near_version" == "1" ]]; then
 					local release_text release_href release_version
-					while IFS=$'\t' read -r release_text release_href; do
+					while IFS=$'	' read -r release_text release_href; do
 						release_version=$(echo "$release_text" | grep -oP '\d+(\.\d+)+' | tail -1)
 						[[ -z "$release_version" ]] && continue
-						if [[ "$(printf '%s\n' "$release_version" "$target_ver_dot" | sort -V | tail -n1)" == "$target_ver_dot" && "$release_version" != "$target_ver_dot" ]]; then
-							if [[ -z "$near_version_value" || "$(printf '%s\n' "$near_version_value" "$release_version" | sort -V | tail -n1)" == "$release_version" ]]; then
+						if [[ "$(printf '%s
+' "$release_version" "$target_ver_dot" | sort -V | tail -n1)" == "$target_ver_dot" && "$release_version" != "$target_ver_dot" ]]; then
+							if [[ -z "$near_version_value" || "$(printf '%s
+' "$near_version_value" "$release_version" | sort -V | tail -n1)" == "$release_version" ]]; then
 								near_version_value="$release_version"
 								near_version_href="$release_href"
 							fi
@@ -396,7 +401,9 @@ get_apk() {
 
 	local vtable_html rows variant_href=""
 	vtable_html=$(echo "$html" | $pup 'div.variants-table')
-	rows=$(echo "$vtable_html" | tr '\n' ' ' | sed 's/<div class="table-row/\n<div class="table-row/g')
+	rows=$(echo "$vtable_html" | tr '
+' ' ' | sed 's/<div class="table-row/
+<div class="table-row/g')
 
 	local dpi_fallback=("120-640dpi" "120-480dpi" "480-640dpi" "480dpi")
 	local type_attempts=("$type_badge")
@@ -533,7 +540,8 @@ get_apkpure() {
 	fi
 
 	detect_version "$pkg_name"
-	version=$(printf '%s\n' "$version" "$prefer_version" | sort -V | tail -n1)
+	version=$(printf '%s
+' "$version" "$prefer_version" | sort -V | tail -n1)
 	unset prefer_version
 	export version
 
@@ -672,7 +680,7 @@ telegram_dl() {
 		green_log "[+] Downloading tdl from iyear"
 		local tdl_url
 		tdl_url=$(wget -qO- "https://api.github.com/repos/iyear/tdl/releases/latest" \
-			| jq -r '.assets[] | select(.name | test("Linux_64bit\\.tar\\.gz$")) | .browser_download_url')
+			| jq -r '.assets[] | select(.name | test("Linux_64bit\.tar\.gz$")) | .browser_download_url')
 		wget -q -O ./tdl.tar.gz "$tdl_url"
 		if [[ ! -f "./tdl.tar.gz" ]]; then
 			red_log "[-] Failed to download tdl"
@@ -726,7 +734,7 @@ patch() {
 	if [ -f "./download/$1.apk" ]; then
 		echo "Patching with Morphe"
 		unset CI GITHUB_ACTION GITHUB_ACTIONS GITHUB_ACTOR GITHUB_ENV GITHUB_EVENT_NAME GITHUB_EVENT_PATH GITHUB_HEAD_REF GITHUB_JOB GITHUB_REF GITHUB_REPOSITORY GITHUB_RUN_ID GITHUB_RUN_NUMBER GITHUB_SHA GITHUB_WORKFLOW GITHUB_WORKSPACE RUN_ID RUN_NUMBER
-		eval java -jar morphe-desktop-*.jar patch -p *.mpp --options-file ./src/options/$2.json --out=./release/$1-$2.apk$excludePatches$includePatches --keystore=./src/morphe.keystore --force --continue-on-error ./download/$1.apk
+		eval java -jar morphe-desktop-*.jar patch -p *.mpp --options-file ./src/options/$2.json --out=./release/$1-$2.apk$excludePatches$includePatches --keystore=./src/ks.keystore --keystore-password="${KEYSTORE_PASS}" --keystore-entry-alias="${KEYSTORE_ALIAS}" --keystore-entry-password="${KEYSTORE_PASS}" --force --continue-on-error ./download/$1.apk
 		unset version
 		unset lock_version
 		unset excludePatches
@@ -746,7 +754,7 @@ patch_multi() {
 			[ -f "$mpp_file" ] || continue
 			mpp_args="$mpp_args -p \"$mpp_file\"$excludePatches$includePatches"
 		done
-		eval java -jar morphe-desktop-*.jar patch $mpp_args --options-file ./src/options/$2.json --out=./release/$1-$2.apk --keystore=./src/morphe.keystore --force --continue-on-error ./download/$1.apk
+		eval java -jar morphe-desktop-*.jar patch $mpp_args --options-file ./src/options/$2.json --out=./release/$1-$2.apk --keystore=./src/ks.keystore --keystore-password="${KEYSTORE_PASS}" --keystore-entry-alias="${KEYSTORE_ALIAS}" --keystore-entry-password="${KEYSTORE_PASS}" --force --continue-on-error ./download/$1.apk
   		unset version
 		unset lock_version
 		unset excludePatches
@@ -833,7 +841,7 @@ split_arch() {
 		eval java -jar morphe-desktop-*.jar patch \
 		-p *.mpp $excludePatches$includePatches --options-file ./src/options/$2.json \
 		--striplibs ${archs[i]} \
-		--keystore=./src/morphe.keystore --force \
+		--keystore=./src/ks.keystore --keystore-password="${KEYSTORE_PASS}" --keystore-entry-alias="${KEYSTORE_ALIAS}" --keystore-entry-password="${KEYSTORE_PASS}" --force \
 		--out=./release/$1-${archs[i]}-$2.apk \
 		./download/$1.apk
 	else
