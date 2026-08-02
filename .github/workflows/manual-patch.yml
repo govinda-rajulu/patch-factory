@@ -44,6 +44,9 @@ jobs:
     name: Patch Morphe
     if: ${{ github.event.inputs.org == 'Morphe' || inputs.org == 'Morphe' }}
     runs-on: ubuntu-latest
+    env:
+      KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+      KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
     strategy:
       fail-fast: false
       matrix:
@@ -51,6 +54,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > src/ks.keystore
       - name: Preparing to patch
         uses: ./.github/actions/preparing
       - name: Check github connection
