@@ -1,2 +1,3 @@
 *.keystore
 *.ks
+*.b64
