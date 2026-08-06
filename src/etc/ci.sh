@@ -1,34 +1,26 @@
 #!/bin/bash
-
-# Check new patch:
-get_date() {
-	json=$(wget -qO- "https://api.github.com/repos/$1/releases")
-	case "$2" in
-		latest)
-			updated_at=$(echo "$json" | jq -r 'first(.[] | select(.prerelease == false) | .assets[] | select(.name | test("'$3'")) | .updated_at)')
-			;;
-		prerelease)
-			updated_at=$(echo "$json" | jq -r 'first(.[] | select(.prerelease == true) | .assets[] | select(.name | test("'$3'")) | .updated_at)')
-			;;
-		*)
-			updated_at=$(echo "$json" | jq -r 'first(.[] | select(.tag_name == "'$2'") | .assets[] | select(.name | test("'$3'")) | .updated_at)')
-			;;
-	esac
-	echo "$updated_at"
+# date of newest matching asset in a provider repo
+provider_date() {
+  local json; json=$(wget -qO- "https://api.github.com/repos/$1/releases")
+  case "$2" in
+    latest)     echo "$json" | jq -r 'first(.[] | select(.prerelease == false) | .assets[] | select(.name | test("\\.(jar|rvp|mpp)$")) | .updated_at)' ;;
+    prerelease) echo "$json" | jq -r 'first(.[] | .assets[] | select(.name | test("\\.(jar|rvp|mpp)$")) | .updated_at)' ;;
+    *)          echo "$json" | jq -r 'first(.[] | select(.tag_name == "'$2'") | .assets[] | select(.name | test("\\.(jar|rvp|mpp)$")) | .updated_at)' ;;
+  esac
 }
-
-checker(){
-	local date1 date2 date1_sec date1_sec repo=$1 ur_repo=$repository check=$3
-	date1=$(get_date "$repo" "$2" "^(.*\\\.jar|.*\\\.rvp|.*\\\.mpp)$")
-	date2=$(get_date "$ur_repo" "all" "$check")
-	date1_sec=$(date -d "$date1" +%s)
-	date2_sec=$(date -d "$date2" +%s)
-	if [ -z "$date2" ] || [ "$date1_sec" -gt "$date2_sec" ]; then
-		echo "new_patch=1" >> $GITHUB_OUTPUT
-		echo -e "\e[32mNew patch, building...\e[0m"
-	elif [ "$date1_sec" -lt "$date2_sec" ]; then
-		echo "new_patch=0" >> $GITHUB_OUTPUT
-		echo -e "\e[32mOld patch, not build.\e[0m"
-	fi
+# date of newest matching asset in MY repo, any tag
+mine_date() {
+  wget -qO- --header="Authorization: token $GITHUB_TOKEN" \
+    "https://api.github.com/repos/$repository/releases" \
+    | jq -r 'first(.[] | .assets[] | select(.name | test("'"$1"'")) | .updated_at)'
 }
-checker $1 $2 $3
+d1=$(provider_date "$1" "$2")
+d2=$(mine_date "$3")
+echo "provider: ${d1:-none}   mine: ${d2:-none}"
+if [ -z "$d1" ] || [ "$d1" = "null" ]; then
+  echo "new_patch=0" >> $GITHUB_OUTPUT; echo "could not read provider, skipping"
+elif [ -z "$d2" ] || [ "$d2" = "null" ] || [ "$(date -d "$d1" +%s)" -gt "$(date -d "$d2" +%s)" ]; then
+  echo "new_patch=1" >> $GITHUB_OUTPUT; echo "New patch, building..."
+else
+  echo "new_patch=0" >> $GITHUB_OUTPUT; echo "Up to date, not building."
+fi
