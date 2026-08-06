@@ -1,3 +1,9 @@
 *.keystore
 *.ks
 *.b64
+*.apk
+*.mpp
+*.jar
+download/
+release/
+morphe-data/

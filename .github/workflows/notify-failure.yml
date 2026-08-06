@@ -1,0 +1,22 @@
+name: Notify on failure
+on:
+  workflow_run:
+    workflows: ["1. Manual Patch", "2. Check new patch"]
+    types: [completed]
+permissions:
+  issues: write
+jobs:
+  open-issue:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const r = context.payload.workflow_run;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Build failed: ${r.name} — ${new Date(r.created_at).toISOString().slice(0,10)}`,
+              body: `Run [${r.id}](${r.html_url}) failed on \`${r.head_branch}\`.\n\nEvent: ${r.event}\n\nCheck the log, then rerun with:\n\`\`\`\ngh run rerun ${r.id} --failed\n\`\`\``
+            });

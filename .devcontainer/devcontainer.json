@@ -1,0 +1,12 @@
+{
+  "name": "patch-factory",
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": { "version": "21" },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "postCreateCommand": "echo 'unset GITHUB_TOKEN' >> ~/.bashrc && sudo apt-get update -qq && sudo apt-get install -y -qq jq",
+  "customizations": {
+    "vscode": { "extensions": ["redhat.vscode-yaml", "timonwong.shellcheck"] }
+  }
+}
