@@ -834,7 +834,7 @@ split_arch() {
 		-p *.mpp $excludePatches$includePatches --options-file ./src/options/$2.json \
 		--striplibs ${archs[i]} \
 		--keystore=./src/ks.keystore --keystore-password="${KEYSTORE_PASS}" --keystore-entry-alias="${KEYSTORE_ALIAS}" --keystore-entry-password="${KEYSTORE_PASS}" --force \
-		--out=./release/$1-${archs[i]}-$2.apk \
+		--out=./release/$1-${archs[i]}.apk \
 		./download/$1.apk
 	else
 		red_log "[-] Not found $1.apk"
