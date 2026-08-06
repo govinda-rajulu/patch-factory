@@ -55,7 +55,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.2
       - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > src/ks.keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > src/ks.keystore
+          SZ=$(wc -c < src/ks.keystore)
+          echo "keystore bytes: $SZ"
+          [ "$SZ" -gt 3000 ] || { echo "::error::keystore truncated - KEYSTORE_B64 secret is incomplete"; exit 1; }
       - name: Preparing to patch
         uses: ./.github/actions/preparing
       - name: Check github connection
