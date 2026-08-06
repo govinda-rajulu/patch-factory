@@ -2,16 +2,44 @@ name: Releasing APK files
 runs:
   using: "composite"
   steps:
-    - name: Generate release info
+    - name: Read build metadata
+      id: meta
       shell: bash
       run: |
-        echo "Patched YouTube, arm64-v8a, built from [Morphe patches](https://github.com/MorpheApp/morphe-patches/releases)."> ${{ github.workspace }}-CHANGELOG.txt
+        V=$(cat ./release/.version 2>/dev/null || echo "")
+        P=$(cat ./release/.tagprefix 2>/dev/null || echo "")
+        if [ -z "$V" ] || [ -z "$P" ]; then
+          echo "::error::missing ./release/.version or ./release/.tagprefix"
+          exit 1
+        fi
+        echo "version=$V" >> $GITHUB_OUTPUT
+        echo "prefix=$P"  >> $GITHUB_OUTPUT
+        echo "tag=$P-v$V"  >> $GITHUB_OUTPUT
+        echo "building release tag: $P-v$V"
+        ls -la ./release/
+
     - name: Release
       uses: ncipollo/release-action@v1.21.0
       with:
-        artifacts: |
-          ./release/*.apk
-        name: Revanced & Revanced Extended
-        tag: all
-        bodyFile: ${{ github.workspace }}-CHANGELOG.txt
+        artifacts: "./release/*-arm64-v8a-*.apk"
+        tag: ${{ steps.meta.outputs.tag }}
+        name: ${{ steps.meta.outputs.tag }}
+        body: |
+          Patched with [Morphe](https://github.com/MorpheApp/morphe-patches/releases).
+          App version ${{ steps.meta.outputs.version }} · arm64-v8a
         allowUpdates: true
+        makeLatest: true
+
+    - name: Prune old releases
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        P="${{ steps.meta.outputs.prefix }}"
+        gh release list --limit 100 --json tagName,createdAt \
+          | jq -r --arg p "$P-v" '[.[] | select(.tagName|startswith($p))] | sort_by(.createdAt) | reverse | .[2:] | .[].tagName' \
+          | while read -r t; do
+              [ -n "$t" ] && gh release delete "$t" --yes --cleanup-tag && echo "pruned $t"
+            done
+        echo "--- current releases ---"
+        gh release list --limit 10
