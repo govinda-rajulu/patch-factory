@@ -1,0 +1,34 @@
+[
+  {
+    "id": "youtube",
+    "enabled": true,
+    "package": "com.google.android.youtube",
+    "apk_name": "youtube",
+    "apk_type": "apk",
+    "max_app_version": null,
+    "max_patch_age_days": 60,
+    "min_sdk_ceiling": 29,
+    "pin": "morphe",
+    "candidates": [
+      { "name": "morphe", "owner": "MorpheApp", "repo": "morphe-patches",
+        "channel": "prerelease", "patch_dir": "youtube-morphe", "options": "morphe" }
+    ]
+  },
+  {
+    "id": "adguard",
+    "enabled": false,
+    "package": "com.adguard.android",
+    "apk_name": "adguard",
+    "apk_type": "apk",
+    "max_app_version": null,
+    "max_patch_age_days": 60,
+    "min_sdk_ceiling": 29,
+    "pin": null,
+    "candidates": [
+      { "name": "rushiranpise", "owner": "rushiranpise", "repo": "morphe-patches",
+        "channel": "prerelease", "patch_dir": "adguard-rushiranpise", "options": "rushiranpise" },
+      { "name": "hoo-dles", "owner": "hoo-dles", "repo": "morphe-patches",
+        "channel": "prerelease", "patch_dir": "adguard-hoo-dles", "options": "hoo-dles" }
+    ]
+  }
+]
