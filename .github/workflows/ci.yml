@@ -33,4 +33,4 @@ jobs:
     uses: ./.github/workflows/manual-patch.yml
     secrets: inherit
     with:
-      org: "Morphe"
+      target: "youtube"
