@@ -1,11 +1,19 @@
 {
-  "apkmirror": {
-    "com.google.android.youtube": {
-      "list_url": "https://www.apkmirror.com/uploads/?appcategory=youtube",
-      "example_url": "https://www.apkmirror.com/apk/google-inc/youtube/youtube-21-18-168-release/"
-    }
+ "apkmirror": {
+  "com.google.android.youtube": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=youtube",
+   "example_url": "https://www.apkmirror.com/apk/google-inc/youtube/youtube-21-18-168-release/"
   },
-  "apkpure": {
-    "com.google.android.youtube": {}
+  "com.google.android.apps.photos": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=photos",
+   "example_url": "https://www.apkmirror.com/apk/google-inc/photos/google-photos-7-74-0-910345644-release/"
+  },
+  "com.truecaller": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=truecaller-caller-id-block",
+   "example_url": "https://www.apkmirror.com/apk/true-software-scandinavia-ab/truecaller-caller-id-block/truecaller-trusted-caller-id-26-17-6-release/"
   }
+ },
+ "apkpure": {
+  "com.google.android.youtube": {}
+ }
 }

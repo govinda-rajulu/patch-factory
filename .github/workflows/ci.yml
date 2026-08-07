@@ -22,7 +22,7 @@ jobs:
       - name: Check new patch Morphe
         id: check-morphe
         if: steps.check-gh.outputs.internet_error == '0'
-        run: bash src/etc/ci.sh MorpheApp/morphe-patches prerelease youtube-arm64-v8a-morphe
+        run: bash src/etc/ci.sh MorpheApp/morphe-patches prerelease youtube-arm64-v8a
     outputs:
       check_morphe: ${{ steps.check-morphe.outputs.new_patch }}
 

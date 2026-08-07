@@ -10,8 +10,14 @@
     "min_sdk_ceiling": 29,
     "pin": "morphe",
     "candidates": [
-      { "name": "morphe", "owner": "MorpheApp", "repo": "morphe-patches",
-        "channel": "prerelease", "patch_dir": "youtube-morphe", "options": "morphe" }
+      {
+        "name": "morphe",
+        "owner": "MorpheApp",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "youtube-morphe",
+        "options": "morphe"
+      }
     ]
   },
   {
@@ -25,10 +31,96 @@
     "min_sdk_ceiling": 29,
     "pin": null,
     "candidates": [
-      { "name": "rushiranpise", "owner": "rushiranpise", "repo": "morphe-patches",
-        "channel": "prerelease", "patch_dir": "adguard-rushiranpise", "options": "rushiranpise" },
-      { "name": "hoo-dles", "owner": "hoo-dles", "repo": "morphe-patches",
-        "channel": "prerelease", "patch_dir": "adguard-hoo-dles", "options": "hoo-dles" }
+      {
+        "name": "rushiranpise",
+        "owner": "rushiranpise",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "adguard-rushiranpise",
+        "options": "rushiranpise"
+      },
+      {
+        "name": "hoo-dles",
+        "owner": "hoo-dles",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "adguard-hoo-dles",
+        "options": "hoo-dles"
+      }
+    ]
+  },
+  {
+    "id": "photos",
+    "enabled": false,
+    "package": "com.google.android.apps.photos",
+    "apk_name": "gg-photos",
+    "apk_type": "apk",
+    "max_app_version": null,
+    "max_patch_age_days": 60,
+    "min_sdk_ceiling": 29,
+    "pin": null,
+    "candidates": [
+      {
+        "name": "derevanced",
+        "owner": "RookieEnough",
+        "repo": "De-Vanced",
+        "channel": "prerelease",
+        "patch_dir": "gg-photos-derevanced",
+        "options": "derevanced"
+      },
+      {
+        "name": "rushiranpise",
+        "owner": "rushiranpise",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "gg-photos",
+        "options": "rushiranpise"
+      },
+      {
+        "name": "arandomhooman",
+        "owner": "arandomhooman",
+        "repo": "hoomans-morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "gg-photos",
+        "options": "arandomhooman"
+      }
+    ]
+  },
+  {
+    "id": "truecaller",
+    "enabled": false,
+    "package": "com.truecaller",
+    "apk_name": "truecaller",
+    "apk_type": "apk",
+    "max_app_version": null,
+    "max_patch_age_days": 60,
+    "min_sdk_ceiling": 29,
+    "pin": null,
+    "candidates": [
+      {
+        "name": "bufferk",
+        "owner": "bufferk",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "truecaller-bufferk",
+        "options": "bufferk"
+      },
+      {
+        "name": "rushiranpise",
+        "owner": "rushiranpise",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "truecaller-bufferk",
+        "options": "rushiranpise"
+      },
+      {
+        "name": "arandomhooman",
+        "owner": "arandomhooman",
+        "repo": "hoomans-morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "truecaller-bufferk",
+        "options": "arandomhooman"
+      }
     ]
   }
 ]
