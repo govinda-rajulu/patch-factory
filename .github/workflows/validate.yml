@@ -1,0 +1,40 @@
+name: 3. Validate
+on:
+  push:
+    paths:
+      - 'src/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+jobs:
+  validate:
+    name: Validate targets and scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: targets.json integrity
+        run: |
+          jq -e . src/targets.json > /dev/null || { echo "::error::targets.json is not valid JSON"; exit 1; }
+          FAIL=0
+          while IFS=$'\t' read -r id pd op; do
+            for side in include exclude; do
+              [ -f "src/patches/$pd/$side-patches" ] || { echo "::error::$id: missing src/patches/$pd/$side-patches"; FAIL=1; }
+            done
+            F="src/options/$op.json"
+            if [ ! -f "$F" ]; then
+              echo "::error::$id: missing $F"; FAIL=1
+            elif [ "$(jq -r 'type' "$F")" != "array" ]; then
+              echo "::error::$F must be a JSON array. morphe-desktop rejects an object."; FAIL=1
+            fi
+          done < <(jq -r '.[] | . as $t | .candidates[] | [$t.id, .patch_dir, .options] | @tsv' src/targets.json)
+          while IFS=$'\t' read -r id tp; do
+            [ -n "$tp" ] && [ "$tp" != "null" ] || { echo "::error::$id: enabled target has no tag_prefix"; FAIL=1; }
+          done < <(jq -r '.[] | select(.enabled) | [.id, (.tag_prefix // "")] | @tsv' src/targets.json)
+          [ "$FAIL" = 0 ] && echo "targets.json OK"
+          exit $FAIL
+      - name: Shell syntax
+        run: |
+          for f in src/build/*.sh src/etc/*.sh; do
+            bash -n "$f" || { echo "::error::$f failed bash -n"; exit 1; }
+          done
+          echo "all scripts parse"
