@@ -1,0 +1,93 @@
+#!/bin/bash
+# Generic per-target build.  Usage: build.sh <target-id>
+# Reads src/targets.json, elects a provider, patches arm64-v8a, writes release metadata.
+set -uo pipefail
+
+ID="${1:?usage: build.sh <target-id>}"
+TARGETS="src/targets.json"
+
+# utils.sh is 29KB of upstream code written without `set -u`.
+# Scope strictness off around every call into it; our own logic stays strict.
+set +u; source ./src/build/utils.sh; set -u
+
+version=""; lock_version=""; prefer_version=""
+excludePatches=""; includePatches=""
+KEYSTORE_PASS="${KEYSTORE_PASS:-}"; KEYSTORE_ALIAS="${KEYSTORE_ALIAS:-}"
+
+# --- 1. target -------------------------------------------------------------
+T=$(jq -c --arg id "$ID" '.[] | select(.id==$id)' "$TARGETS")
+[ -n "$T" ] || { red_log "[-] no target '$ID' in $TARGETS"; exit 1; }
+[ "$(jq -r '.enabled' <<<"$T")" = "true" ] || { red_log "[-] target '$ID' is disabled"; exit 1; }
+
+PKG=$(jq      -r '.package'             <<<"$T")
+APK_NAME=$(jq -r '.apk_name'            <<<"$T")
+APK_TYPE=$(jq -r '.apk_type // "apk"'   <<<"$T")
+CEIL=$(jq     -r '.min_sdk_ceiling // 29' <<<"$T")
+PREFIX=$(jq   -r '.tag_prefix // .id'   <<<"$T")
+green_log "[+] target=$ID package=$PKG apk=$APK_NAME tagprefix=$PREFIX"
+
+# --- 2. tooling, then resolve ----------------------------------------------
+set +u; dl_gh "morphe-desktop" "MorpheApp" "latest"; set -u
+ls morphe-desktop-*.jar >/dev/null 2>&1 || { red_log "[-] morphe-desktop jar not downloaded"; exit 1; }
+
+RES=$(bash ./src/build/resolve.sh "$ID"); RC=$?
+echo "$RES"
+[ "$RC" -eq 0 ] || { red_log "[-] resolve.sh failed for $ID"; exit 1; }
+
+WINNER=$(sed -n 's/^WINNER=//p'  <<<"$RES" | tail -1)
+RVER=$(sed   -n 's/^VERSION=//p' <<<"$RES" | tail -1)
+MPP=$(sed    -n 's/^MPP=//p'     <<<"$RES" | tail -1)
+[ -n "$WINNER" ] || { red_log "[-] no WINNER line in resolve.sh output"; exit 1; }
+
+C=$(jq -c --arg n "$WINNER" '.candidates[] | select(.name==$n)' <<<"$T")
+[ -n "$C" ] || { red_log "[-] winner '$WINNER' is not a candidate of $ID"; exit 1; }
+PDIR=$(jq  -r '.patch_dir' <<<"$C")
+OPTS=$(jq  -r '.options'   <<<"$C")
+OWNER=$(jq -r '.owner'     <<<"$C")
+REPO=$(jq  -r '.repo'      <<<"$C")
+CHAN=$(jq  -r '.channel'   <<<"$C")
+green_log "[+] winner=$WINNER ($OWNER/$REPO $CHAN) app=$RVER patches=$PDIR options=$OPTS"
+
+# split_arch globs `-p *.mpp` in the cwd, so exactly one must be present
+rm -f ./*.mpp
+set +u; dl_gh "$REPO" "$OWNER" "$CHAN"; set -u
+if ! ls ./*.mpp >/dev/null 2>&1; then
+  if [ -n "$MPP" ] && [ -f "$MPP" ]; then
+    yellow_log "[!] no .mpp asset on $OWNER/$REPO, falling back to resolver cache: $MPP"
+    cp "$MPP" ./
+  fi
+fi
+N=$(ls ./*.mpp 2>/dev/null | wc -l)
+[ "$N" -eq 1 ] || { red_log "[-] need exactly 1 .mpp in cwd, found $N"; ls ./*.mpp 2>/dev/null; exit 1; }
+green_log "[+] patch bundle: $(ls ./*.mpp)"
+
+# --- 3. patch selection ----------------------------------------------------
+[ -d "src/patches/$PDIR" ]      || { red_log "[-] missing src/patches/$PDIR"; exit 1; }
+[ -f "src/options/$OPTS.json" ] || { red_log "[-] missing src/options/$OPTS.json"; exit 1; }
+set +u; get_patches_key "$PDIR"; set -u
+
+# --- 4. apk ----------------------------------------------------------------
+version="$RVER"
+set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
+[ "$GA" -eq 0 ] || { red_log "[-] get_apk failed for $PKG"; exit 1; }
+[ -f "./download/$APK_NAME.apk" ] || { red_log "[-] ./download/$APK_NAME.apk missing"; exit 1; }
+
+# --- 5. sdk gate, report only ----------------------------------------------
+bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" 2>&1 \
+  | sed 's/::error::/::warning::/'
+
+# --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
+for i in 0; do
+  set +u; split_arch "$APK_NAME" "$OPTS"; set -u
+done
+
+# --- 7. release metadata ---------------------------------------------------
+echo "$version" > ./release/.version
+echo "$PREFIX"  > ./release/.tagprefix
+green_log "[+] release tag: $PREFIX-v$version"
+
+# --- 8. assert -------------------------------------------------------------
+COUNT=$(ls ./release/*.apk 2>/dev/null | wc -l)
+[ "$COUNT" -ge 1 ] || { red_log "[-] no APK produced in ./release/"; ls -la ./release/; exit 1; }
+green_log "[+] $COUNT APK(s) built"
+ls -la ./release/
