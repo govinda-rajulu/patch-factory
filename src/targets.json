@@ -18,7 +18,8 @@
         "patch_dir": "youtube-morphe",
         "options": "morphe"
       }
-    ]
+    ],
+    "tag_prefix": "youtube-morphe"
   },
   {
     "id": "adguard",
@@ -47,7 +48,8 @@
         "patch_dir": "adguard-hoo-dles",
         "options": "hoo-dles"
       }
-    ]
+    ],
+    "tag_prefix": "adguard"
   },
   {
     "id": "photos",
@@ -84,7 +86,8 @@
         "patch_dir": "gg-photos",
         "options": "arandomhooman"
       }
-    ]
+    ],
+    "tag_prefix": "gg-photos"
   },
   {
     "id": "truecaller",
@@ -121,6 +124,7 @@
         "patch_dir": "truecaller-bufferk",
         "options": "arandomhooman"
       }
-    ]
+    ],
+    "tag_prefix": "truecaller"
   }
 ]
