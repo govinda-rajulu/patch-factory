@@ -53,7 +53,7 @@
   },
   {
     "id": "photos",
-    "enabled": false,
+    "enabled": true,
     "package": "com.google.android.apps.photos",
     "apk_name": "gg-photos",
     "apk_type": "apk",
@@ -91,7 +91,7 @@
   },
   {
     "id": "truecaller",
-    "enabled": false,
+    "enabled": true,
     "package": "com.truecaller",
     "apk_name": "truecaller",
     "apk_type": "apk",
