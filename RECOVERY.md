@@ -25,9 +25,8 @@ Two minutes per target. Weekly cron polls Morphe for youtube only.
 - `src/build/resolve.sh` - elects a provider, prints WINNER / VERSION / PATCHES / MPP.
 - `src/build/check_sdk.sh` - minSdk gate, four readers, report-only.
 - `src/build/utils.sh` - upstream engine. `split_arch` at ~line 830. Do not edit.
-- `src/patches/
-/{include,exclude}-patches` - patch selection, one exact name per line.
-- `src/options/.json` - **must be a JSON array**, not an object.
+- `src/patches/DIR/{include,exclude}-patches` - patch selection, one exact name per line.
+- `src/options/NAME.json` - **must be a JSON array**, not an object.
 - `docs/` - the GitHub Pages download site. Nothing else goes in here.
 - `reference/` - notes, patch dumps, FAQ.
 

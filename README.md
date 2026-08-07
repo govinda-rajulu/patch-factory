@@ -13,15 +13,15 @@ Targets live in `src/targets.json`. Currently enabled: `youtube`, `photos`, `tru
 
 ## How a build works
 
-`src/build/build.sh ` does all of it:
+`src/build/build.sh TARGET` does all of it:
 
 1. reads the target from `src/targets.json`, refuses if `enabled` is false
 2. downloads morphe-desktop, then `resolve.sh` elects the winning provider
 3. `get_patches_key` with the winner's `patch_dir`
 4. `get_apk` from APKMirror
 5. `check_sdk.sh` against `min_sdk_ceiling` (report-only)
-6. `split_arch` to `./release/-arm64-v8a.apk`
-7. writes `.version` and `.tagprefix`, tag becomes `-v`
+6. `split_arch` to `./release/APKNAME-arm64-v8a.apk`
+7. writes `.version` and `.tagprefix`, tag becomes `PREFIX-vVERSION`
 8. fails loudly if no APK was produced
 
 `morphe.sh` is a wrapper for `build.sh youtube`.
@@ -29,8 +29,8 @@ Targets live in `src/targets.json`. Currently enabled: `youtube`, `photos`, `tru
 ## Adding a target
 
 Add an entry to `src/targets.json` with a `tag_prefix`, create
-`src/patches//{include,exclude}-patches`, ensure
-`src/options/.json` exists and is a **JSON array**, then add the id
+`src/patches/DIR/{include,exclude}-patches`, ensure
+`src/options/NAME.json` exists and is a **JSON array**, then add the id
 to the dropdown in `.github/workflows/manual-patch.yml`.
 
 **`tag_prefix` must never contain a provider name.** Obtainium matches on the
