@@ -94,7 +94,7 @@
     "enabled": true,
     "package": "com.truecaller",
     "apk_name": "truecaller",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
