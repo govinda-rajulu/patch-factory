@@ -12,6 +12,7 @@ on:
           - 'youtube'
           - 'photos'
           - 'truecaller'
+          - 'truecaller-combo'
   workflow_call:
     inputs:
       target:
