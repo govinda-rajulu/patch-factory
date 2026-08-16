@@ -15,6 +15,9 @@ runs:
         echo "version=$V" >> $GITHUB_OUTPUT
         echo "prefix=$P"  >> $GITHUB_OUTPUT
         echo "tag=$P-v$V"  >> $GITHUB_OUTPUT
+        R=$(cat ./release/.provider 2>/dev/null || echo "")
+        [ -n "$R" ] || R="Morphe"
+        echo "provider=$R" >> $GITHUB_OUTPUT
         echo "building release tag: $P-v$V"
         ls -la ./release/
 
@@ -25,8 +28,9 @@ runs:
         tag: ${{ steps.meta.outputs.tag }}
         name: ${{ steps.meta.outputs.tag }}
         body: |
-          Patched with [Morphe](https://github.com/MorpheApp/morphe-patches/releases).
+          Patch provider(s): ${{ steps.meta.outputs.provider }}
           App version ${{ steps.meta.outputs.version }} · arm64-v8a
+          Built with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).
         allowUpdates: true
         makeLatest: true
 

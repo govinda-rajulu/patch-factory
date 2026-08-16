@@ -1,61 +1,117 @@
 # patch-factory - recovery
 
 Patches Android APKs in GitHub Actions, publishes signed releases, consumed by
-Obtainium. Target device: Android 10, arm64-v8a, not rooted.
+Obtainium. Target device: Micromax IN Note 1, Android 10 (SDK 29), arm64-v8a,
+not rooted, MicroG RE installed alongside real Play Services.
 
 ## Signing key - READ FIRST
-- Alias: `factory`. Same key forever. Losing it means uninstall and clean
-  reinstall of every app, permanently.
+- Alias: `factory`. Same key forever. Signer sha256 starts `08480f6649a2`.
+- Losing it means uninstall and clean reinstall of every app, permanently.
+  On Truecaller that also costs a phone verification, and the app allows only
+  3-4 per 24 hours.
 - The key file is NOT in this repo and must never be. `.gitignore` blocks `*.keystore`.
 - Offline copies: TODO_WRITE_WHERE_YOU_PUT_IT
 - Secrets: `KEYSTORE_B64`, `KEYSTORE_PASS`, `KEYSTORE_ALIAS`.
+- Always install a new build OVER the old one. Never uninstall first: same
+  package plus same key means Android treats it as an update and app data,
+  logins and sessions survive.
 
 ## Build it
 
-    gh workflow run "1. Manual Patch" -f target=youtube      # or photos, truecaller
-    gh run watch
+    gh workflow run "1. Manual Patch" -f target=youtube
+    # targets: youtube | photos | truecaller | truecaller-combo   (adguard disabled)
 
-Two minutes per target. Weekly cron polls Morphe for youtube only.
+Two to three minutes per target. Weekly cron polls Morphe for youtube only.
+
+`build.sh` prints `[+] release tag: PREFIX-vVERSION` BEFORE the release step
+runs. That line is the cancel window: if it is wrong, `gh run cancel ` now.
+Prune keeps only the two newest releases per prefix and deletes their tags, so a
+wrong prefix on a completed run is unrecoverable.
 
 ## Layout
-- `src/targets.json` - the source of truth. Every target, its candidates,
+- `src/targets.json` - source of truth. Per target: candidates, `extra_bundles`,
   `tag_prefix`, `min_sdk_ceiling`, `enabled`.
 - `src/build/build.sh` - the build, generic over target id.
-- `src/build/morphe.sh` - wrapper for `build.sh youtube`.
+- `src/build/fetch_bundle.sh` - fetches exactly one .mpp from a github or gitlab
+  release. `fetch_bundle.sh HOST IDENT CHANNEL OUT`, prints PUB= TAG= SIZE=.
 - `src/build/resolve.sh` - elects a provider, prints WINNER / VERSION / PATCHES / MPP.
+- `src/build/morphe.sh` - wrapper for `build.sh youtube`. IGNORES any argument
+  you pass it. Do not use it for other targets.
 - `src/build/check_sdk.sh` - minSdk gate, four readers, report-only.
 - `src/build/utils.sh` - upstream engine. `split_arch` at ~line 830. Do not edit.
-- `src/patches/DIR/{include,exclude}-patches` - patch selection, one exact name per line.
+- `src/patches/DIR/{include,exclude}-patches` - one exact patch name per line.
 - `src/options/NAME.json` - **must be a JSON array**, not an object.
 - `docs/` - the GitHub Pages download site. Nothing else goes in here.
 - `reference/` - notes, patch dumps, FAQ.
 
+## Multi-provider targets
+
+A target elects ONE winner via `resolve.sh` (which decides the app version and
+which patch_dir and options file to use), and may list `extra_bundles` that are
+fetched afterwards and loaded alongside. `truecaller-combo` is the working
+example: winner bufferk on github, extra paresh on gitlab, 17 patches loaded,
+11 applied, 6 bufferk duplicates disabled by name in exclude-patches.
+
+- **A gitlab candidate or extra needs `project_id`.** Release assets there live
+  at opaque `/-/project//uploads//` URLs that cannot be constructed;
+  they must come from the API every run.
+- **`exclude-patches` matches by name across every loaded bundle.** That is what
+  makes dedupe work. Confirm no patch name exists in both bundles first, or an
+  exclude will silently take out the one you wanted to keep.
+- **Bundle filenames set load order.** When two bundles ship a class with the
+  same name the first loaded wins, so build.sh renames them `01-` (primary) and
+  `09-` (winner), rather than trusting version digits to sort as intended.
+- **`patch` takes ONE `-p` per bundle.** Its `-p=` is not variadic,
+  unlike `--patches=...` on `list-patches` and `list-versions`.
+  `-p *.mpp` silently consumes the second bundle as the `` argument and the
+  real APK becomes an unmatched argument. Also: `--patches` has no short form on
+  the list subcommands, where `-p` means `--with-packages`.
+- Provider defaults differ per repo. Always confirm `Applying N patches` and the
+  `Applied:` lines. `Skipping disabled: X` lines are expected and should number
+  exactly as many as your exclude list.
+
 ## Never exclude
 GmsCore support (MicroG breaks), Spoof video streams (playback breaks).
+The re-signing trio (`Provide Original app certificate` and its two dependents)
+cannot work in CI: it reads the cert from an installed app, and a runner has no
+device.
 
 ## Hard-won lessons
-- Never let an AI write files via the GitHub Contents API. It silently ate every
-  backslash escape in utils.sh, right byte count, broken file. Edit in a
-  terminal, diff against upstream.
-- Never paste base64 through a phone clipboard. It truncates. Pipe it:
-  `gh secret set NAME < file`
+- Never let an AI write repo files via the GitHub Contents API. It silently ate
+  every backslash escape in utils.sh: right byte count, broken file.
+- **Never run `cd $(git rev-parse --show-toplevel)` from outside the repo.** The
+  subshell fails, `cd` gets an empty argument and puts you in `$HOME`, and
+  everything after it runs in the wrong place. Use the absolute path.
+- **`gh run watch` prints step status only, never log lines.** To see the cancel
+  window either open the run in a browser or pull `gh run view  --log` after.
+- **Never read `databaseId` right after a dispatch** without checking it changed;
+  a rejected dispatch leaves you watching an older run that already succeeded.
+- Never paste base64 through a phone clipboard. Pipe it: `gh secret set NAME < file`
 - EOFException on the keystore means the secret is truncated, not a wrong password.
 - After any file write, read it back and check byte size.
-- **An options file of `{}` fails the whole patch step.** morphe-desktop wants an
-  array. `[]` is the correct empty value. Two files shipped as `{}` and killed
-  both new targets on their first run. CI now guards this.
+- **An options file of `{}` fails the whole patch step.** `[]` is the correct
+  empty value. CI guards this.
 - **`tag_prefix` must not contain the provider name.** A provider change would
-  break Obtainium matching, and the prune step deletes by prefix, so the old
-  releases become unprunable. `youtube-morphe` is grandfathered.
-- check_sdk exiting 0 used to mean "could not read", which looked identical to a
-  pass. Silence is not success. It now says UNVERIFIED out loud.
+  break Obtainium matching, and prune deletes by prefix. `youtube-morphe` is
+  grandfathered; `tc-combo` names a patch-set experiment, not a provider.
+- check_sdk exiting 0 used to mean "could not read", identical to a pass.
+  Silence is not success. It now says UNVERIFIED out loud.
+- A green run does not mean an artifact exists. Check the release, not the tick.
 
 ## Known gap
-`resolve.sh` judges the newest **prerelease** bundle, but `dl_gh` downloads
-whatever assets the release carries, which for rushiranpise and bufferk was the
-**stable** .mpp. The patch count and compatible-version list you resolved are
-therefore not guaranteed to match the bundle that actually patches. Not yet fixed.
+`resolve.sh` and `dl_gh` both take the newest release on the prerelease channel
+and agree in practice. Only the unused MPP cache fallback path can serve a stale
+bundle, and `fetch_bundle.sh` clears its target directory before writing.
+
+## Ageing out
+`max_patch_age_days` is 60. bufferk's bundle is dated 18 Jul 2026 and is the
+candidate for BOTH `truecaller` and `truecaller-combo`, so around 17 Sep 2026
+both will fail with "no viable provider" even though the patches still work.
+Fix then by raising the gate for that target or swapping the winner.
+`extra_bundles` are deliberately NOT age-checked.
 
 ## On-device
 MicroG RE installed and signed in BEFORE the patched YouTube, battery
 Unrestricted. Play Store shows an uninstallable YouTube update forever; ignore it.
+Photos keeps the default package with the label overridden, because changing a
+package makes it a new app and Obtainium loses it.

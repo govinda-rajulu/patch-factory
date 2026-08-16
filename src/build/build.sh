@@ -120,6 +120,16 @@ done
 # --- 7. release metadata ---------------------------------------------------
 echo "$version" > ./release/.version
 echo "$PREFIX"  > ./release/.tagprefix
+PROV=""
+for M in ./*.mpp ./extra/*.mpp; do
+  [ -f "$M" ] || continue
+  NM=$(basename "$M" .mpp | sed 's/^[0-9]*-//')
+  case " $PROV " in *" $NM "*) continue ;; esac
+  PROV="${PROV:+$PROV + }$NM"
+done
+[ -n "$PROV" ] || PROV="$WINNER"
+echo "$PROV" > ./release/.provider
+green_log "[+] providers: $PROV"
 green_log "[+] release tag: $PREFIX-v$version"
 
 # --- 8. assert -------------------------------------------------------------
