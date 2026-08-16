@@ -9,6 +9,9 @@ Target device: Android 10 (SDK 29), arm64-v8a, not rooted.
 
     gh workflow run "1. Manual Patch" -f target=youtube
 
+A weekly cron polls targets flagged `"poll": true` and rebuilds only when a
+provider ships a newer bundle. See RECOVERY.md.
+
 Targets live in `src/targets.json`. Enabled: `youtube`, `photos`, `truecaller`,
 `truecaller-combo`. Disabled: `adguard`.
 

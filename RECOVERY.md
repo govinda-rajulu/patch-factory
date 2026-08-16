@@ -86,7 +86,19 @@ No verification cost, so uninstalling is merely inconvenient.
     gh workflow run "1. Manual Patch" -f target=youtube
     # targets: youtube | photos | truecaller | truecaller-combo   (adguard disabled)
 
-Two to three minutes per target. Weekly cron polls Morphe for youtube only.
+Two to three minutes per target.
+
+Weekly cron (Fri 12:30 UTC) polls only targets with `"poll": true` in
+targets.json, one matrix leg each, via `src/etc/poll.sh`. It compares the
+newest bundle date across ALL of a target's candidates AND extra_bundles
+against my newest release for that tag_prefix, and builds only if a source is
+newer. An unreadable provider date or a missing prior release means it refuses
+to build rather than guessing, because "empty lookup" used to mean "rebuild"
+and that quietly rebuilt every week forever after an asset rename.
+
+Polled today: youtube, photos. `truecaller` stays manual on purpose (frozen
+revert path) and `truecaller-combo` joins once its device test is settled: a
+cron rebuild replaces the asset under you mid-test.
 
 `build.sh` prints `[+] release tag: PREFIX-vVERSION` BEFORE the release step
 runs. That line is the cancel window: if it is wrong, `gh run cancel ` now.
