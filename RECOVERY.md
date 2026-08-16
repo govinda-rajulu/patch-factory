@@ -21,6 +21,7 @@ not rooted, MicroG RE installed alongside real Play Services.
 - The keystore PASSWORD may exist only inside the `KEYSTORE_PASS` secret, which
   cannot be read back. Without it the key file is useless. Write it down wherever
   the key file lives. Alias is `factory`.
+- Secrets used by CI: `KEYSTORE_B64`, `KEYSTORE_PASS`, `KEYSTORE_ALIAS`.
 - Installing and updating: see the Installing a build section below.
 
 ## Installing a build

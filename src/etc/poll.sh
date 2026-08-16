@@ -8,11 +8,13 @@ REPO="${repository:?repository env required}"
 T=$(jq -c --arg id "$ID" '.[] | select(.id==$id)' src/targets.json)
 [ -n "$T" ] || { echo "::error::no target $ID"; exit 1; }
 PREFIX=$(jq -r '.tag_prefix // .id' <<<"$T")
+AUTH=()
+[ -n "${GITHUB_TOKEN:-}" ] && AUTH=(-H "Authorization: token $GITHUB_TOKEN")
 
 # newest source bundle date across every candidate and extra
 NEWEST=0; NEWEST_WHO=""
-srcs=$(jq -r '[(.candidates[] | {h:(.host//"github"), p:(.project_id//""), o:.owner, r:.repo, n:.name}),
-              ((.extra_bundles // [])[] | {h:(.host//"github"), p:(.project_id//""), o:.owner, r:.repo, n:.name})]
+srcs=$(jq -r '[(.candidates[] | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name}),
+              ((.extra_bundles // [])[] | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name})]
              | .[] | [.n,.h,.p,.o,.r] | @tsv' <<<"$T")
 while IFS=$'\t' read -r n h p o r; do
   [ -n "$n" ] || continue
@@ -20,7 +22,7 @@ while IFS=$'\t' read -r n h p o r; do
     D=$(curl -sSL "https://gitlab.com/api/v4/projects/$p/releases?per_page=5" \
         | jq -r 'first(.[]) | .released_at // ""')
   else
-    D=$(curl -sSL ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} \
+    D=$(curl -sSL "${AUTH[@]}" \
         "https://api.github.com/repos/$o/$r/releases" \
         | jq -r 'first(.[] | .assets[] | select(.name | test("[.]mpp$")) | .updated_at) // ""')
   fi
@@ -36,7 +38,7 @@ if [ "$NEWEST" = 0 ]; then
 fi
 
 # my newest release for this prefix
-MINE=$(curl -sSL ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} \
+MINE=$(curl -sSL "${AUTH[@]}" \
   "https://api.github.com/repos/$REPO/releases?per_page=100" \
   | jq -r --arg p "$PREFIX-v" '[.[] | select(.tag_name | startswith($p))]
       | sort_by(.published_at) | reverse | first | .published_at // ""')
