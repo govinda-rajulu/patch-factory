@@ -19,7 +19,8 @@
         "options": "morphe"
       }
     ],
-    "tag_prefix": "youtube-morphe"
+    "tag_prefix": "youtube-morphe",
+    "poll": true
   },
   {
     "id": "adguard",
@@ -87,7 +88,8 @@
         "options": "arandomhooman"
       }
     ],
-    "tag_prefix": "gg-photos"
+    "tag_prefix": "gg-photos",
+    "poll": true
   },
   {
     "id": "truecaller",
@@ -125,7 +127,8 @@
         "options": "arandomhooman"
       }
     ],
-    "tag_prefix": "truecaller"
+    "tag_prefix": "truecaller",
+    "poll": false
   },
   {
     "id": "truecaller-combo",
@@ -158,6 +161,7 @@
         "channel": "prerelease"
       }
     ],
-    "tag_prefix": "tc-combo"
+    "tag_prefix": "tc-combo",
+    "poll": false
   }
 ]

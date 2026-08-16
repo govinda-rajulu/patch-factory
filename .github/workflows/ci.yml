@@ -1,5 +1,7 @@
 name: 2. Check new patch
-permissions: write-all
+permissions:
+  contents: write
+  actions: write
 
 on:
   schedule:
@@ -8,29 +10,49 @@ on:
 
 jobs:
   check:
-    name: Check new patch
+    name: Poll ${{ matrix.target }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [youtube, photos]
+    outputs:
+      build_youtube: ${{ steps.gate.outputs.youtube }}
+      build_photos: ${{ steps.gate.outputs.photos }}
     env:
       repository: ${{ github.repository }}
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
+      - name: Confirm target opted in
+        run: |
+          P=$(jq -r --arg id "${{ matrix.target }}" '.[] | select(.id==$id) | .poll // false' src/targets.json)
+          echo "poll flag for ${{ matrix.target }}: $P"
+          [ "$P" = "true" ] || { echo "::error::${{ matrix.target }} is not opted in to polling"; exit 1; }
       - name: Check github connection
         id: check-gh
         run: bash src/etc/connection.sh
-      - name: Check new patch Morphe
-        id: check-morphe
+      - name: Freshness
+        id: poll
         if: steps.check-gh.outputs.internet_error == '0'
-        run: bash src/etc/ci.sh MorpheApp/morphe-patches prerelease youtube-arm64-v8a
-    outputs:
-      check_morphe: ${{ steps.check-morphe.outputs.new_patch }}
+        run: bash src/etc/poll.sh "${{ matrix.target }}"
+      - name: Expose decision
+        id: gate
+        run: echo "${{ matrix.target }}=${{ steps.poll.outputs.new_patch || '0' }}" >> $GITHUB_OUTPUT
 
-  Patch-Morphe:
-    name: Patch Morphe
+  build-youtube:
     needs: check
-    if: ${{ needs.check.outputs.check_morphe == 1 }}
+    if: needs.check.outputs.build_youtube == '1'
     uses: ./.github/workflows/manual-patch.yml
     secrets: inherit
     with:
       target: "youtube"
+
+  build-photos:
+    needs: check
+    if: needs.check.outputs.build_photos == '1'
+    uses: ./.github/workflows/manual-patch.yml
+    secrets: inherit
+    with:
+      target: "photos"

@@ -21,10 +21,65 @@ not rooted, MicroG RE installed alongside real Play Services.
 - The keystore PASSWORD may exist only inside the `KEYSTORE_PASS` secret, which
   cannot be read back. Without it the key file is useless. Write it down wherever
   the key file lives. Alias is `factory`.
-- Secrets: `KEYSTORE_B64`, `KEYSTORE_PASS`, `KEYSTORE_ALIAS`.
-- Always install a new build OVER the old one. Never uninstall first: same
-  package plus same key means Android treats it as an update and app data,
-  logins and sessions survive.
+- Installing and updating: see the Installing a build section below.
+
+## Installing a build
+
+Same package plus same signing key means Android accepts a patched APK as a
+normal update: app data, logins and sessions survive. That is the default path
+and it costs nothing.
+
+**Update in place first, every time.** Do not uninstall as a reflex.
+
+If the installer refuses (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`, or a generic
+"App not installed"), work down this ladder and stop at the first one that works:
+
+1. Confirm the APK is the arch you expect (`*-arm64-v8a.apk`) and finished
+   downloading. A truncated file fails with the same useless message.
+2. Confirm the new version is not LOWER than what is installed. Android refuses
+   downgrades even with a matching key. Check Settings > Apps > the app > version.
+3. If Play Protect blocks it, turn Play Protect scanning off for the install and
+   back on after.
+4. Only now consider uninstalling, and read the app-specific rules below first.
+
+`INSTALL_FAILED_UPDATE_INCOMPATIBLE` with the right arch and a higher version
+means the SIGNATURE differs. That is either a build signed with a different key
+or an app installed from a different source (Play Store copy vs patched copy).
+Uninstalling is then genuinely required, and the app-specific cost applies.
+
+### Truecaller: the verification budget
+
+Truecaller allows roughly **3-4 phone verifications per 24 hours**, then a
+cooldown you cannot shorten. Uninstalling clears the session, so the next
+install needs one.
+
+- **Budget it: one verification per day, deliberately.** Never uninstall twice
+  in one session while trying variations of a build.
+- Before uninstalling, be sure the replacement APK is already on the device and
+  verified (correct size, arch, and version). Uninstalling first and discovering
+  the download failed is how a whole day gets burned.
+- If a patched Truecaller build turns out bad, the revert is
+  `truecaller-arm64-v8a.apk` from the `truecaller-v26.10.6` release, installed
+  OVER the top. Same key, so no verification needed. Keep that release alive.
+- `GMS sign-in bypass` (paresh) forces SMS OTP instead of the GMS retriever,
+  which is what makes sign-in possible at all on a re-signed APK. Without it a
+  fresh sign-in can fail outright and still consume an attempt.
+- Two patched Truecaller builds cannot coexist: same package, so one replaces
+  the other. A/B testing therefore costs verifications, which is exactly why
+  `truecaller-combo` loads both providers in a single APK instead.
+
+### Photos, YouTube, and anything else
+
+No verification cost, so uninstalling is merely inconvenient.
+
+- **Photos:** signed in through MicroG. Uninstalling loses that account link and
+  it must be set up again, but nothing rate-limits you. A DIFFERENT patch set on
+  the same package IS a real reason to uninstall first: Android rejects it as an
+  update when the signature or manifest conflicts.
+- **YouTube:** no login required for the patched build to work. Uninstall freely.
+  Play Store will keep offering an uninstallable update forever; ignore it.
+- Any app patched with a CHANGED package name is a separate app. Installing it
+  does not touch the original, and Obtainium tracks them separately.
 
 ## Build it
 
