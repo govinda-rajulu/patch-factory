@@ -41,7 +41,7 @@ fi
 MINE=$(curl -sSL "${AUTH[@]}" \
   "https://api.github.com/repos/$REPO/releases?per_page=100" \
   | jq -r --arg p "$PREFIX-v" '[.[] | select(.tag_name | startswith($p))]
-      | sort_by(.published_at) | reverse | first | .published_at // ""')
+      | map(.assets[]?.updated_at) | sort | last // ""')
 
 if [ -z "$MINE" ] || [ "$MINE" = "null" ]; then
   echo "::warning::$ID: no existing release for prefix $PREFIX, refusing to auto-build"
