@@ -38,3 +38,28 @@ jobs:
             bash -n "$f" || { echo "::error::$f failed bash -n"; exit 1; }
           done
           echo "all scripts parse"
+      - name: New-field integrity
+        run: |
+          FAIL=0
+          while IFS=$'\t' read -r id host pid; do
+            if [ "$host" = "gitlab" ] && { [ -z "$pid" ] || [ "$pid" = "null" ]; }; then
+              echo "::error::$id: gitlab candidate needs project_id"; FAIL=1
+            fi
+          done < <(jq -r '.[] | .id as $i | .candidates[] | [$i, (.host // "github"), (.project_id // "")] | @tsv' src/targets.json)
+          while IFS=$'\t' read -r id nm host pid owner repo; do
+            [ -n "$nm" ] && [ "$nm" != "null" ] || { echo "::error::$id: extra_bundles entry has no name"; FAIL=1; }
+            case "$host" in
+              gitlab) [ -n "$pid" ] && [ "$pid" != "null" ] || { echo "::error::$id: gitlab extra needs project_id"; FAIL=1; } ;;
+              github) [ -n "$owner" ] && [ -n "$repo" ] || { echo "::error::$id: github extra needs owner and repo"; FAIL=1; } ;;
+              *) echo "::error::$id: unknown extra host '$host'"; FAIL=1 ;;
+            esac
+          done < <(jq -r '.[] | .id as $i | (.extra_bundles // [])[] | [$i, .name, (.host // "github"), (.project_id // ""), (.owner // ""), (.repo // "")] | @tsv' src/targets.json)
+          EB=$(jq -r '[.[] | (.extra_bundles // []) | length] | add // 0' src/targets.json)
+          echo "extra_bundles declared across all targets: $EB"
+          if [ "$EB" -gt 0 ]; then
+            [ -f src/build/fetch_bundle.sh ] || { echo "::error::extra_bundles declared but src/build/fetch_bundle.sh is missing"; FAIL=1; }
+            grep -q extra_bundles src/build/build.sh || { echo "::error::extra_bundles declared but build.sh never reads it"; FAIL=1; }
+            grep -q 'EXTRA_P' src/build/build.sh || { echo "::error::extra_bundles declared but build.sh has no per-bundle -p logic"; FAIL=1; }
+          fi
+          [ "$FAIL" = 0 ] && echo "new-field integrity OK"
+          exit $FAIL
