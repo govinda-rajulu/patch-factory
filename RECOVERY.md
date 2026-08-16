@@ -12,7 +12,8 @@ not rooted, MicroG RE installed alongside real Play Services.
 - The key file is NOT in this repo and must never be. `.gitignore` blocks `*.keystore`.
 - Offline copies:
   - Emailed to self as an attachment. Search the mail account for `family.keystore`.
-    VERIFY it is the .keystore file itself, not just its base64 text.
+    VERIFIED 16 Aug 2026: the attachment is the real .keystore file, and a
+    second file alongside it holds the password, the alias and the cert validity.
   - **GitHub secrets are NOT a backup.** `KEYSTORE_B64`, `KEYSTORE_PASS` and
     `KEYSTORE_ALIAS` are write-only: they can be overwritten, never read back.
   - ONE copy today, so one deleted mail thread loses every app permanently.
