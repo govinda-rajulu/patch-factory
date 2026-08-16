@@ -57,8 +57,31 @@ if ! ls ./*.mpp >/dev/null 2>&1; then
     cp "$MPP" ./
   fi
 fi
+# --- 2b. extra bundles, numbered so glob order is ours ----------------------
+WANT=1
+FIRST=$(ls ./*.mpp 2>/dev/null | head -1)
+[ -n "$FIRST" ] || { red_log "[-] no winner bundle in cwd"; exit 1; }
+mv "$FIRST" "./09-$WINNER.mpp"
+green_log "[+] bundle 09 $WINNER $(wc -c < "./09-$WINNER.mpp") bytes"
+EJ=0
+while IFS= read -r E; do
+  [ -n "$E" ] || continue
+  EJ=$((EJ+1))
+  EH=$(jq -r '.host // "github"' <<<"$E")
+  ENM=$(jq -r '.name' <<<"$E")
+  ECH=$(jq -r '.channel // "prerelease"' <<<"$E")
+  if [ "$EH" = "gitlab" ]; then
+    EID=$(jq -r '.project_id' <<<"$E")
+  else
+    EID="$(jq -r '.owner' <<<"$E")/$(jq -r '.repo' <<<"$E")"
+  fi
+  EK=$(printf "%02d" "$EJ")
+  FB=$(bash ./src/build/fetch_bundle.sh "$EH" "$EID" "$ECH" "./$EK-$ENM.mpp" 2>&1) || { red_log "[-] extra bundle $ENM failed: $FB"; exit 1; }
+  green_log "[+] bundle $EK $ENM $(sed -n "s/^TAG=//p" <<<"$FB") $(sed -n "s/^SIZE=//p" <<<"$FB") bytes"
+  WANT=$((WANT+1))
+done < <(jq -c '(.extra_bundles // [])[]' <<<"$T")
 N=$(ls ./*.mpp 2>/dev/null | wc -l)
-[ "$N" -eq 1 ] || { red_log "[-] need exactly 1 .mpp in cwd, found $N"; ls ./*.mpp 2>/dev/null; exit 1; }
+[ "$N" -eq "$WANT" ] || { red_log "[-] need exactly $WANT .mpp in cwd, found $N"; ls ./*.mpp 2>/dev/null; exit 1; }
 green_log "[+] patch bundle: $(ls ./*.mpp)"
 
 # --- 3. patch selection ----------------------------------------------------
