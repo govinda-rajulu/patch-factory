@@ -88,6 +88,19 @@ green_log "[+] patch bundle: $(ls ./*.mpp)"
 [ -d "src/patches/$PDIR" ]      || { red_log "[-] missing src/patches/$PDIR"; exit 1; }
 [ -f "src/options/$OPTS.json" ] || { red_log "[-] missing src/options/$OPTS.json"; exit 1; }
 set +u; get_patches_key "$PDIR"; set -u
+# --- 3b. one bundle stays in cwd, the rest become extra -p flags ------------
+mkdir -p ./extra
+EXTRA_P=""
+for M in $(ls ./*.mpp | sort | tail -n +2); do
+  BN=$(basename "$M")
+  mv "$M" "./extra/$BN"
+  EXTRA_P="$EXTRA_P -p ./extra/$BN"
+done
+excludePatches="$EXTRA_P$excludePatches"
+NC=$(ls ./*.mpp 2>/dev/null | wc -l)
+[ "$NC" -eq 1 ] || { red_log "[-] want 1 .mpp in cwd, found $NC"; exit 1; }
+green_log "[+] primary bundle: $(ls ./*.mpp)"
+green_log "[+] extra -p flags:$EXTRA_P"
 
 # --- 4. apk ----------------------------------------------------------------
 version="$RVER"
