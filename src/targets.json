@@ -139,11 +139,10 @@
     "pin": null,
     "candidates": [
       {
-        "name": "paresh",
-        "host": "gitlab",
-        "project_id": 82031658,
-        "owner": "Paresh-Maheshwari",
-        "repo": "paresh-patches",
+        "name": "bufferk",
+        "host": "github",
+        "owner": "bufferk",
+        "repo": "morphe-patches",
         "channel": "prerelease",
         "patch_dir": "truecaller-combo",
         "options": "combo"
@@ -151,10 +150,11 @@
     ],
     "extra_bundles": [
       {
-        "name": "bufferk",
-        "host": "github",
-        "owner": "bufferk",
-        "repo": "morphe-patches",
+        "name": "paresh",
+        "host": "gitlab",
+        "project_id": 82031658,
+        "owner": "Paresh-Maheshwari",
+        "repo": "paresh-patches",
         "channel": "prerelease"
       }
     ],
