@@ -126,5 +126,38 @@
       }
     ],
     "tag_prefix": "truecaller"
+  },
+  {
+    "id": "truecaller-combo",
+    "enabled": true,
+    "package": "com.truecaller",
+    "apk_name": "tc-combo",
+    "apk_type": "bundle",
+    "max_app_version": null,
+    "max_patch_age_days": 60,
+    "min_sdk_ceiling": 29,
+    "pin": null,
+    "candidates": [
+      {
+        "name": "paresh",
+        "host": "gitlab",
+        "project_id": 82031658,
+        "owner": "Paresh-Maheshwari",
+        "repo": "paresh-patches",
+        "channel": "prerelease",
+        "patch_dir": "truecaller-combo",
+        "options": "combo"
+      }
+    ],
+    "extra_bundles": [
+      {
+        "name": "bufferk",
+        "host": "github",
+        "owner": "bufferk",
+        "repo": "morphe-patches",
+        "channel": "prerelease"
+      }
+    ],
+    "tag_prefix": "tc-combo"
   }
 ]
