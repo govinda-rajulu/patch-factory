@@ -10,7 +10,16 @@ not rooted, MicroG RE installed alongside real Play Services.
   On Truecaller that also costs a phone verification, and the app allows only
   3-4 per 24 hours.
 - The key file is NOT in this repo and must never be. `.gitignore` blocks `*.keystore`.
-- Offline copies: TODO_WRITE_WHERE_YOU_PUT_IT
+- Offline copies:
+  - Emailed to self as an attachment. Search the mail account for `family.keystore`.
+    VERIFY it is the .keystore file itself, not just its base64 text.
+  - **GitHub secrets are NOT a backup.** `KEYSTORE_B64`, `KEYSTORE_PASS` and
+    `KEYSTORE_ALIAS` are write-only: they can be overwritten, never read back.
+  - ONE copy today, so one deleted mail thread loses every app permanently.
+    A second offline copy (USB or encrypted folder) is still owed.
+- The keystore PASSWORD may exist only inside the `KEYSTORE_PASS` secret, which
+  cannot be read back. Without it the key file is useless. Write it down wherever
+  the key file lives. Alias is `factory`.
 - Secrets: `KEYSTORE_B64`, `KEYSTORE_PASS`, `KEYSTORE_ALIAS`.
 - Always install a new build OVER the old one. Never uninstall first: same
   package plus same key means Android treats it as an update and app data,
