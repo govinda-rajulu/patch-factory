@@ -15,10 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [youtube, photos]
+        target: [youtube, photos, truecaller-combo]
     outputs:
       build_youtube: ${{ steps.gate.outputs.youtube }}
       build_photos: ${{ steps.gate.outputs.photos }}
+      build_truecaller_combo: ${{ steps.gate.outputs['truecaller-combo'] }}
     env:
       repository: ${{ github.repository }}
       GITHUB_TOKEN: ${{ github.token }}
@@ -56,3 +57,11 @@ jobs:
     secrets: inherit
     with:
       target: "photos"
+
+  build-truecaller-combo:
+    needs: check
+    if: needs.check.outputs.build_truecaller_combo == '1'
+    uses: ./.github/workflows/manual-patch.yml
+    secrets: inherit
+    with:
+      target: "truecaller-combo"
