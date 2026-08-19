@@ -1,5 +1,6 @@
 name: 1. Manual Patch
-permissions: write-all
+permissions:
+  contents: write
 on:
   workflow_dispatch:
     inputs:
