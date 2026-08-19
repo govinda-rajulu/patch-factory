@@ -63,3 +63,16 @@ jobs:
           fi
           [ "$FAIL" = 0 ] && echo "new-field integrity OK"
           exit $FAIL
+      - name: Exclusive integrity
+        run: |
+          FAIL=0
+          EX=$(jq -r '[.[] | select(.exclusive == true)] | length' src/targets.json)
+          echo "targets with exclusive: $EX"
+          if [ "$EX" -gt 0 ]; then
+            grep -q -- --exclusive src/build/build.sh || { echo "::error::exclusive declared but build.sh never passes --exclusive"; FAIL=1; }
+            while IFS=: read -r id pd; do
+              [ -s "src/patches/$pd/include-patches" ] || { echo "::error::$id: exclusive needs a non-empty include-patches in $pd"; FAIL=1; }
+            done < <(jq -r '.[] | select(.exclusive == true) | .id as $i | .candidates[] | $i + ":" + .patch_dir' src/targets.json)
+          fi
+          [ "$FAIL" = 0 ] && echo "exclusive integrity OK"
+          exit $FAIL
