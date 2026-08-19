@@ -97,13 +97,17 @@ for M in $(ls ./*.mpp | sort | tail -n +2); do
   mv "$M" "./extra/$BN"
   EXTRA_P="$EXTRA_P -p ./extra/$BN"
 done
+SELO=$(bash ./src/build/selections.sh "$ID" "$WINNER") || { red_log "[-] selections.sh failed"; exit 1; }
+WANT_E=$(sed -n 's/^WANT=//p' <<<"$SELO")
+SEL=$(sed -n 's/^SEL=//p' <<<"$SELO")
 if [ "$EXCL" = "true" ]; then
-  [ -n "$includePatches" ] || { red_log "[-] exclusive needs a non-empty include-patches"; exit 1; }
-  excludePatches=" --exclusive$EXTRA_P$excludePatches"
-  green_log "[+] exclusive on: only include-patches will apply"
+  [ "${WANT_E:-0}" -gt 0 ] || { red_log "[-] exclusive needs a non-empty include list"; exit 1; }
+  excludePatches=" --exclusive$SEL"
+  green_log "[+] exclusive on, expecting $WANT_E patches"
 else
-  excludePatches="$EXTRA_P$excludePatches"
+  excludePatches="$SEL"
 fi
+includePatches=""
 NC=$(ls ./*.mpp 2>/dev/null | wc -l)
 [ "$NC" -eq 1 ] || { red_log "[-] want 1 .mpp in cwd, found $NC"; exit 1; }
 green_log "[+] primary bundle: $(ls ./*.mpp)"
@@ -121,7 +125,14 @@ bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" 2>&1 \
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
 for i in 0; do
-  set +u; split_arch "$APK_NAME" "$OPTS"; set -u
+  set +u; split_arch "$APK_NAME" "$OPTS" > /tmp/patch.log 2>&1; SA=$?; set -u
+ cat /tmp/patch.log
+ AP=$(grep -c "Applied: " /tmp/patch.log)
+ green_log "[+] applied $AP patches (rc=$SA)"
+ if [ "$EXCL" = "true" ] && [ "$AP" != "$WANT_E" ]; then
+  red_log "[-] applied $AP but include list says $WANT_E - refusing to release"
+  grep "Skipping disabled" /tmp/patch.log | head -30; exit 1
+ fi
 done
 
 # --- 7. release metadata ---------------------------------------------------

@@ -158,7 +158,8 @@
         "project_id": 82031658,
         "owner": "Paresh-Maheshwari",
         "repo": "paresh-patches",
-        "channel": "prerelease"
+        "channel": "prerelease",
+        "patch_dir": "truecaller-paresh"
       }
     ],
     "tag_prefix": "tc-combo",
