@@ -162,6 +162,7 @@
       }
     ],
     "tag_prefix": "tc-combo",
-    "poll": false
+    "poll": false,
+    "exclusive": true
   }
 ]
