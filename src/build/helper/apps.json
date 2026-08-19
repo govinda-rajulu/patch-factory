@@ -11,6 +11,9 @@
   "com.truecaller": {
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=truecaller-caller-id-block",
    "example_url": "https://www.apkmirror.com/apk/true-software-scandinavia-ab/truecaller-caller-id-block/truecaller-trusted-caller-id-26-17-6-release/"
+  },
+  "com.adguard.android": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=adguard"
   }
  },
  "apkpure": {

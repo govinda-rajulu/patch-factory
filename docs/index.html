@@ -231,7 +231,7 @@ const REPO  = 'patch-factory';
 const WF    = 'manual-patch.yml';
 
 // tag prefix -> what a human calls it. Order here is display order.
-const CATALOG = [
+let CATALOG = [
   { prefix:'youtube-morphe', target:'youtube',    name:'YouTube',       note:'No ads, background play, SponsorBlock' },
   { prefix:'gg-photos',      target:'photos',     name:'Google Photos', note:'Unlimited original-quality backup' },
   { prefix:'truecaller',     target:'truecaller', name:'Truecaller',    note:'Ads and trackers stripped' },
@@ -439,7 +439,23 @@ async function checkRuns(){
   } catch { /* silent, this is a nicety */ }
 }
 
-load();
+const TARGETS_URL = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/main/src/targets.json';
+const LABELS = {};
+CATALOG.forEach(function(a){ LABELS[a.target] = { name: a.name, note: a.note }; });
+async function loadCatalog(){
+ try {
+  const r = await fetch(TARGETS_URL + '?cb=' + Date.now());
+  if (!r.ok) return;
+  const t = await r.json();
+  if (!Array.isArray(t) || !t.length) return;
+  CATALOG = t.map(function(x){
+   const l = LABELS[x.id] || {};
+   return { prefix: x.tag_prefix || x.id, target: x.id, name: l.name || x.id,
+    note: l.note || (x.enabled ? 'Patched build' : 'Not enabled yet') };
+  });
+ } catch (e) { }
+}
+loadCatalog().then(load);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
 </script>
 </body>
