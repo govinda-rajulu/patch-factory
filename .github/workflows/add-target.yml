@@ -1,0 +1,141 @@
+name: 5. Add target
+permissions:
+  contents: write
+on:
+  workflow_dispatch:
+    inputs:
+      id:
+        description: 'Target id, lowercase, e.g. telegram'
+        required: true
+        type: string
+      package:
+        description: 'Package name, e.g. org.telegram.messenger'
+        required: true
+        type: string
+      tag_prefix:
+        description: 'Release tag prefix, no provider name in it'
+        required: true
+        type: string
+      apkmirror_list_url:
+        description: 'APKMirror uploads list url for this app'
+        required: true
+        type: string
+      provider_name:
+        description: 'Provider short name, e.g. hoo-dles'
+        required: true
+        type: string
+      provider_host:
+        description: 'Provider host'
+        required: true
+        default: 'github'
+        type: choice
+        options:
+          - 'github'
+          - 'gitlab'
+      provider_ident:
+        description: 'OWNER/REPO for github, numeric project id for gitlab'
+        required: true
+        type: string
+      apk_type:
+        description: 'APKMirror download type'
+        required: true
+        default: 'apk'
+        type: choice
+        options:
+          - 'apk'
+          - 'bundle'
+jobs:
+  add:
+    name: Add ${{ inputs.id }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Guards
+        env:
+          ID: ${{ inputs.id }}
+          PKG: ${{ inputs.package }}
+          TP: ${{ inputs.tag_prefix }}
+          PN: ${{ inputs.provider_name }}
+        run: |
+          FAIL=0
+          echo "$ID" | grep -Eq '^[a-z0-9-]+$' || { echo "::error::id must be lowercase letters, digits and hyphens"; FAIL=1; }
+          echo "$TP" | grep -Eq '^[a-z0-9-]+$' || { echo "::error::tag_prefix must be lowercase letters, digits and hyphens"; FAIL=1; }
+          jq -e --arg i "$ID" 'any(.[]; .id == $i)' src/targets.json > /dev/null && { echo "::error::target id $ID already exists"; FAIL=1; }
+          jq -e --arg t "$TP" 'any(.[]; (.tag_prefix // .id) == $t)' src/targets.json > /dev/null && { echo "::error::tag_prefix $TP is already used"; FAIL=1; }
+          D="src/patches/$ID-$PN"
+          [ -e "$D" ] && { echo "::error::$D already exists, refusing to clobber"; FAIL=1; }
+          [ -e "src/options/$PN.json" ] && echo "::warning::src/options/$PN.json exists, reusing it"
+          echo "planned dir: $D"
+          exit $FAIL
+      - name: Write files
+        env:
+          ID: ${{ inputs.id }}
+          PKG: ${{ inputs.package }}
+          TP: ${{ inputs.tag_prefix }}
+          URL: ${{ inputs.apkmirror_list_url }}
+          PN: ${{ inputs.provider_name }}
+          PH: ${{ inputs.provider_host }}
+          PI: ${{ inputs.provider_ident }}
+          AT: ${{ inputs.apk_type }}
+        run: |
+          D="src/patches/$ID-$PN"
+          mkdir -p "$D"; : > "$D/include-patches"; : > "$D/exclude-patches"
+          [ -f "src/options/$PN.json" ] || echo '[]' > "src/options/$PN.json"
+          if [ "$PH" = "gitlab" ]; then
+            CAND=$(jq -n --arg n "$PN" --arg p "$PI" --arg d "$ID-$PN" \
+              '{name:$n, host:"gitlab", project_id:($p|tonumber), channel:"prerelease", patch_dir:$d, options:$n}')
+          else
+            CAND=$(jq -n --arg n "$PN" --arg o "${PI%%/*}" --arg r "${PI##*/}" --arg d "$ID-$PN" \
+              '{name:$n, host:"github", owner:$o, repo:$r, channel:"prerelease", patch_dir:$d, options:$n}')
+          fi
+          jq --indent 2 --arg i "$ID" --arg p "$PKG" --arg t "$TP" --arg a "$AT" --argjson c "$CAND" \
+            '. + [{id:$i, enabled:false, package:$p, apk_name:$i, apk_type:$a,
+                   max_app_version:null, max_patch_age_days:60, min_sdk_ceiling:29,
+                   pin:null, candidates:[$c], tag_prefix:$t, poll:false}]' \
+            src/targets.json > /tmp/t.json
+          jq -e . /tmp/t.json > /dev/null || { echo "::error::produced invalid targets.json"; exit 1; }
+          N=$(jq length /tmp/t.json); O=$(jq length src/targets.json)
+          [ "$N" -eq "$((O+1))" ] || { echo "::error::expected $((O+1)) targets, got $N"; exit 1; }
+          mv /tmp/t.json src/targets.json
+          jq --indent 1 --arg p "$PKG" --arg u "$URL" '.apkmirror[$p].list_url = $u' \
+            src/build/helper/apps.json > /tmp/a.json
+          jq -e . /tmp/a.json > /dev/null && mv /tmp/a.json src/build/helper/apps.json
+          python3 - <<'PY'
+          import os
+          p='.github/workflows/manual-patch.yml'
+          s=open(p).read()
+          i=os.environ['ID']
+          assert s.count("- '"+i+"'")==0, 'dropdown entry already present'
+          m='  workflow_call:'
+          assert s.count(m)==1, 'workflow_call anchor not unique'
+          L=s.split(chr(10))
+          opts=[k for k,x in enumerate(L) if x.strip().startswith("- '")]
+          assert opts, 'no option lines found'
+          last=opts[-1]
+          pad=L[last][:len(L[last])-len(L[last].lstrip())]
+          L.insert(last+1, pad + "- '" + i + "'")
+          open(p,'w').write(chr(10).join(L))
+          print('inserted dropdown entry after line', last+1)
+          PY
+          echo "--- summary ---"
+          jq -r '.[] | [.id, (.enabled|tostring), (.tag_prefix // .id)] | @tsv' src/targets.json
+          git diff --stat
+      - name: Commit
+        env:
+          ID: ${{ inputs.id }}
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add -A
+          git status --short
+          git commit -m "targets: add $ID, disabled pending a patch list"
+          git push
+          git log --oneline -1
+      - name: Next steps
+        env:
+          ID: ${{ inputs.id }}
+          PKG: ${{ inputs.package }}
+          PI: ${{ inputs.provider_ident }}
+        run: |
+          echo "::notice::$ID added and DISABLED. Run '4. Explore patches' for $PI / $PKG, fill the include list, then set enabled true."
