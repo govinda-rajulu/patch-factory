@@ -101,3 +101,21 @@ jobs:
           done < <(jq -r '.[] | select(.enabled) | .id' src/targets.json)
           [ "$FAIL" = 0 ] && echo "dropdown covers every enabled target"
           exit $FAIL
+      - name: apps.json coverage
+        run: |
+          A=src/build/helper/apps.json
+          jq -e . "$A" > /dev/null || { echo "::error::apps.json is not valid JSON"; exit 1; }
+          FAIL=0; OK=0; TOT=0
+          while IFS=: read -r id pkg; do
+            TOT=$((TOT+1))
+            U=$(jq -r --arg p "$pkg" '.apkmirror[$p].list_url // ""' "$A")
+            if [ -n "$U" ]; then OK=$((OK+1)); else
+              echo "::error::$id: $pkg has no apkmirror list_url, get_apk cannot download it"; FAIL=1
+            fi
+          done < <(jq -r '.[] | select(.enabled) | .id + ":" + .package' src/targets.json)
+          echo "apps.json covers $OK of $TOT enabled packages"
+          while IFS=: read -r id pkg; do
+            U=$(jq -r --arg p "$pkg" '.apkmirror[$p].list_url // ""' "$A")
+            [ -n "$U" ] || echo "::warning::$id is disabled and $pkg is not in apps.json, enabling it alone will not build"
+          done < <(jq -r '.[] | select(.enabled | not) | .id + ":" + .package' src/targets.json)
+          exit $FAIL
