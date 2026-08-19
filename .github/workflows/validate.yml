@@ -42,18 +42,18 @@ jobs:
         run: |
           FAIL=0
           while IFS=$'\t' read -r id host pid; do
-            if [ "$host" = "gitlab" ] && { [ -z "$pid" ] || [ "$pid" = "null" ]; }; then
+            if [ "$host" = "gitlab" ] && { [ "$pid" = "-" ] || [ "$pid" = "null" ]; }; then
               echo "::error::$id: gitlab candidate needs project_id"; FAIL=1
             fi
-          done < <(jq -r '.[] | .id as $i | .candidates[] | [$i, (.host // "github"), (.project_id // "")] | @tsv' src/targets.json)
+          done < <(jq -r '.[] | .id as $i | .candidates[] | [$i, (.host // "github"), (.project_id // "-")] | @tsv' src/targets.json)
           while IFS=$'\t' read -r id nm host pid owner repo; do
             [ -n "$nm" ] && [ "$nm" != "null" ] || { echo "::error::$id: extra_bundles entry has no name"; FAIL=1; }
             case "$host" in
-              gitlab) [ -n "$pid" ] && [ "$pid" != "null" ] || { echo "::error::$id: gitlab extra needs project_id"; FAIL=1; } ;;
-              github) [ -n "$owner" ] && [ -n "$repo" ] || { echo "::error::$id: github extra needs owner and repo"; FAIL=1; } ;;
+              gitlab) [ "$pid" != "-" ] && [ "$pid" != "null" ] || { echo "::error::$id: gitlab extra needs project_id"; FAIL=1; } ;;
+              github) [ "$owner" != "-" ] && [ "$repo" != "-" ] || { echo "::error::$id: github extra needs owner and repo"; FAIL=1; } ;;
               *) echo "::error::$id: unknown extra host '$host'"; FAIL=1 ;;
             esac
-          done < <(jq -r '.[] | .id as $i | (.extra_bundles // [])[] | [$i, .name, (.host // "github"), (.project_id // ""), (.owner // ""), (.repo // "")] | @tsv' src/targets.json)
+          done < <(jq -r '.[] | .id as $i | (.extra_bundles // [])[] | [$i, .name, (.host // "github"), (.project_id // "-"), (.owner // "-"), (.repo // "-")] | @tsv' src/targets.json)
           EB=$(jq -r '[.[] | (.extra_bundles // []) | length] | add // 0' src/targets.json)
           echo "extra_bundles declared across all targets: $EB"
           if [ "$EB" -gt 0 ]; then
@@ -75,4 +75,29 @@ jobs:
             done < <(jq -r '.[] | select(.exclusive == true) | .id as $i | .candidates[] | $i + ":" + .patch_dir' src/targets.json)
           fi
           [ "$FAIL" = 0 ] && echo "exclusive integrity OK"
+          exit $FAIL
+      - name: Extra patch dirs
+        run: |
+          FAIL=0
+          ED=$(jq -r '[.[] | (.extra_bundles // [])[] | select(.patch_dir)] | length' src/targets.json)
+          echo "extras declaring patch_dir: $ED"
+          if [ "$ED" -gt 0 ]; then
+            [ -f src/build/selections.sh ] || { echo "::error::extra patch_dir declared but selections.sh is missing"; FAIL=1; }
+            grep -q selections.sh src/build/build.sh || { echo "::error::extra patch_dir declared but build.sh never calls selections.sh"; FAIL=1; }
+            while IFS=: read -r id nm pd; do
+              for side in include exclude; do
+                [ -f "src/patches/$pd/$side-patches" ] || { echo "::error::$id/$nm: missing src/patches/$pd/$side-patches"; FAIL=1; }
+              done
+            done < <(jq -r '.[] | .id as $i | (.extra_bundles // [])[] | select(.patch_dir) | $i + ":" + .name + ":" + .patch_dir' src/targets.json)
+          fi
+          [ "$FAIL" = 0 ] && echo "extra patch dirs OK"
+          exit $FAIL
+      - name: Dropdown coverage
+        run: |
+          FAIL=0
+          W=.github/workflows/manual-patch.yml
+          while read -r id; do
+            grep -q -- "- '$id'" "$W" || { echo "::error::$id is enabled but missing from the target dropdown in $W"; FAIL=1; }
+          done < <(jq -r '.[] | select(.enabled) | .id' src/targets.json)
+          [ "$FAIL" = 0 ] && echo "dropdown covers every enabled target"
           exit $FAIL
