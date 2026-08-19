@@ -24,7 +24,7 @@
   },
   {
     "id": "adguard",
-    "enabled": false,
+    "enabled": true,
     "package": "com.adguard.android",
     "apk_name": "adguard",
     "apk_type": "apk",

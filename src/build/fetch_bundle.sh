@@ -31,7 +31,7 @@ else
   fi
   PUB=$(jq -r "$Q"' | .published_at // ""' <<<"$J")
   TAG=$(jq -r "$Q"' | .tag_name // ""' <<<"$J")
-  URL=$(jq -r "$Q"' | .assets[] | select(.name | test("^patches-[0-9.]+[.]mpp$")) | .browser_download_url' <<<"$J" | head -1)
+  URL=$(jq -r "$Q"' | .assets[] | select(.name | test("[.]mpp$")) | .browser_download_url' <<<"$J" | head -1)
 fi
 
 [ -n "$PUB" ] && [ "$PUB" != "null" ] || { echo "FB_ERROR no release for $HOST $IDENT $CHANNEL" >&2; exit 1; }
