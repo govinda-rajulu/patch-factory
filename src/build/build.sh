@@ -62,6 +62,8 @@ fi
 WANT=1
 FIRST=$(ls ./*.mpp 2>/dev/null | head -1)
 [ -n "$FIRST" ] || { red_log "[-] no winner bundle in cwd"; exit 1; }
+PV=$(basename "$FIRST" .mpp | grep -oE '[0-9]+([.][0-9]+)+' | tail -1)
+echo "PV=${PV:-unknown}"
 mv "$FIRST" "./09-$WINNER.mpp"
 green_log "[+] bundle 09 $WINNER $(wc -c < "./09-$WINNER.mpp") bytes"
 EJ=0
@@ -138,6 +140,8 @@ done
 # --- 7. release metadata ---------------------------------------------------
 echo "$version" > ./release/.version
 echo "$PREFIX"  > ./release/.tagprefix
+echo "-b$(date -u +%Y%m%d)" > ./release/.tagsuffix
+echo "${PV:-unknown}" > ./release/.patchver
 PROV=""
 for M in ./*.mpp ./extra/*.mpp; do
   [ -f "$M" ] || continue

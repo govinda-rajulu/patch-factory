@@ -14,10 +14,14 @@ runs:
         fi
         echo "version=$V" >> $GITHUB_OUTPUT
         echo "prefix=$P"  >> $GITHUB_OUTPUT
-        echo "tag=$P-v$V"  >> $GITHUB_OUTPUT
+        S=$(cat ./release/.tagsuffix 2>/dev/null || echo "")
+        echo "tag=$P-v$V$S" >> $GITHUB_OUTPUT
+        echo "suffix=$S" >> $GITHUB_OUTPUT
         R=$(cat ./release/.provider 2>/dev/null || echo "")
         [ -n "$R" ] || R="Morphe"
         echo "provider=$R" >> $GITHUB_OUTPUT
+        PV=$(cat ./release/.patchver 2>/dev/null || echo unknown)
+        echo "patchver=$PV" >> $GITHUB_OUTPUT
         echo "building release tag: $P-v$V"
         ls -la ./release/
 
@@ -30,6 +34,7 @@ runs:
         body: |
           Patch provider(s): ${{ steps.meta.outputs.provider }}
           App version ${{ steps.meta.outputs.version }} · arm64-v8a
+          Patch bundle ${{ steps.meta.outputs.patchver }}, built ${{ steps.meta.outputs.suffix }}
           Built with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).
         allowUpdates: true
         makeLatest: true
