@@ -22,7 +22,7 @@ runs:
         echo "provider=$R" >> $GITHUB_OUTPUT
         PV=$(cat ./release/.patchver 2>/dev/null || echo unknown)
         echo "patchver=$PV" >> $GITHUB_OUTPUT
-        echo "building release tag: $P-v$V"
+        echo "building release tag: $P-v$V$S"
         ls -la ./release/
 
     - name: Release

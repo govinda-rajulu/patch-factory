@@ -152,7 +152,7 @@ done
 [ -n "$PROV" ] || PROV="$WINNER"
 echo "$PROV" > ./release/.provider
 green_log "[+] providers: $PROV"
-green_log "[+] release tag: $PREFIX-v$version"
+green_log "[+] release tag: $PREFIX-v$version$(cat ./release/.tagsuffix)"
 
 # --- 8. assert -------------------------------------------------------------
 COUNT=$(ls ./release/*.apk 2>/dev/null | wc -l)
