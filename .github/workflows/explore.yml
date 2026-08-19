@@ -1,0 +1,83 @@
+name: 4. Explore patches
+permissions:
+  contents: read
+  issues: write
+on:
+  workflow_dispatch:
+    inputs:
+      host:
+        description: 'Provider host'
+        required: true
+        default: 'github'
+        type: choice
+        options:
+          - 'github'
+          - 'gitlab'
+      ident:
+        description: 'OWNER/REPO for github, numeric project id for gitlab'
+        required: true
+        type: string
+      package:
+        description: 'Package name, e.g. com.truecaller'
+        required: true
+        type: string
+      channel:
+        description: 'Release channel'
+        required: true
+        default: 'prerelease'
+        type: choice
+        options:
+          - 'prerelease'
+          - 'latest'
+jobs:
+  explore:
+    name: Explore ${{ inputs.ident }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Download morphe-desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          U=$(gh api repos/MorpheApp/morphe-desktop/releases/latest -q '.assets[] | select(.name | endswith(".jar")) | .browser_download_url' | head -1)
+          echo "jar url: $U"
+          [ -n "$U" ] || { echo "::error::no jar asset on morphe-desktop latest"; exit 1; }
+          curl -sSL -o morphe-desktop.jar "$U"
+          S=$(wc -c < morphe-desktop.jar); echo "jar bytes: $S"
+          [ "$S" -gt 1000000 ] || { echo "::error::jar download truncated"; exit 1; }
+      - name: Fetch bundle
+        run: |
+          bash src/build/fetch_bundle.sh "${{ inputs.host }}" "${{ inputs.ident }}" "${{ inputs.channel }}" ./explore.mpp
+          S=$(wc -c < ./explore.mpp); echo "bundle bytes: $S"
+          [ "$S" -gt 10000 ] || { echo "::error::bundle too small, fetch failed"; exit 1; }
+      - name: List patches
+        run: |
+          java -jar morphe-desktop.jar list-patches --patches ./explore.mpp \
+            --with-packages --with-versions --with-options \
+            --filter-package-name "${{ inputs.package }}" --out ./patches.txt 2>&1 | tail -3
+          [ -s ./patches.txt ] || { echo "::error::no patches for ${{ inputs.package }} in this bundle"; exit 1; }
+          NA=$(grep -c '^Name: ' ./patches.txt); NE=$(grep -c '^Enabled: ' ./patches.txt)
+          echo "names: $NA enabled-lines: $NE"
+          [ "$NA" = "$NE" ] || { echo "::error::parse mismatch, $NA names vs $NE enabled lines"; exit 1; }
+      - name: Open issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          N=$(grep -c '^Name: ' ./patches.txt)
+          {
+            echo "Bundle: ${{ inputs.host }} ${{ inputs.ident }} (${{ inputs.channel }})"
+            echo "Package: ${{ inputs.package }}"
+            echo "Patches: $N"
+            echo ""
+            echo "name | default"
+            echo ""
+            paste -d'|' <(grep '^Name: ' ./patches.txt | sed 's/^Name: //') <(grep '^Enabled: ' ./patches.txt | sed 's/^Enabled: //')
+          } > body.md
+          wc -c body.md
+          gh issue create --title "patches: ${{ inputs.package }} via ${{ inputs.ident }}" --body-file body.md
