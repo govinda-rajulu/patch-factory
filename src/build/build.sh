@@ -24,6 +24,7 @@ APK_NAME=$(jq -r '.apk_name'            <<<"$T")
 APK_TYPE=$(jq -r '.apk_type // "apk"'   <<<"$T")
 CEIL=$(jq     -r '.min_sdk_ceiling // 29' <<<"$T")
 PREFIX=$(jq   -r '.tag_prefix // .id'   <<<"$T")
+EXCL=$(jq -r '.exclusive // false' <<<"$T")
 green_log "[+] target=$ID package=$PKG apk=$APK_NAME tagprefix=$PREFIX"
 
 # --- 2. tooling, then resolve ----------------------------------------------
@@ -96,7 +97,13 @@ for M in $(ls ./*.mpp | sort | tail -n +2); do
   mv "$M" "./extra/$BN"
   EXTRA_P="$EXTRA_P -p ./extra/$BN"
 done
-excludePatches="$EXTRA_P$excludePatches"
+if [ "$EXCL" = "true" ]; then
+  [ -n "$includePatches" ] || { red_log "[-] exclusive needs a non-empty include-patches"; exit 1; }
+  excludePatches=" --exclusive$EXTRA_P$excludePatches"
+  green_log "[+] exclusive on: only include-patches will apply"
+else
+  excludePatches="$EXTRA_P$excludePatches"
+fi
 NC=$(ls ./*.mpp 2>/dev/null | wc -l)
 [ "$NC" -eq 1 ] || { red_log "[-] want 1 .mpp in cwd, found $NC"; exit 1; }
 green_log "[+] primary bundle: $(ls ./*.mpp)"
