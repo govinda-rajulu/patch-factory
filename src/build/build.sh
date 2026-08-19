@@ -120,6 +120,12 @@ version="$RVER"
 set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 [ "$GA" -eq 0 ] || { red_log "[-] get_apk failed for $PKG"; exit 1; }
 [ -f "./download/$APK_NAME.apk" ] || { red_log "[-] ./download/$APK_NAME.apk missing"; exit 1; }
+SZ=$(wc -c < "./download/$APK_NAME.apk")
+green_log "[+] downloaded $SZ bytes"
+[ "$SZ" -gt 1000000 ] || { red_log "[-] only $SZ bytes, download did not complete"; head -c 200 "./download/$APK_NAME.apk"; exit 1; }
+unzip -l "./download/$APK_NAME.apk" > /dev/null 2>&1 || { red_log "[-] not a zip, apkmirror served an error page or the wrong variant"; head -c 200 "./download/$APK_NAME.apk"; exit 1; }
+unzip -l "./download/$APK_NAME.apk" | grep -q AndroidManifest.xml || { red_log "[-] zip has no AndroidManifest.xml, not an apk"; exit 1; }
+green_log "[+] apk verified"
 
 # --- 5. sdk gate, report only ----------------------------------------------
 bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" 2>&1 \
