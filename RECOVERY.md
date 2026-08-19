@@ -193,3 +193,27 @@ MicroG RE installed and signed in BEFORE the patched YouTube, battery
 Unrestricted. Play Store shows an uninstallable YouTube update forever; ignore it.
 Photos keeps the default package with the label overridden, because changing a
 package makes it a new app and Obtainium loses it.
+
+## Release tags are unique per build
+
+Tags are `PREFIX-vAPPVERSION-bYYYYMMDD`. Every build makes a new tag instead of
+replacing the asset on an existing one.
+
+Why: replacing an asset in place moves neither the tag nor `published_at`, only
+the asset's `updated_at`. Anything that tracks releases by tag, Obtainium
+included, therefore never sees a patch-only rebuild. See
+FiorenMas/Revanced-And-Revanced-Extended-Non-Root issue 36, closed not planned.
+
+A build date rather than the patch bundle version, because a target can load
+several bundles (see truecaller-combo) and a tag keyed on one of them would not
+change when the other moves. The bundle version is in the release body.
+
+Costs, know them before you rely on this:
+
+- Prune keeps the two newest releases per prefix and deletes their tags. More
+  tags means older ones disappear sooner. Rollback by tag is impossible by
+  design; keep a frozen target instead (truecaller is ours, poll false).
+- Two builds of the same target on the same day share a tag and replace in
+  place, which is the old behaviour and is fine.
+- Obtainium: one version regex now works for every app, `[\d.]+-b\d+`.
+  Tag filters are still mandatory, one per app.
