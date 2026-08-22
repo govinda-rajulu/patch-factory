@@ -55,6 +55,9 @@ jobs:
       - name: Check github connection
         id: check-gh
         run: bash src/etc/connection.sh
+      - name: Fail if no connection
+        if: steps.check-gh.outputs.internet_error != '0'
+        run: echo "::error::connection.sh reported a problem, refusing to skip the build"; exit 1
       - name: Patch apk
         if: steps.check-gh.outputs.internet_error == '0'
         env:
