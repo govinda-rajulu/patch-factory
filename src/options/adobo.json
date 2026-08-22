@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "patches": {
+      "Block ads, trackers, and analytics": {
+        "enabled": true,
+        "options": { "hosts": "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts" }
+      }
+    }
+  }
+]

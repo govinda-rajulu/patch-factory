@@ -24,6 +24,7 @@ APK_NAME=$(jq -r '.apk_name'            <<<"$T")
 APK_TYPE=$(jq -r '.apk_type // "apk"'   <<<"$T")
 CEIL=$(jq     -r '.min_sdk_ceiling // 29' <<<"$T")
 SRC=$(jq -r '.source // "apkmirror"' <<<"$T")
+ANYVER=$(jq -r '.any_version // false' <<<"$T")
 PREFIX=$(jq   -r '.tag_prefix // .id'   <<<"$T")
 EXCL=$(jq -r '.exclusive // false' <<<"$T")
 green_log "[+] target=$ID package=$PKG apk=$APK_NAME tagprefix=$PREFIX"
@@ -118,6 +119,7 @@ green_log "[+] extra -p flags:$EXTRA_P"
 
 # --- 4. apk ----------------------------------------------------------------
 version="$RVER"
+if [ "$ANYVER" = "true" ]; then version=""; yellow_log "[!] any_version on, taking the store latest"; fi
 if [ "$SRC" = "apkpure" ]; then
   set +u; get_apkpure "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 else

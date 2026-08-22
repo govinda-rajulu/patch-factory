@@ -190,7 +190,8 @@
     ],
     "tag_prefix": "prime-video",
     "poll": false,
-    "source": "apkpure"
+    "source": "apkpure",
+    "any_version": true
   },
   {
     "id": "esfile",
@@ -216,7 +217,8 @@
     ],
     "tag_prefix": "es-file",
     "poll": false,
-    "source": "apkpure"
+    "source": "apkpure",
+    "any_version": true
   },
   {
     "id": "facebook",
@@ -242,7 +244,8 @@
     ],
     "tag_prefix": "facebook",
     "poll": false,
-    "source": "apkpure"
+    "source": "apkpure",
+    "any_version": true
   },
   {
     "id": "instagram",
@@ -320,7 +323,8 @@
     ],
     "tag_prefix": "hotstar",
     "poll": false,
-    "source": "apkpure"
+    "source": "apkpure",
+    "any_version": true
   },
   {
     "id": "sonyliv",
@@ -346,7 +350,8 @@
     ],
     "tag_prefix": "sonyliv",
     "poll": false,
-    "source": "apkpure"
+    "source": "apkpure",
+    "any_version": true
   },
   {
     "id": "zee5",
@@ -372,7 +377,8 @@
     ],
     "tag_prefix": "zee5",
     "poll": false,
-    "source": "apkpure"
+    "source": "apkpure",
+    "any_version": true
   },
   {
     "id": "edge",
@@ -424,7 +430,8 @@
     ],
     "tag_prefix": "mx-player",
     "poll": false,
-    "source": "apkpure"
+    "source": "apkpure",
+    "any_version": true
   },
   {
     "id": "telegram",
@@ -450,7 +457,8 @@
     ],
     "tag_prefix": "telegram",
     "poll": false,
-    "source": "apkpure"
+    "source": "apkpure",
+    "any_version": true
   },
   {
     "id": "keymapper",
