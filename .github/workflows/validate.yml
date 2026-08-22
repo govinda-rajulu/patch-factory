@@ -108,14 +108,14 @@ jobs:
           FAIL=0; OK=0; TOT=0
           while IFS=: read -r id pkg; do
             TOT=$((TOT+1))
-            U=$(jq -r --arg p "$pkg" '.apkmirror[$p].list_url // ""' "$A")
+            U=$(jq -r --arg p "$pkg" '(.apkmirror[$p].list_url // .apkpure[$p].download_url) // ""' "$A")
             if [ -n "$U" ]; then OK=$((OK+1)); else
               echo "::error::$id: $pkg has no apkmirror list_url, get_apk cannot download it"; FAIL=1
             fi
           done < <(jq -r '.[] | select(.enabled) | .id + ":" + .package' src/targets.json)
           echo "apps.json covers $OK of $TOT enabled packages"
           while IFS=: read -r id pkg; do
-            U=$(jq -r --arg p "$pkg" '.apkmirror[$p].list_url // ""' "$A")
+            U=$(jq -r --arg p "$pkg" '(.apkmirror[$p].list_url // .apkpure[$p].download_url) // ""' "$A")
             [ -n "$U" ] || echo "::warning::$id is disabled and $pkg is not in apps.json, enabling it alone will not build"
           done < <(jq -r '.[] | select(.enabled | not) | .id + ":" + .package' src/targets.json)
           exit $FAIL
