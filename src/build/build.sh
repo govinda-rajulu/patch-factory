@@ -119,7 +119,7 @@ green_log "[+] extra -p flags:$EXTRA_P"
 
 # --- 4. apk ----------------------------------------------------------------
 version="$RVER"
-if [ "$ANYVER" = "true" ]; then version=""; yellow_log "[!] any_version on, taking the store latest"; fi
+if [ "$ANYVER" = "true" ]; then version=""; lock_version=1; yellow_log "[!] any_version on, taking the store latest"; fi
 if [ "$SRC" = "apkpure" ]; then
   set +u; get_apkpure "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 else
