@@ -1,7 +1,6 @@
 Disable mobile ads
 Deactivate Firebase Analytics
 Deactivate Firebase Performance Monitoring
-Spoof Advertising ID
 Remove screenshot detection
 Disable metrics collection in WebView
 Disable Google Safe Browsing in WebView
