@@ -17,6 +17,24 @@
   },
   "in.startv.hotstar": {
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=jiohotstar-4"
+  },
+  "com.amazon.avod.thirdpartyclient": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=amazon-prime-video"
+  },
+  "com.estrongs.android.pop": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=es-file-explorer"
+  },
+  "com.facebook.katana": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=facebook"
+  },
+  "com.graymatrix.did": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=zee5-movies-tv-shows-live-tv-originals"
+  },
+  "com.mxtech.videoplayer.pro": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=mx-player-pro"
+  },
+  "org.telegram.messenger": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=telegram"
   }
  },
  "apkpure": {

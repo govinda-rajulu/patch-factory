@@ -158,7 +158,7 @@
     ],
     "tag_prefix": "prime-video",
     "poll": false,
-    "source": "apkpure",
+    "source": "apkmirror",
     "any_version": true
   },
   {
@@ -185,7 +185,7 @@
     ],
     "tag_prefix": "es-file",
     "poll": false,
-    "source": "apkpure",
+    "source": "apkmirror",
     "any_version": true
   },
   {
@@ -212,7 +212,7 @@
     ],
     "tag_prefix": "facebook",
     "poll": false,
-    "source": "apkpure",
+    "source": "apkmirror",
     "any_version": true
   },
   {
@@ -345,7 +345,7 @@
     ],
     "tag_prefix": "zee5",
     "poll": false,
-    "source": "apkpure",
+    "source": "apkmirror",
     "any_version": true
   },
   {
@@ -398,7 +398,7 @@
     ],
     "tag_prefix": "mx-player",
     "poll": false,
-    "source": "apkpure",
+    "source": "apkmirror",
     "any_version": true
   },
   {
@@ -425,7 +425,7 @@
     ],
     "tag_prefix": "telegram",
     "poll": false,
-    "source": "apkpure",
+    "source": "apkmirror",
     "any_version": true
   },
   {
