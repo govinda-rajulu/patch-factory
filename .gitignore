@@ -8,3 +8,4 @@ download/
 release/
 morphe-data/
 extra/
+__pycache__/
