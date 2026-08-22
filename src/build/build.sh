@@ -162,6 +162,12 @@ done
 # --- 7. release metadata ---------------------------------------------------
 echo "$version" > ./release/.version
 echo "$PREFIX"  > ./release/.tagprefix
+for A in ./release/*-arm64-v8a.apk; do
+  [ -f "$A" ] || continue
+  B=$(basename "$A"); NB="${B%-arm64-v8a.apk}-v$version-arm64-v8a.apk"
+  case "$B" in *-v$version-*) continue ;; esac
+  mv "$A" "./release/$NB" && green_log "[+] renamed $B -> $NB"
+done
 echo "-b$(date -u +%Y%m%d)" > ./release/.tagsuffix
 echo "${PV:-unknown}" > ./release/.patchver
 PROV=""
