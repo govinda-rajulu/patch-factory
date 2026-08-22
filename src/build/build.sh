@@ -125,6 +125,22 @@ green_log "[+] downloaded $SZ bytes"
 [ "$SZ" -gt 1000000 ] || { red_log "[-] only $SZ bytes, download did not complete"; head -c 200 "./download/$APK_NAME.apk"; exit 1; }
 unzip -l "./download/$APK_NAME.apk" > /dev/null 2>&1 || { red_log "[-] not a zip, apkmirror served an error page or the wrong variant"; head -c 200 "./download/$APK_NAME.apk"; exit 1; }
 unzip -l "./download/$APK_NAME.apk" | grep -q AndroidManifest.xml || { red_log "[-] zip has no AndroidManifest.xml, not an apk"; exit 1; }
+PKG_SEEN=""
+if command -v aapt2 > /dev/null 2>&1; then
+  PKG_SEEN=$(aapt2 dump packagename "./download/$APK_NAME.apk" 2>/dev/null | head -1)
+fi
+if [ -z "$PKG_SEEN" ]; then
+  if unzip -p "./download/$APK_NAME.apk" AndroidManifest.xml 2>/dev/null | tr -d '\000' | grep -qF "$PKG"; then
+    PKG_SEEN="$PKG"
+  fi
+fi
+if [ -z "$PKG_SEEN" ]; then
+  yellow_log "[!] UNVERIFIED - could not read a package name from the downloaded apk"
+elif [ "$PKG_SEEN" != "$PKG" ]; then
+  red_log "[-] package mismatch: apk is $PKG_SEEN, target wants $PKG"; exit 1
+else
+  green_log "[+] package confirmed $PKG_SEEN"
+fi
 green_log "[+] apk verified"
 
 # --- 5. sdk gate, report only ----------------------------------------------
