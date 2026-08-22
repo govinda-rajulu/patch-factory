@@ -4,3 +4,4 @@ Spoof app signature
 Remove internet permission
 Hide app icon
 Change version code
+Override certificate pinning

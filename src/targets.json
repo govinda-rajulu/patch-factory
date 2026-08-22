@@ -168,10 +168,10 @@
   },
   {
     "id": "primevideo",
-    "enabled": false,
+    "enabled": true,
     "package": "com.amazon.avod.thirdpartyclient",
     "apk_name": "prime-video",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -189,14 +189,15 @@
       }
     ],
     "tag_prefix": "prime-video",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "esfile",
-    "enabled": false,
+    "enabled": true,
     "package": "com.estrongs.android.pop",
     "apk_name": "es-file",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -214,14 +215,15 @@
       }
     ],
     "tag_prefix": "es-file",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "facebook",
-    "enabled": false,
+    "enabled": true,
     "package": "com.facebook.katana",
     "apk_name": "facebook",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -239,14 +241,15 @@
       }
     ],
     "tag_prefix": "facebook",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "instagram",
-    "enabled": false,
+    "enabled": true,
     "package": "com.instagram.android",
     "apk_name": "instagram",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -264,14 +267,15 @@
       }
     ],
     "tag_prefix": "instagram",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "reddit",
-    "enabled": false,
+    "enabled": true,
     "package": "com.reddit.frontpage",
     "apk_name": "reddit",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -289,14 +293,15 @@
       }
     ],
     "tag_prefix": "reddit",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "hotstar",
-    "enabled": false,
+    "enabled": true,
     "package": "in.startv.hotstar",
     "apk_name": "hotstar",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -314,14 +319,15 @@
       }
     ],
     "tag_prefix": "hotstar",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "sonyliv",
-    "enabled": false,
+    "enabled": true,
     "package": "com.sonyliv",
     "apk_name": "sonyliv",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -339,14 +345,15 @@
       }
     ],
     "tag_prefix": "sonyliv",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "zee5",
-    "enabled": false,
+    "enabled": true,
     "package": "com.graymatrix.did",
     "apk_name": "zee5",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -364,14 +371,15 @@
       }
     ],
     "tag_prefix": "zee5",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "edge",
-    "enabled": false,
+    "enabled": true,
     "package": "com.microsoft.emmx",
     "apk_name": "edge",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -389,14 +397,15 @@
       }
     ],
     "tag_prefix": "edge",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "mxplayer",
-    "enabled": false,
+    "enabled": true,
     "package": "com.mxtech.videoplayer.pro",
     "apk_name": "mx-player",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -414,14 +423,15 @@
       }
     ],
     "tag_prefix": "mx-player",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "telegram",
-    "enabled": false,
+    "enabled": true,
     "package": "org.telegram.messenger",
     "apk_name": "telegram",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -439,14 +449,15 @@
       }
     ],
     "tag_prefix": "telegram",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   },
   {
     "id": "keymapper",
-    "enabled": false,
+    "enabled": true,
     "package": "io.github.sds100.keymapper",
     "apk_name": "key-mapper",
-    "apk_type": "apk",
+    "apk_type": "bundle",
     "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
@@ -464,6 +475,7 @@
       }
     ],
     "tag_prefix": "key-mapper",
-    "poll": false
+    "poll": false,
+    "source": "apkpure"
   }
 ]

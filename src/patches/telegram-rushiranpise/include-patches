@@ -18,7 +18,6 @@ Hide mock location
 Hide ADB status
 Spoof Wi-Fi connection
 Spoof build info
-Override certificate pinning
 Export internal data documents provider
 Enable ROM signature spoofing
 Spoof keystore security level

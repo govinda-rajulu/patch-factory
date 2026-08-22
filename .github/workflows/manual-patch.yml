@@ -15,6 +15,18 @@ on:
           - 'truecaller'
           - 'truecaller-combo'
           - 'adguard'
+          - 'primevideo'
+          - 'esfile'
+          - 'facebook'
+          - 'instagram'
+          - 'reddit'
+          - 'hotstar'
+          - 'sonyliv'
+          - 'zee5'
+          - 'edge'
+          - 'mxplayer'
+          - 'telegram'
+          - 'keymapper'
   workflow_call:
     inputs:
       target:

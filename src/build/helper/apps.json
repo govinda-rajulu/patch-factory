@@ -17,6 +17,42 @@
   }
  },
  "apkpure": {
-  "com.google.android.youtube": {}
+  "com.google.android.youtube": {},
+  "com.amazon.avod.thirdpartyclient": {
+   "download_url": "https://apkpure.com/x/com.amazon.avod.thirdpartyclient/download"
+  },
+  "com.estrongs.android.pop": {
+   "download_url": "https://apkpure.com/x/com.estrongs.android.pop/download"
+  },
+  "com.facebook.katana": {
+   "download_url": "https://apkpure.com/x/com.facebook.katana/download"
+  },
+  "com.instagram.android": {
+   "download_url": "https://apkpure.com/x/com.instagram.android/download"
+  },
+  "com.reddit.frontpage": {
+   "download_url": "https://apkpure.com/x/com.reddit.frontpage/download"
+  },
+  "in.startv.hotstar": {
+   "download_url": "https://apkpure.com/x/in.startv.hotstar/download"
+  },
+  "com.sonyliv": {
+   "download_url": "https://apkpure.com/x/com.sonyliv/download"
+  },
+  "com.graymatrix.did": {
+   "download_url": "https://apkpure.com/x/com.graymatrix.did/download"
+  },
+  "com.microsoft.emmx": {
+   "download_url": "https://apkpure.com/x/com.microsoft.emmx/download"
+  },
+  "com.mxtech.videoplayer.pro": {
+   "download_url": "https://apkpure.com/x/com.mxtech.videoplayer.pro/download"
+  },
+  "org.telegram.messenger": {
+   "download_url": "https://apkpure.com/x/org.telegram.messenger/download"
+  },
+  "io.github.sds100.keymapper": {
+   "download_url": "https://apkpure.com/x/io.github.sds100.keymapper/download"
+  }
  }
 }
