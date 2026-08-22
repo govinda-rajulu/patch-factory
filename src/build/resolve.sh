@@ -21,6 +21,9 @@ for i in $(seq 0 $((n-1))); do
     echo "  - $NAME: skipped (pinned to $PIN)"; continue; fi
   JSON=$(curl -sSL ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} \
     "https://api.github.com/repos/$OWNER/$REPO/releases")
+  if [ "$(jq -r 'type' <<<"$JSON" 2>/dev/null)" != "array" ]; then
+    echo " - $NAME: API ERROR, not a release array"; jq -r '.message // "unparseable"' <<<"$JSON" | head -1; exit 2
+  fi
   if [ "$CH" = "prerelease" ]; then
     PUB=$(jq -r 'first(.[] | .published_at) // ""' <<<"$JSON")
   else
