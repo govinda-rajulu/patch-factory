@@ -163,6 +163,7 @@ for i in 0; do
  cat /tmp/patch.log
  AP=$(grep -c "Applied: " /tmp/patch.log)
  green_log "[+] applied $AP patches (rc=$SA)"
+ grep "Applied: " /tmp/patch.log | sed 's/.*Applied: /- /' | sort > ./release/.applied
  if [ "$EXCL" = "true" ] && [ "$AP" != "$WANT_E" ]; then
   red_log "[-] applied $AP but include list says $WANT_E - refusing to release"
   grep "Skipping disabled" /tmp/patch.log | head -30; exit 1
