@@ -134,8 +134,11 @@ PKG_SEEN=""
 if command -v aapt2 > /dev/null 2>&1; then
   PKG_SEEN=$(aapt2 dump packagename "./download/$APK_NAME.apk" 2>/dev/null | head -1)
 fi
+if [ -z "$PKG_SEEN" ] && command -v apkanalyzer > /dev/null 2>&1; then
+  PKG_SEEN=$(apkanalyzer manifest application-id "./download/$APK_NAME.apk" 2>/dev/null | head -1)
+fi
 if [ -z "$PKG_SEEN" ]; then
-  if unzip -p "./download/$APK_NAME.apk" AndroidManifest.xml 2>/dev/null | tr -d '\000' | grep -qF "$PKG"; then
+  if [ "$(unzip -p "./download/$APK_NAME.apk" AndroidManifest.xml 2>/dev/null | tr -d '\000' | grep -cF "$PKG")" != "0" ]; then
     PKG_SEEN="$PKG"
   fi
 fi
