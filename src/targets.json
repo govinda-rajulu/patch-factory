@@ -292,7 +292,7 @@
     "tag_prefix": "hotstar",
     "poll": false,
     "source": "apkmirror",
-    "any_version": true
+    "any_version": false
   },
   {
     "id": "sonyliv",
@@ -426,7 +426,7 @@
     "tag_prefix": "telegram",
     "poll": false,
     "source": "apkmirror",
-    "any_version": true
+    "any_version": false
   },
   {
     "id": "keymapper",

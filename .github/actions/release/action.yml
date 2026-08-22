@@ -22,6 +22,7 @@ runs:
         echo "provider=$R" >> $GITHUB_OUTPUT
         PV=$(cat ./release/.patchver 2>/dev/null || echo unknown)
         echo "patchver=$PV" >> $GITHUB_OUTPUT
+        { echo "aplist<<PEOF"; cat ./release/.applied 2>/dev/null || echo "- unknown"; echo "PEOF"; } >> $GITHUB_OUTPUT
         echo "building release tag: $P-v$V$S"
         ls -la ./release/
 
@@ -34,6 +35,9 @@ runs:
         body: |
           Patch provider(s): ${{ steps.meta.outputs.provider }}
           App version ${{ steps.meta.outputs.version }} · arm64-v8a
+          
+          **Applied patches**
+          ${{ steps.meta.outputs.aplist }}
           Patch bundle ${{ steps.meta.outputs.patchver }}, built ${{ steps.meta.outputs.suffix }}
           Built with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).
         allowUpdates: true
