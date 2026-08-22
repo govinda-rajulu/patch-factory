@@ -217,3 +217,52 @@ Costs, know them before you rely on this:
   place, which is the old behaviour and is fine.
 - Obtainium: one version regex now works for every app, `[\d.]+-b\d+`.
   Tag filters are still mandatory, one per app.
+
+## Obtainium, one entry per app
+
+Repo URL for every app, never a release URL. APK filter `arm64-v8a`. Version
+regex `[\d.]+-b\d+` works for every app now that tags carry a build date.
+
+**Tag filters are mandatory and specific**, one per app, or Obtainium will
+offer you another app's release:
+
+    ^youtube-   ^truecaller-   ^tc-combo-   ^gg-photos-   ^adguard-
+    ^instagram- ^reddit-       ^telegram-   ^edge-        ^key-mapper-
+    ^hotstar-   ^sonyliv-      ^zee5-       ^prime-video- ^mx-player-
+    ^es-file-   ^facebook-
+
+Background checks on, battery Unrestricted, auto-install off.
+
+`truecaller-` still carries a suffixless tag on purpose: it is the frozen
+revert path and is never rebuilt, so the version regex will not match it.
+Install that one by hand if you ever need it.
+
+## any_version, and why a build says "Could not find download link"
+
+A provider pins the app version its patches target. If the store does not
+carry that exact version, the download step fails with
+`Could not find download link`. Setting `"any_version": true` clears the pin
+and takes the store's newest build.
+
+It works by setting `lock_version=1` as well, because `get_apkpure` calls
+`detect_version` internally and would otherwise re-derive the pinned version
+and overwrite an empty one.
+
+The risk is a store build newer than the patches support. The applied-count
+gate is the protection: with `exclusive` on, a patch that no longer matches
+means applied does not equal the include list, and the build refuses to
+release.
+
+## Two failure shapes that cost hours
+
+**A job that goes green having built nothing.** `connection.sh` failed, every
+later step was skipped by its `if` condition, and the job reported success.
+There is now an explicit "Fail if no connection" step. Any time a gate can be
+satisfied by skipping work, it is not a gate.
+
+**A provider blamed for an API error.** `resolve.sh` read a rate-limit error
+object as "no releases" and printed `DISQUALIFIED`, which reads like a fact
+about the provider. It now aborts with `API ERROR` instead. Note that a
+personal token and the repo's `GITHUB_TOKEN` have separate quotas: local
+testing can be throttled while CI is completely fine, and for these public
+reads an unauthenticated curl often works when a throttled token does not.

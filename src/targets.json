@@ -64,28 +64,12 @@
     "pin": null,
     "candidates": [
       {
-        "name": "derevanced",
-        "owner": "RookieEnough",
-        "repo": "De-Vanced",
-        "channel": "prerelease",
-        "patch_dir": "gg-photos-derevanced",
-        "options": "derevanced"
-      },
-      {
         "name": "rushiranpise",
         "owner": "rushiranpise",
         "repo": "morphe-patches",
         "channel": "prerelease",
         "patch_dir": "gg-photos",
         "options": "rushiranpise"
-      },
-      {
-        "name": "arandomhooman",
-        "owner": "arandomhooman",
-        "repo": "hoomans-morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "gg-photos",
-        "options": "arandomhooman"
       }
     ],
     "tag_prefix": "gg-photos",
@@ -109,22 +93,6 @@
         "channel": "prerelease",
         "patch_dir": "truecaller-bufferk",
         "options": "bufferk"
-      },
-      {
-        "name": "rushiranpise",
-        "owner": "rushiranpise",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "truecaller-bufferk",
-        "options": "rushiranpise"
-      },
-      {
-        "name": "arandomhooman",
-        "owner": "arandomhooman",
-        "repo": "hoomans-morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "truecaller-bufferk",
-        "options": "arandomhooman"
       }
     ],
     "tag_prefix": "truecaller",
