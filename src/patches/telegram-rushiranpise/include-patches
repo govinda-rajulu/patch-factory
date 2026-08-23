@@ -1,38 +1,22 @@
-Spoof Widevine / DRM level
-GmsCore support (MicroG)
-Spoof Pixel device
-Spoof Android ID
-Spoof telephony IDs
-Spoof Wi-Fi identifiers
-Spoof Bluetooth identifiers
-Predictive back gesture
-Set target SDK 34
-Remove share targets
-Force dark theme
-Hide mock location
-Hide ADB status
-Spoof Wi-Fi connection
-Spoof build info
-Enable ROM signature spoofing
-Spoof keystore security level
-Spoof root of trust
-Spoof Play age signals
-Remove ad manifest entries
-Disable ad SDK calls
-Disable shake ads
-Disable clipboard access
-Hide VPN and proxy
-Spoof SIM provider
-Disable auto-update
-Remove ads
 Anti-delete messages
 Anti-disappearing media
 Anti-screenshot notification
 Bypass channel restrictions
 Bypass content restrictions
+Disable ad SDK calls
+Disable auto-update
 Disable channel switching
+Disable clipboard access
+Disable shake ads
 Download speed boost
-Voice to music
+Force dark theme
+GmsCore support (MicroG)
 Hide typing indicator
-Bypass integrity check
+Hide VPN and proxy
+Predictive back gesture
+Remove ad manifest entries
+Remove ads
+Remove share targets
+Spoof Wi-Fi connection
 Unlock Premium
+Voice to music

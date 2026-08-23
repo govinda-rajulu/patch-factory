@@ -1,26 +1,26 @@
-Disable mobile ads
+Colorize comment indent lines
 Deactivate Firebase Analytics
 Deactivate Firebase Performance Monitoring
-Remove screenshot detection
-Disable metrics collection in WebView
-Disable Google Safe Browsing in WebView
-Remove ads and telemetry
-Hide awards
-Hide upvote scores
-Hide share count
 Disable bottom navigation bar auto-hide
-Colorize comment indent lines
-Hide user community badges
-Hide community highlights
-Hide community menu badge
-Hide user flairs
+Disable Google Safe Browsing in WebView
+Disable home feed auto-refresh
 Disable home feed swipe
+Disable home screen redirect
+Disable metrics collection in WebView
+Disable mobile ads
 Disable post detail swipe
 Disable screenshot banner
 Hide Ask button from search bar
-Hide prominent search bar
+Hide awards
+Hide community highlights
+Hide community menu badge
 Hide post view counts
-Disable home feed auto-refresh
-Disable home screen redirect
+Hide prominent search bar
+Hide share count
+Hide upvote scores
+Hide user community badges
+Hide user flairs
 Open external links directly
+Remove ads and telemetry
+Remove screenshot detection
 Sanitize share links

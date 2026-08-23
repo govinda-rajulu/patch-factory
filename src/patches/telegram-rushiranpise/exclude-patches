@@ -1,7 +1,0 @@
-Provide Original app certificate
-Fix Firebase after re-signing
-Spoof app signature
-Remove internet permission
-Hide app icon
-Change version code
-Override certificate pinning
