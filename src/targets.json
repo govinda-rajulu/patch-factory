@@ -162,7 +162,7 @@
   "tag_prefix": "prime-video",
   "poll": false,
   "source": "apkmirror",
-  "any_version": true
+  "any_version": false
  },
  {
   "id": "esfile",
@@ -189,7 +189,7 @@
   "tag_prefix": "es-file",
   "poll": false,
   "source": "apkmirror",
-  "any_version": true
+  "any_version": false
  },
  {
   "id": "facebook",
@@ -216,7 +216,7 @@
   "tag_prefix": "facebook",
   "poll": false,
   "source": "apkmirror",
-  "any_version": true
+  "any_version": false
  },
  {
   "id": "instagram",
@@ -322,7 +322,7 @@
   "tag_prefix": "sonyliv",
   "poll": false,
   "source": "apkpure",
-  "any_version": true
+  "any_version": false
  },
  {
   "id": "zee5",
@@ -349,7 +349,7 @@
   "tag_prefix": "zee5",
   "poll": false,
   "source": "apkmirror",
-  "any_version": true
+  "any_version": false
  },
  {
   "id": "edge",
