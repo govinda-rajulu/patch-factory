@@ -179,6 +179,7 @@ bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" 2>&1 \
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
 for i in 0; do
+  [ -n "${COE:-}" ] && excludePatches="$excludePatches --continue-on-error"
   set +u; split_arch "$APK_NAME" "$OPTS" > /tmp/patch.log 2>&1; SA=$?; set -u
  cat /tmp/patch.log
  AP=$(grep -c "Applied: " /tmp/patch.log)
