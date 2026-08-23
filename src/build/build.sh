@@ -159,6 +159,19 @@ else
 fi
 green_log "[+] apk verified"
 
+# --- 4b. version backfill: any_version clears $version, tags need it back ---
+if [ -z "$version" ]; then
+  VN=""
+  if command -v aapt2 > /dev/null 2>&1; then
+    VN=$(aapt2 dump badging "./download/$APK_NAME.apk" 2>/dev/null | tr " " "\n" | sed -n "s/^versionName=//p" | tr -d "'" | head -1)
+  fi
+  if [ -z "$VN" ] && command -v apkanalyzer > /dev/null 2>&1; then
+    VN=$(apkanalyzer manifest version-name "./download/$APK_NAME.apk" 2>/dev/null | head -1)
+  fi
+  [ -n "$VN" ] || { red_log "[-] version is empty and unreadable from the apk - refusing to build a release nothing can tag"; exit 1; }
+  version="$VN"
+  green_log "[+] version read from apk: $version"
+fi
 # --- 5. sdk gate, report only ----------------------------------------------
 bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" 2>&1 \
   | sed 's/::error::/::warning::/'
