@@ -129,7 +129,6 @@ if [ "$ANYVER" = "true" ]; then version=""; lock_version=1; yellow_log "[!] any_
 if [ "$SRC" = "apkpure" ]; then
   set +u; get_apkpure "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 else
-near_version=1
 set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 fi
 [ "$GA" -eq 0 ] || { red_log "[-] get_apk failed for $PKG"; exit 1; }
@@ -152,7 +151,7 @@ if [ -z "$PKG_SEEN" ]; then
   fi
 fi
 if [ -z "$PKG_SEEN" ]; then
-  yellow_log "[!] UNVERIFIED - could not read a package name from the downloaded apk"
+  red_log "[-] could not read a package name - refusing rather than trusting the download"; exit 1
 elif [ "$PKG_SEEN" != "$PKG" ]; then
   red_log "[-] package mismatch: apk is $PKG_SEEN, target wants $PKG"; exit 1
 else
@@ -184,6 +183,10 @@ for i in 0; do
  AP=$(grep -c "Applied: " /tmp/patch.log)
  green_log "[+] applied $AP patches (rc=$SA)"
  grep "Applied: " /tmp/patch.log | sed 's/.*Applied: /- /' | sort > ./release/.applied
+ if grep -q "SEVERE: FAILED" /tmp/patch.log; then
+  red_log "[-] a patch failed - refusing to release"
+  grep "SEVERE: FAILED" /tmp/patch.log | head -10; exit 1
+ fi
  if [ "$EXCL" = "true" ] && [ "$AP" != "$WANT_E" ]; then
   red_log "[-] applied $AP but include list says $WANT_E - refusing to release"
   grep "Skipping disabled" /tmp/patch.log | head -30; exit 1
@@ -191,6 +194,11 @@ for i in 0; do
 done
 
 # --- 7. release metadata ---------------------------------------------------
+# tag version from apk: the store listing lies, the file does not
+VR=$(apkanalyzer manifest version-name "./download/$APK_NAME.apk" 2>/dev/null | head -1)
+if [ -n "$VR" ] && [ "$VR" != "$version" ]; then
+  yellow_log "[!] tag version corrected: $version -> $VR (read from the apk)"; version="$VR"
+fi
 echo "$version" > ./release/.version
 echo "$PREFIX"  > ./release/.tagprefix
 for A in ./release/*-arm64-v8a.apk; do

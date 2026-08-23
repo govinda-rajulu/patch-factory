@@ -1,0 +1,33 @@
+name: 6. Batch Patch
+permissions:
+  contents: write
+on:
+  workflow_dispatch:
+    inputs:
+      targets:
+        description: 'Comma-separated target ids'
+        required: true
+        type: string
+jobs:
+  fan:
+    name: Plan
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Resolve ids
+        id: plan
+        env:
+          RAW: ${{ inputs.targets }}
+        run: bash src/etc/batchplan.sh
+  build:
+    needs: fan
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJson(needs.fan.outputs.matrix) }}
+    uses: ./.github/workflows/manual-patch.yml
+    with:
+      target: ${{ matrix.target }}
+    secrets: inherit

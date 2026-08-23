@@ -2,39 +2,66 @@
  "apkmirror": {
   "com.google.android.youtube": {
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=youtube",
-   "example_url": "https://www.apkmirror.com/apk/google-inc/youtube/youtube-21-18-168-release/"
+   "example_url": "https://www.apkmirror.com/apk/google-inc/youtube/youtube-21-18-168-release/",
+   "org": "google-inc",
+   "name": "youtube"
   },
   "com.google.android.apps.photos": {
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=photos",
-   "example_url": "https://www.apkmirror.com/apk/google-inc/photos/google-photos-7-74-0-910345644-release/"
+   "example_url": "https://www.apkmirror.com/apk/google-inc/photos/google-photos-7-74-0-910345644-release/",
+   "org": "google-inc",
+   "name": "photos"
   },
   "com.truecaller": {
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=truecaller-caller-id-block",
-   "example_url": "https://www.apkmirror.com/apk/true-software-scandinavia-ab/truecaller-caller-id-block/truecaller-trusted-caller-id-26-17-6-release/"
+   "example_url": "https://www.apkmirror.com/apk/true-software-scandinavia-ab/truecaller-caller-id-block/truecaller-trusted-caller-id-26-17-6-release/",
+   "org": "true-software-scandinavia-ab",
+   "name": "truecaller-caller-id-block"
   },
   "com.adguard.android": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=adguard"
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=adguard",
+   "org": "adguard-software-limited",
+   "name": "adguard"
   },
   "in.startv.hotstar": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=jiohotstar-4"
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=jiohotstar-4",
+   "org": "novi-digital-entertainment-pvt-ltd",
+   "name": "jiohotstar-4"
   },
   "com.amazon.avod.thirdpartyclient": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=amazon-prime-video"
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=amazon-prime-video",
+   "org": "amazon-mobile-llc",
+   "name": "amazon-prime-video"
   },
   "com.estrongs.android.pop": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=es-file-explorer"
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=es-file-explorer",
+   "org": "es-global",
+   "name": "es-file-explorer"
   },
   "com.facebook.katana": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=facebook"
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=facebook",
+   "org": "facebook-2",
+   "name": "facebook"
   },
   "com.graymatrix.did": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=zee5-movies-tv-shows-live-tv-originals"
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=zee5-movies-tv-shows-live-tv-originals",
+   "org": "z5x-global-fz-llc",
+   "name": "zee5-movies-tv-shows-live-tv-originals"
   },
   "com.mxtech.videoplayer.pro": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=mx-player-pro"
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=mx-player-pro",
+   "org": "j2-interactive",
+   "name": "mx-player-pro"
   },
   "org.telegram.messenger": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=telegram"
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=telegram",
+   "org": "telegram-fz-llc",
+   "name": "telegram"
+  },
+  "com.sonyliv": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=sonyliv-live-tv-sports-movies",
+   "org": "sony-pictures-networks-india-private-limited",
+   "name": "sonyliv-live-tv-sports-movies"
   }
  },
  "apkpure": {

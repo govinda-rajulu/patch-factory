@@ -51,7 +51,17 @@
    }
   ],
   "tag_prefix": "adguard",
-  "exclusive": true
+  "exclusive": true,
+  "extra_bundles": [
+   {
+    "name": "hoo-dles",
+    "host": "github",
+    "owner": "hoo-dles",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "adguard-hoo-dles"
+   }
+  ]
  },
  {
   "id": "photos",
@@ -189,7 +199,17 @@
   "tag_prefix": "es-file",
   "poll": false,
   "source": "apkmirror",
-  "any_version": false
+  "any_version": false,
+  "extra_bundles": [
+   {
+    "name": "rushiranpise",
+    "host": "github",
+    "owner": "rushiranpise",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "esfile-rushiranpise"
+   }
+  ]
  },
  {
   "id": "facebook",
@@ -242,7 +262,17 @@
   ],
   "tag_prefix": "instagram",
   "poll": false,
-  "source": "apkpure"
+  "source": "apkpure",
+  "extra_bundles": [
+   {
+    "name": "brosssh",
+    "host": "github",
+    "owner": "brosssh",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "instagram-brosssh"
+   }
+  ]
  },
  {
   "id": "reddit",
@@ -268,7 +298,17 @@
   ],
   "tag_prefix": "reddit",
   "poll": false,
-  "source": "apkpure"
+  "source": "apkpure",
+  "extra_bundles": [
+   {
+    "name": "rushiranpise",
+    "host": "github",
+    "owner": "rushiranpise",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "reddit-rushiranpise"
+   }
+  ]
  },
  {
   "id": "hotstar",
@@ -321,7 +361,7 @@
   ],
   "tag_prefix": "sonyliv",
   "poll": false,
-  "source": "apkpure",
+  "source": "apkmirror",
   "any_version": false
  },
  {
@@ -383,7 +423,7 @@
   "package": "com.mxtech.videoplayer.pro",
   "apk_name": "mx-player",
   "apk_type": "bundle",
-  "max_app_version": null,
+  "max_app_version": "1.93.4",
   "max_patch_age_days": 60,
   "min_sdk_ceiling": 29,
   "pin": null,
@@ -402,7 +442,18 @@
   "tag_prefix": "mx-player",
   "poll": false,
   "source": "apkmirror",
-  "any_version": true
+  "any_version": false,
+  "extra_bundles": [
+   {
+    "name": "paresh",
+    "host": "gitlab",
+    "project_id": 82031658,
+    "owner": "Paresh-Maheshwari",
+    "repo": "paresh-patches",
+    "channel": "prerelease",
+    "patch_dir": "mxplayer-paresh"
+   }
+  ]
  },
  {
   "id": "telegram",
