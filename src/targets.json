@@ -55,7 +55,8 @@
   "tag_prefix": "adguard",
   "exclusive": true,
   "label": "AdGuard",
-  "note": "Lifetime premium unlocked"
+  "note": "Lifetime premium unlocked",
+  "poll": true
  },
  {
   "id": "photos",
@@ -170,7 +171,7 @@
    }
   ],
   "tag_prefix": "prime-video",
-  "poll": false,
+  "poll": true,
   "source": "apkmirror",
   "any_version": false,
   "label": "Prime Video",
@@ -199,7 +200,7 @@
    }
   ],
   "tag_prefix": "es-file",
-  "poll": false,
+  "poll": true,
   "source": "apkmirror",
   "any_version": false,
   "extra_bundles": [
@@ -238,7 +239,7 @@
    }
   ],
   "tag_prefix": "facebook",
-  "poll": false,
+  "poll": true,
   "source": "apkmirror",
   "any_version": false,
   "label": "Facebook",
@@ -267,7 +268,7 @@
    }
   ],
   "tag_prefix": "instagram",
-  "poll": false,
+  "poll": true,
   "source": "apkpure",
   "extra_bundles": [
    {
@@ -305,7 +306,7 @@
    }
   ],
   "tag_prefix": "reddit",
-  "poll": false,
+  "poll": true,
   "source": "apkpure",
   "extra_bundles": [
    {
@@ -343,7 +344,7 @@
    }
   ],
   "tag_prefix": "hotstar",
-  "poll": false,
+  "poll": true,
   "source": "apkmirror",
   "any_version": false,
   "label": "JioHotstar",
@@ -376,7 +377,7 @@
   "source": "apkmirror",
   "any_version": false,
   "label": "SonyLIV",
-  "note": "Ads removed"
+  "note": "Not built: APKMirror page will not resolve"
  },
  {
   "id": "zee5",
@@ -405,7 +406,7 @@
   "source": "apkmirror",
   "any_version": false,
   "label": "ZEE5",
-  "note": "Ads removed"
+  "note": "Not built: chiggi supports the Android TV app only"
  },
  {
   "id": "edge",
@@ -430,7 +431,7 @@
    }
   ],
   "tag_prefix": "edge",
-  "poll": false,
+  "poll": true,
   "source": "apkpure",
   "label": "Microsoft Edge",
   "note": "Ads and telemetry stripped"
@@ -458,7 +459,7 @@
    }
   ],
   "tag_prefix": "mx-player",
-  "poll": false,
+  "poll": true,
   "source": "apkmirror",
   "any_version": false,
   "extra_bundles": [
@@ -498,7 +499,7 @@
    }
   ],
   "tag_prefix": "telegram",
-  "poll": false,
+  "poll": true,
   "source": "apkmirror",
   "any_version": false,
   "label": "Telegram",
@@ -527,7 +528,7 @@
    }
   ],
   "tag_prefix": "key-mapper",
-  "poll": false,
+  "poll": true,
   "source": "apkpure",
   "label": "Key Mapper",
   "note": "Premium unlocked"
