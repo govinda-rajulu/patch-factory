@@ -35,7 +35,10 @@ for i in $(seq 0 $((n-1))); do
   FLAG=""; [ "$CH" = "prerelease" ] && FLAG="--prerelease"
   OUT=$(java -jar "$JAR" list-versions --patches="https://github.com/$OWNER/$REPO" $FLAG -x -u -f "$PKG" 2>&1)
   VL=$(sed -n 's/^[[:space:]]*\([0-9][0-9.]*\)[[:space:]]*(\([0-9]*\) patch.*/\1 \2/p' <<<"$OUT")
-  [ -z "$VL" ] && { echo "   - $NAME: no version constraint declared, taking store latest"; echo "ANYVER=1" >&2; VL="0 0"; }
+  if [ -z "$VL" ] && { [ -z "$MAXVER" ] || [ "$MAXVER" = "null" ]; }; then
+    echo "   - $NAME: no version constraint and no max_app_version - cannot pick a version"; continue
+  fi
+  [ -z "$VL" ] && { echo "   - $NAME: no version constraint declared, taking store latest"; echo "ANYVER=1" >&2; VL="$MAXVER 0"; }
   [ -z "$VL" ] && { echo "  - $NAME: no support for $PKG"; continue; }
   if [ -n "$MAXVER" ] && [ "$MAXVER" != "null" ]; then
     VER=$(awk '{print $1}' <<<"$VL" | sort -V | while read -r v; do
