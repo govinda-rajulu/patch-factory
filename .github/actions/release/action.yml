@@ -1,4 +1,5 @@
 name: Releasing APK files
+description: Publish the built APK as a GitHub release
 runs:
   using: "composite"
   steps:
