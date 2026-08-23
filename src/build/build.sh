@@ -91,6 +91,12 @@ green_log "[+] patch bundle: $(ls ./*.mpp)"
 
 # --- 3. patch selection ----------------------------------------------------
 [ -d "src/patches/$PDIR" ]      || { red_log "[-] missing src/patches/$PDIR"; exit 1; }
+INC="src/patches/$PDIR/include-patches"
+EXC="src/patches/$PDIR/exclude-patches"
+if [ ! -s "$INC" ] && [ ! -s "$EXC" ]; then
+ red_log "[-] src/patches/$PDIR has no selections at all - refusing to build an unpatched apk"
+ exit 1
+fi
 [ -f "src/options/$OPTS.json" ] || { red_log "[-] missing src/options/$OPTS.json"; exit 1; }
 set +u; get_patches_key "$PDIR"; set -u
 # --- 3b. one bundle stays in cwd, the rest become extra -p flags ------------
