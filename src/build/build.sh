@@ -129,6 +129,7 @@ if [ "$ANYVER" = "true" ]; then version=""; lock_version=1; yellow_log "[!] any_
 if [ "$SRC" = "apkpure" ]; then
   set +u; get_apkpure "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 else
+near_version=1
 set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 fi
 [ "$GA" -eq 0 ] || { red_log "[-] get_apk failed for $PKG"; exit 1; }
@@ -147,7 +148,7 @@ if [ -z "$PKG_SEEN" ] && command -v apkanalyzer > /dev/null 2>&1; then
 fi
 if [ -z "$PKG_SEEN" ]; then
   if [ "$(unzip -p "./download/$APK_NAME.apk" AndroidManifest.xml 2>/dev/null | tr -d '\000' | grep -cF "$PKG")" != "0" ]; then
-    PKG_SEEN="$PKG"
+    PKG_SEEN="unreliable-grep-fallback"
   fi
 fi
 if [ -z "$PKG_SEEN" ]; then
