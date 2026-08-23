@@ -333,7 +333,7 @@
   "package": "com.sonyliv",
   "apk_name": "sonyliv",
   "apk_type": "bundle",
-  "max_app_version": null,
+  "max_app_version": "6.22.10",
   "max_patch_age_days": 60,
   "min_sdk_ceiling": 29,
   "pin": null,
