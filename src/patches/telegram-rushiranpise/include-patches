@@ -1,15 +1,11 @@
-Disable PairIP license check
 Spoof Widevine / DRM level
 GmsCore support (MicroG)
-Spoof install source
 Spoof Pixel device
-Enable debug build target
 Spoof Android ID
 Spoof telephony IDs
 Spoof Wi-Fi identifiers
 Spoof Bluetooth identifiers
 Export all activities
-Enable Android debugging
 Predictive back gesture
 Set target SDK 34
 Remove share targets
