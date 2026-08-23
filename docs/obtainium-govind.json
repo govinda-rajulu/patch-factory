@@ -100,6 +100,17 @@
    "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^es-file-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"ES File Explorer\"}"
   },
   {
+   "id": "in.startv.hotstar",
+   "url": "https://github.com/govinda-rajulu/patch-factory",
+   "author": "govinda-rajulu",
+   "name": "JioHotstar",
+   "categories": [
+    "patch-factory"
+   ],
+   "preferredApkIndex": 0,
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^hotstar-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"JioHotstar\"}"
+  },
+  {
    "id": "com.google.android.youtube",
    "url": "https://github.com/govinda-rajulu/patch-factory",
    "author": "govinda-rajulu",
