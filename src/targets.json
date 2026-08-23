@@ -51,17 +51,7 @@
    }
   ],
   "tag_prefix": "adguard",
-  "exclusive": true,
-  "extra_bundles": [
-   {
-    "name": "hoo-dles",
-    "host": "github",
-    "owner": "hoo-dles",
-    "repo": "morphe-patches",
-    "channel": "prerelease",
-    "patch_dir": "adguard-hoo-dles"
-   }
-  ]
+  "exclusive": true
  },
  {
   "id": "photos",

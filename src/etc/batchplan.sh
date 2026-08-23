@@ -1,5 +1,5 @@
 #!/bin/bash
-set -uo pipefail
+set -euo pipefail
 python3 - <<'PY' > /tmp/m.json
 import json, os
 want = [x.strip() for x in os.environ["RAW"].split(",") if x.strip()]
