@@ -20,7 +20,9 @@
    }
   ],
   "tag_prefix": "youtube-morphe",
-  "poll": true
+  "poll": true,
+  "label": "YouTube",
+  "note": "Morphe default patch set"
  },
  {
   "id": "adguard",
@@ -51,7 +53,9 @@
    }
   ],
   "tag_prefix": "adguard",
-  "exclusive": true
+  "exclusive": true,
+  "label": "AdGuard",
+  "note": "Lifetime premium unlocked"
  },
  {
   "id": "photos",
@@ -75,7 +79,9 @@
   ],
   "tag_prefix": "gg-photos",
   "poll": true,
-  "exclusive": true
+  "exclusive": true,
+  "label": "Google Photos",
+  "note": "Installs beside the system Photos app"
  },
  {
   "id": "truecaller",
@@ -99,7 +105,9 @@
   ],
   "tag_prefix": "truecaller",
   "poll": false,
-  "exclusive": true
+  "exclusive": true,
+  "label": "Truecaller",
+  "note": "Ad blocking, never built"
  },
  {
   "id": "truecaller-combo",
@@ -135,7 +143,9 @@
   ],
   "tag_prefix": "tc-combo",
   "poll": true,
-  "exclusive": true
+  "exclusive": true,
+  "label": "Truecaller (combo)",
+  "note": "paresh premium plus bufferk ad blocking"
  },
  {
   "id": "primevideo",
@@ -162,7 +172,9 @@
   "tag_prefix": "prime-video",
   "poll": false,
   "source": "apkmirror",
-  "any_version": false
+  "any_version": false,
+  "label": "Prime Video",
+  "note": "Ads skipped, speed control"
  },
  {
   "id": "esfile",
@@ -199,7 +211,9 @@
     "channel": "prerelease",
     "patch_dir": "esfile-rushiranpise"
    }
-  ]
+  ],
+  "label": "ES File Explorer",
+  "note": "VIP unlocked, ads and analytics removed"
  },
  {
   "id": "facebook",
@@ -226,7 +240,9 @@
   "tag_prefix": "facebook",
   "poll": false,
   "source": "apkmirror",
-  "any_version": false
+  "any_version": false,
+  "label": "Facebook",
+  "note": "Ads removed"
  },
  {
   "id": "instagram",
@@ -262,7 +278,9 @@
     "channel": "prerelease",
     "patch_dir": "instagram-brosssh"
    }
-  ]
+  ],
+  "label": "Instagram",
+  "note": "Ads, tracking and suggested content removed"
  },
  {
   "id": "reddit",
@@ -298,7 +316,9 @@
     "channel": "prerelease",
     "patch_dir": "reddit-rushiranpise"
    }
-  ]
+  ],
+  "label": "Reddit",
+  "note": "Ads, telemetry and promoted posts removed"
  },
  {
   "id": "hotstar",
@@ -325,7 +345,9 @@
   "tag_prefix": "hotstar",
   "poll": false,
   "source": "apkmirror",
-  "any_version": false
+  "any_version": false,
+  "label": "JioHotstar",
+  "note": "Ads removed"
  },
  {
   "id": "sonyliv",
@@ -352,7 +374,9 @@
   "tag_prefix": "sonyliv",
   "poll": false,
   "source": "apkmirror",
-  "any_version": false
+  "any_version": false,
+  "label": "SonyLIV",
+  "note": "Ads removed"
  },
  {
   "id": "zee5",
@@ -379,7 +403,9 @@
   "tag_prefix": "zee5",
   "poll": false,
   "source": "apkmirror",
-  "any_version": false
+  "any_version": false,
+  "label": "ZEE5",
+  "note": "Ads removed"
  },
  {
   "id": "edge",
@@ -405,7 +431,9 @@
   ],
   "tag_prefix": "edge",
   "poll": false,
-  "source": "apkpure"
+  "source": "apkpure",
+  "label": "Microsoft Edge",
+  "note": "Ads and telemetry stripped"
  },
  {
   "id": "mxplayer",
@@ -443,7 +471,9 @@
     "channel": "prerelease",
     "patch_dir": "mxplayer-paresh"
    }
-  ]
+  ],
+  "label": "MX Player Pro",
+  "note": "Pro licence unlocked, ads and clutter removed"
  },
  {
   "id": "telegram",
@@ -470,7 +500,9 @@
   "tag_prefix": "telegram",
   "poll": false,
   "source": "apkmirror",
-  "any_version": false
+  "any_version": false,
+  "label": "Telegram",
+  "note": "Ads and tracking removed"
  },
  {
   "id": "keymapper",
@@ -496,6 +528,8 @@
   ],
   "tag_prefix": "key-mapper",
   "poll": false,
-  "source": "apkpure"
+  "source": "apkpure",
+  "label": "Key Mapper",
+  "note": "Premium unlocked"
  }
 ]

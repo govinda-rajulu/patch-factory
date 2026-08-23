@@ -7,14 +7,7 @@ REPO = "govinda-rajulu/patch-factory"
 APP_URL = "https://github.com/" + REPO
 AUTHOR = "govinda-rajulu"
 
-LABELS = {
-  "adguard": "AdGuard", "edge": "Microsoft Edge", "es-file": "ES File Explorer",
-  "facebook": "Facebook", "gg-photos": "Google Photos", "hotstar": "JioHotstar",
-  "instagram": "Instagram", "key-mapper": "Key Mapper", "mx-player": "MX Player Pro",
-  "prime-video": "Prime Video", "reddit": "Reddit", "sonyliv": "SonyLIV",
-  "tc-combo": "Truecaller", "telegram": "Telegram", "youtube-morphe": "YouTube",
-  "zee5": "ZEE5",
-}
+LABELS = {}  # filled from targets.json below
 SKIP = {}
 MINE = ["key-mapper", "telegram", "instagram", "reddit", "edge", "adguard", "tc-combo",
         "gg-photos", "es-file", "hotstar", "sonyliv", "zee5", "youtube-morphe"]
@@ -27,6 +20,7 @@ for t in targets:
     p = t.get("tag_prefix") or t["id"]
     assert re.fullmatch("[a-z0-9-]+", p), ("prefix has regex metachars", p)
     pkg[p] = t["package"]
+    LABELS[p] = t.get("label") or p
 pkg["gg-photos"] = "app.morphe.android.apps.photos"  # Change package name patch default
 for p in sorted(set(MINE + THEIRS)):
     assert p in LABELS, ("no label", p)

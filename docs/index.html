@@ -298,6 +298,35 @@ $('clearTok').onclick = () => {
 };
 if (TOKEN) $('gear').classList.add('live');
 $('refresh').onclick = () => load();
+let SORT = localStorage.getItem('pf_sort') || 'catalog';
+function mountSort(){
+  if (document.getElementById('sortWrap')) return;
+  const w = document.createElement('div');
+  w.id = 'sortWrap'; w.className = 'strip';
+  w.innerHTML = 'Sort';
+  const s = document.createElement('select');
+  s.id = 'sortSel';
+  s.style.cssText = 'font:inherit;color:inherit;background:transparent;border:1px solid var(--rule);border-radius:6px;padding:5px 7px;margin-left:auto;min-height:34px';
+  [['catalog','Default'],['name','Name A to Z'],['new','Newest build'],['state','Ready first']].forEach(function(o){
+    const op = document.createElement('option');
+    op.value = o[0]; op.textContent = o[1];
+    if (o[0] === SORT) op.selected = true;
+    s.appendChild(op);
+  });
+  s.onchange = function(){ SORT = s.value; localStorage.setItem('pf_sort', SORT); load(); };
+  w.appendChild(s);
+  const l = document.getElementById('list');
+  l.parentNode.insertBefore(w, l);
+}
+function sortApps(apps, data){
+  const when = function(a){ const b = (data && data[a.prefix]) || []; return b.length ? new Date(b[0].when).getTime() : 0; };
+  const c = apps.slice();
+  if (SORT === 'name') c.sort(function(a,b){ return a.name.localeCompare(b.name); });
+  else if (SORT === 'new') c.sort(function(a,b){ return when(b) - when(a); });
+  else if (SORT === 'state') c.sort(function(a,b){ return ((when(b)?1:0) - (when(a)?1:0)) || a.name.localeCompare(b.name); });
+  return c;
+}
+
 
 /* ---------- data ---------- */
 async function load(){
@@ -351,7 +380,8 @@ function render(data, err){
     return;
   }
 
-  list.innerHTML = CATALOG.map(app => {
+  mountSort();
+  list.innerHTML = sortApps(CATALOG, data).map(app => {
     const builds = data[app.prefix] || [];
 
     if (!builds.length){
@@ -462,6 +492,8 @@ async function loadCatalog(){
   if (!Array.isArray(t) || !t.length) return;
   CATALOG = t.map(function(x){
    const l = LABELS[x.id] || {};
+      if (x.label) l.name = x.label;
+      if (x.note) l.note = x.note;
    return { prefix: x.tag_prefix || x.id, target: x.id, name: l.name || x.id,
     note: l.note || (x.enabled ? 'Patched build' : 'Not enabled yet') };
   });
