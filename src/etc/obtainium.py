@@ -15,9 +15,7 @@ LABELS = {
   "tc-combo": "Truecaller", "telegram": "Telegram", "youtube-morphe": "YouTube",
   "zee5": "ZEE5",
 }
-SKIP = {
-  "gg-photos": "Change package name is applied, so the installed id is unknown - add on device",
-}
+SKIP = {}
 MINE = ["key-mapper", "telegram", "instagram", "reddit", "edge", "adguard", "tc-combo",
         "gg-photos", "es-file", "hotstar", "sonyliv", "zee5", "youtube-morphe"]
 THEIRS = ["tc-combo", "prime-video", "facebook", "gg-photos", "es-file",
@@ -29,6 +27,7 @@ for t in targets:
     p = t.get("tag_prefix") or t["id"]
     assert re.fullmatch("[a-z0-9-]+", p), ("prefix has regex metachars", p)
     pkg[p] = t["package"]
+pkg["gg-photos"] = "app.morphe.android.apps.photos"  # Change package name patch default
 for p in sorted(set(MINE + THEIRS)):
     assert p in LABELS, ("no label", p)
     assert p in pkg, ("no target", p)

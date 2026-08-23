@@ -34,6 +34,17 @@
    "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^facebook-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"Facebook\"}"
   },
   {
+   "id": "app.morphe.android.apps.photos",
+   "url": "https://github.com/govinda-rajulu/patch-factory",
+   "author": "govinda-rajulu",
+   "name": "Google Photos",
+   "categories": [
+    "patch-factory"
+   ],
+   "preferredApkIndex": 0,
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^gg-photos-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"Google Photos\"}"
+  },
+  {
    "id": "com.estrongs.android.pop",
    "url": "https://github.com/govinda-rajulu/patch-factory",
    "author": "govinda-rajulu",

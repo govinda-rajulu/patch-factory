@@ -148,7 +148,7 @@ if [ -z "$PKG_SEEN" ] && command -v apkanalyzer > /dev/null 2>&1; then
 fi
 if [ -z "$PKG_SEEN" ]; then
   if [ "$(unzip -p "./download/$APK_NAME.apk" AndroidManifest.xml 2>/dev/null | tr -d '\000' | grep -cF "$PKG")" != "0" ]; then
-    PKG_SEEN="unreliable-grep-fallback"
+    PKG_SEEN="$PKG"; yellow_log "[!] package read from a manifest grep only - verified again after patching"
   fi
 fi
 if [ -z "$PKG_SEEN" ]; then
@@ -184,6 +184,14 @@ for i in 0; do
  AP=$(grep -c "Applied: " /tmp/patch.log)
  green_log "[+] applied $AP patches (rc=$SA)"
  grep "Applied: " /tmp/patch.log | sed 's/.*Applied: /- /' | sort > ./release/.applied
+ PKG_LOG=$(grep -oE "Filtering patches for [^ ]+" /tmp/patch.log | tail -1 | awk "{print \$NF}")
+ if [ -z "$PKG_LOG" ]; then
+   red_log "[-] the patcher never said which package it filtered - refusing"; exit 1
+ elif [ "$PKG_LOG" != "$PKG" ]; then
+   red_log "[-] WRONG APP: patcher saw $PKG_LOG, target wants $PKG - refusing"; exit 1
+ else
+   green_log "[+] package verified by the patcher: $PKG_LOG"
+ fi
  if grep -q "SEVERE: FAILED" /tmp/patch.log; then
   red_log "[-] a patch failed - refusing to release"
   grep "SEVERE: FAILED" /tmp/patch.log | head -10; exit 1
