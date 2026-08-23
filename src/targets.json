@@ -1,457 +1,458 @@
 [
-  {
-    "id": "youtube",
-    "enabled": true,
-    "package": "com.google.android.youtube",
-    "apk_name": "youtube",
-    "apk_type": "apk",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": "morphe",
-    "candidates": [
-      {
-        "name": "morphe",
-        "owner": "MorpheApp",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "youtube-morphe",
-        "options": "morphe"
-      }
-    ],
-    "tag_prefix": "youtube-morphe",
-    "poll": true
-  },
-  {
-    "id": "adguard",
-    "enabled": true,
-    "package": "com.adguard.android",
-    "apk_name": "adguard",
-    "apk_type": "apk",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "candidates": [
-      {
-        "name": "rushiranpise",
-        "owner": "rushiranpise",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "adguard-rushiranpise",
-        "options": "rushiranpise"
-      },
-      {
-        "name": "hoo-dles",
-        "owner": "hoo-dles",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "adguard-hoo-dles",
-        "options": "hoo-dles"
-      }
-    ],
-    "tag_prefix": "adguard"
-  },
-  {
-    "id": "photos",
-    "enabled": true,
-    "package": "com.google.android.apps.photos",
-    "apk_name": "gg-photos",
-    "apk_type": "apk",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "candidates": [
-      {
-        "name": "rushiranpise",
-        "owner": "rushiranpise",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "gg-photos",
-        "options": "rushiranpise"
-      }
-    ],
-    "tag_prefix": "gg-photos",
-    "poll": true
-  },
-  {
-    "id": "truecaller",
-    "enabled": true,
-    "package": "com.truecaller",
-    "apk_name": "truecaller",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "candidates": [
-      {
-        "name": "bufferk",
-        "owner": "bufferk",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "truecaller-bufferk",
-        "options": "bufferk"
-      }
-    ],
-    "tag_prefix": "truecaller",
-    "poll": false
-  },
-  {
-    "id": "truecaller-combo",
-    "enabled": true,
-    "package": "com.truecaller",
-    "apk_name": "tc-combo",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "candidates": [
-      {
-        "name": "bufferk",
-        "host": "github",
-        "owner": "bufferk",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "truecaller-combo",
-        "options": "combo"
-      }
-    ],
-    "extra_bundles": [
-      {
-        "name": "paresh",
-        "host": "gitlab",
-        "project_id": 82031658,
-        "owner": "Paresh-Maheshwari",
-        "repo": "paresh-patches",
-        "channel": "prerelease",
-        "patch_dir": "truecaller-paresh"
-      }
-    ],
-    "tag_prefix": "tc-combo",
-    "poll": true,
-    "exclusive": true
-  },
-  {
-    "id": "primevideo",
-    "enabled": true,
-    "package": "com.amazon.avod.thirdpartyclient",
-    "apk_name": "prime-video",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "hoo-dles",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "primevideo-hoo-dles",
-        "options": "hoo-dles",
-        "owner": "hoo-dles",
-        "repo": "morphe-patches"
-      }
-    ],
-    "tag_prefix": "prime-video",
-    "poll": false,
-    "source": "apkmirror",
-    "any_version": true
-  },
-  {
-    "id": "esfile",
-    "enabled": true,
-    "package": "com.estrongs.android.pop",
-    "apk_name": "es-file",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "ftl",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "esfile-ftl",
-        "options": "ftl",
-        "owner": "BlazeFTL",
-        "repo": "FTL-Patches"
-      }
-    ],
-    "tag_prefix": "es-file",
-    "poll": false,
-    "source": "apkmirror",
-    "any_version": true
-  },
-  {
-    "id": "facebook",
-    "enabled": true,
-    "package": "com.facebook.katana",
-    "apk_name": "facebook",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "derevanced",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "facebook-derevanced",
-        "options": "derevanced",
-        "owner": "RookieEnough",
-        "repo": "De-Vanced"
-      }
-    ],
-    "tag_prefix": "facebook",
-    "poll": false,
-    "source": "apkmirror",
-    "any_version": true
-  },
-  {
-    "id": "instagram",
-    "enabled": true,
-    "package": "com.instagram.android",
-    "apk_name": "instagram",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "piko",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "instagram-piko",
-        "options": "piko",
-        "owner": "crimera",
-        "repo": "piko"
-      }
-    ],
-    "tag_prefix": "instagram",
-    "poll": false,
-    "source": "apkpure"
-  },
-  {
-    "id": "reddit",
-    "enabled": true,
-    "package": "com.reddit.frontpage",
-    "apk_name": "reddit",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "adobo",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "reddit-adobo",
-        "options": "adobo",
-        "owner": "jkennethcarino",
-        "repo": "adobo"
-      }
-    ],
-    "tag_prefix": "reddit",
-    "poll": false,
-    "source": "apkpure"
-  },
-  {
-    "id": "hotstar",
-    "enabled": true,
-    "package": "in.startv.hotstar",
-    "apk_name": "hotstar",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "chiggi",
-        "host": "github",
-        "channel": "latest",
-        "patch_dir": "hotstar-chiggi",
-        "options": "chiggi",
-        "owner": "durgesh0505",
-        "repo": "chiggi_morphe_patches"
-      }
-    ],
-    "tag_prefix": "hotstar",
-    "poll": false,
-    "source": "apkmirror",
-    "any_version": false
-  },
-  {
-    "id": "sonyliv",
-    "enabled": true,
-    "package": "com.sonyliv",
-    "apk_name": "sonyliv",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "chiggi",
-        "host": "github",
-        "channel": "latest",
-        "patch_dir": "sonyliv-chiggi",
-        "options": "chiggi",
-        "owner": "durgesh0505",
-        "repo": "chiggi_morphe_patches"
-      }
-    ],
-    "tag_prefix": "sonyliv",
-    "poll": false,
-    "source": "apkpure",
-    "any_version": true
-  },
-  {
-    "id": "zee5",
-    "enabled": true,
-    "package": "com.graymatrix.did",
-    "apk_name": "zee5",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "chiggi",
-        "host": "github",
-        "channel": "latest",
-        "patch_dir": "zee5-chiggi",
-        "options": "chiggi",
-        "owner": "durgesh0505",
-        "repo": "chiggi_morphe_patches"
-      }
-    ],
-    "tag_prefix": "zee5",
-    "poll": false,
-    "source": "apkmirror",
-    "any_version": true
-  },
-  {
-    "id": "edge",
-    "enabled": true,
-    "package": "com.microsoft.emmx",
-    "apk_name": "edge",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "quantavil",
-        "host": "github",
-        "channel": "latest",
-        "patch_dir": "edge-quantavil",
-        "options": "quantavil",
-        "owner": "quantavil",
-        "repo": "edge-morphe-patches"
-      }
-    ],
-    "tag_prefix": "edge",
-    "poll": false,
-    "source": "apkpure"
-  },
-  {
-    "id": "mxplayer",
-    "enabled": true,
-    "package": "com.mxtech.videoplayer.pro",
-    "apk_name": "mx-player",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "ftl",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "mxplayer-ftl",
-        "options": "ftl",
-        "owner": "BlazeFTL",
-        "repo": "FTL-Patches"
-      }
-    ],
-    "tag_prefix": "mx-player",
-    "poll": false,
-    "source": "apkmirror",
-    "any_version": true
-  },
-  {
-    "id": "telegram",
-    "enabled": true,
-    "package": "org.telegram.messenger",
-    "apk_name": "telegram",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "rushiranpise",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "telegram-rushiranpise",
-        "options": "rushiranpise",
-        "owner": "rushiranpise",
-        "repo": "morphe-patches"
-      }
-    ],
-    "tag_prefix": "telegram",
-    "poll": false,
-    "source": "apkmirror",
-    "any_version": false
-  },
-  {
-    "id": "keymapper",
-    "enabled": true,
-    "package": "io.github.sds100.keymapper",
-    "apk_name": "key-mapper",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "lain",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "keymapper-lain",
-        "options": "lain",
-        "owner": "kiraio-moe",
-        "repo": "Lain-Patches"
-      }
-    ],
-    "tag_prefix": "key-mapper",
-    "poll": false,
-    "source": "apkpure"
-  }
+ {
+  "id": "youtube",
+  "enabled": true,
+  "package": "com.google.android.youtube",
+  "apk_name": "youtube",
+  "apk_type": "apk",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": "morphe",
+  "candidates": [
+   {
+    "name": "morphe",
+    "owner": "MorpheApp",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "youtube-morphe",
+    "options": "morphe"
+   }
+  ],
+  "tag_prefix": "youtube-morphe",
+  "poll": true
+ },
+ {
+  "id": "adguard",
+  "enabled": true,
+  "package": "com.adguard.android",
+  "apk_name": "adguard",
+  "apk_type": "apk",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": "rushiranpise",
+  "candidates": [
+   {
+    "name": "rushiranpise",
+    "owner": "rushiranpise",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "adguard-rushiranpise",
+    "options": "rushiranpise"
+   },
+   {
+    "name": "hoo-dles",
+    "owner": "hoo-dles",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "adguard-hoo-dles",
+    "options": "hoo-dles"
+   }
+  ],
+  "tag_prefix": "adguard",
+  "exclusive": true
+ },
+ {
+  "id": "photos",
+  "enabled": true,
+  "package": "com.google.android.apps.photos",
+  "apk_name": "gg-photos",
+  "apk_type": "apk",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "candidates": [
+   {
+    "name": "rushiranpise",
+    "owner": "rushiranpise",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "gg-photos",
+    "options": "rushiranpise"
+   }
+  ],
+  "tag_prefix": "gg-photos",
+  "poll": true
+ },
+ {
+  "id": "truecaller",
+  "enabled": true,
+  "package": "com.truecaller",
+  "apk_name": "truecaller",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "candidates": [
+   {
+    "name": "bufferk",
+    "owner": "bufferk",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "truecaller-bufferk",
+    "options": "bufferk"
+   }
+  ],
+  "tag_prefix": "truecaller",
+  "poll": false
+ },
+ {
+  "id": "truecaller-combo",
+  "enabled": true,
+  "package": "com.truecaller",
+  "apk_name": "tc-combo",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "candidates": [
+   {
+    "name": "bufferk",
+    "host": "github",
+    "owner": "bufferk",
+    "repo": "morphe-patches",
+    "channel": "prerelease",
+    "patch_dir": "truecaller-combo",
+    "options": "combo"
+   }
+  ],
+  "extra_bundles": [
+   {
+    "name": "paresh",
+    "host": "gitlab",
+    "project_id": 82031658,
+    "owner": "Paresh-Maheshwari",
+    "repo": "paresh-patches",
+    "channel": "prerelease",
+    "patch_dir": "truecaller-paresh"
+   }
+  ],
+  "tag_prefix": "tc-combo",
+  "poll": true,
+  "exclusive": true
+ },
+ {
+  "id": "primevideo",
+  "enabled": true,
+  "package": "com.amazon.avod.thirdpartyclient",
+  "apk_name": "prime-video",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "hoo-dles",
+    "host": "github",
+    "channel": "prerelease",
+    "patch_dir": "primevideo-hoo-dles",
+    "options": "hoo-dles",
+    "owner": "hoo-dles",
+    "repo": "morphe-patches"
+   }
+  ],
+  "tag_prefix": "prime-video",
+  "poll": false,
+  "source": "apkmirror",
+  "any_version": true
+ },
+ {
+  "id": "esfile",
+  "enabled": true,
+  "package": "com.estrongs.android.pop",
+  "apk_name": "es-file",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "ftl",
+    "host": "github",
+    "channel": "prerelease",
+    "patch_dir": "esfile-ftl",
+    "options": "ftl",
+    "owner": "BlazeFTL",
+    "repo": "FTL-Patches"
+   }
+  ],
+  "tag_prefix": "es-file",
+  "poll": false,
+  "source": "apkmirror",
+  "any_version": true
+ },
+ {
+  "id": "facebook",
+  "enabled": true,
+  "package": "com.facebook.katana",
+  "apk_name": "facebook",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "derevanced",
+    "host": "github",
+    "channel": "prerelease",
+    "patch_dir": "facebook-derevanced",
+    "options": "derevanced",
+    "owner": "RookieEnough",
+    "repo": "De-Vanced"
+   }
+  ],
+  "tag_prefix": "facebook",
+  "poll": false,
+  "source": "apkmirror",
+  "any_version": true
+ },
+ {
+  "id": "instagram",
+  "enabled": true,
+  "package": "com.instagram.android",
+  "apk_name": "instagram",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "piko",
+    "host": "github",
+    "channel": "prerelease",
+    "patch_dir": "instagram-piko",
+    "options": "piko",
+    "owner": "crimera",
+    "repo": "piko"
+   }
+  ],
+  "tag_prefix": "instagram",
+  "poll": false,
+  "source": "apkpure"
+ },
+ {
+  "id": "reddit",
+  "enabled": true,
+  "package": "com.reddit.frontpage",
+  "apk_name": "reddit",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "adobo",
+    "host": "github",
+    "channel": "prerelease",
+    "patch_dir": "reddit-adobo",
+    "options": "adobo",
+    "owner": "jkennethcarino",
+    "repo": "adobo"
+   }
+  ],
+  "tag_prefix": "reddit",
+  "poll": false,
+  "source": "apkpure"
+ },
+ {
+  "id": "hotstar",
+  "enabled": true,
+  "package": "in.startv.hotstar",
+  "apk_name": "hotstar",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "chiggi",
+    "host": "github",
+    "channel": "latest",
+    "patch_dir": "hotstar-chiggi",
+    "options": "chiggi",
+    "owner": "durgesh0505",
+    "repo": "chiggi_morphe_patches"
+   }
+  ],
+  "tag_prefix": "hotstar",
+  "poll": false,
+  "source": "apkmirror",
+  "any_version": false
+ },
+ {
+  "id": "sonyliv",
+  "enabled": true,
+  "package": "com.sonyliv",
+  "apk_name": "sonyliv",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "chiggi",
+    "host": "github",
+    "channel": "latest",
+    "patch_dir": "sonyliv-chiggi",
+    "options": "chiggi",
+    "owner": "durgesh0505",
+    "repo": "chiggi_morphe_patches"
+   }
+  ],
+  "tag_prefix": "sonyliv",
+  "poll": false,
+  "source": "apkpure",
+  "any_version": true
+ },
+ {
+  "id": "zee5",
+  "enabled": true,
+  "package": "com.graymatrix.did",
+  "apk_name": "zee5",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "chiggi",
+    "host": "github",
+    "channel": "latest",
+    "patch_dir": "zee5-chiggi",
+    "options": "chiggi",
+    "owner": "durgesh0505",
+    "repo": "chiggi_morphe_patches"
+   }
+  ],
+  "tag_prefix": "zee5",
+  "poll": false,
+  "source": "apkmirror",
+  "any_version": true
+ },
+ {
+  "id": "edge",
+  "enabled": true,
+  "package": "com.microsoft.emmx",
+  "apk_name": "edge",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "quantavil",
+    "host": "github",
+    "channel": "latest",
+    "patch_dir": "edge-quantavil",
+    "options": "quantavil",
+    "owner": "quantavil",
+    "repo": "edge-morphe-patches"
+   }
+  ],
+  "tag_prefix": "edge",
+  "poll": false,
+  "source": "apkpure"
+ },
+ {
+  "id": "mxplayer",
+  "enabled": true,
+  "package": "com.mxtech.videoplayer.pro",
+  "apk_name": "mx-player",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "ftl",
+    "host": "github",
+    "channel": "prerelease",
+    "patch_dir": "mxplayer-ftl",
+    "options": "ftl",
+    "owner": "BlazeFTL",
+    "repo": "FTL-Patches"
+   }
+  ],
+  "tag_prefix": "mx-player",
+  "poll": false,
+  "source": "apkmirror",
+  "any_version": true
+ },
+ {
+  "id": "telegram",
+  "enabled": true,
+  "package": "org.telegram.messenger",
+  "apk_name": "telegram",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "rushiranpise",
+    "host": "github",
+    "channel": "prerelease",
+    "patch_dir": "telegram-rushiranpise",
+    "options": "rushiranpise",
+    "owner": "rushiranpise",
+    "repo": "morphe-patches"
+   }
+  ],
+  "tag_prefix": "telegram",
+  "poll": false,
+  "source": "apkmirror",
+  "any_version": false
+ },
+ {
+  "id": "keymapper",
+  "enabled": true,
+  "package": "io.github.sds100.keymapper",
+  "apk_name": "key-mapper",
+  "apk_type": "bundle",
+  "max_app_version": null,
+  "max_patch_age_days": 60,
+  "min_sdk_ceiling": 29,
+  "pin": null,
+  "exclusive": true,
+  "candidates": [
+   {
+    "name": "lain",
+    "host": "github",
+    "channel": "prerelease",
+    "patch_dir": "keymapper-lain",
+    "options": "lain",
+    "owner": "kiraio-moe",
+    "repo": "Lain-Patches"
+   }
+  ],
+  "tag_prefix": "key-mapper",
+  "poll": false,
+  "source": "apkpure"
+ }
 ]
