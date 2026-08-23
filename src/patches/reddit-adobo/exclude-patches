@@ -1,1 +1,7 @@
 Block ads, trackers, and analytics
+Change package name
+Remove internet permission
+Replace Google Maps API key
+Spoof Advertising ID
+Spoof Firebase certificate hash
+Spoof signature verification

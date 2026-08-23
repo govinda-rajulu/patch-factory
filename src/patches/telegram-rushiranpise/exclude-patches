@@ -1,0 +1,29 @@
+Bypass integrity check
+Change version code
+Disable PairIP license check
+Enable Android debugging
+Enable debug build target
+Enable ROM signature spoofing
+Export all activities
+Export internal data documents provider
+Fix Firebase after re-signing
+Hide ADB status
+Hide app icon
+Hide mock location
+Override certificate pinning
+Provide Original app certificate
+Remove internet permission
+Set target SDK 34
+Spoof Android ID
+Spoof app signature
+Spoof Bluetooth identifiers
+Spoof build info
+Spoof install source
+Spoof keystore security level
+Spoof Pixel device
+Spoof Play age signals
+Spoof root of trust
+Spoof SIM provider
+Spoof telephony IDs
+Spoof Wi-Fi identifiers
+Spoof Widevine / DRM level
