@@ -119,3 +119,5 @@ jobs:
             [ -n "$U" ] || echo "::warning::$id is disabled and $pkg is not in apps.json, enabling it alone will not build"
           done < <(jq -r '.[] | select(.enabled | not) | .id + ":" + .package' src/targets.json)
           exit $FAIL
+      - name: Banned patches
+        run: bash src/etc/bancheck.sh

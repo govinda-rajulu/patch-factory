@@ -1,0 +1,1 @@
+gg-photos|Change package name|Photos ships as a system app on all three phones, so a same-package resigned build cannot install over it. The patched build is a deliberate second app.|2026-08-23

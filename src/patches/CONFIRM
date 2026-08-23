@@ -1,0 +1,22 @@
+rom signature spoofing
+keystore security level
+root of trust
+bypass integrity check
+spoof widevine
+spoof pixel device
+spoof android id
+spoof telephony
+spoof wi-fi identifier
+spoof bluetooth identifier
+spoof sim provider
+spoof build info
+spoof play age signals
+hide mock location
+hide adb status
+set target sdk
+add toast
+remove debug info
+png optimizer
+remove duplicate graphics
+remove languages
+junk cleanup

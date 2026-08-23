@@ -74,7 +74,8 @@
    }
   ],
   "tag_prefix": "gg-photos",
-  "poll": true
+  "poll": true,
+  "exclusive": true
  },
  {
   "id": "truecaller",
@@ -97,7 +98,8 @@
    }
   ],
   "tag_prefix": "truecaller",
-  "poll": false
+  "poll": false,
+  "exclusive": true
  },
  {
   "id": "truecaller-combo",

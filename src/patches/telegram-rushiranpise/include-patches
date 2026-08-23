@@ -5,7 +5,6 @@ Spoof Android ID
 Spoof telephony IDs
 Spoof Wi-Fi identifiers
 Spoof Bluetooth identifiers
-Export all activities
 Predictive back gesture
 Set target SDK 34
 Remove share targets
@@ -14,7 +13,6 @@ Hide mock location
 Hide ADB status
 Spoof Wi-Fi connection
 Spoof build info
-Export internal data documents provider
 Enable ROM signature spoofing
 Spoof keystore security level
 Spoof root of trust
