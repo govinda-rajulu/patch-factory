@@ -374,7 +374,7 @@
   ],
   "tag_prefix": "sonyliv",
   "poll": false,
-  "source": "apkmirror",
+  "source": "apkpure",
   "any_version": false,
   "label": "SonyLIV",
   "note": "Not built: APKMirror page will not resolve"
