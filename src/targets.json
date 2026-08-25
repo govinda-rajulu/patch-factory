@@ -372,7 +372,6 @@
   "package": "com.sonyliv",
   "apk_name": "sonyliv",
   "apk_type": "bundle",
-  "max_app_version": "6.22.10",
   "max_patch_age_days": 60,
   "min_sdk_ceiling": 29,
   "pin": null,
@@ -391,7 +390,7 @@
   "tag_prefix": "sonyliv",
   "poll": false,
   "source": "apkpure",
-  "any_version": false,
+  "any_version": true,
   "label": "SonyLIV",
   "note": "Not built: APKMirror page will not resolve"
  },
