@@ -51,6 +51,12 @@ jobs:
           SZ=$(wc -c < src/ks.keystore)
           echo "keystore bytes: $SZ"
           [ "$SZ" -gt 3000 ] || { echo "::error::keystore truncated - KEYSTORE_B64 secret is incomplete"; exit 1; }
+      - name: Cache the patcher jar
+        uses: actions/cache@v4
+        with:
+          path: morphe-desktop-*.jar
+          key: morphe-jar-${{ hashFiles('src/targets.json') }}
+          restore-keys: morphe-jar-
       - name: Preparing to patch
         uses: ./.github/actions/preparing
       - name: Check github connection

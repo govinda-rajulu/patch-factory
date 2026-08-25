@@ -1,0 +1,29 @@
+name: 7. Nightly watch
+permissions:
+  contents: read
+  issues: write
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - name: Fetch patcher
+        run: |
+          U=$(curl -sS https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest \
+            | jq -r '.assets[] | select(.name|endswith(".jar")) | .browser_download_url' | head -1)
+          [ -n "$U" ] || { echo "::error::no jar asset"; exit 1; }
+          curl -sSL -o "$(basename "$U")" "$U"
+          ls -l morphe-desktop-*.jar
+      - name: Report
+        id: rep
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: bash src/etc/report.sh full > /tmp/report.txt 2>&1 || true
+      - name: Open an issue only if something changed
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: bash src/etc/watch_issue.sh

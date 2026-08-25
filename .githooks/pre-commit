@@ -1,0 +1,9 @@
+#!/bin/bash
+# Fast, offline-ish checks before every commit. Skip with: git commit --no-verify
+cd "$(git rev-parse --show-toplevel)" || exit 0
+[ -f src/etc/report.sh ] || exit 0
+bash src/etc/report.sh fast || {
+  echo
+  echo "pre-commit: report.sh fast failed. Fix it, or use --no-verify if you know why."
+  exit 1
+}
