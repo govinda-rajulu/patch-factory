@@ -174,8 +174,7 @@ if [ -z "$version" ]; then
   green_log "[+] version read from apk: $version"
 fi
 # --- 5. sdk gate, report only ----------------------------------------------
-bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" 2>&1 \
-  | sed 's/::error::/::warning::/'
+bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" || { red_log "[-] SDK ceiling $CEIL exceeded"; exit 1; }
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
 for i in 0; do
