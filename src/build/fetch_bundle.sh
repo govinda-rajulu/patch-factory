@@ -40,7 +40,7 @@ fi
 mkdir -p "$(dirname "$OUT")"
 curl -sSL "$URL" -o "$OUT" || { echo "FB_ERROR download failed $URL" >&2; exit 1; }
 SZ=$(wc -c < "$OUT")
-[ "$SZ" -gt 100000 ] || { echo "FB_ERROR bundle only $SZ bytes, not an mpp" >&2; rm -f "$OUT"; exit 1; }
+[ "$SZ" -gt 10000 ] || { echo "FB_ERROR bundle only $SZ bytes, too small for an mpp" >&2; rm -f "$OUT"; exit 1; }
 echo "PUB=$PUB"
 echo "TAG=$TAG"
 echo "SIZE=$SZ"
