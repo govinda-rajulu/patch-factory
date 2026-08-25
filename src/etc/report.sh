@@ -1,6 +1,6 @@
 #!/bin/bash
 # One entry point for every read-only repo check.
-#   report.sh fast   - no network, safe in a git hook
+#   report.sh fast   - no provider lookups, safe in a git hook
 #   report.sh full   - adds provider lookups, needs a morphe-desktop jar
 set -uo pipefail
 MODE="${1:-fast}"
@@ -27,16 +27,19 @@ print("ok")
 PY
 echo
 echo "### release coverage"
+rm -f /tmp/rp.txt
 curl -sS "https://api.github.com/repos/govinda-rajulu/patch-factory/releases?per_page=100" \
-  | jq -r '[.[].tag_name | capture("^(?
-[a-z0-9-]+)-v") .p] | unique | .[]' > /tmp/rp.txt 2>/dev/null || echo "(release read failed)"
+  | jq -r '.[].tag_name' 2>/dev/null \
+  | sed -n 's/-v[0-9.]*-b[0-9]*$//p' | sort -u > /tmp/rp.txt
+[ -s /tmp/rp.txt ] || echo "(release read returned nothing - throttled or offline)"
 python3 - <<'PY'
 import json
 try: have=set(open("/tmp/rp.txt").read().split())
 except Exception: have=set()
 d=json.load(open("src/targets.json"))
-miss=[t["id"] for t in d if (t.get("tag_prefix") or t["id"]) not in have]
-print("released:", len(have), " never built:", miss)
+miss=sorted(t["id"] for t in d if (t.get("tag_prefix") or t["id"]) not in have)
+print("released:", len(have), sorted(have))
+print("never built:", miss)
 PY
 if [ "$MODE" = "full" ]; then
   echo; echo "### namecheck"; bash src/etc/namecheck.sh || FAIL=1
