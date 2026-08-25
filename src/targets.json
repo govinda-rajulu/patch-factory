@@ -243,7 +243,23 @@
   "source": "apkmirror",
   "any_version": false,
   "label": "Facebook",
-  "note": "Ads removed"
+  "note": "Ads removed",
+  "extra_bundles": [
+   {
+    "name": "morphe-meta-patches",
+    "owner": "meridianfresco",
+    "repo": "morphe-meta-patches",
+    "channel": "latest",
+    "patch_dir": "facebook-meridianfresco"
+   },
+   {
+    "name": "FroggoMorphePatches",
+    "owner": "SapitoSucio",
+    "repo": "FroggoMorphePatches",
+    "channel": "latest",
+    "patch_dir": "facebook-sapitosucio"
+   }
+  ]
  },
  {
   "id": "instagram",
