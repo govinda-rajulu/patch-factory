@@ -222,7 +222,7 @@
   "package": "com.facebook.katana",
   "apk_name": "facebook",
   "apk_type": "bundle",
-  "max_app_version": null,
+  "max_app_version": "490.0.0.63.82",
   "max_patch_age_days": 60,
   "min_sdk_ceiling": 29,
   "pin": null,
