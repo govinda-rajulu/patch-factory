@@ -32,6 +32,10 @@ green_log "[+] target=$ID package=$PKG apk=$APK_NAME tagprefix=$PREFIX"
 # --- 2. tooling, then resolve ----------------------------------------------
 set +u; dl_gh "morphe-desktop" "MorpheApp" "latest"; set -u
 ls morphe-desktop-*.jar >/dev/null 2>&1 || { red_log "[-] morphe-desktop jar not downloaded"; exit 1; }
+KEEPJAR=$(ls -t morphe-desktop-*.jar | head -1)
+ls morphe-desktop-*.jar | grep -vxF "$KEEPJAR" | xargs -r rm -f
+[ "$(ls morphe-desktop-*.jar | wc -l)" -eq 1 ] || { red_log "[-] more than one patcher jar present"; exit 1; }
+green_log "[+] patcher jar: $KEEPJAR"
 
 RES=$(bash ./src/build/resolve.sh "$ID"); RC=$?
 echo "$RES"
