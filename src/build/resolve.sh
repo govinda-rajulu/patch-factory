@@ -34,7 +34,7 @@ for i in $(seq 0 $((n-1))); do
   [ "$AGE" -gt "$MAXAGE" ] && { echo "  - $NAME: DISQUALIFIED (${AGE}d old)"; continue; }
   FLAG=""; [ "$CH" = "prerelease" ] && FLAG="--prerelease"
   OUT=$(java -jar "$JAR" list-versions --patches="https://github.com/$OWNER/$REPO" $FLAG -x -u -f "$PKG" 2>&1)
-  VL=$(sed -n 's/^[[:space:]]*\([0-9][0-9.]*\)[[:space:]]*(\([0-9]*\) patch.*/\1 \2/p' <<<"$OUT")
+  VL=$(sed -n 's/^[[:space:]]*\([0-9][0-9.]*\).*(\([0-9]\{1,\}\) patch.*/\1 \2/p' <<<"$OUT")
   if [ -z "$VL" ] && { [ -z "$MAXVER" ] || [ "$MAXVER" = "null" ]; }; then
     echo "   - $NAME: no version constraint and no max_app_version - cannot pick a version"; continue
   fi
