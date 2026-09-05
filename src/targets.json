@@ -203,16 +203,6 @@
     "poll": true,
     "source": "apkmirror",
     "any_version": false,
-    "extra_bundles": [
-      {
-        "name": "rushiranpise",
-        "host": "github",
-        "owner": "rushiranpise",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "esfile-rushiranpise"
-      }
-    ],
     "label": "ES File Explorer",
     "note": "VIP unlocked, ads and analytics removed"
   },
