@@ -5,6 +5,7 @@ on:
     types: [completed]
 permissions:
   issues: write
+  actions: read
 jobs:
   open-issue:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
@@ -14,23 +15,49 @@ jobs:
         with:
           script: |
             const r = context.payload.workflow_run;
-            const title = `Build failed: ${r.name}`;
+            const O = context.repo.owner, R = context.repo.repo;
+            const RX = /severe|caused by|exception|unmatched argument|could not|unable to|no viable provider|cannot pick|applied 0 patches|refusing|not found|failed for|##\[error\]/i;
+            const SKIP = /DeprecationWarning|keystore truncated|Process completed with exit code/i;
+
+            let label = '', diag = '';
+            try {
+              const jl = await github.rest.actions.listJobsForWorkflowRun({
+                owner: O, repo: R, run_id: r.id, per_page: 100, filter: 'latest'
+              });
+              const bad = jl.data.jobs.filter(j => j.conclusion === 'failure');
+              if (bad.length) {
+                label = bad[0].name.split('/').pop().trim();
+                for (const j of bad.slice(0, 3)) {
+                  const steps = (j.steps || []).filter(s => s.conclusion === 'failure').map(s => s.name);
+                  diag += `\n**${j.name}** failed at: ${steps.join(', ') || 'unknown step'}\n`;
+                  try {
+                    const lg = await github.request('GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs', {
+                      owner: O, repo: R, job_id: j.id
+                    });
+                    const hits = String(lg.data).split('\n')
+                      .map(l => l.replace(/^\S+\s/, '').replace(/\x1b\[[0-9;]*[mGK]/g, '').trim())
+                      .filter(l => RX.test(l) && !SKIP.test(l));
+                    const tail = hits.slice(-8);
+                    if (tail.length) diag += '```\n' + tail.join('\n').slice(0, 1400) + '\n```\n';
+                  } catch (e) { diag += `_log unavailable: ${e.status || e.message}_\n`; }
+                }
+              }
+            } catch (e) { diag += `_job list unavailable: ${e.status || e.message}_\n`; }
+
+            const title = label ? `Build failed: ${r.name} · ${label}` : `Build failed: ${r.name}`;
+            const line = `Run [${r.id}](${r.html_url}) failed on \`${r.head_branch}\` (event: ${r.event}).`;
+            const body = `${line}\n${diag}\nRerun with:\n\`\`\`\ngh run rerun ${r.id} --failed\n\`\`\``;
+
             const found = await github.rest.issues.listForRepo({
-              owner: context.repo.owner, repo: context.repo.repo,
-              state: 'open', per_page: 100
+              owner: O, repo: R, state: 'open', per_page: 100
             });
             const open = found.data.find(i => i.title === title);
-            const line = `Run [${r.id}](${r.html_url}) failed on \`${r.head_branch}\` (event: ${r.event}).`;
             if (open) {
               await github.rest.issues.createComment({
-                owner: context.repo.owner, repo: context.repo.repo,
-                issue_number: open.number, body: line
+                owner: O, repo: R, issue_number: open.number, body
               });
               core.info(`commented on existing issue ${open.number}`);
             } else {
-              const made = await github.rest.issues.create({
-                owner: context.repo.owner, repo: context.repo.repo,
-                title, body: `${line}\n\nRerun with:\n\`\`\`\ngh run rerun ${r.id} --failed\n\`\`\``
-              });
+              const made = await github.rest.issues.create({ owner: O, repo: R, title, body });
               core.info(`opened issue ${made.data.number}`);
             }
