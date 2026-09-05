@@ -9,59 +9,54 @@ on:
   workflow_dispatch:
 
 jobs:
-  check:
-    name: Poll ${{ matrix.target }}
+  plan:
+    name: Plan
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [youtube, photos, truecaller-combo]
     outputs:
-      build_youtube: ${{ steps.gate.outputs.youtube }}
-      build_photos: ${{ steps.gate.outputs.photos }}
-      build_truecaller_combo: ${{ steps.gate.outputs['truecaller-combo'] }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count }}
     env:
       repository: ${{ github.repository }}
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
-      - name: Confirm target opted in
-        run: |
-          P=$(jq -r --arg id "${{ matrix.target }}" '.[] | select(.id==$id) | .poll // false' src/targets.json)
-          echo "poll flag for ${{ matrix.target }}: $P"
-          [ "$P" = "true" ] || { echo "::error::${{ matrix.target }} is not opted in to polling"; exit 1; }
       - name: Check github connection
         id: check-gh
         run: bash src/etc/connection.sh
-      - name: Freshness
-        id: poll
-        if: steps.check-gh.outputs.internet_error == '0'
-        run: bash src/etc/poll.sh "${{ matrix.target }}"
-      - name: Expose decision
-        id: gate
-        run: echo "${{ matrix.target }}=${{ steps.poll.outputs.new_patch || '0' }}" >> $GITHUB_OUTPUT
+      - name: Fail if no connection
+        if: steps.check-gh.outputs.internet_error != '0'
+        run: echo "::error::no github connection" && exit 1
+      - name: Poll every opted-in target
+        id: plan
+        run: |
+          set -uo pipefail
+          mapfile -t IDS < <(jq -r '.[] | select(.enabled != false) | select((.poll // false) == true) | .id' src/targets.json)
+          echo "opted in: ${IDS[*]:-none}"
+          WANT=()
+          for id in "${IDS[@]:-}"; do
+            [ -n "$id" ] || continue
+            OUT=$(mktemp)
+            GITHUB_OUTPUT="$OUT" bash src/etc/poll.sh "$id" || echo "  $id: poll exited non-zero, skipping"
+            NEW=$(grep -E '^new_patch=' "$OUT" | tail -1 | cut -d= -f2)
+            echo "  $id: new_patch=${NEW:-0}"
+            [ "${NEW:-0}" = "1" ] && WANT+=("$id")
+            rm -f "$OUT"
+          done
+          COUNT=${#WANT[@]}
+          MATRIX=$(printf '%s\n' "${WANT[@]:-}" | jq -R . | jq -sc '{target: map(select(length>0))}')
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+          echo "planned $COUNT target(s): $MATRIX"
 
-  build-youtube:
-    needs: check
-    if: needs.check.outputs.build_youtube == '1'
+  build:
+    needs: plan
+    if: needs.plan.outputs.count != '0'
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
     uses: ./.github/workflows/manual-patch.yml
     secrets: inherit
     with:
-      target: "youtube"
-
-  build-photos:
-    needs: check
-    if: needs.check.outputs.build_photos == '1'
-    uses: ./.github/workflows/manual-patch.yml
-    secrets: inherit
-    with:
-      target: "photos"
-
-  build-truecaller-combo:
-    needs: check
-    if: needs.check.outputs.build_truecaller_combo == '1'
-    uses: ./.github/workflows/manual-patch.yml
-    secrets: inherit
-    with:
-      target: "truecaller-combo"
+      target: ${{ matrix.target }}
