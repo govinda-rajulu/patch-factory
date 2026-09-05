@@ -270,3 +270,23 @@ about the provider. It now aborts with `API ERROR` instead. Note that a
 personal token and the repo's `GITHUB_TOKEN` have separate quotas: local
 testing can be throttled while CI is completely fine, and for these public
 reads an unauthenticated curl often works when a throttled token does not.
+
+<!-- state-5sep2026 -->
+## State, 5 September 2026
+
+- **16 targets, 14 opted in to the weekly build.** Disabled: sonyliv.
+- The weekly run (`2. Check new patch`) polls **every** target with `poll: true` and builds
+  the ones whose provider shipped something newer. A `plan` job emits the matrix from
+  `src/targets.json`, so adding a target to the weekly build is one field, not a workflow edit.
+  Before this it was a hardcoded list of three.
+- Every candidate and extra bundle is on `channel: prerelease`, deliberately: providers ship
+  dev builds constantly and the newest release wins whether or not it is marked stable.
+- Include lists are reconciled against what each provider currently offers. When a build says
+  `applied N but include list says M`, a provider renamed or dropped a patch: run
+  `list-patches` for that bundle and compare, do not weaken the gate.
+- `src/etc/bancheck.sh` runs in `3. Validate` and blocks any banned patch reaching an include
+  list. `BANNED` and `CONFIRM` hold **lowercase substrings**, not exact patch names.
+- Build failures open one issue **per target** with the failing job, step and error lines in the
+  body. Older issues titled per workflow accumulated unrelated targets for weeks.
+- `gh run rerun` replays a run at its **original commit**, so it never tests a new fix.
+  Dispatch `manual-patch.yml -f target=<id>` instead.
