@@ -1,0 +1,64 @@
+name: 8. Community watch
+permissions:
+  contents: write
+  issues: write
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Fetch the community index
+        run: |
+          set -uo pipefail
+          UA="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+          curl -sSL --max-time 60 -H "Accept: application/json" -H "User-Agent: $UA" \
+            -H "Referer: https://morphe-patches.software/" \
+            -o /tmp/new.json https://morphe-patches.software/data/bundles.json
+          head -c 1 /tmp/new.json | grep -qE '[[{]' || { echo "::error::index did not return JSON"; exit 1; }
+          python3 -c "import json;d=json.load(open('/tmp/new.json'));print('bundles:',len(d.get('bundles') or []))"
+      - name: Diff against the last snapshot
+        run: python3 src/etc/community_diff.py /tmp/new.json | tee /tmp/diff.txt
+      - name: Providers you are missing
+        run: python3 src/etc/community_discover.py /tmp/new.json | tee /tmp/disc.txt
+      - name: Commit the snapshot
+        run: |
+          set -uo pipefail
+          mkdir -p src/community
+          python3 -c "import json;d=json.load(open('/tmp/new.json'));json.dump(d,open('src/community/bundles.json','w'),separators=(',',':'),sort_keys=True)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/community/bundles.json
+          git diff --cached --quiet && { echo "index unchanged"; exit 0; }
+          git commit -q -m "community: snapshot the patch index"
+          git push
+      - name: Report only what touches your apps
+        run: |
+          set -uo pipefail
+          N=$(grep -c "<-- YOUR APP" /tmp/diff.txt || true)
+          echo "rows touching your apps: $N"
+          [ "$N" = "0" ] && { echo "nothing to report"; exit 0; }
+          {
+            echo "The community index changed in ways that touch apps you build."
+            echo
+            echo '```'
+            grep -B1 -A6 "<-- YOUR APP" /tmp/diff.txt | head -60
+            echo '```'
+            echo
+            echo "Unwired providers for your apps:"
+            echo '```'
+            sed -n '/A. PROVIDERS YOU ARE MISSING/,/^total unwired/p' /tmp/disc.txt | head -50
+            echo '```'
+            echo
+            echo "Regenerate the review sheet with: python3 src/etc/review_sheet.py"
+          } > /tmp/body.md
+          T="community: index changed for apps you build"
+          EX=$(gh issue list --state open --search "$T in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$EX" ]; then gh issue comment "$EX" --body-file /tmp/body.md && echo "commented on #$EX";
+          else gh issue create --title "$T" --body-file /tmp/body.md && echo "opened a new issue"; fi
