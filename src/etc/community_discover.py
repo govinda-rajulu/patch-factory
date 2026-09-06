@@ -55,9 +55,22 @@ for x in t:
             wired.add(("gitlab", str(c.get("project_id"))))
         else:
             wired.add(("github", ("%s/%s" % (c.get("owner"), c.get("repo"))).lower()))
+        for tok in (c.get("name"), c.get("owner")):
+            if tok: wired.add(("who", str(tok).lower().replace("-","")))
 
-def key(b):
-    return (b.get("source","github"), str(b.get("repo","")).lower())
+def keys(b):
+    r=str(b.get("repo","")).lower()
+    out={(b.get("source","github"), r)}
+    for tok in (b.get("author"), r.split("/")[0] if "/" in r else r):
+        if tok: out.add(("who", str(tok).lower().replace("-","").replace("patches","").strip("_.")))
+    return out
+def wired_hit(b):
+    for k in keys(b):
+        if k in wired: return True
+        if k[0]=="who":
+            for w in wired:
+                if w[0]=="who" and w[1] and (w[1] in k[1] or k[1] in w[1]): return True
+    return False
 
 print("compatibility rows parsed: %d, packages found: %d" % (len(_PN), len({p for v in _PN.values() for p in v})))
 print("index: %d bundles, %d distinct packages, %d compatibility rows" % (len(bundles), len(allpkgs), len(compat)))
@@ -69,8 +82,8 @@ print("="*76)
 miss = 0
 for pkg, x in sorted(mine.items(), key=lambda kv: kv[1]["id"]):
     offers = bypkg.get(pkg) or []
-    have = [b for b,_ in offers if key(b) in wired]
-    lack = [(b,ps) for b,ps in offers if key(b) not in wired]
+    have = [b for b,_ in offers if wired_hit(b)]
+    lack = [(b,ps) for b,ps in offers if not wired_hit(b)]
     print("\n%-18s %s" % (x["id"], pkg))
     print("   index knows %d bundle(s); you have %d wired" % (len(offers), len(have)))
     for b, ps in sorted(lack, key=lambda z: -(z[0].get("patchCount") or 0)):
