@@ -216,16 +216,7 @@
     "source": "apkmirror",
     "any_version": false,
     "label": "Facebook",
-    "note": "Ads removed",
-    "extra_bundles": [
-      {
-        "name": "morphe-meta-patches",
-        "owner": "meridianfresco",
-        "repo": "morphe-meta-patches",
-        "channel": "prerelease",
-        "patch_dir": "facebook-meridianfresco"
-      }
-    ]
+    "note": "Ads removed"
   },
   {
     "id": "instagram",
