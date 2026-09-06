@@ -299,7 +299,7 @@
       {
         "name": "chiggi",
         "host": "github",
-        "channel": "prerelease",
+        "channel": "latest",
         "patch_dir": "hotstar-chiggi",
         "options": "chiggi",
         "owner": "durgesh0505",
@@ -327,7 +327,7 @@
       {
         "name": "chiggi",
         "host": "github",
-        "channel": "prerelease",
+        "channel": "latest",
         "patch_dir": "sonyliv-chiggi",
         "options": "chiggi",
         "owner": "durgesh0505",
@@ -356,7 +356,7 @@
       {
         "name": "quantavil",
         "host": "github",
-        "channel": "prerelease",
+        "channel": "latest",
         "patch_dir": "edge-quantavil",
         "options": "quantavil",
         "owner": "quantavil",

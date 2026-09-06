@@ -33,9 +33,23 @@ for i in $(seq 0 $((n-1))); do
   PSEC=$(date -d "$PUB" +%s); AGE=$(( (NOW-PSEC)/86400 ))
   [ "$AGE" -gt "$MAXAGE" ] && { echo "  - $NAME: DISQUALIFIED (${AGE}d old)"; continue; }
   FLAG=""; [ "$CH" = "prerelease" ] && FLAG="--prerelease"
+  echo "   - $NAME: channel=$CH flag='${FLAG:-none}'"
   OUT=$(java -jar "$JAR" list-versions --patches="https://github.com/$OWNER/$REPO" $FLAG -x -u -f "$PKG" 2>&1)
   JRC=$?
   VL=$(sed -n 's/^[[:space:]]*\([0-9][0-9.]*\).*(\([0-9]\{1,\}\) patch.*/\1 \2/p' <<<"$OUT")
+  # RETRY without --prerelease: a provider that ships only stable releases makes the dev
+  # fetch fail outright ("Could not get dev release"), which is a channel mismatch, not a
+  # missing provider. Only fires when the first attempt parsed nothing.
+  if [ -z "$VL" ] && [ -n "$FLAG" ]; then
+    echo "   - $NAME: dev fetch gave no versions, retrying as stable"
+    OUT2=$(java -jar "$JAR" list-versions --patches="https://github.com/$OWNER/$REPO" -x -u -f "$PKG" 2>&1)
+    JRC2=$?
+    VL2=$(sed -n 's/^[[:space:]]*\([0-9][0-9.]*\).*(\([0-9]\{1,\}\) patch.*/\1 \2/p' <<<"$OUT2")
+    if [ -n "$VL2" ]; then
+      echo "   - $NAME: stable channel works. targets.json says channel '$CH' but $OWNER/$REPO publishes no dev releases."
+      OUT="$OUT2"; JRC="$JRC2"; VL="$VL2"
+    fi
+  fi
   if [ -z "$VL" ]; then
     echo "   - $NAME: could not parse a version. list-versions exit=$JRC"
     echo "   --- PATCHER OUTPUT ($(printf '%s\n' "$OUT" | wc -l) lines), verbatim:"
