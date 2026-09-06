@@ -1,4 +1,21 @@
 import json, os, re, sys, datetime, collections
+import re
+PKG=re.compile(r'^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$')
+def names(v, out=None):
+    if out is None: out=[]
+    if v is None: return out
+    if isinstance(v,str):
+        if PKG.match(v): out.append(v)
+        return out
+    if isinstance(v,dict):
+        for k in ("name","package","packageName","pkg","id"):
+            if isinstance(v.get(k),str) and PKG.match(v[k]): out.append(v[k]); return out
+        for x in v.values(): names(x,out)
+        return out
+    if isinstance(v,(list,tuple)):
+        for x in v: names(x,out)
+        return out
+    return out
 SNAP = "src/community/bundles.json"
 IDX  = sys.argv[1] if len(sys.argv) > 1 else SNAP
 if not os.path.exists(IDX): print("ABORT: %s not found" % IDX); sys.exit(1)
@@ -6,18 +23,15 @@ d = json.load(open(IDX))
 bundles = d.get("bundles") or []
 compat  = d.get("compatibilities") or []
 
+_PN = {}
+if isinstance(compat, dict):
+    for k, v in compat.items(): _PN[str(k)] = names(v)
+else:
+    for i, v in enumerate(compat): _PN[str(i)] = names(v)
+
 def pkgs_for(key):
     if key is None: return []
-    if isinstance(compat, list):
-        if isinstance(key, int) and 0 <= key < len(compat):
-            v = compat[key]
-            return v if isinstance(v, list) else [v]
-        return []
-    if isinstance(compat, dict):
-        v = compat.get(str(key)) or compat.get(key)
-        if v is None: return []
-        return v if isinstance(v, list) else [v]
-    return []
+    return _PN.get(str(key), [])
 
 # package -> list of (bundle, [patch names])
 bypkg = collections.defaultdict(list)
@@ -45,6 +59,7 @@ for x in t:
 def key(b):
     return (b.get("source","github"), str(b.get("repo","")).lower())
 
+print("compatibility rows parsed: %d, packages found: %d" % (len(_PN), len({p for v in _PN.values() for p in v})))
 print("index: %d bundles, %d distinct packages, %d compatibility rows" % (len(bundles), len(allpkgs), len(compat)))
 print("yours: %d enabled targets, %d wired bundles\n" % (len(mine), len(wired)))
 

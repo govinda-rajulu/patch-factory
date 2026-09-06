@@ -1,4 +1,21 @@
 import json, os, sys, collections
+import re
+PKG=re.compile(r'^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$')
+def names(v, out=None):
+    if out is None: out=[]
+    if v is None: return out
+    if isinstance(v,str):
+        if PKG.match(v): out.append(v)
+        return out
+    if isinstance(v,dict):
+        for k in ("name","package","packageName","pkg","id"):
+            if isinstance(v.get(k),str) and PKG.match(v[k]): out.append(v[k]); return out
+        for x in v.values(): names(x,out)
+        return out
+    if isinstance(v,(list,tuple)):
+        for x in v: names(x,out)
+        return out
+    return out
 OLD="src/community/bundles.json"; NEW=sys.argv[1]
 if not os.path.exists(NEW): print("ABORT: %s missing"%NEW); sys.exit(1)
 def load(p):
@@ -7,12 +24,13 @@ def load(p):
 def flat(d):
     if not d: return {}
     compat=d.get("compatibilities") or []
+    _PN = {}
+    if isinstance(compat, dict):
+        for k,v in compat.items(): _PN[str(k)] = names(v)
+    else:
+        for i,v in enumerate(compat): _PN[str(i)] = names(v)
     def pk(k):
-        if isinstance(compat,list) and isinstance(k,int) and 0<=k<len(compat):
-            v=compat[k]; return v if isinstance(v,list) else [v]
-        if isinstance(compat,dict):
-            v=compat.get(str(k)); return (v if isinstance(v,list) else [v]) if v else []
-        return []
+        return _PN.get(str(k), []) if k is not None else []
     out=collections.defaultdict(set)
     for b in (d.get("bundles") or []):
         r=str(b.get("repo",""))
