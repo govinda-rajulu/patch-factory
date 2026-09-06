@@ -91,7 +91,7 @@
     "apk_name": "truecaller",
     "apk_type": "bundle",
     "max_app_version": null,
-    "max_patch_age_days": 60,
+    "max_patch_age_days": 120,
     "min_sdk_ceiling": 29,
     "pin": null,
     "candidates": [
@@ -108,7 +108,7 @@
     "poll": false,
     "exclusive": true,
     "label": "Truecaller",
-    "note": "Ad blocking, never built"
+    "note": "Ad blocking, never built Cap raised to 120 on 2026-09-06: bufferk publishes rarely (newest 1.8.0, 18 Jul) but its patches still apply and both targets build green. 60 days was catching slowness, not abandonment."
   },
   {
     "id": "truecaller-combo",
@@ -117,7 +117,7 @@
     "apk_name": "tc-combo",
     "apk_type": "bundle",
     "max_app_version": null,
-    "max_patch_age_days": 60,
+    "max_patch_age_days": 120,
     "min_sdk_ceiling": 29,
     "pin": null,
     "candidates": [
@@ -146,7 +146,7 @@
     "poll": true,
     "exclusive": true,
     "label": "Truecaller (combo)",
-    "note": "paresh premium plus bufferk ad blocking"
+    "note": "paresh premium plus bufferk ad blocking Cap raised to 120 on 2026-09-06: bufferk publishes rarely (newest 1.8.0, 18 Jul) but its patches still apply and both targets build green. 60 days was catching slowness, not abandonment."
   },
   {
     "id": "primevideo",
