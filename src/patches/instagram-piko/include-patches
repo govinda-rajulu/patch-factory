@@ -1,10 +1,10 @@
 Add settings
-Allow user network certificate
 Change like animation
 Copy comment
 Custom sharing domain
 Customise story ring size
 Customise story timestamp
+Disable Reels scrolling
 Disable ads
 Disable analytics
 Disable comments
@@ -12,7 +12,6 @@ Disable discover people
 Disable double tap like
 Disable explore
 Disable highlights
-Disable Reels scrolling
 Disable screenshot detection
 Disable stories
 Disable story flipping
@@ -24,13 +23,8 @@ Download voice message
 External downloader
 Filter stories
 Friendship status indicator
-Hide group creation button on sharesheet
-Hide notes tray
 Hide reshare button
-Hide stories tray
 Improve image viewing
-Limit feed to following profiles
-Loop story
 Make ephemeral media permanent
 Mark chat as read manually
 More options on post
@@ -44,6 +38,7 @@ Save deleted messages
 Save media comment
 Theme
 Unlock Plus benefits
+Unlock developer options
 Validate links
 View DMs anonymously
 View live anonymously

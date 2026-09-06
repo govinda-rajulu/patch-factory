@@ -1,24 +1,18 @@
+Block ads, trackers, and analytics
 Colorize comment indent lines
 Deactivate Firebase Analytics
 Deactivate Firebase Performance Monitoring
-Disable bottom navigation bar auto-hide
 Disable Google Safe Browsing in WebView
+Disable bottom navigation bar auto-hide
 Disable home feed auto-refresh
+Disable home feed refresh on back to exit
 Disable home feed swipe
 Disable home screen redirect
 Disable metrics collection in WebView
 Disable mobile ads
 Disable post detail swipe
-Hide Ask button from search bar
-Hide awards
-Hide community highlights
-Hide community menu badge
-Hide post view counts
-Hide prominent search bar
-Hide share count
-Hide upvote scores
-Hide user community badges
-Hide user flairs
+Disable screenshot banner
+Enable guest mode
 Open external links directly
 Remove ads and telemetry
 Remove screenshot detection

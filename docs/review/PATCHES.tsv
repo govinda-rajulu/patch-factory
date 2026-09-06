@@ -1,12 +1,12 @@
-# EVERY patch every wired provider offers, 2026-09-06. Edit column 1 only.
-# IN  = apply this patch.   OUT = do not apply.   ? = undecided, treated as OUT.
-# mode EXCL: the include list is authoritative, so IN means listed. mode open (youtube only): the exclude list is authoritative, so OUT means listed.
-# now  = what the repo does today. default = what the provider ships. risk = your BANNED/CONFIRM rules.
+# EVERY patch every wired provider offers, 2026-09-06. Edit column 1 only.								
+# IN  = apply this patch.   OUT = do not apply.   ? = undecided, treated as OUT.								
+# mode EXCL: the include list is authoritative, so IN means listed. mode open (youtube only): the exclude list is authoritative, so OUT means listed.								
+# now  = what the repo does today. default = what the provider ships. risk = your BANNED/CONFIRM rules.								
 DECISION	now	target	bundle	patch	default	risk	mode	description
-OUT	out	adguard	adguard-hoo-dles	Change package name	off	BANNED:change package name	EXCL	Appends ".morphe" to the package name by default. Changing the package name of the app can lead to unexpected issues.
+OUT	out	adguard	adguard-hoo-dles	Change package name	off	BANNED:change package name	EXCL	"Appends "".morphe"" to the package name by default. Changing the package name of the app can lead to unexpected issues."
 OUT	out	adguard	adguard-rushiranpise	Disable PairIP license check	off	BANNED:pairip	EXCL	Disables PairIP license verification, VM checks, and repeated background checks.
 OUT	out	adguard	adguard-hoo-dles	Disable Pairip license check	off	BANNED:pairip	EXCL	Disables Play Integrity API (pairip) client-side license check. This patch does not bypass Play Integrity attestation or pairipcore virtualization.
-OUT	out	adguard	adguard-hoo-dles	Enable debug	off	BANNED:enable debug	EXCL	Enables debugging on the app by setting android:debuggable="true".
+OUT	out	adguard	adguard-hoo-dles	Enable debug	off	BANNED:enable debug	EXCL	"Enables debugging on the app by setting android:debuggable=""true""."
 OUT	out	adguard	adguard-rushiranpise	Fix Firebase after re-signing	off	BANNED:fix firebase after re-signing	EXCL	Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs the app with a different certificate.
 OUT	out	adguard	adguard-hoo-dles	Hide app icon	off	BANNED:hide app icon	EXCL	Hides the app icon from the Android launcher.
 OUT	out	adguard	adguard-rushiranpise	Provide Original app certificate	off	BANNED:provide original app certificate	EXCL	Automatically reads the signing certificate from the APK you are patching — no original app installed or file provided needed. Only fill the options b
@@ -15,26 +15,26 @@ OUT	out	adguard	adguard-rushiranpise	Spoof install source	off	BANNED:spoof insta
 OUT	out	adguard	adguard-hoo-dles	Spoof signature	off	BANNED:spoof signature	EXCL	Spoofs the package signature of the original APK.
 OUT	out	adguard	adguard-rushiranpise	Spoof Widevine / DRM level	off	CONFIRM:spoof widevine	EXCL	Reports Widevine L1 (hardware DRM) to apps that check DRM level locally.
 IN	IN	adguard	adguard-hoo-dles	Enable Premium	ON	-	EXCL	Enables app features locked behind the subscription paywall.
-?	out	adguard	adguard-rushiranpise	GmsCore support (MicroG)	off	-	EXCL	Routes Google Play Services calls through MicroG instead of real GPS.
-?	out	adguard	adguard-hoo-dles	MicroG integration	off	-	EXCL	Allows the app to work without root by using MicroG instead of Google Play Services.
+OUT	out	adguard	adguard-rushiranpise	GmsCore support (MicroG)	off	-	EXCL	Routes Google Play Services calls through MicroG instead of real GPS.
+OUT	out	adguard	adguard-hoo-dles	MicroG integration	off	-	EXCL	Allows the app to work without root by using MicroG instead of Google Play Services.
 IN	IN	adguard	adguard-rushiranpise	Unlock Lifetime Premium	ON	-	EXCL	Unlocks all features locked behind the subscription paywall.
 OUT	out	esfile	esfile-ftl	Spoof App Signature	off	BANNED:spoof app signature	EXCL	Makes the app think its signing certificate is unchanged after Morphe re-signs it, useful when an app crashes or shows a tamper warning because it che
-OUT	out	esfile	esfile-ftl	APK Junk Cleanup	off	CONFIRM:junk cleanup	EXCL	Removes junk and useless files with no runtime purpose inside apk. To keep only one CPU architecture, use the patcher's strip-libs option (Morphe Mana
+IN	out	esfile	esfile-ftl	APK Junk Cleanup	off	CONFIRM:junk cleanup	EXCL	Removes junk and useless files with no runtime purpose inside apk. To keep only one CPU architecture, use the patcher's strip-libs option (Morphe Mana
 OUT	out	esfile	esfile-ftl	Add Toast	off	CONFIRM:add toast	EXCL	Shows a custom toast message when the app starts. Works on any app.
 OUT	out	esfile	esfile-ftl	Png Optimizer	off	CONFIRM:png optimizer	EXCL	Compresses PNG images without losing quality and strips hidden metadata (DPI, timestamps, text) to make the app smaller. Only rewrites files when the 
-OUT	out	esfile	esfile-ftl	Remove Debug Info	off	CONFIRM:remove debug info	EXCL	Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size.
-OUT	out	esfile	esfile-ftl	Remove Duplicate Graphics	off	CONFIRM:remove duplicate graphics	EXCL	Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, ma
-OUT	out	esfile	esfile-ftl	Remove Languages	off	CONFIRM:remove languages	EXCL	Removes translations for languages you don't use. Only keeps the languages you pick.
-?	out	esfile	esfile-ftl	Add Save Data	off	-	EXCL	Unpacks bundled save-data zip(s) into the app's storage on first launch.
-?	out	esfile	esfile-ftl	Change Display Size	off	-	EXCL	Change any app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen
+IN	out	esfile	esfile-ftl	Remove Debug Info	off	CONFIRM:remove debug info	EXCL	Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size.
+IN	out	esfile	esfile-ftl	Remove Duplicate Graphics	off	CONFIRM:remove duplicate graphics	EXCL	Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, ma
+IN	out	esfile	esfile-ftl	Remove Languages	off	CONFIRM:remove languages	EXCL	Removes translations for languages you don't use. Only keeps the languages you pick.
+OUT	out	esfile	esfile-ftl	Add Save Data	off	-	EXCL	Unpacks bundled save-data zip(s) into the app's storage on first launch.
+OUT	out	esfile	esfile-ftl	Change Display Size	off	-	EXCL	Change any app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen
 IN	IN	esfile	esfile-ftl	ES File Explorer Ui Cleanup	off	-	EXCL	Removes BookMark, New Files, Cleaner Row In HomePage, Cleans More menu actions
-?	out	esfile	esfile-ftl	Remove Ads	off	-	EXCL	Cleans Apps Code From Ads Junk. Works In Most Apps Where There Isn't Any Check For Ads Loaded Or Not. If There Is A Check You Will Be Stuck In SplashA
-?	out	esfile	esfile-ftl	Remove Ads Lite (Adobo)	off	-	EXCL	Based On (Adobo's Block Ads+Mobile Ads) Use When Remove Ads Patch Caused Problem. It Is Weaker But Effective, No Need To Select A Host File Or Configu
-?	out	esfile	esfile-ftl	Remove Ads Ultra Lite	off	-	EXCL	Call finish on ad activities. Use Where Remove Ads And Remove Ads Lite (Adobo) Caused Problem. Its In Very Early Stage So Test And Provide FeedBack If
+IN	out	esfile	esfile-ftl	Remove Ads	off	-	EXCL	Cleans Apps Code From Ads Junk. Works In Most Apps Where There Isn't Any Check For Ads Loaded Or Not. If There Is A Check You Will Be Stuck In SplashA
+OUT	out	esfile	esfile-ftl	Remove Ads Lite (Adobo)	off	-	EXCL	Based On (Adobo's Block Ads+Mobile Ads) Use When Remove Ads Patch Caused Problem. It Is Weaker But Effective, No Need To Select A Host File Or Configu
+OUT	out	esfile	esfile-ftl	Remove Ads Ultra Lite	off	-	EXCL	Call finish on ad activities. Use Where Remove Ads And Remove Ads Lite (Adobo) Caused Problem. Its In Very Early Stage So Test And Provide FeedBack If
 IN	IN	esfile	esfile-ftl	Remove Analytics	off	-	EXCL	Disables tracking and crash-reporting tools, corrupts analytics web links inside the code, and removes background tracking services.
-?	out	esfile	esfile-ftl	Remove Analytics New	off	-	EXCL	Corrupts analytics network URLs and split-scheme string obfuscation inside the code, and strips matching manifest components.
-?	out	esfile	esfile-ftl	Skip Splash Screen - Expert Only	off	-	EXCL	EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. Check the log to know what the patch 
-OUT	out	facebook	facebook-derevanced	Change package name	off	BANNED:change package name	EXCL	Appends ".morphe" to the package name by default. Changing the package name of the app can lead to unexpected issues. This patch does not work with Re
+IN	out	esfile	esfile-ftl	Remove Analytics New	off	-	EXCL	Corrupts analytics network URLs and split-scheme string obfuscation inside the code, and strips matching manifest components.
+OUT	out	esfile	esfile-ftl	Skip Splash Screen - Expert Only	off	-	EXCL	EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. Check the log to know what the patch 
+OUT	out	facebook	facebook-derevanced	Change package name	off	BANNED:change package name	EXCL	"Appends "".morphe"" to the package name by default. Changing the package name of the app can lead to unexpected issues. This patch does not work with Re"
 IN	IN	facebook	facebook-derevanced	Hide 'Sponsored Stories'	ON	-	EXCL	null
 IN	IN	facebook	facebook-derevanced	Hide story ads	ON	-	EXCL	Hides the ads in the Facebook app stories.
 OUT	out	instagram	instagram-piko	Change version code	ON	BANNED:change version code	EXCL	Changes the version code of the app. This will turn off app store updates and allows downgrading an existing app install to an older app version.
@@ -42,8 +42,8 @@ OUT	out	instagram	instagram-piko	Clone	off	BANNED:clone	EXCL	Changes the package
 OUT	out	instagram	instagram-brosssh	Clone	off	BANNED:clone	EXCL	Changes the package name and the app name. This allows you to install the patched app alongside the original Instagram app.
 OUT	out	instagram	instagram-piko	Unlock employee options	ON	BANNED:unlock employee	EXCL	Unlocks all options using by employee for debugging
 IN	IN	instagram	instagram-piko	Add settings	ON	-	EXCL	Adds settings to control preferences are patching
-IN	IN	instagram	instagram-piko	Allow user network certificate	ON	-	EXCL	Allows user network certificate for whitehat testing
-?	out	instagram	instagram-brosssh	Bypass signature check	ON	-	EXCL	null
+OUT	IN	instagram	instagram-piko	Allow user network certificate	ON	-	EXCL	Allows user network certificate for whitehat testing
+IN	out	instagram	instagram-brosssh	Bypass signature check	ON	-	EXCL	null
 IN	IN	instagram	instagram-piko	Change like animation	ON	-	EXCL	Change the animation to one from existing Rings like animations
 IN	IN	instagram	instagram-piko	Copy comment	ON	-	EXCL	Adds a button to copy comments on posts and reels.
 IN	IN	instagram	instagram-piko	Custom sharing domain	ON	-	EXCL	Allows for using custom domains when sharing posts, reels and stories.
@@ -65,33 +65,33 @@ IN	IN	instagram	instagram-piko	Disable story flipping	ON	-	EXCL	Disable automati
 IN	IN	instagram	instagram-piko	Disable swipe to create	ON	-	EXCL	Prevents opening the creation screen by swiping right on the home tab.
 IN	IN	instagram	instagram-piko	Disable typing status	ON	-	EXCL	null
 IN	IN	instagram	instagram-piko	Disable video autoplay	ON	-	EXCL	null
-?	out	instagram	instagram-brosssh	Disable video autoplay	off	-	EXCL	Disable video autoplay from feed
+IN	out	instagram	instagram-brosssh	Disable video autoplay	off	-	EXCL	Disable video autoplay from feed
 IN	IN	instagram	instagram-piko	Download media	ON	-	EXCL	Adds ability to download posts, reels, stories and highlights
 IN	IN	instagram	instagram-piko	Download voice message	ON	-	EXCL	Enables ability to download voice messages
 IN	IN	instagram	instagram-piko	External downloader	ON	-	EXCL	Adds support to share post links directly to external downloader
 IN	IN	instagram	instagram-piko	Filter stories	ON	-	EXCL	Filter stories to hide based on different categories
 IN	IN	instagram	instagram-piko	Friendship status indicator	ON	-	EXCL	Adds a follows you back status label on the profile page andshows a detailed friendship status breakdown on click
-?	out	instagram	instagram-brosssh	Hide Instants	off	-	EXCL	Hides Instants from DMs page.
-?	out	instagram	instagram-brosssh	Hide Reels save button	off	-	EXCL	null
-?	out	instagram	instagram-brosssh	Hide Threads profile button	off	-	EXCL	Hides the Threads button from the profile page action bar (top right of the profile page).
+OUT	out	instagram	instagram-brosssh	Hide Instants	off	-	EXCL	Hides Instants from DMs page.
+OUT	out	instagram	instagram-brosssh	Hide Reels save button	off	-	EXCL	null
+IN	out	instagram	instagram-brosssh	Hide Threads profile button	off	-	EXCL	Hides the Threads button from the profile page action bar (top right of the profile page).
 IN	IN	instagram	instagram-brosssh	Hide ads	ON	-	EXCL	null
-?	out	instagram	instagram-brosssh	Hide all stories	off	-	EXCL	Hides all stories from the tray in the feed page.
-IN	IN	instagram	instagram-brosssh	Hide explore feed	ON	-	EXCL	Hides posts and reels from the explore/search page.
-?	out	instagram	instagram-brosssh	Hide feed content	off	-	EXCL	Hide the feed content, leaving only stories in the home page.
-IN	IN	instagram	instagram-piko	Hide group creation button on sharesheet	ON	-	EXCL	null
-?	out	instagram	instagram-piko	Hide navigation buttons	ON	-	EXCL	Hides navigation bar buttons, such as the Reels and Create button.
-?	out	instagram	instagram-brosssh	Hide navigation buttons	ON	-	EXCL	Hides navigation bar buttons, such as the Reels and Create button. Choose what button to hide using the patch options.
-IN	IN	instagram	instagram-piko	Hide notes tray	ON	-	EXCL	Hides notes tray in DM section
-IN	IN	instagram	instagram-brosssh	Hide notes tray	ON	-	EXCL	Hides the notes tray from the direct tab.
+OUT	out	instagram	instagram-brosssh	Hide all stories	off	-	EXCL	Hides all stories from the tray in the feed page.
+OUT	IN	instagram	instagram-brosssh	Hide explore feed	ON	-	EXCL	Hides posts and reels from the explore/search page.
+OUT	out	instagram	instagram-brosssh	Hide feed content	off	-	EXCL	Hide the feed content, leaving only stories in the home page.
+OUT	IN	instagram	instagram-piko	Hide group creation button on sharesheet	ON	-	EXCL	null
+OUT	out	instagram	instagram-piko	Hide navigation buttons	ON	-	EXCL	Hides navigation bar buttons, such as the Reels and Create button.
+OUT	out	instagram	instagram-brosssh	Hide navigation buttons	ON	-	EXCL	Hides navigation bar buttons, such as the Reels and Create button. Choose what button to hide using the patch options.
+OUT	IN	instagram	instagram-piko	Hide notes tray	ON	-	EXCL	Hides notes tray in DM section
+OUT	IN	instagram	instagram-brosssh	Hide notes tray	ON	-	EXCL	Hides the notes tray from the direct tab.
 IN	IN	instagram	instagram-piko	Hide reshare button	ON	-	EXCL	Hides the reshare button from both posts and reels.
 IN	IN	instagram	instagram-brosssh	Hide reshare button	ON	-	EXCL	Hides the reshare button from both posts and reels.
-IN	IN	instagram	instagram-piko	Hide stories tray	ON	-	EXCL	Hides stories tray from main feed.
-?	out	instagram	instagram-piko	Hide suggested content	ON	-	EXCL	Hides suggested stories, reels, threads (Suggested posts will still be shown).
-?	out	instagram	instagram-brosssh	Hide suggested content	ON	-	EXCL	Choose the suggested content to hide using the patch options.
+OUT	IN	instagram	instagram-piko	Hide stories tray	ON	-	EXCL	Hides stories tray from main feed.
+OUT	out	instagram	instagram-piko	Hide suggested content	ON	-	EXCL	Hides suggested stories, reels, threads (Suggested posts will still be shown).
+OUT	out	instagram	instagram-brosssh	Hide suggested content	ON	-	EXCL	Choose the suggested content to hide using the patch options.
 IN	IN	instagram	instagram-piko	Improve image viewing	ON	-	EXCL	Fetches max resolution images from server.
-IN	IN	instagram	instagram-piko	Limit feed to following profiles	ON	-	EXCL	Filters the home feed to display only content from profiles you follow.
-IN	IN	instagram	instagram-brosssh	Limit feed to following profiles	ON	-	EXCL	Filters the home feed to display only content from profiles you follow.
-IN	IN	instagram	instagram-piko	Loop story	ON	-	EXCL	Replay the current story when it ends
+OUT	IN	instagram	instagram-piko	Limit feed to following profiles	ON	-	EXCL	Filters the home feed to display only content from profiles you follow.
+OUT	IN	instagram	instagram-brosssh	Limit feed to following profiles	ON	-	EXCL	Filters the home feed to display only content from profiles you follow.
+OUT	IN	instagram	instagram-piko	Loop story	ON	-	EXCL	Replay the current story when it ends
 IN	IN	instagram	instagram-piko	Make ephemeral media permanent	ON	-	EXCL	Changes unexpired view once, view twice media to permanent view.
 IN	IN	instagram	instagram-piko	Mark chat as read manually	ON	-	EXCL	Adds option to mark a thread aka message as read manually
 IN	IN	instagram	instagram-piko	More options on post	ON	-	EXCL	Adds an overflow menu button to get more options on post/reels, like copy description, copy username etc
@@ -106,38 +106,38 @@ IN	IN	instagram	instagram-piko	Save deleted messages	ON	-	EXCL	Captures incoming
 IN	IN	instagram	instagram-piko	Save media comment	ON	-	EXCL	Adds a button to save media comments on posts and reels.
 IN	IN	instagram	instagram-piko	Theme	ON	-	EXCL	Adds Material You and AMOLED controls to Piko settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an opt
 IN	IN	instagram	instagram-piko	Unlock Plus benefits	ON	-	EXCL	Unlocks 'Plus' subscription benefits that are checked locally. USE IT AT YOUR OWN RISK
-?	out	instagram	instagram-piko	Unlock developer options	ON	-	EXCL	Unlocks developer option by long pressing home icon
+IN	out	instagram	instagram-piko	Unlock developer options	ON	-	EXCL	Unlocks developer option by long pressing home icon
 IN	IN	instagram	instagram-piko	Validate links	ON	-	EXCL	Fixes app crashing issue while opening links from a different app
 IN	IN	instagram	instagram-piko	View DMs anonymously	ON	-	EXCL	null
 IN	IN	instagram	instagram-piko	View live anonymously	ON	-	EXCL	null
 IN	IN	instagram	instagram-piko	View stories anonymously	ON	-	EXCL	null
 IN	IN	instagram	instagram-piko	View story mentions	ON	-	EXCL	Add option to view visible and hidden story mentions.
 OUT	out	keymapper	keymapper-lain	Change Google Maps API Key	off	BANNED:maps api key	EXCL	Fix Google Maps not rendered on the application because of different app signature.
-OUT	out	keymapper	keymapper-lain	Change package name	off	BANNED:change package name	EXCL	Appends ".morphe" to the package name by default. Changing the package name of the app can lead to unexpected issues.
+OUT	out	keymapper	keymapper-lain	Change package name	off	BANNED:change package name	EXCL	"Appends "".morphe"" to the package name by default. Changing the package name of the app can lead to unexpected issues."
 OUT	out	keymapper	keymapper-lain	Disable Pairip license check	off	BANNED:pairip	EXCL	Disables Play Integrity API (pairip) client-side license check. This patch does not bypass Play Integrity attestation or pairipcore virtualization.
 OUT	out	keymapper	keymapper-lain	Hide app icon	off	BANNED:hide app icon	EXCL	Hides the app icon from the Android launcher.
 OUT	out	keymapper	keymapper-lain	Override certificate pinning	off	BANNED:certificate pinning	EXCL	Overrides certificate pinning, allowing to inspect traffic via a proxy.
 OUT	out	keymapper	keymapper-lain	Spoof Install Source	off	BANNED:spoof install source	EXCL	Spoofs package installer checks to report the configured package name as the installation source. Default is Play Store.
 IN	IN	keymapper	keymapper-lain	Unlock Premium	ON	-	EXCL	Enable Floating Buttons and Assistant Trigger features.
 OUT	out	mxplayer	mxplayer-ftl	Spoof App Signature	off	BANNED:spoof app signature	EXCL	Makes the app think its signing certificate is unchanged after Morphe re-signs it, useful when an app crashes or shows a tamper warning because it che
-OUT	out	mxplayer	mxplayer-ftl	APK Junk Cleanup	off	CONFIRM:junk cleanup	EXCL	Removes junk and useless files with no runtime purpose inside apk. To keep only one CPU architecture, use the patcher's strip-libs option (Morphe Mana
+IN	out	mxplayer	mxplayer-ftl	APK Junk Cleanup	off	CONFIRM:junk cleanup	EXCL	Removes junk and useless files with no runtime purpose inside apk. To keep only one CPU architecture, use the patcher's strip-libs option (Morphe Mana
 OUT	out	mxplayer	mxplayer-ftl	Add Toast	off	CONFIRM:add toast	EXCL	Shows a custom toast message when the app starts. Works on any app.
 OUT	out	mxplayer	mxplayer-ftl	Png Optimizer	off	CONFIRM:png optimizer	EXCL	Compresses PNG images without losing quality and strips hidden metadata (DPI, timestamps, text) to make the app smaller. Only rewrites files when the 
-OUT	out	mxplayer	mxplayer-ftl	Remove Debug Info	off	CONFIRM:remove debug info	EXCL	Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size.
-OUT	out	mxplayer	mxplayer-ftl	Remove Duplicate Graphics	off	CONFIRM:remove duplicate graphics	EXCL	Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, ma
-OUT	out	mxplayer	mxplayer-ftl	Remove Languages	off	CONFIRM:remove languages	EXCL	Removes translations for languages you don't use. Only keeps the languages you pick.
-?	out	mxplayer	mxplayer-ftl	Add Save Data	off	-	EXCL	Unpacks bundled save-data zip(s) into the app's storage on first launch.
-?	out	mxplayer	mxplayer-ftl	Change Display Size	off	-	EXCL	Change any app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen
-?	out	mxplayer	mxplayer-ftl	Hide File Transfer, Video Playlist, Private Folder tiles	off	-	EXCL	Removes the File Transfer, Video Playlist, and Private Folder tiles from settings Page.
-?	out	mxplayer	mxplayer-ftl	Hide Settings Page UseLess Buttons	off	-	EXCL	Collapses the WhatsApp, Legal, and Help entries on the Me tab.
-?	out	mxplayer	mxplayer-ftl	Hide top tiles	off	-	EXCL	Hides the top tiles.
-?	out	mxplayer	mxplayer-ftl	Remove Ads	off	-	EXCL	Cleans Apps Code From Ads Junk. Works In Most Apps Where There Isn't Any Check For Ads Loaded Or Not. If There Is A Check You Will Be Stuck In SplashA
+IN	out	mxplayer	mxplayer-ftl	Remove Debug Info	off	CONFIRM:remove debug info	EXCL	Removes debug information (line numbers, variable names, source file references) from every class in the .dex files to reduce overall APK size.
+IN	out	mxplayer	mxplayer-ftl	Remove Duplicate Graphics	off	CONFIRM:remove duplicate graphics	EXCL	Keeps images for only one screen density (like xhdpi) and removes copies for all other densities. Android will automatically scale the kept images, ma
+IN	out	mxplayer	mxplayer-ftl	Remove Languages	off	CONFIRM:remove languages	EXCL	Removes translations for languages you don't use. Only keeps the languages you pick.
+OUT	out	mxplayer	mxplayer-ftl	Add Save Data	off	-	EXCL	Unpacks bundled save-data zip(s) into the app's storage on first launch.
+OUT	out	mxplayer	mxplayer-ftl	Change Display Size	off	-	EXCL	Change any app's display size without touching your phone's system settings. Make it bigger if things look too small, or smaller to fit more on screen
+IN	out	mxplayer	mxplayer-ftl	Hide File Transfer, Video Playlist, Private Folder tiles	off	-	EXCL	Removes the File Transfer, Video Playlist, and Private Folder tiles from settings Page.
+IN	out	mxplayer	mxplayer-ftl	Hide Settings Page UseLess Buttons	off	-	EXCL	Collapses the WhatsApp, Legal, and Help entries on the Me tab.
+OUT	out	mxplayer	mxplayer-ftl	Hide top tiles	off	-	EXCL	Hides the top tiles.
+IN	out	mxplayer	mxplayer-ftl	Remove Ads	off	-	EXCL	Cleans Apps Code From Ads Junk. Works In Most Apps Where There Isn't Any Check For Ads Loaded Or Not. If There Is A Check You Will Be Stuck In SplashA
 IN	IN	mxplayer	mxplayer-ftl	Remove Ads Lite (Adobo)	off	-	EXCL	Based On (Adobo's Block Ads+Mobile Ads) Use When Remove Ads Patch Caused Problem. It Is Weaker But Effective, No Need To Select A Host File Or Configu
-?	out	mxplayer	mxplayer-ftl	Remove Ads Ultra Lite	off	-	EXCL	Call finish on ad activities. Use Where Remove Ads And Remove Ads Lite (Adobo) Caused Problem. Its In Very Early Stage So Test And Provide FeedBack If
+OUT	out	mxplayer	mxplayer-ftl	Remove Ads Ultra Lite	off	-	EXCL	Call finish on ad activities. Use Where Remove Ads And Remove Ads Lite (Adobo) Caused Problem. Its In Very Early Stage So Test And Provide FeedBack If
 IN	IN	mxplayer	mxplayer-ftl	Remove Analytics	off	-	EXCL	Disables tracking and crash-reporting tools, corrupts analytics web links inside the code, and removes background tracking services.
-?	out	mxplayer	mxplayer-ftl	Remove Analytics New	off	-	EXCL	Corrupts analytics network URLs and split-scheme string obfuscation inside the code, and strips matching manifest components.
-IN	IN	mxplayer	mxplayer-ftl	Skip Splash Screen	off	-	EXCL	Skips Splash Screen so the app boots straight past the splash and update screen.
-?	out	mxplayer	mxplayer-ftl	Skip Splash Screen - Expert Only	off	-	EXCL	EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. Check the log to know what the patch 
+IN	out	mxplayer	mxplayer-ftl	Remove Analytics New	off	-	EXCL	Corrupts analytics network URLs and split-scheme string obfuscation inside the code, and strips matching manifest components.
+OUT	IN	mxplayer	mxplayer-ftl	Skip Splash Screen	off	-	EXCL	Skips Splash Screen so the app boots straight past the splash and update screen.
+OUT	out	mxplayer	mxplayer-ftl	Skip Splash Screen - Expert Only	off	-	EXCL	EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Names. Check the log to know what the patch 
 IN	IN	photos	gg-photos	Change package name	ON	BANNED:change package name	EXCL	Installs Google Photos beside the system Photos app by changing package, permissions, providers, and app name.
 OUT	out	photos	gg-photos	Disable PairIP license check	off	BANNED:pairip	EXCL	Disables PairIP license verification, VM checks, and repeated background checks.
 OUT	out	photos	gg-photos	Fix Firebase after re-signing	off	BANNED:fix firebase after re-signing	EXCL	Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs the app with a different certificate.
@@ -145,22 +145,22 @@ OUT	out	photos	gg-photos	Provide Original app certificate	off	BANNED:provide ori
 OUT	out	photos	gg-photos	Spoof app signature	off	BANNED:spoof app signature	EXCL	Makes the app think its signing certificate is unchanged after Morphe re-signs it.
 OUT	out	photos	gg-photos	Spoof install source	off	BANNED:spoof install source	EXCL	Makes the app think it was installed from a specific store (default: Google Play).
 OUT	out	photos	gg-photos	Spoof Widevine / DRM level	off	CONFIRM:spoof widevine	EXCL	Reports Widevine L1 (hardware DRM) to apps that check DRM level locally.
-?	out	photos	gg-photos	AMOLED dark theme	off	-	EXCL	Makes Google Photos dark surfaces true black.
+OUT	out	photos	gg-photos	AMOLED dark theme	off	-	EXCL	Makes Google Photos dark surfaces true black.
 IN	IN	photos	gg-photos	Enable DCIM folders backup control	ON	-	EXCL	Allows controlling Camera and other DCIM folder backup individually.
 IN	IN	photos	gg-photos	Fix DCIM folder classification	ON	-	EXCL	Prevents non-Camera DCIM folders from being grouped as Camera.
 IN	IN	photos	gg-photos	GmsCore support	ON	-	EXCL	Adds MicroG/GmsCore support metadata for Google Photos.
-?	out	photos	gg-photos	GmsCore support (MicroG)	off	-	EXCL	Routes Google Play Services calls through MicroG instead of real GPS.
+IN	out	photos	gg-photos	GmsCore support (MicroG)	off	-	EXCL	Routes Google Play Services calls through MicroG instead of real GPS.
 IN	IN	photos	gg-photos	Spoof features	ON	-	EXCL	Spoofs selectable Pixel Photos build and feature flags.
-OUT	out	primevideo	primevideo-hoo-dles	Change package name	off	BANNED:change package name	EXCL	Appends ".morphe" to the package name by default. Changing the package name of the app can lead to unexpected issues.
+OUT	out	primevideo	primevideo-hoo-dles	Change package name	off	BANNED:change package name	EXCL	"Appends "".morphe"" to the package name by default. Changing the package name of the app can lead to unexpected issues."
 OUT	out	primevideo	primevideo-hoo-dles	Disable Pairip license check	off	BANNED:pairip	EXCL	Disables Play Integrity API (pairip) client-side license check. This patch does not bypass Play Integrity attestation or pairipcore virtualization.
-OUT	out	primevideo	primevideo-hoo-dles	Enable debug	off	BANNED:enable debug	EXCL	Enables debugging on the app by setting android:debuggable="true".
+OUT	out	primevideo	primevideo-hoo-dles	Enable debug	off	BANNED:enable debug	EXCL	"Enables debugging on the app by setting android:debuggable=""true""."
 OUT	out	primevideo	primevideo-hoo-dles	Hide app icon	off	BANNED:hide app icon	EXCL	Hides the app icon from the Android launcher.
 OUT	out	primevideo	primevideo-hoo-dles	Spoof signature	off	BANNED:spoof signature	EXCL	Spoofs the package signature of the original APK.
 IN	IN	primevideo	primevideo-hoo-dles	Enable speed control	ON	-	EXCL	Enables experimental speed control to the video player.
-?	out	primevideo	primevideo-hoo-dles	MicroG integration	off	-	EXCL	Allows the app to work without root by using MicroG instead of Google Play Services.
+OUT	out	primevideo	primevideo-hoo-dles	MicroG integration	off	-	EXCL	Allows the app to work without root by using MicroG instead of Google Play Services.
 IN	IN	primevideo	primevideo-hoo-dles	Rename shared permissions	ON	-	EXCL	Rename certain permissions shared across Amazon apps. Applying this patch can fix installation errors, but can also break features in certain apps.
 IN	IN	primevideo	primevideo-hoo-dles	Skip ads	ON	-	EXCL	Automatically skips ads baked into the video stream.
-OUT	out	reddit	reddit-adobo	Change package name	off	BANNED:change package name	EXCL	Appends ".adobo" to the package name by default. Changing the package name of the app can lead to unexpected issues.
+OUT	out	reddit	reddit-adobo	Change package name	off	BANNED:change package name	EXCL	"Appends "".adobo"" to the package name by default. Changing the package name of the app can lead to unexpected issues."
 OUT	out	reddit	reddit-rushiranpise	Disable PairIP license check	off	BANNED:pairip	EXCL	Disables PairIP license verification, VM checks, and repeated background checks.
 OUT	out	reddit	reddit-rushiranpise	Fix Firebase after re-signing	off	BANNED:fix firebase after re-signing	EXCL	Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs the app with a different certificate.
 OUT	out	reddit	reddit-rushiranpise	Provide Original app certificate	off	BANNED:provide original app certificate	EXCL	Automatically reads the signing certificate from the APK you are patching — no original app installed or file provided needed. Only fill the options b
@@ -172,32 +172,32 @@ OUT	out	reddit	reddit-rushiranpise	Spoof app signature	off	BANNED:spoof app sign
 OUT	out	reddit	reddit-rushiranpise	Spoof install source	off	BANNED:spoof install source	EXCL	Makes the app think it was installed from a specific store (default: Google Play).
 OUT	out	reddit	reddit-adobo	Spoof signature verification	off	BANNED:spoof signature	EXCL	Spoofs the signature verification when the app starts up. It is recommended to use the unmodified app to work properly.
 OUT	out	reddit	reddit-rushiranpise	Spoof Widevine / DRM level	off	CONFIRM:spoof widevine	EXCL	Reports Widevine L1 (hardware DRM) to apps that check DRM level locally.
-?	out	reddit	reddit-adobo	Block ads, trackers, and analytics	off	-	EXCL	Blocks ads, trackers, analytics, and unwanted content in apps and games using a hosts file.
+IN	out	reddit	reddit-adobo	Block ads, trackers, and analytics	off	-	EXCL	Blocks ads, trackers, analytics, and unwanted content in apps and games using a hosts file.
 IN	IN	reddit	reddit-adobo	Colorize comment indent lines	ON	-	EXCL	Replaces the default gray comment indent lines with color-coded lines.
 IN	IN	reddit	reddit-adobo	Deactivate Firebase Analytics	off	-	EXCL	Deactivates Firebase Analytics and removes its associated broadcast receivers and services.
 IN	IN	reddit	reddit-adobo	Deactivate Firebase Performance Monitoring	off	-	EXCL	Deactivates the collection of performance data on app start up time, network requests, and other related metrics.
 IN	IN	reddit	reddit-adobo	Disable Google Safe Browsing in WebView	off	-	EXCL	Disables the Google Safe Browsing checks in WebView. This doesn't apply to WebView within the SDK Runtime.
 IN	IN	reddit	reddit-adobo	Disable bottom navigation bar auto-hide	off	-	EXCL	Prevents the bottom navigation bar from hiding when scrolling down.
 IN	IN	reddit	reddit-adobo	Disable home feed auto-refresh	off	-	EXCL	Disables the automatic refresh of the home feed after viewing a post or after being away from the app.
-?	out	reddit	reddit-adobo	Disable home feed refresh on back to exit	off	-	EXCL	Disables the back-to-top scroll and home feed refresh on back navigation to exit.
+IN	out	reddit	reddit-adobo	Disable home feed refresh on back to exit	off	-	EXCL	Disables the back-to-top scroll and home feed refresh on back navigation to exit.
 IN	IN	reddit	reddit-adobo	Disable home feed swipe	off	-	EXCL	Disables the horizontal page swipe gesture used to switch feeds.
 IN	IN	reddit	reddit-adobo	Disable home screen redirect	ON	-	EXCL	Disables the automatic redirect to the home screen after being away from the app or returning from the background.
 IN	IN	reddit	reddit-adobo	Disable metrics collection in WebView	off	-	EXCL	Disables the collection of diagnostic data or usage statistics that are sent to Google.
 IN	IN	reddit	reddit-adobo	Disable mobile ads	off	-	EXCL	Disables banner, interstitial, and other ad formats.
 IN	IN	reddit	reddit-adobo	Disable post detail swipe	off	-	EXCL	Disables the horizontal swipe gesture used to navigate between posts.
-?	out	reddit	reddit-adobo	Disable screenshot banner	ON	-	EXCL	Disables the banner that shows up after taking a screenshot.
-?	out	reddit	reddit-adobo	Enable guest mode	off	-	EXCL	Enables browsing Reddit without signing in.
-IN	IN	reddit	reddit-rushiranpise	GmsCore support (MicroG)	off	-	EXCL	Routes Google Play Services calls through MicroG instead of real GPS.
-IN	IN	reddit	reddit-adobo	Hide Ask button from search bar	off	-	EXCL	Hides the Ask button (Reddit Answers) from the search bar.
-IN	IN	reddit	reddit-adobo	Hide awards	off	-	EXCL	Hides the awards on Reddit posts and comments.
-IN	IN	reddit	reddit-adobo	Hide community highlights	off	-	EXCL	Hides the community highlights section.
-IN	IN	reddit	reddit-adobo	Hide community menu badge	ON	-	EXCL	Hides the red notification badge on the community menu (hamburger menu).
-IN	IN	reddit	reddit-adobo	Hide post view counts	ON	-	EXCL	Removes the "views" indicator from the post metadata.
-IN	IN	reddit	reddit-adobo	Hide prominent search bar	off	-	EXCL	Hides the new prominent search bar on the main screen. Applicable only to version 2026.24.0 and earlier.
-IN	IN	reddit	reddit-adobo	Hide share count	off	-	EXCL	Hides the share count on Reddit posts.
-IN	IN	reddit	reddit-adobo	Hide upvote scores	off	-	EXCL	Hides the scores on Reddit posts and comments.
-IN	IN	reddit	reddit-adobo	Hide user community badges	off	-	EXCL	Hides the user community badges on Reddit comments.
-IN	IN	reddit	reddit-adobo	Hide user flairs	off	-	EXCL	Hides the user flairs on Reddit comments.
+IN	out	reddit	reddit-adobo	Disable screenshot banner	ON	-	EXCL	Disables the banner that shows up after taking a screenshot.
+IN	out	reddit	reddit-adobo	Enable guest mode	off	-	EXCL	Enables browsing Reddit without signing in.
+OUT	IN	reddit	reddit-rushiranpise	GmsCore support (MicroG)	off	-	EXCL	Routes Google Play Services calls through MicroG instead of real GPS.
+OUT	IN	reddit	reddit-adobo	Hide Ask button from search bar	off	-	EXCL	Hides the Ask button (Reddit Answers) from the search bar.
+OUT	IN	reddit	reddit-adobo	Hide awards	off	-	EXCL	Hides the awards on Reddit posts and comments.
+OUT	IN	reddit	reddit-adobo	Hide community highlights	off	-	EXCL	Hides the community highlights section.
+OUT	IN	reddit	reddit-adobo	Hide community menu badge	ON	-	EXCL	Hides the red notification badge on the community menu (hamburger menu).
+OUT	IN	reddit	reddit-adobo	Hide post view counts	ON	-	EXCL	"Removes the ""views"" indicator from the post metadata."
+OUT	IN	reddit	reddit-adobo	Hide prominent search bar	off	-	EXCL	Hides the new prominent search bar on the main screen. Applicable only to version 2026.24.0 and earlier.
+OUT	IN	reddit	reddit-adobo	Hide share count	off	-	EXCL	Hides the share count on Reddit posts.
+OUT	IN	reddit	reddit-adobo	Hide upvote scores	off	-	EXCL	Hides the scores on Reddit posts and comments.
+OUT	IN	reddit	reddit-adobo	Hide user community badges	off	-	EXCL	Hides the user community badges on Reddit comments.
+OUT	IN	reddit	reddit-adobo	Hide user flairs	off	-	EXCL	Hides the user flairs on Reddit comments.
 IN	IN	reddit	reddit-adobo	Open external links directly	ON	-	EXCL	Opens external links directly without going through out.reddit.com.
 IN	IN	reddit	reddit-adobo	Remove ads and telemetry	ON	-	EXCL	Removes ads and telemetry everywhere.
 IN	IN	reddit	reddit-adobo	Remove screenshot detection	off	-	EXCL	Prevents the app from detecting when a screenshot is taken.
@@ -217,11 +217,11 @@ IN	IN	telegram	telegram-rushiranpise	Bypass content restrictions	ON	-	EXCL	Allow
 IN	IN	telegram	telegram-rushiranpise	Disable auto-update	ON	-	EXCL	Disables automatic app update checks, the blocking update screen, and the proxy sponsor channel insertion. On Telegram Plus also disables the Plus-spe
 IN	IN	telegram	telegram-rushiranpise	Disable channel switching	ON	-	EXCL	Disables the pull-down gesture that switches to the next unread channel.
 IN	IN	telegram	telegram-rushiranpise	Download speed boost	ON	-	EXCL	Increases download chunk size to 1 MB and max concurrent requests to 12.
-IN	IN	telegram	telegram-rushiranpise	GmsCore support (MicroG)	off	-	EXCL	Routes Google Play Services calls through MicroG instead of real GPS.
+OUT	IN	telegram	telegram-rushiranpise	GmsCore support (MicroG)	off	-	EXCL	Routes Google Play Services calls through MicroG instead of real GPS.
 IN	IN	telegram	telegram-rushiranpise	Hide typing indicator	ON	-	EXCL	Hides your typing indicator from other users in all chats. On Telegram Plus also silences the controller-level sendTyping dispatcher.
 IN	IN	telegram	telegram-rushiranpise	Remove ads	ON	-	EXCL	Removes sponsored messages and video ads from all chats and channels. On Telegram Plus also blocks native banner and inline ads.
 IN	IN	telegram	telegram-rushiranpise	Unlock Premium	ON	-	EXCL	Unlocks Telegram Premium features for the current account.
-?	out	telegram	telegram-rushiranpise	Use normal paste	ON	-	EXCL	Skips Telegram's Rich HTML paste handler and falls back to the normal paste path.
+IN	out	telegram	telegram-rushiranpise	Use normal paste	ON	-	EXCL	Skips Telegram's Rich HTML paste handler and falls back to the normal paste path.
 IN	IN	telegram	telegram-rushiranpise	Voice to music	ON	-	EXCL	Plays voice notes in the full music player with seek bar and background playback.
 IN	IN	truecaller	truecaller-bufferk	Disable analytics	ON	-	EXCL	Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry.
 IN	IN	truecaller	truecaller-bufferk	Enable premium features	ON	-	EXCL	Unlocks all client-side premium features by bypassing the feature-availability gate.
@@ -230,23 +230,23 @@ IN	IN	truecaller	truecaller-bufferk	Hide ads	ON	-	EXCL	Removes ads from the afte
 IN	IN	truecaller	truecaller-bufferk	Hide premium upgrade prompts	ON	-	EXCL	Removes 'Get Premium' and 'Switch to Premium' buttons from the nav bar, settings, and profile.
 IN	IN	truecaller	truecaller-bufferk	Mock premium	ON	-	EXCL	Always shows the premium/gold badge and unlocks premium UI features.
 IN	IN	truecaller	truecaller-bufferk	Remove Premium UI	ON	-	EXCL	Removes the Premium tab from the bottom navigation bar and the Premium row in the profile section.
-?	out	truecaller-combo	truecaller-combo	Disable analytics	ON	-	EXCL	Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry.
-?	out	truecaller-combo	truecaller-combo	Enable premium features	ON	-	EXCL	Unlocks all client-side premium features by bypassing the feature-availability gate.
-?	out	truecaller-combo	truecaller-combo	Hide 'Get Premium' banners	ON	-	EXCL	Dismisses premium upgrade prompts and paywall screens automatically.
+IN	out	truecaller-combo	truecaller-combo	Disable analytics	ON	-	EXCL	Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry.
+IN	out	truecaller-combo	truecaller-combo	Enable premium features	ON	-	EXCL	Unlocks all client-side premium features by bypassing the feature-availability gate.
+IN	out	truecaller-combo	truecaller-combo	Hide 'Get Premium' banners	ON	-	EXCL	Dismisses premium upgrade prompts and paywall screens automatically.
 IN	IN	truecaller-combo	truecaller-combo	Hide ads	ON	-	EXCL	Removes ads from the after-call screen and caller-ID overlay.
-?	out	truecaller-combo	truecaller-combo	Hide premium upgrade prompts	ON	-	EXCL	Removes 'Get Premium' and 'Switch to Premium' buttons from the nav bar, settings, and profile.
-?	out	truecaller-combo	truecaller-combo	Mock premium	ON	-	EXCL	Always shows the premium/gold badge and unlocks premium UI features.
-?	out	truecaller-combo	truecaller-combo	Remove Premium UI	ON	-	EXCL	Removes the Premium tab from the bottom navigation bar and the Premium row in the profile section.
-OUT	IN	youtube	youtube-morphe	Clone app	off	BANNED:clone	open	Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned instal
+IN	out	truecaller-combo	truecaller-combo	Hide premium upgrade prompts	ON	-	EXCL	Removes 'Get Premium' and 'Switch to Premium' buttons from the nav bar, settings, and profile.
+IN	out	truecaller-combo	truecaller-combo	Mock premium	ON	-	EXCL	Always shows the premium/gold badge and unlocks premium UI features.
+IN	out	truecaller-combo	truecaller-combo	Remove Premium UI	ON	-	EXCL	Removes the Premium tab from the bottom navigation bar and the Premium row in the profile section.
+OUT	IN	youtube	youtube-morphe	Clone app	off	BANNED:clone	open	"Changes the app package name to allow installing the same app multiple times. By default "".morphe"" is appended to the package name. Each cloned instal"
 OUT	out	youtube	youtube-morphe	Enable debugging	ON	BANNED:enable debug	open	Adds options for debugging and exporting Morphe logs to the clipboard.
 OUT	out	youtube	youtube-morphe	Override certificate pinning	off	BANNED:certificate pinning	open	Overrides certificate pinning, allowing to inspect traffic via a proxy.
-IN	IN	youtube	youtube-morphe	Add to queue	ON	-	open	Overrides the feed flyout 'Play next in queue' with the Morphe video queue.
+OUT	IN	youtube	youtube-morphe	Add to queue	ON	-	open	Overrides the feed flyout 'Play next in queue' with the Morphe video queue.
 OUT	out	youtube	youtube-morphe	Alternative thumbnails	ON	-	open	Adds options to replace video thumbnails using the DeArrow API or image captures from the video.
-IN	IN	youtube	youtube-morphe	Ambient mode	ON	-	open	Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.
+OUT	IN	youtube	youtube-morphe	Ambient mode	ON	-	open	Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.
 IN	IN	youtube	youtube-morphe	App refresh rate	ON	-	open	Adds an option to change the app refresh rate.
 OUT	out	youtube	youtube-morphe	Bypass image region restrictions	ON	-	open	Adds an option to use a different host for user avatar and channel images and can fix missing images that are blocked in some countries.
-IN	IN	youtube	youtube-morphe	Bypass link redirects	ON	-	open	Adds an option to bypass redirects and open the original link directly.
-IN	IN	youtube	youtube-morphe	Captions	ON	-	open	Adds an option to disable captions from being automatically enabled or to set caption cookies.
+OUT	IN	youtube	youtube-morphe	Bypass link redirects	ON	-	open	Adds an option to bypass redirects and open the original link directly.
+OUT	IN	youtube	youtube-morphe	Captions	ON	-	open	Adds an option to disable captions from being automatically enabled or to set caption cookies.
 OUT	out	youtube	youtube-morphe	Change form factor	ON	-	open	Adds an option to change the UI appearance to a phone, tablet, or automotive device.
 OUT	out	youtube	youtube-morphe	Change header	ON	-	open	Adds an option to change the header logo in the top left corner of the app.
 OUT	out	youtube	youtube-morphe	Change installer source	off	-	open	Spoofs the installer source so the app appears to be installed from an app store.
@@ -256,7 +256,7 @@ IN	IN	youtube	youtube-morphe	Copy video link	ON	-	open	Adds options to display b
 OUT	out	youtube	youtube-morphe	Custom branding	ON	-	open	Adds options to change the app icon and app name. Branding cannot be changed for mounted (root) installations.
 OUT	out	youtube	youtube-morphe	Custom player overlay opacity	ON	-	open	Adds an option to change the opacity of the video player background when player controls are visible.
 IN	IN	youtube	youtube-morphe	Disable DRC audio	ON	-	open	Adds an option to disable DRC (Dynamic Range Compression) audio.
-?	IN	youtube	youtube-morphe	Disable Play Store updates	off	-	open	Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not wor
+OUT	IN	youtube	youtube-morphe	Disable Play Store updates	off	-	open	Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not wor
 OUT	out	youtube	youtube-morphe	Disable QUIC protocol	ON	-	open	Adds an option to disable QUIC (Quick UDP Internet Connections) network protocol.
 IN	IN	youtube	youtube-morphe	Disable Shorts resuming on startup	ON	-	open	Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.
 IN	IN	youtube	youtube-morphe	Disable double tap actions	ON	-	open	Adds an option to disable player double tap gestures.
