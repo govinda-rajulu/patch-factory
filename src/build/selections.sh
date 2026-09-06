@@ -14,6 +14,7 @@ LIST=$( { ls ./*.mpp 2>/dev/null; ls ./extra/*.mpp 2>/dev/null; } \
   | awk -F/ '{print $NF"\t"$0}' | sort | cut -f2- )
 [ -n "$LIST" ] || { echo "no bundles on disk" >&2; exit 1; }
 OUT=""; N=0; FIRST=1
+: > ./.requested
 for M in $LIST; do
   B=$(basename "$M" .mpp); NM="${B#*-}"
   D="${PD[$NM]:--}"
@@ -29,11 +30,13 @@ for M in $LIST; do
     done < "src/patches/$D/exclude-patches"
     while IFS= read -r l || [ -n "$l" ]; do
       [ -n "$l" ] || continue
-      S="$S -e \"${l%%|*}\""; N=$((N+1))
+      NAME="${l%%|*}"; S="$S -e \"$NAME\""; N=$((N+1)); printf '%s\t%s\n' "$NM" "$NAME" >> ./.requested
     done < "src/patches/$D/include-patches"
   fi
   if [ "$FIRST" = 1 ]; then OUT="$OUT$S"; FIRST=0; else OUT="$OUT -p $M$S"; fi
   echo "BUNDLE=$NM dir=$D" >&2
 done
+DUPREQ=$(cut -f2 ./.requested | sort | uniq -d)
+[ -z "$DUPREQ" ] || { echo "DUPLICATE requested patch names across bundles:" >&2; echo "$DUPREQ" >&2; exit 1; }
 echo "WANT=$N"
 echo "SEL=$OUT"

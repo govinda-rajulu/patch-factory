@@ -185,7 +185,8 @@ for i in 0; do
   [ -n "${COE:-}" ] && excludePatches="$excludePatches --continue-on-error"
   set +u; split_arch "$APK_NAME" "$OPTS" > /tmp/patch.log 2>&1; SA=$?; set -u
  cat /tmp/patch.log
- AP=$(grep -c "Applied: " /tmp/patch.log)
+ grep -o "Applied: .*" /tmp/patch.log | sed 's/\x1b\[[0-9;]*m//g; s/^Applied: //; s/[[:space:]]*$//' | sort -u > /tmp/applied.txt
+ AP=$(wc -l < /tmp/applied.txt)
  green_log "[+] applied $AP patches (rc=$SA)"
  grep "Applied: " /tmp/patch.log | sed 's/.*Applied: /- /' | sort > ./release/.applied
  PKG_LOG=$(grep -oE "Filtering patches for [^ ]+" /tmp/patch.log | tail -1 | awk "{print \$NF}")
@@ -200,9 +201,20 @@ for i in 0; do
   red_log "[-] a patch failed - refusing to release"
   grep "SEVERE: FAILED" /tmp/patch.log | head -10; exit 1
  fi
- if [ "$EXCL" = "true" ] && [ "$AP" != "$WANT_E" ]; then
-  red_log "[-] applied $AP but include list says $WANT_E - refusing to release"
-  grep "Skipping disabled" /tmp/patch.log | head -30; exit 1
+ if [ -s ./.requested ]; then
+   cut -f2 ./.requested | sed 's/[[:space:]]*$//' | sort -u > /tmp/requested.txt
+   MISS=$(comm -23 /tmp/requested.txt /tmp/applied.txt)
+   if [ -n "$MISS" ]; then
+     red_log "[-] requested but NOT applied ($(printf '%s\n' "$MISS" | wc -l)) - refusing to release:"
+     printf '%s\n' "$MISS" | sed 's/^/  - /'
+     grep "Skipping disabled" /tmp/patch.log | head -40
+     exit 1
+   fi
+   green_log "[+] all $(wc -l < /tmp/requested.txt) requested patches applied"
+ fi
+ if [ "$EXCL" = "true" ] && [ "$AP" -lt "$WANT_E" ]; then
+   red_log "[-] applied $AP distinct but include list says $WANT_E - refusing to release"
+   grep "Skipping disabled" /tmp/patch.log | head -30; exit 1
  fi
 done
 
