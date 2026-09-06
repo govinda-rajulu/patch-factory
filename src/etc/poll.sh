@@ -49,6 +49,32 @@ if [ -z "$MINE" ] || [ "$MINE" = "null" ]; then
 fi
 
 MS=$(date -d "$MINE" +%s)
+
+# --- CFGSTAMP: my own selection config counts as a source ------------------
+# poll.sh used to compare provider dates against my newest release only, so a change
+# to include/exclude lists or an options file never triggered a rebuild. It does now.
+CFGP=$(jq -r --arg id "$ID" '.[] | select(.id==$id)
+       | [ ((.candidates // [])[] | "src/patches/" + .patch_dir),
+           ((.candidates // [])[] | "src/options/" + .options + ".json"),
+           ((.extra_bundles // [])[] | select(.patch_dir) | "src/patches/" + .patch_dir) ]
+       | unique | .[]' src/targets.json)
+CFGD=""
+if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = "true" ]; then
+  echo "::warning::$ID: shallow clone, so a config change cannot be detected. ci.yml needs fetch-depth: 0"
+elif [ -n "$CFGP" ]; then
+  # shellcheck disable=SC2086
+  CFGD=$(git log -1 --format=%cI -- $CFGP 2>/dev/null)
+  [ -n "$CFGD" ] || echo "::warning::$ID: no commit touches $(echo $CFGP | tr '
+' ' ')"
+fi
+if [ -n "$CFGD" ]; then
+  CS=$(date -d "$CFGD" +%s)
+  echo "$ID: config last changed $CFGD"
+  if [ "$CS" -gt "$MS" ]; then
+    echo "$ID: selection config is newer than my release, building"
+    echo "new_patch=1" >> "$GITHUB_OUTPUT"; exit 0
+  fi
+fi
 echo "$ID: newest source $NEWEST_WHO $(date -u -d @$NEWEST +%FT%TZ) | mine $MINE"
 if [ "$NEWEST" -gt "$MS" ]; then
   echo "$ID: source is newer, building"
