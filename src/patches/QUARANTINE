@@ -1,0 +1,4 @@
+# dir|patch|date|reason  A patch here MUST be absent from include-patches and present in
+# exclude-patches. src/etc/quarantine.sh enforces that, so nothing can silently re-add it.
+esfile-ftl|Remove Debug Info|2026-09-06|patcher SEVERE: FAILED on esfile
+mxplayer-ftl|Remove Debug Info|2026-09-06|patcher SEVERE: FAILED on mxplayer

@@ -121,3 +121,6 @@ jobs:
           exit $FAIL
       - name: Banned patches
         run: bash src/etc/bancheck.sh
+      - name: Quarantined patches
+        run: bash src/etc/quarantine.sh
+

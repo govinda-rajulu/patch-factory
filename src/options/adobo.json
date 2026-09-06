@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "patches": {
+      "Block ads, trackers, and analytics": {
+        "enabled": true,
+        "options": {
+          "hosts": "./src/options/hosts.txt"
+        }
+      }
+    }
+  }
+]
