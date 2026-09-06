@@ -1,17 +1,18 @@
+Clone app
 Enable debugging
-Voice over translation
-Network proxy
-Bypass image region restrictions
 Override certificate pinning
-Custom branding
-Change header
-Change package name
-Change installer source
-Change form factor
-Spoof device dimensions
-Disable video codecs
-Disable QUIC protocol
 Alternative thumbnails
+Bypass image region restrictions
+Change form factor
+Change header
+Change installer source
 Check watch history domain name resolution
+Custom branding
 Custom player overlay opacity
+Disable Play Store updates
+Disable QUIC protocol
+Disable video codecs
+Network proxy
 Open system share sheet
+Spoof device dimensions
+Voice over translation

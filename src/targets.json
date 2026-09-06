@@ -85,32 +85,6 @@
     "note": "Installs beside the system Photos app"
   },
   {
-    "id": "truecaller",
-    "enabled": true,
-    "package": "com.truecaller",
-    "apk_name": "truecaller",
-    "apk_type": "bundle",
-    "max_app_version": null,
-    "max_patch_age_days": 120,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "candidates": [
-      {
-        "name": "bufferk",
-        "owner": "bufferk",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "truecaller-bufferk",
-        "options": "bufferk"
-      }
-    ],
-    "tag_prefix": "truecaller",
-    "poll": false,
-    "exclusive": true,
-    "label": "Truecaller",
-    "note": "Ad blocking, never built Cap raised to 120 on 2026-09-06: bufferk publishes rarely (newest 1.8.0, 18 Jul) but its patches still apply and both targets build green. 60 days was catching slowness, not abandonment."
-  },
-  {
     "id": "truecaller-combo",
     "enabled": true,
     "package": "com.truecaller",
@@ -140,6 +114,15 @@
         "repo": "paresh-patches",
         "channel": "prerelease",
         "patch_dir": "truecaller-paresh"
+      },
+      {
+        "name": "binarymend",
+        "host": "github",
+        "owner": "binarymend",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "truecaller-combo-binarymend",
+        "options": "binarymend"
       }
     ],
     "tag_prefix": "tc-combo",
@@ -307,18 +290,8 @@
     "tag_prefix": "reddit",
     "poll": true,
     "source": "apkpure",
-    "extra_bundles": [
-      {
-        "name": "rushiranpise",
-        "host": "github",
-        "owner": "rushiranpise",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "reddit-rushiranpise"
-      }
-    ],
     "label": "Reddit",
-    "note": "Ads, telemetry and promoted posts removed"
+    "note": "Ads, telemetry and promoted posts removed Dropped the rushiranpise extra bundle on 2026-09-06: its 7 patches are all PairIP, Firebase, certificate and spoof-signature work plus GmsCore, none of which this build needs. adobo covers reddit alone."
   },
   {
     "id": "hotstar",
