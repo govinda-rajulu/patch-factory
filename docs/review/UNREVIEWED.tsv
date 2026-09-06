@@ -1,0 +1,122 @@
+# Decide the first column: INCLUDE, EXCLUDE, or leave ? to decide later.
+# Generated 2026-09-06 from live provider bundles. Regenerate any time; your decisions are read back by apply_review.py.
+DECISION	target	bundle	patch	provider_default	status	description
+EXCLUDE	youtube	youtube-morphe	Clone app	false	banned rule: clone	Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended
+?	youtube	youtube-morphe	Disable Play Store updates	false	default off, not applied	Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpecte
+?	youtube	youtube-morphe	Hide ads	true	SHIPPING NOW, default ON, target not exclusive	Adds options to hide general ads, Premium promotions and video ads.
+?	youtube	youtube-morphe	Copy video link	true	SHIPPING NOW, default ON, target not exclusive	Adds options to display buttons in the video player to copy video links.
+?	youtube	youtube-morphe	Remove viewer discretion dialog	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to remove the dialog that appears when opening a video that has been age-restricted by acceptin
+?	youtube	youtube-morphe	Disable double tap actions	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to disable player double tap gestures.
+?	youtube	youtube-morphe	Double tap to seek	true	SHIPPING NOW, default ON, target not exclusive	Adds additional double-tap to seek values to the YouTube settings menu.
+?	youtube	youtube-morphe	Downloads	true	SHIPPING NOW, default ON, target not exclusive	Adds support to download videos with an external downloader app using the in-app download button or a video pl
+?	youtube	youtube-morphe	Disable haptic feedback	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to disable haptic feedback in the player for various actions.
+?	youtube	youtube-morphe	Loop video	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to loop videos and display loop video button in the video player.
+?	youtube	youtube-morphe	Play all	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to play all the videos from a channel and to display play all button in the video player.
+?	youtube	youtube-morphe	Reload video	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to display reload video button in the video player.
+?	youtube	youtube-morphe	Save to Watch later	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to display save to Watch later button in the video player.
+?	youtube	youtube-morphe	Seekbar	true	SHIPPING NOW, default ON, target not exclusive	Adds options to show old seekbar thumbnails, disable precise seeking when swiping up on the seekbar, slide to 
+?	youtube	youtube-morphe	Swipe controls	true	SHIPPING NOW, default ON, target not exclusive	Adds options to enable and configure volume and brightness swipe controls.
+?	youtube	youtube-morphe	Hide video action buttons	true	SHIPPING NOW, default ON, target not exclusive	Adds options to hide video action buttons in fullscreen and portrait modes.
+?	youtube	youtube-morphe	Navigation bar	true	SHIPPING NOW, default ON, target not exclusive	Adds options to hide and change the bottom navigation bar (such as the Shorts button)  and the upper navigatio
+?	youtube	youtube-morphe	Hide player overlay buttons	true	SHIPPING NOW, default ON, target not exclusive	Adds options to hide the player Cast, Autoplay, Captions, Previous & Next buttons, and to hide or change the o
+?	youtube	youtube-morphe	Captions	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to disable captions from being automatically enabled or to set caption cookies.
+?	youtube	youtube-morphe	Disable layout updates	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to disable server side layout updates and use an older UI.
+?	youtube	youtube-morphe	Add to queue	true	SHIPPING NOW, default ON, target not exclusive	Overrides the feed flyout 'Play next in queue' with the Morphe video queue.
+?	youtube	youtube-morphe	Ambient mode	true	SHIPPING NOW, default ON, target not exclusive	Adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen.
+?	youtube	youtube-morphe	Hide autoplay preview	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to hide the autoplay preview at the end of videos.
+?	youtube	youtube-morphe	Hide end screen cards	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to hide suggested video cards at the end of videos.
+?	youtube	youtube-morphe	Hide end screen suggested video	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to hide the suggested video at the end of videos.
+?	youtube	youtube-morphe	Hide layout components	true	SHIPPING NOW, default ON, target not exclusive	Adds options to hide general layout components.
+?	youtube	youtube-morphe	Hide info cards	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to hide info cards that creators add in the video player.
+?	youtube	youtube-morphe	Hide player flyout menu components	true	SHIPPING NOW, default ON, target not exclusive	Adds options to hide menu components that appear when pressing the gear icon in the video player.
+?	youtube	youtube-morphe	Disable player popup panels	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to disable panels (such as live chat) from opening automatically.
+?	youtube	youtube-morphe	Hide related video overlay	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to hide the related video overlay shown when swiping up in fullscreen.
+?	youtube	youtube-morphe	Hide related videos	true	SHIPPING NOW, default ON, target not exclusive	Adds options to hide related videos.
+?	youtube	youtube-morphe	Disable rolling number animations	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to disable rolling number animations of video view count, user likes, and upload time.
+?	youtube	youtube-morphe	Settings menu filter	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to hide items on the standard YouTube settings screen by their visible name.
+?	youtube	youtube-morphe	Hide Shorts components	true	SHIPPING NOW, default ON, target not exclusive	Adds options to hide components related to Shorts.
+?	youtube	youtube-morphe	Disable sign in to TV popup	true	SHIPPING NOW, default ON, target not exclusive	Adds options to disable the popups asking to sign into or connect to a TV on the same local network.
+?	youtube	youtube-morphe	Hide timestamp	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to hide the timestamp in the bottom left of the video player.
+?	youtube	youtube-morphe	Open channel of live avatar	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to prevent a channel's current live video from opening when tapping its avatar.
+?	youtube	youtube-morphe	Miniplayer	true	SHIPPING NOW, default ON, target not exclusive	Adds options to change the in-app minimized player. Patching 21.28.206 and lower has more miniplayer types to 
+?	youtube	youtube-morphe	Override YouTube Music buttons	true	SHIPPING NOW, default ON, target not exclusive	Overrides YouTube Music buttons to open Morphe Music or any compatible third-party client.
+?	youtube	youtube-morphe	Playback in feeds	true	SHIPPING NOW, default ON, target not exclusive	Adds the 'Playback in feeds' setting of YouTube to the Morphe settings, where it is always available even if Y
+?	youtube	youtube-morphe	Mute button	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to show a player button that mutes the video audio.
+?	youtube	youtube-morphe	Disable fullscreen gestures	true	SHIPPING NOW, default ON, target not exclusive	Adds options to selectively disable gestures for entering and exiting fullscreen mode, and to disable pinch-to
+?	youtube	youtube-morphe	Exit fullscreen mode	true	SHIPPING NOW, default ON, target not exclusive	Adds options to automatically exit fullscreen mode when a video reaches the end.
+?	youtube	youtube-morphe	Fullscreen video scale	true	SHIPPING NOW, default ON, target not exclusive	Adds options to stretch or zoom videos to fill the screen in fullscreen mode.
+?	youtube	youtube-morphe	Open videos fullscreen	true	SHIPPING NOW, default ON, target not exclusive	Adds options to automatically open videos in fullscreen portrait or landscape mode.
+?	youtube	youtube-morphe	Disable playlist autoplay	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to stop a playlist from automatically advancing to the next video.
+?	youtube	youtube-morphe	Return YouTube Dislike	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to show the dislike count of videos with Return YouTube Dislike.
+?	youtube	youtube-morphe	Disable scrolling speed limit	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to remove limits of how fast the home and subscription feed can be scrolled.
+?	youtube	youtube-morphe	Shorts autoplay	true	SHIPPING NOW, default ON, target not exclusive	Adds options to automatically play the next Short.
+?	youtube	youtube-morphe	Disable Shorts resuming on startup	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to disable Shorts from resuming on app startup when Shorts were last being watched.
+?	youtube	youtube-morphe	Open Shorts in regular player	true	SHIPPING NOW, default ON, target not exclusive	Adds options to open Shorts in the regular video player.
+?	youtube	youtube-morphe	SponsorBlock	true	SHIPPING NOW, default ON, target not exclusive	Adds options to enable and configure SponsorBlock, which can skip undesired video segments such as sponsored c
+?	youtube	youtube-morphe	Change start page	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to set which page the app opens in instead of the homepage.
+?	youtube	youtube-morphe	Theme	true	SHIPPING NOW, default ON, target not exclusive	Adds options for theming, and settings to change the app foreground and background colors.
+?	youtube	youtube-morphe	Wide search bar	true	SHIPPING NOW, default ON, target not exclusive	Adds a wide search bar to the top of the home and subscription feed.
+?	youtube	youtube-morphe	Remove background playback restrictions	true	SHIPPING NOW, default ON, target not exclusive	Removes restrictions on background playback, including playing kids videos in the background.
+?	youtube	youtube-morphe	GmsCore support	true	SHIPPING NOW, default ON, target not exclusive	Allows the app to work without root by using a different package name when patched using a GmsCore instead of 
+?	youtube	youtube-morphe	Bypass link redirects	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to bypass redirects and open the original link directly.
+?	youtube	youtube-morphe	Open links externally	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to always open links in your browser instead of with the in-app browser.
+?	youtube	youtube-morphe	Media notification controls	true	SHIPPING NOW, default ON, target not exclusive	Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls
+?	youtube	youtube-morphe	PoToken provider	true	SHIPPING NOW, default ON, target not exclusive	Adds option to get PoToken using an external PoToken minter app.
+?	youtube	youtube-morphe	Sanitize sharing links	true	SHIPPING NOW, default ON, target not exclusive	Removes the tracking query parameters from shared links.
+?	youtube	youtube-morphe	App refresh rate	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to change the app refresh rate.
+?	youtube	youtube-morphe	Spoof video streams	true	SHIPPING NOW, default ON, target not exclusive	Adds options to spoof the client video streams to fix playback.
+?	youtube	youtube-morphe	Spoof app version	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to trick the app into thinking you are running an older version.
+?	youtube	youtube-morphe	Disable DRC audio	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to disable DRC (Dynamic Range Compression) audio.
+?	youtube	youtube-morphe	Force original audio	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to always use the original audio track.
+?	youtube	youtube-morphe	Remember livestream playback position	true	SHIPPING NOW, default ON, target not exclusive	Adds an option to remember the playback position of ongoing livestreams and resume from there when reopening a
+?	youtube	youtube-morphe	Video quality	true	SHIPPING NOW, default ON, target not exclusive	Adds options to set default video qualities and always use the advanced video quality menu.
+?	youtube	youtube-morphe	Playback speed	true	SHIPPING NOW, default ON, target not exclusive	Adds options to customize available playback speeds, set a default playback speed, and show a speed dialog but
+?	adguard	adguard-rushiranpise	GmsCore support (MicroG)	false	inert today (exclusive target)	Routes Google Play Services calls through MicroG instead of real GPS.
+?	adguard	adguard-hoo-dles	MicroG integration	false	inert today (exclusive target)	Allows the app to work without root by using MicroG instead of Google Play Services.
+EXCLUDE	adguard	adguard-hoo-dles	Spoof signature	false	banned rule: spoof signature	Spoofs the package signature of the original APK.
+?	photos	gg-photos	AMOLED dark theme	false	inert today (exclusive target)	Makes Google Photos dark surfaces true black.
+EXCLUDE	photos	gg-photos	Disable PairIP license check	false	banned rule: pairip	Disables PairIP license verification, VM checks, and repeated background checks.
+EXCLUDE	photos	gg-photos	Provide Original app certificate	false	banned rule: provide original app certificate	Automatically reads the signing certificate from the APK you are patching — no original app installed or file 
+EXCLUDE	photos	gg-photos	Spoof Widevine / DRM level	false	confirm rule: spoof widevine	Reports Widevine L1 (hardware DRM) to apps that check DRM level locally.
+EXCLUDE	photos	gg-photos	Fix Firebase after re-signing	false	banned rule: fix firebase after re-signing	Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs th
+?	photos	gg-photos	GmsCore support (MicroG)	false	inert today (exclusive target)	Routes Google Play Services calls through MicroG instead of real GPS.
+EXCLUDE	photos	gg-photos	Spoof install source	false	banned rule: spoof install source	Makes the app think it was installed from a specific store (default: Google Play).
+EXCLUDE	photos	gg-photos	Spoof app signature	false	banned rule: spoof app signature	Makes the app think its signing certificate is unchanged after Morphe re-signs it.
+?	primevideo	primevideo-hoo-dles	MicroG integration	false	inert today (exclusive target)	Allows the app to work without root by using MicroG instead of Google Play Services.
+EXCLUDE	primevideo	primevideo-hoo-dles	Spoof signature	false	banned rule: spoof signature	Spoofs the package signature of the original APK.
+?	esfile	esfile-ftl	Add Save Data	false	inert today (exclusive target)	Unpacks bundled save-data zip(s) into the app's storage on first launch.
+?	esfile	esfile-ftl	Change Display Size	false	inert today (exclusive target)	Change any app's display size without touching your phone's system settings. Make it bigger if things look too
+?	esfile	esfile-ftl	Remove Ads Lite (Adobo)	false	inert today (exclusive target)	Based On (Adobo's Block Ads+Mobile Ads) Use When Remove Ads Patch Caused Problem. It Is Weaker But Effective, 
+?	esfile	esfile-ftl	Remove Analytics New	false	inert today (exclusive target)	Corrupts analytics network URLs and split-scheme string obfuscation inside the code, and strips matching manif
+?	esfile	esfile-ftl	Skip Splash Screen - Expert Only	false	inert today (exclusive target)	EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Name
+EXCLUDE	esfile	esfile-ftl	Spoof App Signature	false	banned rule: spoof app signature	Makes the app think its signing certificate is unchanged after Morphe re-signs it, useful when an app crashes 
+?	instagram	instagram-piko	Hide suggested content	true	inert today (exclusive target)	Hides suggested stories, reels, threads (Suggested posts will still be shown).
+?	instagram	instagram-piko	Hide navigation buttons	true	inert today (exclusive target)	Hides navigation bar buttons, such as the Reels and Create button.
+?	instagram	instagram-brosssh	Disable video autoplay	false	inert today (exclusive target)	Disable video autoplay from feed
+?	instagram	instagram-brosssh	Hide all stories	false	inert today (exclusive target)	Hides all stories from the tray in the feed page.
+?	instagram	instagram-brosssh	Hide feed content	false	inert today (exclusive target)	Hide the feed content, leaving only stories in the home page.
+?	instagram	instagram-brosssh	Hide Instants	false	inert today (exclusive target)	Hides Instants from DMs page.
+?	instagram	instagram-brosssh	Hide navigation buttons	true	inert today (exclusive target)	Hides navigation bar buttons, such as the Reels and Create button. Choose what button to hide using the patch 
+?	instagram	instagram-brosssh	Hide Reels save button	false	inert today (exclusive target)	null
+?	instagram	instagram-brosssh	Hide suggested content	true	inert today (exclusive target)	Choose the suggested content to hide using the patch options.
+?	instagram	instagram-brosssh	Hide Threads profile button	false	inert today (exclusive target)	Hides the Threads button from the profile page action bar (top right of the profile page).
+?	instagram	instagram-brosssh	Bypass signature check	true	inert today (exclusive target)	null
+EXCLUDE	instagram	instagram-brosssh	Clone	false	banned rule: clone	Changes the package name and the app name. This allows you to install the patched app alongside the original I
+?	reddit	reddit-adobo	Disable screenshot banner	true	inert today (exclusive target)	Disables the banner that shows up after taking a screenshot.
+?	reddit	reddit-adobo	Disable home feed refresh on back to exit	false	inert today (exclusive target)	Disables the back-to-top scroll and home feed refresh on back navigation to exit.
+?	reddit	reddit-adobo	Enable guest mode	false	inert today (exclusive target)	Enables browsing Reddit without signing in.
+EXCLUDE	reddit	reddit-rushiranpise	Disable PairIP license check	false	banned rule: pairip	Disables PairIP license verification, VM checks, and repeated background checks.
+EXCLUDE	reddit	reddit-rushiranpise	Provide Original app certificate	false	banned rule: provide original app certificate	Automatically reads the signing certificate from the APK you are patching — no original app installed or file 
+EXCLUDE	reddit	reddit-rushiranpise	Spoof Widevine / DRM level	false	confirm rule: spoof widevine	Reports Widevine L1 (hardware DRM) to apps that check DRM level locally.
+EXCLUDE	reddit	reddit-rushiranpise	Fix Firebase after re-signing	false	banned rule: fix firebase after re-signing	Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs th
+EXCLUDE	reddit	reddit-rushiranpise	Spoof install source	false	banned rule: spoof install source	Makes the app think it was installed from a specific store (default: Google Play).
+EXCLUDE	reddit	reddit-rushiranpise	Spoof app signature	false	banned rule: spoof app signature	Makes the app think its signing certificate is unchanged after Morphe re-signs it.
+?	mxplayer	mxplayer-ftl	Add Save Data	false	inert today (exclusive target)	Unpacks bundled save-data zip(s) into the app's storage on first launch.
+?	mxplayer	mxplayer-ftl	Change Display Size	false	inert today (exclusive target)	Change any app's display size without touching your phone's system settings. Make it bigger if things look too
+?	mxplayer	mxplayer-ftl	Hide top tiles	false	inert today (exclusive target)	Hides the top tiles.
+?	mxplayer	mxplayer-ftl	Hide Settings Page UseLess Buttons	false	inert today (exclusive target)	Collapses the WhatsApp, Legal, and Help entries on the Me tab.
+?	mxplayer	mxplayer-ftl	Hide File Transfer, Video Playlist, Private Folder tiles	false	inert today (exclusive target)	Removes the File Transfer, Video Playlist, and Private Folder tiles from settings Page.
+?	mxplayer	mxplayer-ftl	Remove Analytics New	false	inert today (exclusive target)	Corrupts analytics network URLs and split-scheme string obfuscation inside the code, and strips matching manif
+?	mxplayer	mxplayer-ftl	Skip Splash Screen - Expert Only	false	inert today (exclusive target)	EXPERT USERS ONLY. Manually Configure It To Point At Real Splash And Main Activity As Many Apps Use Other Name
+EXCLUDE	mxplayer	mxplayer-ftl	Spoof App Signature	false	banned rule: spoof app signature	Makes the app think its signing certificate is unchanged after Morphe re-signs it, useful when an app crashes 
+?	telegram	telegram-rushiranpise	Use normal paste	true	inert today (exclusive target)	Skips Telegram's Rich HTML paste handler and falls back to the normal paste path.
