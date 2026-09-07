@@ -1,0 +1,14 @@
+# Everything needs the owner's review. On a public repo this is what stops a drive-by PR,
+# and it is what stops an agent PR touching a file it should never touch.
+*                       @govinda-rajulu
+
+# The files that decide what gets signed and published. Never merge a change here you did
+# not write yourself, whoever or whatever opened the PR.
+/.github/workflows/     @govinda-rajulu
+/.github/actions/       @govinda-rajulu
+/src/build/TOOLING.sha256 @govinda-rajulu
+/src/patches/BANNED     @govinda-rajulu
+/src/patches/CONFIRM    @govinda-rajulu
+/src/patches/QUARANTINE @govinda-rajulu
+/LICENSE                @govinda-rajulu
+/SECURITY.md            @govinda-rajulu

@@ -127,6 +127,10 @@ jobs:
         run: python3 src/etc/pagegen.py --check
       - name: Target dropdown matches targets.json
         run: python3 src/etc/dropgen.py --check
+      - name: CREDITS matches targets.json
+        run: python3 src/etc/credits.py --check
+      - name: Unreferenced patch dirs are reported, not deleted
+        run: bash src/etc/orphans.sh
       - name: README state block matches targets.json
         run: python3 src/etc/readmegen.py --check
       - name: Obtainium generator runs
