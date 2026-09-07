@@ -1,6 +1,3 @@
-Clone app
-Enable debugging
-Override certificate pinning
 Add to queue
 Alternative thumbnails
 Ambient mode
@@ -11,12 +8,16 @@ Change form factor
 Change header
 Change installer source
 Check watch history domain name resolution
+Clone app
 Custom branding
 Custom player overlay opacity
 Disable Play Store updates
 Disable QUIC protocol
 Disable video codecs
+Enable debugging
 Network proxy
 Open system share sheet
+Override certificate pinning
+Spoof app version
 Spoof device dimensions
 Voice over translation

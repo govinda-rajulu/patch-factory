@@ -144,7 +144,7 @@
    "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^telegram-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"Telegram\"}"
   },
   {
-   "id": "com.google.android.youtube",
+   "id": "app.morphe.android.youtube",
    "url": "https://github.com/govinda-rajulu/patch-factory",
    "author": "govinda-rajulu",
    "name": "YouTube",

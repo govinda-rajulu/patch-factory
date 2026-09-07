@@ -21,7 +21,8 @@ for t in targets:
     assert re.fullmatch("[a-z0-9-]+", p), ("prefix has regex metachars", p)
     pkg[p] = t["package"]
     LABELS[p] = t.get("label") or p
-pkg["gg-photos"] = "app.morphe.android.apps.photos"  # Change package name patch default
+pkg["gg-photos"] = "app.morphe.android.apps.photos"
+pkg["youtube-morphe"] = "app.morphe.android.youtube" # GmsCore support renames the package  # Change package name patch default
 MINE = sorted(LABELS)
 THEIRS = [p for p in SET_B if p in LABELS]
 _dropped = [p for p in SET_B if p not in LABELS]

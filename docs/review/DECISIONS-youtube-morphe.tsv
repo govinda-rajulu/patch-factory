@@ -1,70 +1,70 @@
 # Edit column 1 to IN or OUT. Nothing here is applied automatically.
 # 82 patches, 0 already in the include list, 22 in the exclude list.
 decision	state	default	class	patch	reason
-	UNREVIEWED	on	CLEAN	App refresh rate	
-	UNREVIEWED	on	CLEAN	Change start page	
-	UNREVIEWED	on	CLEAN	Copy video link	
-	UNREVIEWED	on	CLEAN	Disable DRC audio	
-	UNREVIEWED	on	CLEAN	Disable Shorts resuming on startup	
-	UNREVIEWED	on	CLEAN	Disable double tap actions	
-	UNREVIEWED	on	CLEAN	Disable fullscreen gestures	
-	UNREVIEWED	on	CLEAN	Disable haptic feedback	
-	UNREVIEWED	on	CLEAN	Disable layout updates	
-	UNREVIEWED	on	CLEAN	Disable player popup panels	
-	UNREVIEWED	on	CLEAN	Disable playlist autoplay	
-	UNREVIEWED	on	CLEAN	Disable rolling number animations	
-	UNREVIEWED	on	CLEAN	Disable scrolling speed limit	
-	UNREVIEWED	on	CLEAN	Disable sign in to TV popup	
-	UNREVIEWED	on	CLEAN	Double tap to seek	
-	UNREVIEWED	on	CLEAN	Downloads	
-	UNREVIEWED	on	CLEAN	Exit fullscreen mode	
-	UNREVIEWED	on	CLEAN	Force original audio	
-	UNREVIEWED	on	CLEAN	Fullscreen video scale	
-	UNREVIEWED	on	CLEAN	Hide Shorts components	
-	UNREVIEWED	on	CLEAN	Hide ads	
-	UNREVIEWED	on	CLEAN	Hide autoplay preview	
-	UNREVIEWED	on	CLEAN	Hide end screen cards	
-	UNREVIEWED	on	CLEAN	Hide end screen suggested video	
-	UNREVIEWED	on	CLEAN	Hide info cards	
-	UNREVIEWED	on	CLEAN	Hide layout components	
-	UNREVIEWED	on	CLEAN	Hide player flyout menu components	
-	UNREVIEWED	on	CLEAN	Hide player overlay buttons	
-	UNREVIEWED	on	CLEAN	Hide related video overlay	
-	UNREVIEWED	on	CLEAN	Hide related videos	
-	UNREVIEWED	on	CLEAN	Hide timestamp	
-	UNREVIEWED	on	CLEAN	Hide video action buttons	
-	UNREVIEWED	on	CLEAN	Loop video	
-	UNREVIEWED	on	CLEAN	Media notification controls	
-	UNREVIEWED	on	CLEAN	Miniplayer	
-	UNREVIEWED	on	CLEAN	Mute button	
-	UNREVIEWED	on	CLEAN	Navigation bar	
-	UNREVIEWED	on	CLEAN	Open Shorts in regular player	
-	UNREVIEWED	on	CLEAN	Open channel of live avatar	
-	UNREVIEWED	on	CLEAN	Open links externally	
-	UNREVIEWED	on	CLEAN	Open videos fullscreen	
-	UNREVIEWED	on	CLEAN	Override YouTube Music buttons	
-	UNREVIEWED	on	CLEAN	Play all	
-	UNREVIEWED	on	CLEAN	Playback in feeds	
-	UNREVIEWED	on	CLEAN	Playback speed	
-	UNREVIEWED	on	CLEAN	Reload video	
-	UNREVIEWED	on	CLEAN	Remember livestream playback position	
-	UNREVIEWED	on	CLEAN	Remove background playback restrictions	
-	UNREVIEWED	on	CLEAN	Remove viewer discretion dialog	
-	UNREVIEWED	on	CLEAN	Return YouTube Dislike	
-	UNREVIEWED	on	CLEAN	Sanitize sharing links	
-	UNREVIEWED	on	CLEAN	Save to Watch later	
-	UNREVIEWED	on	CLEAN	Seekbar	
-	UNREVIEWED	on	CLEAN	Settings menu filter	
-	UNREVIEWED	on	CLEAN	Shorts autoplay	
-	UNREVIEWED	on	CLEAN	SponsorBlock	
-	UNREVIEWED	on	CLEAN	Swipe controls	
-	UNREVIEWED	on	CLEAN	Theme	
-	UNREVIEWED	on	CLEAN	Video quality	
-	UNREVIEWED	on	CLEAN	Wide search bar	
-	UNREVIEWED	on	RISKY	GmsCore support	needs a microG-style companion app installed
-	UNREVIEWED	on	RISKY	PoToken provider	token generation, breaks when upstream changes
-	UNREVIEWED	on	RISKY	Spoof app version	spoofs something a server can see
-	UNREVIEWED	on	RISKY	Spoof video streams	spoofs something a server can see
+IN	UNREVIEWED	on	CLEAN	App refresh rate	
+IN	UNREVIEWED	on	CLEAN	Change start page	
+IN	UNREVIEWED	on	CLEAN	Copy video link	
+IN	UNREVIEWED	on	CLEAN	Disable DRC audio	
+IN	UNREVIEWED	on	CLEAN	Disable Shorts resuming on startup	
+IN	UNREVIEWED	on	CLEAN	Disable double tap actions	
+IN	UNREVIEWED	on	CLEAN	Disable fullscreen gestures	
+IN	UNREVIEWED	on	CLEAN	Disable haptic feedback	
+IN	UNREVIEWED	on	CLEAN	Disable layout updates	
+IN	UNREVIEWED	on	CLEAN	Disable player popup panels	
+IN	UNREVIEWED	on	CLEAN	Disable playlist autoplay	
+IN	UNREVIEWED	on	CLEAN	Disable rolling number animations	
+IN	UNREVIEWED	on	CLEAN	Disable scrolling speed limit	
+IN	UNREVIEWED	on	CLEAN	Disable sign in to TV popup	
+IN	UNREVIEWED	on	CLEAN	Double tap to seek	
+IN	UNREVIEWED	on	CLEAN	Downloads	
+IN	UNREVIEWED	on	CLEAN	Exit fullscreen mode	
+IN	UNREVIEWED	on	CLEAN	Force original audio	
+IN	UNREVIEWED	on	CLEAN	Fullscreen video scale	
+IN	UNREVIEWED	on	CLEAN	Hide Shorts components	
+IN	UNREVIEWED	on	CLEAN	Hide ads	
+IN	UNREVIEWED	on	CLEAN	Hide autoplay preview	
+IN	UNREVIEWED	on	CLEAN	Hide end screen cards	
+IN	UNREVIEWED	on	CLEAN	Hide end screen suggested video	
+IN	UNREVIEWED	on	CLEAN	Hide info cards	
+IN	UNREVIEWED	on	CLEAN	Hide layout components	
+IN	UNREVIEWED	on	CLEAN	Hide player flyout menu components	
+IN	UNREVIEWED	on	CLEAN	Hide player overlay buttons	
+IN	UNREVIEWED	on	CLEAN	Hide related video overlay	
+IN	UNREVIEWED	on	CLEAN	Hide related videos	
+IN	UNREVIEWED	on	CLEAN	Hide timestamp	
+IN	UNREVIEWED	on	CLEAN	Hide video action buttons	
+IN	UNREVIEWED	on	CLEAN	Loop video	
+IN	UNREVIEWED	on	CLEAN	Media notification controls	
+IN	UNREVIEWED	on	CLEAN	Miniplayer	
+IN	UNREVIEWED	on	CLEAN	Mute button	
+IN	UNREVIEWED	on	CLEAN	Navigation bar	
+IN	UNREVIEWED	on	CLEAN	Open Shorts in regular player	
+IN	UNREVIEWED	on	CLEAN	Open channel of live avatar	
+IN	UNREVIEWED	on	CLEAN	Open links externally	
+IN	UNREVIEWED	on	CLEAN	Open videos fullscreen	
+IN	UNREVIEWED	on	CLEAN	Override YouTube Music buttons	
+IN	UNREVIEWED	on	CLEAN	Play all	
+IN	UNREVIEWED	on	CLEAN	Playback in feeds	
+IN	UNREVIEWED	on	CLEAN	Playback speed	
+IN	UNREVIEWED	on	CLEAN	Reload video	
+IN	UNREVIEWED	on	CLEAN	Remember livestream playback position	
+IN	UNREVIEWED	on	CLEAN	Remove background playback restrictions	
+IN	UNREVIEWED	on	CLEAN	Remove viewer discretion dialog	
+IN	UNREVIEWED	on	CLEAN	Return YouTube Dislike	
+IN	UNREVIEWED	on	CLEAN	Sanitize sharing links	
+IN	UNREVIEWED	on	CLEAN	Save to Watch later	
+IN	UNREVIEWED	on	CLEAN	Seekbar	
+IN	UNREVIEWED	on	CLEAN	Settings menu filter	
+IN	UNREVIEWED	on	CLEAN	Shorts autoplay	
+IN	UNREVIEWED	on	CLEAN	SponsorBlock	
+IN	UNREVIEWED	on	CLEAN	Swipe controls	
+IN	UNREVIEWED	on	CLEAN	Theme	
+IN	UNREVIEWED	on	CLEAN	Video quality	
+IN	UNREVIEWED	on	CLEAN	Wide search bar	
+IN	UNREVIEWED	on	RISKY	GmsCore support	needs a microG-style companion app installed
+IN	UNREVIEWED	on	RISKY	PoToken provider	token generation, breaks when upstream changes
+OUT	UNREVIEWED	on	RISKY	Spoof app version	spoofs something a server can see
+IN	UNREVIEWED	on	RISKY	Spoof video streams	spoofs something a server can see
 	in exclude	on	BANNED	Enable debugging	matches BANNED rule 'enable debug'
 	in exclude	on	CLEAN	Add to queue	
 	in exclude	on	CLEAN	Alternative thumbnails	
