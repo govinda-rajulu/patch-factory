@@ -11,10 +11,9 @@ on:
         type: choice
         options:
           - 'youtube'
-          - 'photos'
-          - 'truecaller'
-          - 'truecaller-combo'
           - 'adguard'
+          - 'photos'
+          - 'truecaller-combo'
           - 'primevideo'
           - 'esfile'
           - 'facebook'

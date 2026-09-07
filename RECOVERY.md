@@ -113,7 +113,6 @@ wrong prefix on a completed run is unrecoverable.
 - `src/build/fetch_bundle.sh` - fetches exactly one .mpp from a github or gitlab
   release. `fetch_bundle.sh HOST IDENT CHANNEL OUT`, prints PUB= TAG= SIZE=.
 - `src/build/resolve.sh` - elects a provider, prints WINNER / VERSION / PATCHES / MPP.
-- `src/build/morphe.sh` - wrapper for `build.sh youtube`. IGNORES any argument
   you pass it. Do not use it for other targets.
 - `src/build/check_sdk.sh` - minSdk gate, four readers, report-only.
 - `src/build/utils.sh` - upstream engine. `split_arch` at ~line 830. Do not edit.
@@ -232,7 +231,7 @@ offer you another app's release:
 
     ^youtube-   ^truecaller-   ^tc-combo-   ^gg-photos-   ^adguard-
     ^instagram- ^reddit-       ^telegram-   ^edge-        ^key-mapper-
-    ^hotstar-   ^sonyliv-      ^zee5-       ^prime-video- ^mx-player-
+    ^hotstar-   ^prime-video- ^mx-player-
     ^es-file-   ^facebook-
 
 Background checks on, battery Unrestricted, auto-install off.
@@ -272,7 +271,12 @@ testing can be throttled while CI is completely fine, and for these public
 reads an unauthenticated curl often works when a throttled token does not.
 
 <!-- state-5sep2026 -->
-## State, 5 September 2026
+## State
+
+Live counts, the app table and the gate list are generated into README.md from
+`src/targets.json`, and **3. Validate** fails a push that leaves them stale. This file
+holds only what a command cannot print: the failures we hit, why a decision was made,
+and the drills. Nothing here should restate a number.
 
 - The weekly run (`2. Check new patch`) polls **every** target with `poll: true` and builds
   the ones whose provider shipped something newer. A `plan` job emits the matrix from

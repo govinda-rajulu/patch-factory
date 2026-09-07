@@ -9,11 +9,11 @@ AUTHOR = "govinda-rajulu"
 
 LABELS = {}  # filled from targets.json below
 SKIP = {}
-MINE = ["key-mapper", "telegram", "instagram", "reddit", "edge", "adguard", "tc-combo",
-        "gg-photos", "es-file", "hotstar", "sonyliv", "zee5", "youtube-morphe"]
-THEIRS = ["tc-combo", "prime-video", "facebook", "gg-photos", "es-file",
-          "hotstar", "sonyliv", "zee5", "mx-player"]
-
+# DERIVED FROM targets.json. These were two hand-typed prefix lists, so removing a target
+# left dead prefixes behind and every assert below failed with ("no label", prefix).
+# Set A is every enabled target. Set B is the subset the other two phones take, which is a
+# distribution decision, so it is the only list a human edits.
+SET_B = ["tc-combo", "prime-video", "facebook", "gg-photos", "es-file", "hotstar", "mx-player"]
 targets = json.load(open("src/targets.json"))
 pkg = {}
 for t in targets:
@@ -22,6 +22,11 @@ for t in targets:
     pkg[p] = t["package"]
     LABELS[p] = t.get("label") or p
 pkg["gg-photos"] = "app.morphe.android.apps.photos"  # Change package name patch default
+MINE = sorted(LABELS)
+THEIRS = [p for p in SET_B if p in LABELS]
+_dropped = [p for p in SET_B if p not in LABELS]
+if _dropped:
+ print("SET_B names prefixes that are no longer targets, ignoring:", " ".join(_dropped))
 for p in sorted(set(MINE + THEIRS)):
     assert p in LABELS, ("no label", p)
     assert p in pkg, ("no target", p)

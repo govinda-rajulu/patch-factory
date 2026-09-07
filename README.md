@@ -11,7 +11,7 @@ per phone.
 
     gh workflow run "1. Manual Patch" -f target=youtube
 
-A weekly cron polls targets flagged `"poll": true` and rebuilds only when a
+A daily cron polls targets flagged `"poll": true` and rebuilds only when a
 provider ships a newer bundle. See RECOVERY.md.
 
 Targets live in `src/targets.json`. Run this to see what is enabled:
@@ -46,13 +46,12 @@ RECOVERY.md. Read them before relying on it.
    needs a hand-found `list_url`) or `apkpure` (needs only the package name)
 7. verifies the download: size floor, real zip, has an `AndroidManifest.xml`,
    and the package name matches what the target asked for
-8. `check_sdk.sh` against `min_sdk_ceiling` (report-only)
+8. `check_sdk.sh` against `min_sdk_ceiling`, enforced: over the ceiling fails the build
 9. `split_arch`, then asserts the applied patch count equals the include list
    when `exclusive` is on, and refuses to release if it does not
 10. writes `.version`, `.tagprefix`, `.tagsuffix`, `.patchver`, `.provider`
 11. renames the APK to carry the app version, and fails loudly if none exists
 
-`morphe.sh` wraps `build.sh youtube` and ignores any argument you give it.
 
 ## Patch selection binds to the preceding -p
 
@@ -115,9 +114,9 @@ gitlab. One candidate wins and decides the app version; anything in
 on a name collision the bundle loaded **first** wins silently, so the numbered
 prefixes are the knob.
 
-`truecaller-combo` is the reference example: bufferk (github) as winner with
-its own patch dir, paresh (gitlab) as an extra with its own patch dir, 17
-patches loaded and 11 applied.
+`truecaller-combo` is the reference example: bufferk as winner plus paresh and binarymend as extra bundles,
+each with its own patch dir. The per-bundle counts live in the release body, not here,
+because they change every time a provider ships.
 
 A gitlab source needs `project_id`, because its release assets live at opaque
 upload URLs that must be read from the API.
@@ -126,20 +125,45 @@ See [RECOVERY.md](RECOVERY.md) for the signing key, the install ladder, the
 cancel window, and everything that has burned us.
 
 <!-- state-5sep2026 -->
-## State, 5 September 2026
+<!-- STATE:GENERATED - edit src/targets.json, not this block -->
 
-- The weekly run (`2. Check new patch`) polls **every** target with `poll: true` and builds
-  the ones whose provider shipped something newer. A `plan` job emits the matrix from
-  `src/targets.json`, so adding a target to the weekly build is one field, not a workflow edit.
-  Before this it was a hardcoded list of three.
-- Every candidate and extra bundle is on `channel: prerelease`, deliberately: providers ship
-  dev builds constantly and the newest release wins whether or not it is marked stable.
-- Include lists are reconciled against what each provider currently offers. When a build says
-  `applied N but include list says M`, a provider renamed or dropped a patch: run
-  `list-patches` for that bundle and compare, do not weaken the gate.
-- `src/etc/bancheck.sh` runs in `3. Validate` and blocks any banned patch reaching an include
-  list. `BANNED` and `CONFIRM` hold **lowercase substrings**, not exact patch names.
-- Build failures open one issue **per target** with the failing job, step and error lines in the
-  body. Older issues titled per workflow accumulated unrelated targets for weeks.
-- `gh run rerun` replays a run at its **original commit**, so it never tests a new fix.
-  Dispatch `manual-patch.yml -f target=<id>` instead.
+## Current state
+
+Generated from `src/targets.json` by `src/etc/readmegen.py`. **3. Validate** fails a push
+that leaves this block stale, so it cannot drift.
+
+- **14 apps**, all enabled, 14 polled by the scheduled build (`30 12 * * *` UTC).
+- Patch-age cap: 60, 120 days. A provider older than its cap is disqualified, not silently used.
+- 2 build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.
+- 2 patch(es) quarantined in `src/patches/QUARANTINE`, held out of every include list by CI.
+
+| App | id | tag prefix | store | patch providers | polled |
+|---|---|---|---|---|---|
+| AdGuard | `adguard` | `adguard` | apkmirror | rushiranpise + hoo-dles | yes |
+| ES File Explorer | `esfile` | `es-file` | apkmirror | ftl | yes |
+| Facebook | `facebook` | `facebook` | apkmirror | derevanced | yes |
+| Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise | yes |
+| Instagram | `instagram` | `instagram` | apkpure | piko + brosssh | yes |
+| JioHotstar | `hotstar` | `hotstar` | apkmirror | chiggi | yes |
+| Key Mapper | `keymapper` | `key-mapper` | apkpure | lain | yes |
+| Microsoft Edge | `edge` | `edge` | apkpure | quantavil | yes |
+| MX Player Pro | `mxplayer` | `mx-player` | apkmirror | ftl + paresh | yes |
+| Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |
+| Reddit | `reddit` | `reddit` | apkpure | adobo | yes |
+| Telegram | `telegram` | `telegram` | apkmirror | rushiranpise | yes |
+| Truecaller (combo) | `truecaller-combo` | `tc-combo` | apkmirror | bufferk + paresh + binarymend | yes |
+| YouTube | `youtube` | `youtube-morphe` | apkmirror | morphe | yes |
+
+### Gates that run on every build
+
+1. `bancheck.sh` blocks a BANNED patch reaching an include list; CONFIRM warns; EXCEPTIONS is dated.
+2. `quarantine.sh` keeps a patch that broke a real build out of every include list.
+3. `selections.sh` aborts if one patch name is requested under two bundles of one target.
+4. `build.sh` compares requested against applied **by name** and refuses to release on a gap.
+5. The package name is verified twice: on the downloaded APK, and against what the patcher filtered.
+6. `check_sdk.sh` enforces `min_sdk_ceiling`; over the ceiling fails the build.
+7. `tooling.sh` verifies every downloaded build tool against its recorded sha256.
+8. `readmegen.py --check` and `pagegen.py --check` fail a push that leaves docs stale.
+9. `shellcheck` at severity=error over every script in `src/build` and `src/etc`.
+
+<!-- /STATE:GENERATED -->

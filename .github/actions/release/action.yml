@@ -18,6 +18,11 @@ runs:
         S=$(cat ./release/.tagsuffix 2>/dev/null || echo "")
         echo "tag=$P-v$V$S" >> $GITHUB_OUTPUT
         echo "suffix=$S" >> $GITHUB_OUTPUT
+        APK=$(ls ./release/*-arm64-v8a.apk 2>/dev/null | head -1)
+        [ -n "$APK" ] || { echo "::error::no arm64-v8a apk to publish"; exit 1; }
+        echo "apkname=$(basename "$APK")" >> $GITHUB_OUTPUT
+        echo "sha256=$(sha256sum "$APK" | awk '{print $1}')" >> $GITHUB_OUTPUT
+        echo "sizemb=$(awk -v b="$(wc -c < "$APK")" 'BEGIN{printf "%.1f", b/1048576}')" >> $GITHUB_OUTPUT
         R=$(cat ./release/.provider 2>/dev/null || echo "")
         [ -n "$R" ] || R="Morphe"
         echo "provider=$R" >> $GITHUB_OUTPUT
@@ -40,9 +45,16 @@ runs:
           **Applied patches**
           ${{ steps.meta.outputs.aplist }}
           Patch bundle ${{ steps.meta.outputs.patchver }}, built ${{ steps.meta.outputs.suffix }}
-          Built with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).
+          
+          `${{ steps.meta.outputs.apkname }}` · ${{ steps.meta.outputs.sizemb }} MB
+          SHA-256 `${{ steps.meta.outputs.sha256 }}`
+          
+          Verify before installing: `sha256sum ${{ steps.meta.outputs.apkname }}`
+          Built in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).
         allowUpdates: true
-        makeLatest: true
+        # One repo, many apps. makeLatest moves the "Latest" badge to whichever app built
+        # most recently, so the releases page advertises a random app as the current one.
+        makeLatest: false
 
     - name: Prune old releases
       shell: bash

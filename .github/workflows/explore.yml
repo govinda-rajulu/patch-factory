@@ -52,27 +52,41 @@ jobs:
           S=$(wc -c < morphe-desktop.jar); echo "jar bytes: $S"
           [ "$S" -gt 1000000 ] || { echo "::error::jar download truncated"; exit 1; }
       - name: Fetch bundle
+        env:
+          HOST: ${{ inputs.host }}
+          IDENT: ${{ inputs.ident }}
+          PKG: ${{ inputs.package }}
+          CHAN: ${{ inputs.channel }}
         run: |
-          bash src/build/fetch_bundle.sh "${{ inputs.host }}" "${{ inputs.ident }}" "${{ inputs.channel }}" ./explore.mpp
+          bash src/build/fetch_bundle.sh "$HOST" "$IDENT" "$CHAN" ./explore.mpp
           S=$(wc -c < ./explore.mpp); echo "bundle bytes: $S"
           [ "$S" -gt 10000 ] || { echo "::error::bundle too small, fetch failed"; exit 1; }
       - name: List patches
+        env:
+          HOST: ${{ inputs.host }}
+          IDENT: ${{ inputs.ident }}
+          PKG: ${{ inputs.package }}
+          CHAN: ${{ inputs.channel }}
         run: |
           java -jar morphe-desktop.jar list-patches --patches ./explore.mpp \
             --with-packages --with-versions --with-options \
-            --filter-package-name "${{ inputs.package }}" --out ./patches.txt 2>&1 | tail -3
-          [ -s ./patches.txt ] || { echo "::error::no patches for ${{ inputs.package }} in this bundle"; exit 1; }
+            --filter-package-name "$PKG" --out ./patches.txt 2>&1 | tail -3
+          [ -s ./patches.txt ] || { echo "::error::no patches for $PKG in this bundle"; exit 1; }
           NA=$(grep -c '^Name: ' ./patches.txt); NE=$(grep -c '^Enabled: ' ./patches.txt)
           echo "names: $NA enabled-lines: $NE"
           [ "$NA" = "$NE" ] || { echo "::error::parse mismatch, $NA names vs $NE enabled lines"; exit 1; }
       - name: Open issue
         env:
+          HOST: ${{ inputs.host }}
+          IDENT: ${{ inputs.ident }}
+          PKG: ${{ inputs.package }}
+          CHAN: ${{ inputs.channel }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           N=$(grep -c '^Name: ' ./patches.txt)
           {
-            echo "Bundle: ${{ inputs.host }} ${{ inputs.ident }} (${{ inputs.channel }})"
-            echo "Package: ${{ inputs.package }}"
+            echo "Bundle: $HOST $IDENT ($CHAN)"
+            echo "Package: $PKG"
             echo "Patches: $N"
             echo ""
             echo "name | default"
@@ -80,4 +94,4 @@ jobs:
             paste -d'|' <(grep '^Name: ' ./patches.txt | sed 's/^Name: //') <(grep '^Enabled: ' ./patches.txt | sed 's/^Enabled: //')
           } > body.md
           wc -c body.md
-          gh issue create --title "patches: ${{ inputs.package }} via ${{ inputs.ident }}" --body-file body.md
+          gh issue create --title "patches: $PKG via $IDENT" --body-file body.md

@@ -125,6 +125,14 @@ jobs:
         run: bash src/etc/quarantine.sh
       - name: Pages catalog matches targets.json
         run: python3 src/etc/pagegen.py --check
+      - name: Target dropdown matches targets.json
+        run: python3 src/etc/dropgen.py --check
+      - name: README state block matches targets.json
+        run: python3 src/etc/readmegen.py --check
+      - name: Obtainium generator runs
+        run: python3 src/etc/obtainium.py
+      - name: No workflow_dispatch input interpolated into a shell command
+        run: bash src/etc/nointerp.sh
       - name: shellcheck
         run: |
           sudo apt-get install -y -q shellcheck >/dev/null
