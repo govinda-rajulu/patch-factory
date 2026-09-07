@@ -339,7 +339,7 @@
     "source": "apkpure",
     "any_version": true,
     "label": "SonyLIV",
-    "note": "Not built: APKMirror page will not resolve"
+    "note": "Disabled 2026-09-06. Not an APKMirror problem: source is apkpure and any_version is true. It is a patch-compatibility problem (219f738 excluded Auto skip intro and recap for a SEVERE on 6.36.16) and it still ships Change app name, which is server-visible on a paid account. Re-enable only after that patch is dropped and a build is proven."
   },
   {
     "id": "edge",
