@@ -22,7 +22,7 @@
     "tag_prefix": "youtube-morphe",
     "poll": true,
     "label": "YouTube",
-    "note": "Morphe default patch set"
+    "note": "Morphe default patch set Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "adguard",
@@ -55,7 +55,7 @@
     "tag_prefix": "adguard",
     "exclusive": true,
     "label": "AdGuard",
-    "note": "Lifetime premium unlocked",
+    "note": "Lifetime premium unlocked Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides.",
     "poll": true
   },
   {
@@ -82,7 +82,7 @@
     "poll": true,
     "exclusive": true,
     "label": "Google Photos",
-    "note": "Installs beside the system Photos app"
+    "note": "Installs beside the system Photos app Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "truecaller-combo",
@@ -129,7 +129,7 @@
     "poll": true,
     "exclusive": true,
     "label": "Truecaller (combo)",
-    "note": "paresh premium plus bufferk ad blocking Cap raised to 120 on 2026-09-06: bufferk publishes rarely (newest 1.8.0, 18 Jul) but its patches still apply and both targets build green. 60 days was catching slowness, not abandonment."
+    "note": "paresh premium plus bufferk ad blocking Cap raised to 120 on 2026-09-06: bufferk publishes rarely (newest 1.8.0, 18 Jul) but its patches still apply and both targets build green. 60 days was catching slowness, not abandonment. Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "primevideo",
@@ -158,7 +158,7 @@
     "source": "apkmirror",
     "any_version": false,
     "label": "Prime Video",
-    "note": "Ads skipped, speed control"
+    "note": "Ads skipped, speed control Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "esfile",
@@ -187,7 +187,7 @@
     "source": "apkmirror",
     "any_version": false,
     "label": "ES File Explorer",
-    "note": "VIP unlocked, ads and analytics removed"
+    "note": "VIP unlocked, ads and analytics removed Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "facebook",
@@ -216,7 +216,7 @@
     "source": "apkmirror",
     "any_version": false,
     "label": "Facebook",
-    "note": "Ads removed"
+    "note": "Ads removed Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "instagram",
@@ -254,7 +254,7 @@
       }
     ],
     "label": "Instagram",
-    "note": "Ads, tracking and suggested content removed"
+    "note": "Ads, tracking and suggested content removed Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "reddit",
@@ -282,7 +282,7 @@
     "poll": true,
     "source": "apkpure",
     "label": "Reddit",
-    "note": "Ads, telemetry and promoted posts removed Dropped the rushiranpise extra bundle on 2026-09-06: its 7 patches are all PairIP, Firebase, certificate and spoof-signature work plus GmsCore, none of which this build needs. adobo covers reddit alone."
+    "note": "Ads, telemetry and promoted posts removed Dropped the rushiranpise extra bundle on 2026-09-06: its 7 patches are all PairIP, Firebase, certificate and spoof-signature work plus GmsCore, none of which this build needs. adobo covers reddit alone. Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "hotstar",
@@ -311,7 +311,7 @@
     "source": "apkmirror",
     "any_version": false,
     "label": "JioHotstar",
-    "note": "Ads removed"
+    "note": "Ads removed Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "edge",
@@ -339,7 +339,7 @@
     "poll": true,
     "source": "apkpure",
     "label": "Microsoft Edge",
-    "note": "Ads and telemetry stripped"
+    "note": "Ads and telemetry stripped Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "mxplayer",
@@ -379,7 +379,7 @@
       }
     ],
     "label": "MX Player Pro",
-    "note": "Pro licence unlocked, ads and clutter removed"
+    "note": "Pro licence unlocked, ads and clutter removed Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "telegram",
@@ -408,7 +408,7 @@
     "source": "apkmirror",
     "any_version": false,
     "label": "Telegram",
-    "note": "Ads and tracking removed"
+    "note": "Ads and tracking removed Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
     "id": "keymapper",
@@ -436,6 +436,6 @@
     "poll": true,
     "source": "apkpure",
     "label": "Key Mapper",
-    "note": "Premium unlocked"
+    "note": "Premium unlocked Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   }
 ]

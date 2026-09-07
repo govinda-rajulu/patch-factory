@@ -31,7 +31,12 @@ for i in $(seq 0 $((n-1))); do
   fi
   [ -z "$PUB" ] || [ "$PUB" = "null" ] && { echo "  - $NAME: DISQUALIFIED (no releases)"; continue; }
   PSEC=$(date -d "$PUB" +%s); AGE=$(( (NOW-PSEC)/86400 ))
-  [ "$AGE" -gt "$MAXAGE" ] && { echo "  - $NAME: DISQUALIFIED (${AGE}d old)"; continue; }
+  # AGE IS A WARNING, NOT A DISQUALIFICATION.
+  # A bundle that still applies is still good, and the build already proves that: it compares
+  # requested patches against applied ones BY NAME and refuses to release on any gap. Age was a
+  # guess at the same question, and a wrong guess turned a working target into no target at all.
+  # Kept as a loud warning so a genuinely abandoned provider is still visible in the log.
+  [ "$AGE" -gt "$MAXAGE" ] && echo "::warning::$NAME is ${AGE}d old, past its ${MAXAGE}d cap. Building anyway; the applied-count gate decides."
   FLAG=""; [ "$CH" = "prerelease" ] && FLAG="--prerelease"
   echo "   - $NAME: channel=$CH flag='${FLAG:-none}'"
   OUT=$(java -jar "$JAR" list-versions --patches="https://github.com/$OWNER/$REPO" $FLAG -x -u -f "$PKG" 2>&1)
