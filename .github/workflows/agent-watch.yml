@@ -38,7 +38,7 @@ jobs:
             FL=""; [ "$chan" = "prerelease" ] && FL="--prerelease"
             java -jar "$J" list-patches --patches="https://github.com/$ident" $FL -x -u \
                  --with-packages --with-versions -f "$pkg" > "/tmp/new/$nm-$pkg.txt" 2>&1 || true
-            grep '^Name: ' "/tmp/new/$nm-$pkg.txt" | sed 's/^Name: //' | sort -u > "/tmp/new/$nm-$pkg.names"
+            grep '^Name: ' "/tmp/new/$nm-$pkg.txt" | sed 's/^Name: //' | LC_ALL=C sort -u > "/tmp/new/$nm-$pkg.names"
           done
           ls -la /tmp/new | tail -20
       - name: Diff against the committed lists and open one issue
@@ -54,7 +54,8 @@ jobs:
               echo "### NEW provider list: ${b%.names} ($(wc -l < "$f") patches)" >> /tmp/body.md
               CHANGED=1; continue
             fi
-            ADD=$(comm -13 "$old" "$f"); DEL=$(comm -23 "$old" "$f")
+            LC_ALL=C sort -u "$old" > /tmp/o.s; LC_ALL=C sort -u "$f" > /tmp/n.s
+            ADD=$(LC_ALL=C comm -13 /tmp/o.s /tmp/n.s); DEL=$(LC_ALL=C comm -23 /tmp/o.s /tmp/n.s)
             if [ -n "$ADD$DEL" ]; then
               echo "### ${b%.names}" >> /tmp/body.md
               [ -n "$ADD" ] && { echo "**added:**" >> /tmp/body.md; printf '%s\n' "$ADD" | sed 's/^/- /' >> /tmp/body.md; }
