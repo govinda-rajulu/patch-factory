@@ -58,12 +58,17 @@ here is something not done, with what unblocks it. When a line stops being true,
 
 ## Standing risks, per target
 
-- Patch-age caps in force: 60 days on 13 target(s), 120 days on 1 target(s).
-- A target whose winner ages out **stops building** unless it has a second candidate. Targets
-  with only one candidate have no fallback: check the freshness table the closing block printed,
-  and promote a working extra bundle to a candidate before a cap trips rather than after.
-- `truecaller-combo` is the known one: its cap was raised to 120 days on 6 Sep because bufferk
-  publishes rarely. That buys time, it does not fix the single point of failure.
+- **Provider age is advisory since 7 Sep 2026.** `resolve.sh` warns past `max_patch_age_days`
+  and builds anyway, because the applied-vs-requested-by-name gate is what actually proves a
+  bundle is usable. An old bundle that still applies is still good. **No date fuse exists in
+  this repo any more**, including the one truecaller-combo used to carry.
+- **13 of 14 targets have a single candidate**: youtube, photos, truecaller-combo, primevideo, esfile, facebook, instagram, reddit, hotstar, edge, mxplayer, telegram, keymapper.
+  Age no longer kills them, but a provider that **breaks** against a new app version still
+  will, and only a candidate can win a version election, so an extra bundle is not a fallback.
+  Promoting a working extra to a second candidate is the fix, per target, when you want it.
+- The weekly **6. Provider watch** workflow is the early warning: it diffs every provider's
+  patch list against `docs/review/providers/` and opens one issue when a name appears or
+  disappears. That is what tells you a provider is drifting, not a date.
 
 ## How to keep this file honest
 
