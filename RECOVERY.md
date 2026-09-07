@@ -274,7 +274,6 @@ reads an unauthenticated curl often works when a throttled token does not.
 <!-- state-5sep2026 -->
 ## State, 5 September 2026
 
-- **16 targets, 14 opted in to the weekly build.** Disabled: sonyliv.
 - The weekly run (`2. Check new patch`) polls **every** target with `poll: true` and builds
   the ones whose provider shipped something newer. A `plan` job emits the matrix from
   `src/targets.json`, so adding a target to the weekly build is one field, not a workflow edit.
@@ -290,3 +289,26 @@ reads an unauthenticated curl often works when a throttled token does not.
   body. Older issues titled per workflow accumulated unrelated targets for weeks.
 - `gh run rerun` replays a run at its **original commit**, so it never tests a new fix.
   Dispatch `manual-patch.yml -f target=<id>` instead.
+
+## Key restore drill
+
+Every APK in this repo is signed with one keystore. Android refuses an update signed by a
+different key, so losing it means every app must be uninstalled and reinstalled from scratch,
+and Truecaller costs phone verifications to re-establish. The keystore is **not** in the repo
+and GitHub secrets are write-only, so a secret is not a backup.
+
+Copies that must exist, at least two of them off this machine:
+
+1. The emailed archive. Verified once. One deleted thread and it is gone.
+2. **An offline copy on removable media, encrypted.** This is the one that does not exist yet.
+   `gpg -c ks.keystore` then copy the `.gpg` to a USB drive kept away from the laptop.
+   Write the keystore password somewhere that is not the same drive.
+
+To restore into CI: base64 the keystore, paste it into the `KEYSTORE_B64` secret, and set
+`KEYSTORE_PASS` and `KEYSTORE_ALIAS`. `manual-patch.yml` decodes it and refuses to build if
+the decoded file is under 3000 bytes, so a truncated paste fails loudly instead of producing
+an unsigned or wrongly signed APK.
+
+To prove a restore worked without shipping anything: dispatch **1. Manual Patch** for
+`keymapper`, the smallest target, and check the release asset installs over the copy already
+on the phone. An install that asks you to uninstall first means the key is wrong.

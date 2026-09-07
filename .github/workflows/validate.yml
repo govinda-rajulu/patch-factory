@@ -123,4 +123,11 @@ jobs:
         run: bash src/etc/bancheck.sh
       - name: Quarantined patches
         run: bash src/etc/quarantine.sh
+      - name: Pages catalog matches targets.json
+        run: python3 src/etc/pagegen.py --check
+      - name: shellcheck
+        run: |
+          sudo apt-get install -y -q shellcheck >/dev/null
+          # SC1091 sourced file not followed, SC2086 word splitting we rely on for flag lists
+          shellcheck -S error -e SC1091,SC2086 src/build/*.sh src/etc/*.sh
 

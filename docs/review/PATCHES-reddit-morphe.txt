@@ -1,0 +1,248 @@
+INFO: GitHub: fetching releases from https://api.github.com/repos/MorpheApp/morphe-patches/releases 
+INFO: GitHub: fetched 30 releases from MorpheApp/morphe-patches 
+INFO: Morphe data root: /home/govindarajulu13597/work/patch-factory/morphe-data (JAR-adjacent) 
+INFO: Using cached patch file at /home/govindarajulu13597/work/patch-factory/morphe-data/patches/MorpheApp-morphe-patches/v1.42.0-dev.6__patches-1.42.0-dev.6.mpp 
+INFO: Index: 0
+Name: Clone app
+Description: Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.
+Enabled: false
+Options:
+	Title: packageName
+	Description: Package name to use for the cloned app.
+	Required: true
+	Key: packageName
+	Default: Default
+	Possible values:
+		Default (Default)
+	Type: kotlin.String
+	
+	Title: updatePermissions
+	Description: Update custom permissions declared by the app. Enabling this can fix installation conflicts, but this can also break features in certain apps.
+	Required: false
+	Key: updatePermissions
+	Default: false
+	Type: kotlin.Boolean
+	
+	Title: updateProviders
+	Description: Update provider names declared by the app. Enabling this can fix installation conflicts, but this can also break features in certain apps.
+	Required: false
+	Key: updateProviders
+	Default: false
+	Type: kotlin.Boolean
+
+Index: 1
+Name: Change installer source
+Description: Spoofs the installer source so the app appears to be installed from an app store.
+Enabled: false
+Options:
+	Title: packageInstallerName
+	Required: false
+	Key: packageInstallerName
+	Default: com.android.vending
+	Possible values:
+		com.android.vending (Google Play)
+		com.sec.android.app.samsungapps (Samsung Galaxy Store)
+		com.amazon.venezia (Amazon Appstore)
+		com.huawei.appmarket (Huawei AppGallery)
+		com.xiaomi.mipicks (Xiaomi GetApps)
+	Type: kotlin.String
+
+Index: 2
+Name: Override certificate pinning
+Description: Overrides certificate pinning, allowing to inspect traffic via a proxy.
+Enabled: false
+
+Index: 3
+Name: Disable Play Store updates
+Description: Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting
+Enabled: false
+
+Index: 46
+Name: Hide ads
+Description: Adds options to hide ads.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 47
+Name: Custom font
+Description: Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 48
+Name: Force system font
+Description: Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 49
+Name: Hide Ask button
+Description: Adds an option to hide Ask button in the search bar.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 50
+Name: Custom branding name for Reddit
+Description: Changes the Reddit app name to the name specified in patch options.
+Enabled: false
+Options:
+	Title: appName
+	Description: The name of the app.
+	Required: true
+	Key: appName
+	Default: Reddit Morphe
+	Possible values:
+		Reddit Morphe (Default)
+	Type: kotlin.String
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 51
+Name: Hide communities shelf
+Description: Adds an option to hide the related or suggested communities shelf in subreddits.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 52
+Name: Disable modern home
+Description: Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 53
+Name: Hide navigation buttons
+Description: Adds options to hide buttons in the navigation bar.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 54
+Name: Disable screenshot popup
+Description: Adds an option to disable the popup that appears when taking a screenshot.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 55
+Name: Hide Reddit search
+Description: Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting
+Enabled: false
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 56
+Name: Hide sidebar components
+Description: Adds options to hide the sidebar components.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 57
+Name: Remove subreddit dialog
+Description: Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 58
+Name: Hide Trending shelves
+Description: Adds an option to hide the Trending shelves from feed and search suggestions.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 59
+Name: Show view count
+Description: Adds an option to show the view count of Posts.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 60
+Name: Spoof signature
+Description: Spoofs the signature of the app to fix notification issues.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+		2024.02.0
+
+Index: 61
+Name: Open links directly
+Description: Adds an option to skip over redirection URLs in external links.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 62
+Name: Open links externally
+Description: Adds an option to always open links in your browser instead of with the in-app-browser.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0
+
+Index: 63
+Name: Sanitize sharing links
+Description: Adds an option to sanitize sharing links by removing tracking query parameters.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.14.0
+		2026.04.0 

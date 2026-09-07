@@ -41,7 +41,7 @@ runs:
     - name: Start FlareSolverr
       shell: bash
       run: |
-        docker run -d --name flaresolverr -p 8191:8191 ghcr.io/flaresolverr/flaresolverr:latest
+        docker run -d --name flaresolverr -p 8191:8191 ghcr.io/flaresolverr/flaresolverr@sha256:139dfee1c6f89249c8d665d1333a42e8ec74ec0a86bc6bb1c8461e10d3a66a47
         echo "[*] Waiting for FlareSolverr to start..."
         for i in $(seq 1 30); do
           if curl -s http://localhost:8191/ > /dev/null 2>&1; then
@@ -53,7 +53,7 @@ runs:
     - name: Start CloudflareBypassForScraping
       shell: bash
       run: |
-        docker run -d --name cloudflarebypass -p 8000:8000 ghcr.io/sarperavci/cloudflarebypassforscraping:latest
+        docker run -d --name cloudflarebypass -p 8000:8000 ghcr.io/sarperavci/cloudflarebypassforscraping@sha256:0e679c1c0f6ac3209d233c2b7e99737f39a137987171b5bf30b15ef53a01ce33
         echo "[*] Waiting for CloudflareBypassForScraping to start..."
         for i in $(seq 1 30); do
           if curl -s http://localhost:8000/ > /dev/null 2>&1; then

@@ -128,7 +128,6 @@ cancel window, and everything that has burned us.
 <!-- state-5sep2026 -->
 ## State, 5 September 2026
 
-- **16 targets, 14 opted in to the weekly build.** Disabled: sonyliv.
 - The weekly run (`2. Check new patch`) polls **every** target with `poll: true` and builds
   the ones whose provider shipped something newer. A `plan` job emits the matrix from
   `src/targets.json`, so adding a target to the weekly build is one field, not a workflow edit.

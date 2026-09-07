@@ -231,24 +231,24 @@ const REPO  = 'patch-factory';
 const WF    = 'manual-patch.yml';
 
 // tag prefix -> what a human calls it. Order here is display order.
+// >>> CATALOG GENERATED FROM src/targets.json - edit targets.json, not this
 let CATALOG = [
- { prefix:'key-mapper', target:'keymapper', name:'Key Mapper', note:'Premium unlocked' },
- { prefix:'edge', target:'edge', name:'Microsoft Edge', note:'Ads and telemetry stripped' },
- { prefix:'instagram', target:'instagram', name:'Instagram', note:'Ads, tracking and suggested content removed' },
- { prefix:'reddit', target:'reddit', name:'Reddit', note:'Ads and telemetry removed' },
- { prefix:'telegram', target:'telegram', name:'Telegram', note:'Ads and tracking removed' },
- { prefix:'hotstar', target:'hotstar', name:'JioHotstar', note:'Ads removed' },
- { prefix:'sonyliv', target:'sonyliv', name:'SonyLIV', note:'Disabled: never built, paid-account risk' },
- { prefix:'prime-video', target:'primevideo', name:'Prime Video', note:'Ads skipped, speed control' },
- { prefix:'mx-player', target:'mxplayer', name:'MX Player Pro', note:'Promo tiles and clutter hidden' },
- { prefix:'es-file', target:'esfile', name:'ES File Explorer', note:'Ads and analytics removed' },
- { prefix:'facebook', target:'facebook', name:'Facebook', note:'Ads removed' },
-  { prefix:'youtube-morphe', target:'youtube',    name:'YouTube',       note:'No ads, background play, SponsorBlock' },
-  { prefix:'gg-photos',      target:'photos',     name:'Google Photos', note:'Unlimited original-quality backup' },
-  { prefix:'truecaller',     target:'truecaller', name:'Truecaller',    note:'Ads and trackers stripped' },
-  { prefix:'tc-combo', target:'truecaller-combo', name:'Truecaller (combo)', note:'Paresh premium patches plus bufferk ad blocking' },
-  { prefix:'adguard',        target:'adguard',    name:'AdGuard',       note:'Not enabled yet' }
+ { prefix:"youtube-morphe", target:"youtube", name:"YouTube", note:"Morphe default patch set" },
+ { prefix:"adguard", target:"adguard", name:"AdGuard", note:"Lifetime premium unlocked" },
+ { prefix:"gg-photos", target:"photos", name:"Google Photos", note:"Installs beside the system Photos app" },
+ { prefix:"tc-combo", target:"truecaller-combo", name:"Truecaller (combo)", note:"paresh premium plus bufferk ad blocking Cap raised to 120 on 2026-09-06: bufferk publishes rarely (newest 1" },
+ { prefix:"prime-video", target:"primevideo", name:"Prime Video", note:"Ads skipped, speed control" },
+ { prefix:"es-file", target:"esfile", name:"ES File Explorer", note:"VIP unlocked, ads and analytics removed" },
+ { prefix:"facebook", target:"facebook", name:"Facebook", note:"Ads removed" },
+ { prefix:"instagram", target:"instagram", name:"Instagram", note:"Ads, tracking and suggested content removed" },
+ { prefix:"reddit", target:"reddit", name:"Reddit", note:"Ads, telemetry and promoted posts removed Dropped the rushiranpise extra bundle on 2026-09-06: its 7 patches are all PairIP, Firebase, certificate and spoof-signature work plus GmsCore, none of which this build needs" },
+ { prefix:"hotstar", target:"hotstar", name:"JioHotstar", note:"Ads removed" },
+ { prefix:"edge", target:"edge", name:"Microsoft Edge", note:"Ads and telemetry stripped" },
+ { prefix:"mx-player", target:"mxplayer", name:"MX Player Pro", note:"Pro licence unlocked, ads and clutter removed" },
+ { prefix:"telegram", target:"telegram", name:"Telegram", note:"Ads and tracking removed" },
+ { prefix:"key-mapper", target:"keymapper", name:"Key Mapper", note:"Premium unlocked" }
 ];
+// <<< CATALOG GENERATED
 
 const $ = id => document.getElementById(id);
 let TOKEN = localStorage.getItem('pf_token') || '';

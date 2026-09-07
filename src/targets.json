@@ -314,34 +314,6 @@
     "note": "Ads removed"
   },
   {
-    "id": "sonyliv",
-    "enabled": false,
-    "package": "com.sonyliv",
-    "apk_name": "sonyliv",
-    "apk_type": "bundle",
-    "max_patch_age_days": 60,
-    "min_sdk_ceiling": 29,
-    "pin": null,
-    "exclusive": true,
-    "candidates": [
-      {
-        "name": "chiggi",
-        "host": "github",
-        "channel": "latest",
-        "patch_dir": "sonyliv-chiggi",
-        "options": "chiggi",
-        "owner": "durgesh0505",
-        "repo": "chiggi_morphe_patches"
-      }
-    ],
-    "tag_prefix": "sonyliv",
-    "poll": false,
-    "source": "apkpure",
-    "any_version": true,
-    "label": "SonyLIV",
-    "note": "Disabled 2026-09-06. Not an APKMirror problem: source is apkpure and any_version is true. It is a patch-compatibility problem (219f738 excluded Auto skip intro and recap for a SEVERE on 6.36.16) and it still ships Change app name, which is server-visible on a paid account. Re-enable only after that patch is dropped and a build is proven."
-  },
-  {
     "id": "edge",
     "enabled": true,
     "package": "com.microsoft.emmx",

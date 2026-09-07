@@ -43,11 +43,6 @@
    "org": "facebook-2",
    "name": "facebook"
   },
-  "com.graymatrix.did": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=zee5-movies-tv-shows-live-tv-originals",
-   "org": "z5x-global-fz-llc",
-   "name": "zee5-movies-tv-shows-live-tv-originals"
-  },
   "com.mxtech.videoplayer.pro": {
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=mx-player-pro",
    "org": "j2-interactive",
@@ -57,11 +52,6 @@
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=telegram",
    "org": "telegram-fz-llc",
    "name": "telegram"
-  },
-  "com.sonyliv": {
-   "list_url": "https://www.apkmirror.com/uploads/?appcategory=sonyliv-live-tv-sports-movies",
-   "org": "sony-pictures-networks-india-private-limited",
-   "name": "sonyliv-live-tv-sports-movies"
   }
  },
  "apkpure": {
@@ -83,12 +73,6 @@
   },
   "in.startv.hotstar": {
    "download_url": "https://apkpure.com/x/in.startv.hotstar/download"
-  },
-  "com.sonyliv": {
-   "download_url": "https://apkpure.com/x/com.sonyliv/download"
-  },
-  "com.graymatrix.did": {
-   "download_url": "https://apkpure.com/x/com.graymatrix.did/download"
   },
   "com.microsoft.emmx": {
    "download_url": "https://apkpure.com/x/com.microsoft.emmx/download"
