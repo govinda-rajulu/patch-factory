@@ -129,6 +129,16 @@ jobs:
         run: python3 src/etc/dropgen.py --check
       - name: CREDITS matches targets.json
         run: python3 src/etc/credits.py --check
+      - name: Agent contract exists and names the protected paths
+        run: |
+          [ -s AGENTS.md ] || { echo "::error::AGENTS.md is missing; an agent would work without a contract"; exit 1; }
+          FAIL=0
+          for p in "workflows" "BANNED" "CONFIRM" "QUARANTINE" "TOOLING.sha256" "_attic"; do
+            grep -q "$p" AGENTS.md || { echo "::error::AGENTS.md does not protect $p"; FAIL=1; }
+          done
+          grep -qi "never push to .main" AGENTS.md || { echo "::error::AGENTS.md must forbid pushing to main"; FAIL=1; }
+          [ "$FAIL" = 0 ] && echo "agent contract covers every protected path"
+          exit $FAIL
       - name: Unreferenced patch dirs are reported, not deleted
         run: bash src/etc/orphans.sh
       - name: README state block matches targets.json

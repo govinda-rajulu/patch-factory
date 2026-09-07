@@ -1,0 +1,80 @@
+name: 6. Provider watch
+# Refresh every provider's patch list and open ONE issue when anything changed.
+# Deliberately has no AI in it: diffing a patch list is mechanical, and a free-tier agent
+# should spend its quota judging the diff, not producing it. permissions are read + issues
+# only, so this workflow can never publish, sign or push.
+permissions:
+  contents: read
+  issues: write
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+jobs:
+  watch:
+    name: Provider watch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - name: Refresh every provider patch list
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download -R MorpheApp/morphe-desktop -p '*.jar' -D /tmp/mj --clobber
+          J=$(ls -t /tmp/mj/*.jar | head -1)
+          mkdir -p /tmp/new
+          # -x includes experimental app versions, -u counts default-off patches. Both matter:
+          # without -x a current provider looks years stale.
+          jq -r '.[] | select(.enabled) | .package as $p | (.candidates[], (.extra_bundles // [])[])
+                 | select((.host // "github") == "github") | select(.owner and .repo)
+                 | [.name, .owner + "/" + .repo, $p, (.channel // "prerelease")] | @tsv' \
+            src/targets.json | sort -u | while IFS=$'\t' read -r nm ident pkg chan; do
+            FL=""; [ "$chan" = "prerelease" ] && FL="--prerelease"
+            java -jar "$J" list-patches --patches="https://github.com/$ident" $FL -x -u \
+                 --with-packages --with-versions -f "$pkg" > "/tmp/new/$nm-$pkg.txt" 2>&1 || true
+            grep '^Name: ' "/tmp/new/$nm-$pkg.txt" | sed 's/^Name: //' | sort -u > "/tmp/new/$nm-$pkg.names"
+          done
+          ls -la /tmp/new | tail -20
+      - name: Diff against the committed lists and open one issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p docs/review/providers
+          CHANGED=0
+          : > /tmp/body.md
+          for f in /tmp/new/*.names; do
+            b=$(basename "$f"); old="docs/review/providers/$b"
+            if [ ! -f "$old" ]; then
+              echo "### NEW provider list: ${b%.names} ($(wc -l < "$f") patches)" >> /tmp/body.md
+              CHANGED=1; continue
+            fi
+            ADD=$(comm -13 "$old" "$f"); DEL=$(comm -23 "$old" "$f")
+            if [ -n "$ADD$DEL" ]; then
+              echo "### ${b%.names}" >> /tmp/body.md
+              [ -n "$ADD" ] && { echo "**added:**" >> /tmp/body.md; printf '%s\n' "$ADD" | sed 's/^/- /' >> /tmp/body.md; }
+              [ -n "$DEL" ] && { echo "**removed:**" >> /tmp/body.md; printf '%s\n' "$DEL" | sed 's/^/- /' >> /tmp/body.md; }
+              echo "" >> /tmp/body.md
+              CHANGED=1
+            fi
+          done
+          if [ "$CHANGED" = 0 ]; then echo "no provider changed a patch name this week"; exit 0; fi
+          {
+            echo "Mechanical diff of every provider's patch list against the copy in"
+            echo "\`docs/review/providers/\`. **Nothing has been changed in the repo.**"
+            echo ""
+            cat /tmp/body.md
+            echo "---"
+            echo "To act on this: read \`AGENTS.md\` first. An added patch needs classifying against"
+            echo "\`BANNED\` and \`CONFIRM\` before it goes anywhere near an include list, and a removed"
+            echo "patch that is still in an include list will fail the applied-count gate on the next build."
+          } > /tmp/issue.md
+          wc -c /tmp/issue.md
+          gh issue create --title "provider watch: patch lists changed $(date -u +%Y-%m-%d)" \
+            --body-file /tmp/issue.md --label provider-watch || \
+          gh issue create --title "provider watch: patch lists changed $(date -u +%Y-%m-%d)" --body-file /tmp/issue.md
