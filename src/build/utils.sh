@@ -3,11 +3,11 @@
 mkdir ./release ./download
 
 #Setup pup for download apk files
-wget -q -O ./pup.zip https://github.com/ericchiang/pup/releases/download/v0.4.0/pup_v0.4.0_linux_amd64.zip
+bash ./src/build/tooling.sh pup || exit 1
 unzip "./pup.zip" -d "./" > /dev/null 2>&1
 pup="./pup"
 #Setup APKEditor for install combine split apks
-wget -q -O ./APKEditor.jar https://github.com/REAndroid/APKEditor/releases/download/V1.4.9/APKEditor-1.4.9.jar
+bash ./src/build/tooling.sh apkeditor || exit 1
 APKEditor="./APKEditor.jar"
 #Find lastest user_agent
 user_agent=$(wget -qO- https://www.whatismybrowser.com/guides/the-latest-user-agent/firefox | tr '\n' ' ' | sed 's#</tr>#\n#g' | grep 'Firefox (Standard)' | sed -n 's/.*<span class="code">\([^<]*Android[^<]*\)<\/span>.*/\1/p') \

@@ -20,7 +20,7 @@ for i in $(seq 0 $((n-1))); do
   if [ -n "$PIN" ] && [ "$PIN" != "null" ] && [ "$NAME" != "$PIN" ]; then
     echo "  - $NAME: skipped (pinned to $PIN)"; continue; fi
   JSON=$(curl -sSL ${GITHUB_TOKEN:+-H "Authorization: token $GITHUB_TOKEN"} \
-    "https://api.github.com/repos/$OWNER/$REPO/releases")
+    "https://api.github.com/repos/$OWNER/$REPO/releases?per_page=100")
   if [ "$(jq -r 'type' <<<"$JSON" 2>/dev/null)" != "array" ]; then
     echo " - $NAME: API ERROR, not a release array"; jq -r '.message // "unparseable"' <<<"$JSON" | head -1; exit 2
   fi

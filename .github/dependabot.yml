@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # Only github-actions. There is no Dockerfile and no package manifest in this repo,
+  # so the docker and pip ecosystems would find nothing.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies"]
+    groups:
+      actions:
+        patterns: ["*"]
