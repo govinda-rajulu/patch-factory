@@ -1,0 +1,21 @@
+# Edit column 1 to IN or OUT. Nothing here is applied automatically.
+# 18 patches, 0 already in the include list, 0 in the exclude list.
+decision	state	default	class	patch	reason
+	UNREVIEWED	on	BANNED	Spoof signature	matches BANNED rule 'spoof signature'
+	UNREVIEWED	off	CLEAN	Custom branding name for Reddit	
+	UNREVIEWED	on	CLEAN	Custom font	
+	UNREVIEWED	on	CLEAN	Disable modern home	
+	UNREVIEWED	on	CLEAN	Disable screenshot popup	
+	UNREVIEWED	on	CLEAN	Force system font	
+	UNREVIEWED	on	CLEAN	Hide Ask button	
+	UNREVIEWED	off	CLEAN	Hide Reddit search	
+	UNREVIEWED	on	CLEAN	Hide Trending shelves	
+	UNREVIEWED	on	CLEAN	Hide ads	
+	UNREVIEWED	on	CLEAN	Hide communities shelf	
+	UNREVIEWED	on	CLEAN	Hide navigation buttons	
+	UNREVIEWED	on	CLEAN	Hide sidebar components	
+	UNREVIEWED	on	CLEAN	Open links directly	
+	UNREVIEWED	on	CLEAN	Open links externally	
+	UNREVIEWED	on	CLEAN	Remove subreddit dialog	
+	UNREVIEWED	on	CLEAN	Sanitize sharing links	
+	UNREVIEWED	on	CLEAN	Show view count	
