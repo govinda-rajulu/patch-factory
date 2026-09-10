@@ -37,9 +37,10 @@ EXCL=$(jq -r '.exclusive // false' <<<"$T")
 green_log "[+] target=$ID package=$PKG apk=$APK_NAME tagprefix=$PREFIX"
 
 # --- 2. tooling, then resolve ----------------------------------------------
-set +u; dl_gh "morphe-desktop" "MorpheApp" "latest"; set -u
-ls morphe-desktop-*.jar >/dev/null 2>&1 || { red_log "[-] morphe-desktop jar not downloaded"; exit 1; }
-KEEPJAR=$(ls -t morphe-desktop-*.jar | head -1)
+PATCHER_META=$(python3 src/build/github_patcher.py .) || { red_log "[-] patcher download verification failed"; exit 1; }
+echo "PATCHER_VERIFIED $PATCHER_META"
+KEEPJAR=$(jq -er '.name' <<<"$PATCHER_META") || exit 1
+[ -f "$KEEPJAR" ] || { red_log "[-] verified patcher jar missing"; exit 1; }
 ls morphe-desktop-*.jar | grep -vxF "$KEEPJAR" | xargs -r rm -f
 [ "$(ls morphe-desktop-*.jar | wc -l)" -eq 1 ] || { red_log "[-] more than one patcher jar present"; exit 1; }
 green_log "[+] patcher jar: $KEEPJAR"

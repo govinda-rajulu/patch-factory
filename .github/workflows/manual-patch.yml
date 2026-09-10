@@ -96,9 +96,15 @@ jobs:
           path: build-evidence/*.json
           if-no-files-found: error
           retention-days: 7
+      - name: Verify release handoff (no publishing)
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/build/release_contract.py "$TARGET"
       - name: Releasing APK files
         if: steps.check-gh.outputs.internet_error == '0' && inputs.publish && github.ref == 'refs/heads/main'
         uses: ./.github/actions/release
+        with:
+          target: ${{ inputs.target }}
       - name: Nonpublishing smoke result
         if: steps.check-gh.outputs.internet_error == '0' && (!inputs.publish || github.ref != 'refs/heads/main')
         run: |

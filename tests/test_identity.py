@@ -18,6 +18,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src/build'))
 import artifact_identity as identity
 import native_payloads
+import release_contract
 
 
 class Identity(unittest.TestCase):
@@ -643,6 +644,138 @@ class DexContainerTests(unittest.TestCase):
     def test_data_map_out_of_range(self):
         with self.assertRaises(ValueError):
             native_payloads.inspect_dex(self.mutated_nonempty(156, 9999))
+
+
+class ReleaseContractTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.root = pathlib.Path(self.temp.name)
+        (self.root / 'release').mkdir()
+        (self.root / 'build-evidence').mkdir()
+        self.name = 'release/fixture-v4.2.1-arm64-v8a.apk'
+        (self.root / self.name).write_bytes(b'x' * 1000001)
+        self.target = {'tag_prefix': 'fixture', 'min_sdk_ceiling': 29}
+        self.report = {'schema': 1, 'status': 'verified', 'target': 'fixture',
+                       'inputs': {'source_commit': 'a'*40, 'target': 'fixture',
+                                  'expected_package': 'org.fixture', 'expected_certificate_sha256': 'b'*64},
+                       'manifest': {'package': 'org.fixture', 'min_sdk': 29, 'version_name': '4.2.1'},
+                       'signature': {'certificate_sha256': 'b'*64, 'cryptographic_verification': 'passed'},
+                       'architecture': {'classification': 'arm64-v8a'},
+                       'output': identity.record(self.root, self.name),
+                       'applied_patch_names': ['Remove ads', 'PEOF']}
+        for name, value in {'.version': '4.2.1', '.tagprefix': 'fixture', '.tagsuffix': '-b20260910',
+                            '.provider': 'provider + extra', '.patchver': 'v1.0', '.applied': '- Remove ads\n- PEOF'}.items():
+            (self.root / 'release' / name).write_text(value+'\n')
+        self.save()
+        self.addCleanup(patch.stopall)
+        patch.object(release_contract, 'target', return_value=self.target).start()
+        patch.object(release_contract, 'expected_package', return_value='org.fixture').start()
+        patch.object(release_contract, 'command', return_value=('a'*40).encode()).start()
+
+    def save(self):
+        (self.root / 'build-evidence/fixture.json').write_text(json.dumps(self.report))
+
+    def verify(self):
+        return release_contract.verify(self.root, 'fixture')
+
+    def test_valid_handoff(self):
+        fields = self.verify()
+        self.assertEqual(fields['tag'], 'fixture-v4.2.1-b20260910')
+        self.assertEqual(fields['apkpath'], self.name)
+        self.assertEqual(fields['sha256'], self.report['output']['sha256'])
+
+    def test_apk_changed_after_identity(self):
+        (self.root / self.name).write_bytes(b'y'*1000001)
+        with self.assertRaisesRegex(ValueError, 'verified bytes'):self.verify()
+
+    def test_extra_apk_refused(self):
+        (self.root / 'release/stale.apk').write_bytes(b'extra')
+        with self.assertRaisesRegex(ValueError, 'exactly one'):self.verify()
+
+    def test_missing_apk_refused(self):
+        (self.root / self.name).unlink()
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_symlink_apk_refused(self):
+        p = self.root / self.name
+        p.rename(self.root / 'outside');p.symlink_to(self.root / 'outside')
+        with self.assertRaisesRegex(ValueError, 'symlink'):self.verify()
+
+    def test_missing_report_refused(self):
+        (self.root / 'build-evidence/fixture.json').unlink()
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_old_commit_refused(self):
+        self.report['inputs']['source_commit'] = 'c'*40;self.save()
+        with self.assertRaisesRegex(ValueError, 'different source'):self.verify()
+
+    def test_wrong_target_refused(self):
+        self.report['target'] = 'other';self.save()
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_unverified_report_refused(self):
+        self.report['status'] = 'pending';self.save()
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_changed_version_refused(self):
+        (self.root / 'release/.version').write_text('4.2.2')
+        with self.assertRaisesRegex(ValueError, 'version mismatch'):self.verify()
+
+    def test_changed_prefix_refused(self):
+        (self.root / 'release/.tagprefix').write_text('different')
+        with self.assertRaisesRegex(ValueError, 'prefix mismatch'):self.verify()
+
+    def test_invalid_suffix_refused(self):
+        (self.root / 'release/.tagsuffix').write_text('-b20260231')
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_changed_applied_list_refused(self):
+        (self.root / 'release/.applied').write_text('- Another patch')
+        with self.assertRaisesRegex(ValueError, 'applied-patch'):self.verify()
+
+    def test_wrong_signer_refused(self):
+        self.report['signature']['certificate_sha256'] = 'c'*64;self.save()
+        with self.assertRaisesRegex(ValueError, 'signer'):self.verify()
+
+    def test_wrong_package_refused(self):
+        self.report['manifest']['package'] = 'org.other';self.save()
+        with self.assertRaisesRegex(ValueError, 'package'):self.verify()
+
+    def test_too_new_sdk_refused(self):
+        self.report['manifest']['min_sdk'] = 30;self.save()
+        with self.assertRaisesRegex(ValueError, 'SDK'):self.verify()
+
+    def test_provider_output_injection_refused(self):
+        (self.root / 'release/.provider').write_text('provider\napkpath=other.apk')
+        with self.assertRaisesRegex(ValueError, 'single-line'):self.verify()
+
+    def test_metadata_symlink_refused(self):
+        p = self.root / 'release/.tagprefix';p.unlink()
+        (self.root / 'prefix').write_text('fixture');p.symlink_to(self.root / 'prefix')
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_output_delimiter_not_patch_name(self):
+        fields = self.verify();text = release_contract.output_text(fields)
+        lines = text.splitlines();found = [line for line in lines if line.startswith('aplist<<')]
+        self.assertEqual(len(found), 1)
+        delimiter = found[0].split('<<')[1]
+        self.assertNotIn(delimiter, fields['aplist'].splitlines())
+        self.assertIn('- PEOF', text)
+        self.assertEqual(lines.count(delimiter), 1)
+
+    def test_workflow_exercises_release_helper_in_smoke(self):
+        s = (ROOT / '.github/workflows/manual-patch.yml').read_text()
+        self.assertLess(s.index('Verify finished APK identity'), s.index('Verify release handoff'))
+        self.assertLess(s.index('Verify release handoff'), s.index('Releasing APK files'))
+        self.assertIn('run: python3 src/build/release_contract.py "$TARGET"', s)
+
+    def test_action_consumes_one_verified_path(self):
+        s = (ROOT / '.github/actions/release/action.yml').read_text()
+        self.assertIn('artifacts: ${{ steps.meta.outputs.apkpath }}', s)
+        self.assertIn('python3 src/build/release_contract.py "$TARGET" --github-output', s)
+        self.assertNotIn('head -1', s)
+        self.assertNotIn('aplist<<PEOF', s)
 
 
 if __name__=='__main__':unittest.main()
