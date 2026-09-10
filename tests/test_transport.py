@@ -4,6 +4,7 @@ ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src/build'))
 import github_bundle as bundle
 import github_patcher as patcher
+import extra_bundle as extra
 
 class Transport(unittest.TestCase):
  def setUp(self):
@@ -201,5 +202,134 @@ class PatcherTransport(unittest.TestCase):
   s=(ROOT/'src/build/build.sh').read_text()
   self.assertNotIn('dl_gh "morphe-desktop"',s);self.assertIn('python3 src/build/github_patcher.py .',s)
   self.assertLess(s.index('github_patcher.py'),s.index('RES=$(bash ./src/build/resolve.sh'))
+
+
+class ExtraTransport(unittest.TestCase):
+ def setUp(self):
+  self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.root=pathlib.Path(self.temp.name);self.out=self.root/'01-paresh.mpp'
+  data=io.BytesIO()
+  with zipfile.ZipFile(data,'w') as z:z.writestr('fixture',b'x'*11000)
+  self.payload=data.getvalue()
+  # Actual metadata supplied by owner on 10 Sep; bundle bytes here are synthetic.
+  self.link={'id':12729975,'name':'patches-1.20.0.mpp','url':'https://gitlab.com/-/project/82031658/uploads/bf2f3bcc525c867b790a800cfe77a115/patches-1.20.0.mpp','direct_asset_url':'https://gitlab.com/Paresh-Maheshwari/paresh-patches/-/releases/v1.20.0/downloads/patches-1.20.0.mpp','link_type':'other'}
+  self.release={'tag_name':'v1.20.0','released_at':'2026-09-01T16:37:52.954Z','assets':{'links':[self.link]}}
+  self.gh={'tag_name':'v1','published_at':'2026-09-01T00:00:00Z','assets':[{'id':1,'name':'patches-1.mpp','size':len(self.payload),'digest':'sha256:'+hashlib.sha256(self.payload).hexdigest(),'browser_download_url':'https://github.com/owner/repo/releases/download/v1/patches-1.mpp'}]}
+ def transfer(self,args,**kwargs):
+  pathlib.Path(args[args.index('--output')+1]).write_bytes(self.payload);return subprocess.CompletedProcess(args,0,stdout='',stderr='')
+ def fetch(self,host='gitlab',fn=None):
+  with patch.object(extra,'gitlab_page',return_value=[self.release]),patch.object(extra,'choose_release',return_value=self.gh),patch.object(extra.subprocess,'run',side_effect=fn or self.transfer):
+   return extra.fetch(host,'82031658' if host=='gitlab' else 'owner/repo','prerelease',self.out,{'GITHUB_TOKEN':'dummy-secret'})
+ def test_observed_gitlab_link_shape(self):
+  r=self.fetch();self.assertEqual(r['asset_id'],12729975);self.assertEqual(r['tag'],'v1.20.0');self.assertEqual(self.out.read_bytes(),self.payload)
+ def test_gitlab_hash_is_not_claimed_upstream_verified(self):
+  r=self.fetch();self.assertFalse(r['upstream_digest_verified']);self.assertFalse(r['upstream_size_verified']);self.assertTrue(r['zip_verified']);self.assertEqual(r['sha256'],hashlib.sha256(self.payload).hexdigest())
+ def test_github_digest_and_size_verified(self):
+  r=self.fetch('github');self.assertTrue(r['upstream_digest_verified']);self.assertTrue(r['upstream_size_verified'])
+ def test_github_missing_digest_explicit(self):
+  self.gh['assets'][0].pop('digest');self.assertFalse(self.fetch('github')['upstream_digest_verified'])
+ def test_github_wrong_digest_refused(self):
+  self.gh['assets'][0]['digest']='sha256:'+'0'*64
+  with self.assertRaisesRegex(ValueError,'digest differs'):self.fetch('github')
+ def test_github_wrong_size_refused(self):
+  self.gh['assets'][0]['size']+=1
+  with self.assertRaisesRegex(ValueError,'size differs'):self.fetch('github')
+ def test_github_other_repo_url_refused(self):
+  self.gh['assets'][0]['browser_download_url']='https://github.com/other/repo/releases/download/v1/patches-1.mpp'
+  with self.assertRaisesRegex(ValueError,'another repository'):self.fetch('github')
+ def test_gitlab_cross_project_link_refused(self):
+  self.link['url']=self.link['url'].replace('/82031658/','/999/')
+  with self.assertRaisesRegex(ValueError,'project-scoped'):self.fetch()
+ def test_gitlab_external_host_refused(self):
+  self.link['url']=self.link['url'].replace('gitlab.com','example.invalid')
+  with self.assertRaisesRegex(ValueError,'origin'):self.fetch()
+ def test_gitlab_http_refused(self):
+  self.link['url']=self.link['url'].replace('https:','http:')
+  with self.assertRaises(ValueError):self.fetch()
+ def test_url_credentials_refused(self):
+  self.link['url']=self.link['url'].replace('gitlab.com','user@gitlab.com')
+  with self.assertRaises(ValueError):self.fetch()
+ def test_ambiguous_links_refused(self):
+  self.release['assets']['links']*=2
+  with self.assertRaisesRegex(ValueError,'exactly one'):self.fetch()
+ def test_sources_are_not_bundle_links(self):
+  self.release['assets']={'sources':[{'format':'zip','url':'https://gitlab.com/archive.zip'}],'links':[]}
+  with self.assertRaisesRegex(ValueError,'exactly one'):self.fetch()
+ def test_unknown_host_refused(self):
+  with self.assertRaisesRegex(ValueError,'unsupported'):extra.select('other','1','latest',{})
+ def test_invalid_channel_refused(self):
+  with self.assertRaises(ValueError):extra.select('gitlab','82031658','guess',{})
+ def test_invalid_project_refused(self):
+  with self.assertRaises(ValueError):extra.select('gitlab','../x','latest',{})
+ def test_tag_output_injection_refused(self):
+  self.release['tag_name']='v1\nSIZE=1'
+  with self.assertRaises(ValueError):self.fetch()
+ def test_invalid_date_refused(self):
+  self.release['released_at']='bad-date'
+  with self.assertRaises(ValueError):self.fetch()
+ def test_gitlab_latest_skips_dev_with_pagination(self):
+  dev=dict(self.release,tag_name='v9-dev')
+  with patch.object(extra,'gitlab_page',side_effect=[[dev]*100,[self.release]]) as m:
+   self.assertEqual(extra.select('gitlab','82031658','latest',{})['tag'],'v1.20.0');self.assertEqual(m.call_count,2)
+ def test_gitlab_prerelease_keeps_newest_including_stable(self):
+  with patch.object(extra,'gitlab_page',return_value=[self.release]):
+   self.assertEqual(extra.select('gitlab','82031658','prerelease',{})['tag'],'v1.20.0')
+ def test_empty_release_inventory_refused(self):
+  with patch.object(extra,'gitlab_page',return_value=[]):
+   with self.assertRaises(ValueError):extra.select('gitlab','82031658','latest',{})
+ def test_gitlab_api_nonarray_refused(self):
+  with patch.object(extra.subprocess,'run',return_value=subprocess.CompletedProcess([],0,stdout='{"message":"error"}')):
+   with self.assertRaisesRegex(ValueError,'non-array'):extra.gitlab_page('82031658',1)
+ def test_gitlab_api_http_failure_refused(self):
+  with patch.object(extra.subprocess,'run',return_value=subprocess.CompletedProcess([],22,stdout='')):
+   with self.assertRaisesRegex(ValueError,'API failed'):extra.gitlab_page('82031658',1)
+ def test_gitlab_api_carries_no_token(self):
+  with patch.object(extra.subprocess,'run',return_value=subprocess.CompletedProcess([],0,stdout='[]')) as m:
+   extra.gitlab_page('82031658',1)
+  self.assertNotIn('--location',m.call_args.args[0]);self.assertNotIn('Authorization',str(m.call_args));self.assertIn('--fail',m.call_args.args[0])
+ def test_transfer_uses_https_and_no_credentials(self):
+  with patch.object(extra,'gitlab_page',return_value=[self.release]),patch.object(extra.subprocess,'run',side_effect=self.transfer) as m:
+   extra.fetch('gitlab','82031658','prerelease',self.out,{'GITHUB_TOKEN':'dummy-secret'})
+  self.assertIn('--max-filesize',m.call_args.args[0]);self.assertIn('--proto-redir',m.call_args.args[0]);self.assertNotIn('dummy-secret',str(m.call_args))
+ def test_html_error_body_refused(self):
+  self.payload=b'<html>'+b'x'*11000
+  with self.assertRaises(ValueError):self.fetch()
+  self.assertFalse(self.out.exists());self.assertFalse(list(self.root.glob('*.cand')))
+ def test_transfer_failure_preserves_previous_destination(self):
+  self.out.write_bytes(b'previous')
+  def bad(args,**kwargs):
+   self.assertEqual(self.out.read_bytes(),b'previous');return subprocess.CompletedProcess(args,22,stdout='',stderr='')
+  with self.assertRaisesRegex(ValueError,'destination not replaced'):self.fetch(fn=bad)
+  self.assertEqual(self.out.read_bytes(),b'previous')
+ def test_retry_after_bad_archive(self):
+  paths=[]
+  def retry(args,**kwargs):
+   p=pathlib.Path(args[args.index('--output')+1]);paths.append(str(p));p.write_bytes(b'bad' if len(paths)==1 else self.payload);return subprocess.CompletedProcess(args,0,stdout='',stderr='')
+  self.fetch(fn=retry);self.assertEqual(len(set(paths)),2)
+ def test_symlink_destination_refused(self):
+  other=self.root/'other';other.write_bytes(b'keep');self.out.symlink_to(other)
+  with self.assertRaises(ValueError):self.fetch()
+  self.assertEqual(other.read_bytes(),b'keep')
+ def test_crc_failure_refused(self):
+  self.payload=self.payload.replace(b'x'*32,b'y'*32,1)
+  with self.assertRaises(ValueError):self.fetch()
+ def test_traversal_zip_refused(self):
+  data=io.BytesIO()
+  with zipfile.ZipFile(data,'w') as z:z.writestr('../outside',b'x'*11000)
+  self.payload=data.getvalue()
+  with self.assertRaisesRegex(ValueError,'unsafe'):self.fetch()
+ def test_duplicate_zip_refused(self):
+  import warnings
+  data=io.BytesIO()
+  with warnings.catch_warnings():
+   warnings.simplefilter('ignore')
+   with zipfile.ZipFile(data,'w') as z:z.writestr('same',b'x'*11000);z.writestr('same',b'x')
+  self.payload=data.getvalue()
+  with self.assertRaisesRegex(ValueError,'duplicate'):self.fetch()
+ def test_expansion_limit_refused(self):
+  with patch.object(extra,'MAX_EXPANDED',10):
+   with self.assertRaisesRegex(ValueError,'expansion'):self.fetch()
+ def test_existing_shell_contract_preserved(self):
+  s=(ROOT/'src/build/fetch_bundle.sh').read_text();self.assertIn('exec python3',s);self.assertNotIn('curl -sSL',s)
+  build=(ROOT/'src/build/build.sh').read_text();self.assertIn('printf',build);self.assertIn('fetch_bundle.sh "$EH" "$EID" "$ECH"',build)
 
 if __name__=='__main__':unittest.main()
