@@ -5,6 +5,8 @@ sys.path.insert(0,str(ROOT/'src/build'))
 import github_bundle as bundle
 import github_patcher as patcher
 import extra_bundle as extra
+sys.path.insert(0,str(ROOT/'src/etc'))
+import release_retention as retention
 
 class Transport(unittest.TestCase):
  def setUp(self):
@@ -331,5 +333,85 @@ class ExtraTransport(unittest.TestCase):
  def test_existing_shell_contract_preserved(self):
   s=(ROOT/'src/build/fetch_bundle.sh').read_text();self.assertIn('exec python3',s);self.assertNotIn('curl -sSL',s)
   build=(ROOT/'src/build/build.sh').read_text();self.assertIn('printf',build);self.assertIn('fetch_bundle.sh "$EH" "$EID" "$ECH"',build)
+
+class Retention(unittest.TestCase):
+ def setUp(self):
+  self.repo='owner/repo';self.targets=[{'id':'app','tag_prefix':'app'},{'id':'other','tag_prefix':'other'}]
+ def row(self,n,prefix='app',day=None,**values):
+  date=day or ('202609'+str(n).zfill(2));tag=prefix+'-v1.0-b'+date
+  row={'id':n,'tag_name':tag,'html_url':'https://github.com/'+self.repo+'/releases/tag/'+tag,
+       'published_at':'2026-09-10T00:00:00Z','draft':False,'prerelease':False,
+       'body':retention.CI_MARKER,'assets':[{'name':prefix+'-v1.0-arm64-v8a.apk','size':2000000}]}
+  row.update(values);return row
+ def plan(self,rows,prefix=None):return retention.preview(rows,self.targets,self.repo,prefix)
+ def test_two_newest_protected(self):
+  p=self.plan([self.row(n) for n in range(1,5)])
+  self.assertEqual([r['release_id'] for r in p['candidates']],[1,2])
+  self.assertFalse(p['deletion_authorized']);self.assertEqual(p['candidate_asset_count'],2)
+ def test_per_prefix_not_global(self):
+  p=self.plan([self.row(n) for n in range(1,4)]+[self.row(n+10,prefix='other',day='2026090'+str(n)) for n in range(1,4)])
+  self.assertEqual({r['release_id'] for r in p['candidates']},{1,11})
+ def test_input_order_does_not_change_fingerprint(self):
+  rows=[self.row(n) for n in range(1,5)]
+  self.assertEqual(self.plan(rows)['fingerprint'],self.plan(rows[::-1])['fingerprint'])
+ def test_empty_inventory_is_empty_preview_not_delete_all(self):
+  p=self.plan([]);self.assertEqual(p['candidate_count'],0);self.assertEqual(p['protected'],[])
+ def test_one_release_kept(self):
+  self.assertEqual(self.plan([self.row(1)])['candidate_count'],0)
+ def test_frozen_tag_protected(self):
+  r=self.row(1,tag_name='truecaller-v26.10.6')
+  self.assertIn('frozen',self.plan([r])['protected'][0]['reason'])
+ def test_manual_suffixless_tag_protected(self):
+  p=self.plan([self.row(1,tag_name='app-v1.0')]);self.assertEqual(p['candidate_count'],0)
+ def test_unknown_prefix_protected(self):
+  p=self.plan([self.row(1,prefix='unknown')]);self.assertEqual(p['candidate_count'],0)
+ def test_old_manual_dated_entry_protected(self):
+  p=self.plan([self.row(1,body='Manually uploaded'),self.row(2),self.row(3)])
+  self.assertEqual(p['candidate_count'],0)
+ def test_keep_marker_protected(self):
+  for marker in ['frozen','manual','keep forever','do not delete','retention: keep']:
+   p=self.plan([self.row(1,body=retention.CI_MARKER+' '+marker),self.row(2),self.row(3)])
+   self.assertEqual(p['candidate_count'],0)
+ def test_draft_and_prerelease_protected(self):
+  for field in ['draft','prerelease']:
+   p=self.plan([self.row(1,**{field:True}),self.row(2),self.row(3)])
+   self.assertEqual(p['candidate_count'],0)
+ def test_unexpected_assets_protected(self):
+  p=self.plan([self.row(1,assets=[]),self.row(2),self.row(3)])
+  self.assertEqual(p['candidate_count'],0)
+ def test_wrong_apk_version_protected(self):
+  p=self.plan([self.row(1,assets=[{'name':'app-v2.0-arm64-v8a.apk','size':2000000}]),self.row(2),self.row(3)])
+  self.assertEqual(p['candidate_count'],0)
+ def test_prefix_filter_preserves_other_apps(self):
+  p=self.plan([self.row(n) for n in range(1,4)],prefix='other');self.assertEqual(p['candidate_count'],0)
+ def test_invalid_calendar_date_protected(self):
+  p=self.plan([self.row(1,day='20260231')]);self.assertEqual(p['candidate_count'],0)
+ def test_missing_timestamp_refuses_partial_plan(self):
+  with self.assertRaises(ValueError):self.plan([self.row(1,published_at=None)])
+ def test_duplicate_inventory_refused(self):
+  with self.assertRaisesRegex(ValueError,'duplicate'):self.plan([self.row(1),self.row(1)])
+ def test_unknown_filter_refused(self):
+  with self.assertRaises(ValueError):self.plan([],prefix='unknown')
+ def test_bad_url_refused(self):
+  with self.assertRaises(ValueError):self.plan([self.row(1,html_url='https://evil.invalid/')])
+ def test_pagination_reads_beyond_first_hundred(self):
+  first=[self.row(n,day='20260901') for n in range(1,101)]
+  with patch.object(retention.subprocess,'run',side_effect=[subprocess.CompletedProcess([],0,stdout=json.dumps(first)),subprocess.CompletedProcess([],0,stdout=json.dumps([self.row(101,day='20260902')]))]) as m:
+   rows=retention.inventory(self.repo);self.assertEqual(len(rows),101);self.assertEqual(m.call_count,2)
+ def test_second_page_failure_no_partial_success(self):
+  with patch.object(retention.subprocess,'run',side_effect=[subprocess.CompletedProcess([],0,stdout=json.dumps([self.row(n,day='20260901') for n in range(1,101)])),subprocess.CompletedProcess([],22,stdout='')]):
+   with self.assertRaisesRegex(ValueError,'no partial'):retention.inventory(self.repo)
+ def test_api_error_object_refused(self):
+  with patch.object(retention.subprocess,'run',return_value=subprocess.CompletedProcess([],0,stdout='{\"message\":\"error\"}')):
+   with self.assertRaises(ValueError):retention.inventory(self.repo)
+ def test_no_delete_command_in_planner_or_release_action(self):
+  action=(ROOT/'.github/actions/release/action.yml').read_text()
+  self.assertNotIn('gh release delete',action);self.assertNotIn('--cleanup-tag',action)
+  self.assertIn('Preview retention (no deletion)',action);self.assertIn('release_retention.py',action)
+  source=(ROOT/'src/etc/release_retention.py').read_text()
+  self.assertNotIn("'DELETE'",source);self.assertNotIn('gh release delete',source)
+ def test_summary_is_preview_not_authorization(self):
+  s=retention.summary(self.plan([self.row(n) for n in range(1,4)]))
+  self.assertIn('Nothing deleted',s);self.assertIn('Approval is required separately',s)
 
 if __name__=='__main__':unittest.main()
