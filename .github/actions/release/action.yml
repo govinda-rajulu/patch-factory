@@ -1,41 +1,24 @@
 name: Releasing APK files
 description: Publish the built APK as a GitHub release
+inputs:
+  target:
+    description: Target whose identity report must match the release
+    required: true
 runs:
   using: "composite"
   steps:
     - name: Read build metadata
       id: meta
       shell: bash
+      env:
+        TARGET: ${{ inputs.target }}
       run: |
-        V=$(cat ./release/.version 2>/dev/null || echo "")
-        P=$(cat ./release/.tagprefix 2>/dev/null || echo "")
-        if [ -z "$V" ] || [ -z "$P" ]; then
-          echo "::error::missing ./release/.version or ./release/.tagprefix"
-          exit 1
-        fi
-        echo "version=$V" >> $GITHUB_OUTPUT
-        echo "prefix=$P"  >> $GITHUB_OUTPUT
-        S=$(cat ./release/.tagsuffix 2>/dev/null || echo "")
-        echo "tag=$P-v$V$S" >> $GITHUB_OUTPUT
-        echo "suffix=$S" >> $GITHUB_OUTPUT
-        APK=$(ls ./release/*-arm64-v8a.apk 2>/dev/null | head -1)
-        [ -n "$APK" ] || { echo "::error::no arm64-v8a apk to publish"; exit 1; }
-        echo "apkname=$(basename "$APK")" >> $GITHUB_OUTPUT
-        echo "sha256=$(sha256sum "$APK" | awk '{print $1}')" >> $GITHUB_OUTPUT
-        echo "sizemb=$(awk -v b="$(wc -c < "$APK")" 'BEGIN{printf "%.1f", b/1048576}')" >> $GITHUB_OUTPUT
-        R=$(cat ./release/.provider 2>/dev/null || echo "")
-        [ -n "$R" ] || R="Morphe"
-        echo "provider=$R" >> $GITHUB_OUTPUT
-        PV=$(cat ./release/.patchver 2>/dev/null || echo unknown)
-        echo "patchver=$PV" >> $GITHUB_OUTPUT
-        { echo "aplist<<PEOF"; cat ./release/.applied 2>/dev/null || echo "- unknown"; echo "PEOF"; } >> $GITHUB_OUTPUT
-        echo "building release tag: $P-v$V$S"
-        ls -la ./release/
+        python3 src/build/release_contract.py "$TARGET" --github-output
 
     - name: Release
       uses: ncipollo/release-action@v1.21.0
       with:
-        artifacts: "./release/*-arm64-v8a.apk"
+        artifacts: ${{ steps.meta.outputs.apkpath }}
         tag: ${{ steps.meta.outputs.tag }}
         name: ${{ steps.meta.outputs.tag }}
         body: |
