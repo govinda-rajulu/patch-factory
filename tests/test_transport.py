@@ -7,6 +7,7 @@ import github_patcher as patcher
 import extra_bundle as extra
 sys.path.insert(0,str(ROOT/'src/etc'))
 import release_retention as retention
+import build_identity
 
 class Transport(unittest.TestCase):
  def setUp(self):
@@ -413,5 +414,100 @@ class Retention(unittest.TestCase):
  def test_summary_is_preview_not_authorization(self):
   s=retention.summary(self.plan([self.row(n) for n in range(1,4)]))
   self.assertIn('Nothing deleted',s);self.assertIn('Approval is required separately',s)
+
+class BuildIdentityTests(unittest.TestCase):
+ def setUp(self):
+  import datetime
+  self.now=datetime.datetime(2026,9,10,23,59,tzinfo=datetime.timezone.utc)
+  self.env={'GITHUB_RUN_ID':'34481169955','GITHUB_RUN_ATTEMPT':'1'}
+ def suffix(self,**env):return build_identity.create(dict(self.env,**env),self.now)
+ def test_fixed_width_numeric(self):
+  s=self.suffix();self.assertEqual(len(s),36);self.assertTrue(s[2:].isdigit());self.assertTrue(s.startswith('-b20260910'))
+ def test_exact_layout(self):
+  self.assertEqual(self.suffix(),'-b20260910'+'34481169955'.zfill(20)+'000001')
+ def test_different_run_same_day(self):
+  self.assertNotEqual(self.suffix(),self.suffix(GITHUB_RUN_ID='34481169956'))
+ def test_rerun_attempt_is_distinct(self):
+  self.assertNotEqual(self.suffix(),self.suffix(GITHUB_RUN_ATTEMPT='2'))
+ def test_same_run_attempt_deterministic(self):
+  self.assertEqual(self.suffix(),self.suffix())
+ def test_parse_new(self):
+  p=build_identity.parse(self.suffix());self.assertEqual(p,{'date':'20260910','legacy':False,'run_id':34481169955,'attempt':1})
+ def test_parse_legacy(self):
+  self.assertTrue(build_identity.parse('-b20260910')['legacy'])
+ def test_missing_run_refused(self):
+  with self.assertRaises(ValueError):build_identity.create({'GITHUB_RUN_ATTEMPT':'1'},self.now)
+ def test_missing_attempt_refused(self):
+  with self.assertRaises(ValueError):build_identity.create({'GITHUB_RUN_ID':'1'},self.now)
+ def test_zero_negative_and_injected_values_refused(self):
+  for v in ['0','-1','1\nx','1.5','01','1;false','']:
+   with self.assertRaises(ValueError):self.suffix(GITHUB_RUN_ID=v)
+ def test_attempt_limits(self):
+  self.assertEqual(build_identity.parse(self.suffix(GITHUB_RUN_ATTEMPT='999999'))['attempt'],999999)
+  with self.assertRaises(ValueError):self.suffix(GITHUB_RUN_ATTEMPT='1000000')
+ def test_run_limits(self):
+  self.assertEqual(build_identity.parse(self.suffix(GITHUB_RUN_ID='9'*20))['run_id'],int('9'*20))
+  with self.assertRaises(ValueError):self.suffix(GITHUB_RUN_ID='9'*21)
+ def test_date_invalid(self):
+  with self.assertRaises(ValueError):build_identity.parse('-b20260231')
+ def test_nonstandard_length(self):
+  for suffix in ['-b202609101','-b20260910-r1','-b'+'0'*34]:
+   with self.assertRaises(ValueError):build_identity.parse(suffix)
+ def test_zero_identity_refused(self):
+  with self.assertRaises(ValueError):build_identity.parse('-b20260910'+'0'*26)
+ def test_verify_correct_run(self):
+  self.assertFalse(build_identity.verify_run(self.suffix(),self.env)['legacy'])
+ def test_verify_wrong_run(self):
+  with self.assertRaises(ValueError):build_identity.verify_run(self.suffix(),dict(self.env,GITHUB_RUN_ID='2'))
+ def test_verify_wrong_attempt(self):
+  with self.assertRaises(ValueError):build_identity.verify_run(self.suffix(),dict(self.env,GITHUB_RUN_ATTEMPT='2'))
+ def test_cannot_publish_legacy_identity(self):
+  with self.assertRaises(ValueError):build_identity.verify_run('-b20260910',self.env)
+ def test_timezone_is_utc(self):
+  import datetime
+  local=datetime.datetime(2026,9,11,1,tzinfo=datetime.timezone(datetime.timedelta(hours=5,minutes=30)))
+  self.assertTrue(build_identity.create(self.env,local).startswith('-b20260910'))
+ def test_naive_time_refused(self):
+  with self.assertRaises(ValueError):build_identity.create(self.env,self.now.replace(tzinfo=None))
+ def test_existing_obtainium_filters_match_both_formats(self):
+  import re
+  for filename in ['obtainium-govind.json','obtainium-parents.json']:
+   for app in json.loads((ROOT/'docs'/filename).read_text())['apps']:
+    settings=json.loads(app['additionalSettings'])
+    prefix=next(t['tag_prefix'] for t in json.loads((ROOT/'src/targets.json').read_text()) if t['label']==app['name'])
+    for suffix in ['-b20260910',self.suffix()]:
+     tag=prefix+'-v1.2.3'+suffix
+     self.assertIsNotNone(re.fullmatch(settings['filterReleaseTitlesByRegEx'],tag))
+     self.assertEqual(re.search(settings['versionExtractionRegEx'],tag).group(int(settings['matchGroupToUse'])),'1.2.3')
+ def test_tag_uniqueness_does_not_fix_obtainium_version_equality(self):
+  import re
+  regex=r'-v([0-9.]+)-b[0-9]+$'
+  tags=['app-v1.0'+self.suffix(GITHUB_RUN_ATTEMPT=str(n)) for n in [1,2]]
+  self.assertNotEqual(*tags);self.assertEqual(*[re.search(regex,t)[1] for t in tags])
+ def test_retention_mixed_old_new(self):
+  fixture=Retention();fixture.setUp()
+  rows=[fixture.row(1),fixture.row(2),fixture.row(3)]
+  for r,a in zip(rows,[None,'1','2']):
+   if a:
+    r['tag_name']='app-v1.0'+self.suffix(GITHUB_RUN_ATTEMPT=a)
+    r['html_url']='https://github.com/owner/repo/releases/tag/'+r['tag_name']
+  p=fixture.plan(rows);self.assertEqual([x['release_id'] for x in p['candidates']],[1])
+ def test_retention_orders_reruns_numerically(self):
+  fixture=Retention();fixture.setUp();rows=[]
+  for n in [9,10,11]:
+   tag='app-v1.0'+self.suffix(GITHUB_RUN_ATTEMPT=str(n))
+   rows.append(fixture.row(n,tag_name=tag,html_url='https://github.com/owner/repo/releases/tag/'+tag))
+  self.assertEqual([x['release_id'] for x in fixture.plan(rows)['candidates']],[9])
+ def test_retention_bad_long_id_protected(self):
+  fixture=Retention();fixture.setUp()
+  tag='app-v1.0-b20260910'+'0'*26
+  self.assertEqual(fixture.plan([fixture.row(1,tag_name=tag)])['candidate_count'],0)
+ def test_release_action_refuses_updates_and_upload_failures(self):
+  s=(ROOT/'.github/actions/release/action.yml').read_text()
+  self.assertIn('allowUpdates: false',s);self.assertIn('replacesArtifacts: false',s)
+  self.assertIn('artifactErrorsFailBuild: true',s);self.assertIn('commit: ${{ github.sha }}',s)
+ def test_build_generates_identity_not_date_only(self):
+  s=(ROOT/'src/build/build.sh').read_text();self.assertIn('python3 src/build/build_identity.py',s)
+  self.assertNotIn('echo "-b$(date -u +%Y%m%d)"',s)
 
 if __name__=='__main__':unittest.main()

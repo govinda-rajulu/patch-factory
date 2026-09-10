@@ -777,5 +777,20 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertNotIn('head -1', s)
         self.assertNotIn('aplist<<PEOF', s)
 
+    def test_workflow_build_id_handoff(self):
+        from build_identity import create
+        env={'GITHUB_RUN_ID':'12345','GITHUB_RUN_ATTEMPT':'2'}
+        suffix=create(env)
+        (self.root / 'release/.tagsuffix').write_text(suffix)
+        with patch.dict(os.environ,env):
+            self.assertTrue(self.verify()['tag'].endswith(suffix))
+
+    def test_handoff_rejects_other_workflow_identity(self):
+        from build_identity import create
+        (self.root / 'release/.tagsuffix').write_text(create({'GITHUB_RUN_ID':'12345','GITHUB_RUN_ATTEMPT':'2'}))
+        with patch.dict(os.environ,{'GITHUB_RUN_ID':'12346','GITHUB_RUN_ATTEMPT':'2'}):
+            with self.assertRaisesRegex(ValueError,'another workflow'):
+                self.verify()
+
 
 if __name__=='__main__':unittest.main()

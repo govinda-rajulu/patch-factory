@@ -34,7 +34,11 @@ runs:
           
           Verify before installing: `sha256sum ${{ steps.meta.outputs.apkname }}`
           Built in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).
-        allowUpdates: true
+        # A repeated tag is a failure, never permission to overwrite published bytes.
+        allowUpdates: false
+        replacesArtifacts: false
+        artifactErrorsFailBuild: true
+        commit: ${{ github.sha }}
         # One repo, many apps. makeLatest moves the "Latest" badge to whichever app built
         # most recently, so the releases page advertises a random app as the current one.
         makeLatest: false
