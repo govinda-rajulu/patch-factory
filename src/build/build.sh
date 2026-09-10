@@ -11,6 +11,7 @@ python3 src/etc/preflight.py "$ID" || exit 1
 if [ -d release ] && [ -n "$(find release -mindepth 1 -print -quit)" ]; then
   echo "::error::release directory is not empty; use a fresh build checkout"; exit 1
 fi
+python3 src/build/artifact_identity.py capture-signer || exit 1
 
 # utils.sh is 29KB of upstream code written without `set -u`.
 # Scope strictness off around every call into it; our own logic stays strict.
@@ -50,6 +51,8 @@ echo "$RES"
 WINNER=$(sed -n 's/^WINNER=//p'  <<<"$RES" | tail -1)
 RVER=$(sed   -n 's/^VERSION=//p' <<<"$RES" | tail -1)
 MPP=$(sed    -n 's/^MPP=//p'     <<<"$RES" | tail -1)
+MPP_HASH=$(sed -n 's/^MPP_SHA256=//p' <<<"$RES" | tail -1)
+BUNDLE_TAG=$(sed -n 's/^BUNDLE_TAG=//p' <<<"$RES" | tail -1)
 [ -n "$WINNER" ] || { red_log "[-] no WINNER line in resolve.sh output"; exit 1; }
 
 C=$(jq -c --arg n "$WINNER" '.candidates[] | select(.name==$n)' <<<"$T")
@@ -63,13 +66,10 @@ green_log "[+] winner=$WINNER ($OWNER/$REPO $CHAN) app=$RVER patches=$PDIR optio
 
 # split_arch globs `-p *.mpp` in the cwd, so exactly one must be present
 rm -f ./*.mpp
-set +u; dl_gh "$REPO" "$OWNER" "$CHAN"; set -u
-if ! ls ./*.mpp >/dev/null 2>&1; then
-  if [ -n "$MPP" ] && [ -f "$MPP" ]; then
-    yellow_log "[!] no .mpp asset on $OWNER/$REPO, falling back to resolver cache: $MPP"
-    cp "$MPP" ./
-  fi
-fi
+[ -f "$MPP" ] && [ -n "$MPP_HASH" ] || { red_log "[-] exact resolved bundle missing"; exit 1; }
+[ "$(sha256sum "$MPP" | cut -d ' ' -f1)" = "$MPP_HASH" ] || { red_log "[-] resolved bundle changed"; exit 1; }
+cp "$MPP" ./ || { red_log "[-] could not stage resolved bundle"; exit 1; }
+green_log "[+] using exact resolved bundle $BUNDLE_TAG sha256=$MPP_HASH"
 # --- 2b. extra bundles, numbered so glob order is ours ----------------------
 WANT=1
 FIRST=$(ls ./*.mpp 2>/dev/null | head -1)
@@ -185,6 +185,7 @@ if [ -z "$version" ]; then
 fi
 # --- 5. sdk gate, enforced ----------------------------------------------
 bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" || { red_log "[-] SDK ceiling $CEIL exceeded"; exit 1; }
+python3 src/build/artifact_identity.py capture-inputs "$ID" "$WINNER" || exit 1
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
 for i in 0; do
@@ -228,7 +229,7 @@ done
 
 # --- 7. release metadata ---------------------------------------------------
 # tag version from apk: the store listing lies, the file does not
-VR=$(apkanalyzer manifest version-name "./download/$APK_NAME.apk" 2>/dev/null | head -1)
+VR=$(python3 src/build/artifact_identity.py input-version "$ID") || { red_log "[-] exact input APK version unreadable"; exit 1; }
 if [ -n "$VR" ] && [ "$VR" != "$version" ]; then
   yellow_log "[!] tag version corrected: $version -> $VR (read from the apk)"; version="$VR"
 fi
