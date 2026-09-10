@@ -53,7 +53,7 @@ jobs:
       COE: ${{ vars.COE }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Preflight before secrets and downloads
@@ -67,7 +67,7 @@ jobs:
           echo "keystore bytes: $SZ"
           [ "$SZ" -gt 3000 ] || { echo "::error::keystore truncated - KEYSTORE_B64 secret is incomplete"; exit 1; }
       - name: Cache the patcher jar
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: morphe-desktop-*.jar
           key: morphe-jar-${{ hashFiles('src/targets.json') }}
