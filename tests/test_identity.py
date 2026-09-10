@@ -429,4 +429,220 @@ class Identity(unittest.TestCase):
         self.assertEqual(len(summary['unclassified']), 2)
 
 
+class DexContainerTests(unittest.TestCase):
+    """Synthetic structural fixtures, NOT the Facebook DEX from the CI log."""
+    @staticmethod
+    def seal(blob):
+        import struct
+        import zlib
+        blob = bytearray(blob)
+        blob[12:32] = hashlib.sha1(blob[32:]).digest()
+        struct.pack_into('<I', blob, 8, zlib.adler32(blob[12:]))
+        return bytes(blob)
+
+    def fixture(self):
+        import struct
+        # Empty standard DEX: 112-byte header + 28-byte two-entry map.
+        blob = bytearray(140)
+        blob[:8] = b'dex\n038\0'
+        struct.pack_into('<20I', blob, 32, 140, 112, 0x12345678, 0, 0, 112,
+                         *([0]*12), 28, 112)
+        struct.pack_into('<IHHIIHHII', blob, 112, 2, 0, 0, 1, 0, 0x1000, 0, 1, 112)
+        return self.seal(blob)
+
+    def changed(self, offset, value, fmt='<I'):
+        import struct
+        blob = bytearray(self.fixture())
+        struct.pack_into(fmt, blob, offset, value)
+        return self.seal(blob)
+
+    def test_synthetic_container_checks(self):
+        got = native_payloads.inspect_dex(self.fixture())
+        self.assertEqual(got['version'], '038')
+        self.assertTrue(got['adler32_verified'])
+        self.assertTrue(got['sha1_verified'])
+        self.assertFalse(got['bytecode_semantics_verified'])
+
+    def test_documented_standard_versions(self):
+        for version in (b'035', b'037', b'038', b'039', b'040'):
+            blob = bytearray(self.fixture());blob[4:7] = version
+            self.assertEqual(native_payloads.inspect_dex(self.seal(blob))['version'], version.decode())
+
+    def test_observed_ci_header_alone_cannot_pass(self):
+        # These 20 bytes, and only these, came from run 34457350435.
+        with self.assertRaisesRegex(ValueError, 'size'):
+            native_payloads.inspect_dex(bytes.fromhex('6465780a3033380041c672064730b32e77cbaa0a'))
+
+    def test_checksum_bad(self):
+        blob = bytearray(self.fixture());blob[8] ^= 1
+        with self.assertRaisesRegex(ValueError, 'Adler'):
+            native_payloads.inspect_dex(blob)
+
+    def test_sha1_bad_even_with_correct_adler(self):
+        import struct
+        import zlib
+        blob = bytearray(self.fixture());blob[12] ^= 1
+        struct.pack_into('<I', blob, 8, zlib.adler32(blob[12:]))
+        with self.assertRaisesRegex(ValueError, 'SHA-1'):
+            native_payloads.inspect_dex(blob)
+
+    def test_file_size_bad(self):
+        with self.assertRaisesRegex(ValueError, 'size'):
+            native_payloads.inspect_dex(self.changed(32, 144))
+
+    def test_header_size_bad(self):
+        with self.assertRaisesRegex(ValueError, 'size'):
+            native_payloads.inspect_dex(self.changed(36, 120))
+
+    def test_reverse_endian_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'endian'):
+            native_payloads.inspect_dex(self.changed(40, 0x78563412))
+
+    def test_future_container_rejected(self):
+        blob = bytearray(self.fixture());blob[4:7] = b'041'
+        with self.assertRaisesRegex(ValueError, 'version'):
+            native_payloads.inspect_dex(self.seal(blob))
+
+    def test_unknown_version_rejected(self):
+        blob = bytearray(self.fixture());blob[4:7] = b'036'
+        with self.assertRaises(ValueError):
+            native_payloads.inspect_dex(self.seal(blob))
+
+    def test_trailing_bytes_rejected(self):
+        with self.assertRaises(ValueError):
+            native_payloads.inspect_dex(self.fixture()+b'extra')
+
+    def test_data_bounds_bad(self):
+        with self.assertRaisesRegex(ValueError, 'data bounds'):
+            native_payloads.inspect_dex(self.changed(104, 24))
+
+    def test_linked_data_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'linked'):
+            native_payloads.inspect_dex(self.changed(44, 4))
+
+    def test_map_missing_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'map offset'):
+            native_payloads.inspect_dex(self.changed(52, 0))
+
+    def test_map_count_oversized(self):
+        with self.assertRaisesRegex(ValueError, 'map length'):
+            native_payloads.inspect_dex(self.changed(112, 100000))
+
+    def test_map_reserved_nonzero(self):
+        with self.assertRaisesRegex(ValueError, 'map type'):
+            native_payloads.inspect_dex(self.changed(118, 1, '<H'))
+
+    def test_map_unknown_kind(self):
+        with self.assertRaisesRegex(ValueError, 'map type'):
+            native_payloads.inspect_dex(self.changed(128, 0xffff, '<H'))
+
+    def test_map_duplicate_kind(self):
+        with self.assertRaisesRegex(ValueError, 'map type'):
+            native_payloads.inspect_dex(self.changed(128, 0, '<H'))
+
+    def test_map_self_offset_bad(self):
+        with self.assertRaises(ValueError):
+            native_payloads.inspect_dex(self.changed(136, 116))
+
+    def test_map_zero_count_bad(self):
+        with self.assertRaises(ValueError):
+            native_payloads.inspect_dex(self.changed(132, 0))
+
+    def test_header_map_mismatch(self):
+        with self.assertRaises(ValueError):
+            native_payloads.inspect_dex(self.changed(120, 2))
+
+    def test_header_pair_mismatch(self):
+        with self.assertRaisesRegex(ValueError, 'count/offset'):
+            native_payloads.inspect_dex(self.changed(56, 1))
+
+    def test_size_limit(self):
+        with patch.object(native_payloads, 'MAX_MEMBER_BYTES', 120), self.assertRaises(ValueError):
+            native_payloads.inspect_dex(self.fixture())
+
+    def archive(self, payload, name='lib/arm64-v8a/anything.so', elf=True):
+        result = io.BytesIO()
+        with zipfile.ZipFile(result, 'w') as z:
+            z.writestr(name, payload)
+            if elf:
+                header = bytearray(20);header[:6] = b'\x7fELF\x02\x01';header[18:20] = (183).to_bytes(2, 'little')
+                z.writestr('lib/arm64-v8a/real.so', header)
+        result.seek(0)
+        return result
+
+    def test_full_native_path_reports_bytecode_not_elf(self):
+        got = native_payloads.verify_native_payloads(self.archive(self.fixture()), self.archive(self.fixture()))
+        item = got['packaged_data'][0]
+        self.assertEqual(item['format'], 'dex-container-checked')
+        self.assertTrue(item['executable_bytecode'])
+        self.assertFalse(item['executable_elf'])
+        self.assertEqual(item['input_sha256'], item['output_sha256'])
+        self.assertEqual(got['direct_arm64_elf_count'], 1)
+
+    def test_same_valid_dex_different_input_refused(self):
+        blob = bytearray(self.fixture());blob[4:7] = b'039';other = self.seal(blob)
+        with self.assertRaisesRegex(ValueError, 'bytes changed'):
+            native_payloads.verify_native_payloads(self.archive(self.fixture()), self.archive(other))
+
+    def test_dex_needs_input(self):
+        with self.assertRaises(ValueError):
+            native_payloads.verify_native_payloads(self.archive(self.fixture()))
+
+    def test_dex_is_not_native_abi_proof(self):
+        with self.assertRaisesRegex(ValueError, 'no direct arm64 ELF'):
+            native_payloads.verify_native_payloads(self.archive(self.fixture(), elf=False),
+                                                   self.archive(self.fixture(), elf=False))
+
+    def test_real_filename_does_not_bypass_gate(self):
+        name = 'lib/arm64-v8a/libhelium_child.dex.so'
+        with self.assertRaises(ValueError):
+            native_payloads.verify_native_payloads(self.archive(b'dex\n038\0broken', name),
+                                                   self.archive(b'dex\n038\0broken', name))
+
+    def nonempty(self):
+        import struct
+        blob = bytearray(172)
+        blob[:8] = b'dex\n038\0'
+        struct.pack_into('<20I', blob, 32, 172, 112, 0x12345678, 0, 0, 120,
+                         1, 112, *([0]*10), 56, 116)
+        struct.pack_into('<I', blob, 112, 116)
+        # One empty string at 116, two padding bytes, then the map.
+        struct.pack_into('<I', blob, 120, 4)
+        for i, (kind, count, offset) in enumerate(((0,1,0),(1,1,112),(0x2002,1,116),(0x1000,1,120))):
+            struct.pack_into('<HHII', blob, 124+i*12, kind, 0, count, offset)
+        return self.seal(blob)
+
+    def mutated_nonempty(self, offset, value, fmt='<I'):
+        import struct
+        blob = bytearray(self.nonempty());struct.pack_into(fmt, blob, offset, value)
+        return self.seal(blob)
+
+    def test_nonempty_table_and_map(self):
+        self.assertEqual(native_payloads.inspect_dex(self.nonempty())['map_entries'], 4)
+
+    def test_fixed_table_overrun(self):
+        with self.assertRaisesRegex(ValueError, 'fixed section'):
+            native_payloads.inspect_dex(self.mutated_nonempty(56, 2))
+
+    def test_fixed_table_in_header(self):
+        with self.assertRaises(ValueError):
+            native_payloads.inspect_dex(self.mutated_nonempty(60, 108))
+
+    def test_map_unsorted(self):
+        with self.assertRaisesRegex(ValueError, 'unsorted'):
+            native_payloads.inspect_dex(self.mutated_nonempty(156, 112))
+
+    def test_map_fixed_count_disagrees(self):
+        with self.assertRaisesRegex(ValueError, 'section mismatch'):
+            native_payloads.inspect_dex(self.mutated_nonempty(136, 2, '<H'))
+
+    def test_map_data_count_overlaps_next_section(self):
+        with self.assertRaisesRegex(ValueError, 'overlap'):
+            native_payloads.inspect_dex(self.mutated_nonempty(152, 5))
+
+    def test_data_map_out_of_range(self):
+        with self.assertRaises(ValueError):
+            native_payloads.inspect_dex(self.mutated_nonempty(156, 9999))
+
+
 if __name__=='__main__':unittest.main()
