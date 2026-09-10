@@ -4,6 +4,11 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
+      publish:
+        description: 'Publish release (false runs a nonpublishing smoke test)'
+        required: false
+        default: true
+        type: boolean
       target:
         description: 'Which target do you want to patch?'
         required: true
@@ -26,12 +31,19 @@ on:
           - 'keymapper'
   workflow_call:
     inputs:
+      publish:
+        required: false
+        type: boolean
+        default: true
       target:
         required: true
         type: string
 jobs:
   patch:
     name: Patch ${{ inputs.target }}
+    concurrency:
+      group: patch-${{ inputs.target }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     env:
       repository: ${{ github.repository }}
@@ -42,6 +54,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
+      - name: Preflight before secrets and downloads
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/etc/preflight.py "$TARGET"
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > src/ks.keystore
@@ -68,5 +86,10 @@ jobs:
           TARGET: ${{ inputs.target }}
         run: bash src/build/build.sh "$TARGET"
       - name: Releasing APK files
-        if: steps.check-gh.outputs.internet_error == '0'
+        if: steps.check-gh.outputs.internet_error == '0' && inputs.publish && github.ref == 'refs/heads/main'
         uses: ./.github/actions/release
+      - name: Nonpublishing smoke result
+        if: steps.check-gh.outputs.internet_error == '0' && (!inputs.publish || github.ref != 'refs/heads/main')
+        run: |
+          echo "SMOKE PASSED: APK built and locally checked; release and prune were skipped."
+          echo "No APK was installed on a phone."

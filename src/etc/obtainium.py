@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# Generate Obtainium import files from targets.json plus the live release list.
-# Anonymous GitHub read. Writes docs/obtainium-govind.json and docs/obtainium-parents.json.
-import json, re, urllib.request
+# Generate deterministic import files for enabled targets; no network access.
+# --check compares bytes without writing. Release availability is separate.
+import json, re, sys, pathlib
 
 REPO = "govinda-rajulu/patch-factory"
 APP_URL = "https://github.com/" + REPO
@@ -17,6 +17,8 @@ SET_B = ["tc-combo", "prime-video", "facebook", "gg-photos", "es-file", "hotstar
 targets = json.load(open("src/targets.json"))
 pkg = {}
 for t in targets:
+    if not t.get("enabled"):
+        continue
     p = t.get("tag_prefix") or t["id"]
     assert re.fullmatch("[a-z0-9-]+", p), ("prefix has regex metachars", p)
     pkg[p] = t["package"]
@@ -32,17 +34,9 @@ for p in sorted(set(MINE + THEIRS)):
     assert p in LABELS, ("no label", p)
     assert p in pkg, ("no target", p)
 
-req = urllib.request.Request(
-  "https://api.github.com/repos/" + REPO + "/releases?per_page=100",
-  headers={"Accept": "application/vnd.github+json", "User-Agent": "patch-factory"})
-rel = json.load(urllib.request.urlopen(req, timeout=30))
-assert isinstance(rel, list), "releases API did not return an array - throttled"
-live = set()
-for r in rel:
-    m = re.fullmatch("([a-z0-9-]+)-v[0-9.]+-b[0-9]{8}", r["tag_name"])
-    if m and any(a["name"].endswith("arm64-v8a.apk") for a in r["assets"]):
-        live.add(m.group(1))
-print("live:", " ".join(sorted(live)))
+live = set(LABELS)
+# Imports describe configured enabled targets; availability is a separate live concern.
+CHECK = "--check" in sys.argv
 
 def entry(p):
     adds = {
@@ -64,7 +58,13 @@ def write(path, wanted):
     ids = [pkg[p] for p in ok]
     assert ok, "refusing to write an empty import file: " + path
     assert len(ids) == len(set(ids)), ("two apps share a package id", ids)
-    json.dump({"apps": [entry(p) for p in ok]}, open(path, "w"), indent=1)
+    content = json.dumps({"apps": [entry(p) for p in ok]}, indent=1)
+    dest = pathlib.Path(path)
+    if CHECK:
+        if not dest.exists() or dest.read_text() != content:
+            raise SystemExit("STALE: " + path + "; run python3 src/etc/obtainium.py")
+    else:
+        dest.write_text(content)
     print(path, len(ok), "apps:", " ".join(ok))
 
 write("docs/obtainium-govind.json", MINE)

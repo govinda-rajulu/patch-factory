@@ -6,6 +6,12 @@ set -uo pipefail
 ID="${1:?usage: build.sh <target-id>}"
 TARGETS="src/targets.json"
 
+python3 src/etc/preflight.py "$ID" || exit 1
+# Refuse reused output directories rather than risking a stale artifact.
+if [ -d release ] && [ -n "$(find release -mindepth 1 -print -quit)" ]; then
+  echo "::error::release directory is not empty; use a fresh build checkout"; exit 1
+fi
+
 # utils.sh is 29KB of upstream code written without `set -u`.
 # Scope strictness off around every call into it; our own logic stays strict.
 set +u; source ./src/build/utils.sh; set -u
@@ -183,10 +189,12 @@ bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" || { red_log "[
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
 for i in 0; do
   [ -n "${COE:-}" ] && excludePatches="$excludePatches --continue-on-error"
-  set +u; split_arch "$APK_NAME" "$OPTS" > /tmp/patch.log 2>&1; SA=$?; set -u
+  python3 src/build/patch_target.py "$ID" "$WINNER" > /tmp/patch.log 2>&1; SA=$?
  cat /tmp/patch.log
+	 [ "$SA" -eq 0 ] || { red_log "[-] patcher exited $SA - refusing to release"; exit 1; }
  grep -o "Applied: .*" /tmp/patch.log | sed 's/\x1b\[[0-9;]*m//g; s/^Applied: //; s/[[:space:]]*$//' | sort -u > /tmp/applied.txt
  AP=$(wc -l < /tmp/applied.txt)
+	 [ "$AP" -gt 0 ] || { red_log "[-] zero patches applied - refusing to release"; exit 1; }
  green_log "[+] applied $AP patches (rc=$SA)"
  grep "Applied: " /tmp/patch.log | sed 's/.*Applied: /- /' | sort > ./release/.applied
  PKG_LOG=$(grep -oE "Filtering patches for [^ ]+" /tmp/patch.log | tail -1 | awk "{print \$NF}")
@@ -247,7 +255,8 @@ green_log "[+] providers: $PROV"
 green_log "[+] release tag: $PREFIX-v$version$(cat ./release/.tagsuffix)"
 
 # --- 8. assert -------------------------------------------------------------
+python3 src/build/verify_output.py || exit 1
 COUNT=$(ls ./release/*.apk 2>/dev/null | wc -l)
-[ "$COUNT" -ge 1 ] || { red_log "[-] no APK produced in ./release/"; ls -la ./release/; exit 1; }
+[ "$COUNT" -eq 1 ] || { red_log "[-] expected exactly one APK in ./release/"; exit 1; }
 green_log "[+] $COUNT APK(s) built"
 ls -la ./release/

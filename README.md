@@ -133,7 +133,7 @@ Generated from `src/targets.json` by `src/etc/readmegen.py`. **3. Validate** fai
 that leaves this block stale, so it cannot drift.
 
 - **14 apps**, all enabled, 14 polled by the scheduled build (`30 12 * * *` UTC).
-- Patch-age cap: 60, 120 days. A provider older than its cap is disqualified, not silently used.
+- Patch-age warning: 60, 120 days. Age is advisory; requested/applied checks and build verification decide.
 - 2 build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.
 - 2 patch(es) quarantined in `src/patches/QUARANTINE`, held out of every include list by CI.
 
@@ -154,15 +154,15 @@ that leaves this block stale, so it cannot drift.
 | Truecaller (combo) | `truecaller-combo` | `tc-combo` | apkmirror | bufferk + paresh + binarymend | yes |
 | YouTube | `youtube` | `youtube-morphe` | apkmirror | morphe | yes |
 
-### Gates that run on every build
+### Build gates and separate validation checks
 
 1. `bancheck.sh` blocks a BANNED patch reaching an include list; CONFIRM warns; EXCEPTIONS is dated.
 2. `quarantine.sh` keeps a patch that broke a real build out of every include list.
 3. `selections.sh` aborts if one patch name is requested under two bundles of one target.
 4. `build.sh` compares requested against applied **by name** and refuses to release on a gap.
 5. The package name is verified twice: on the downloaded APK, and against what the patcher filtered.
-6. `check_sdk.sh` enforces `min_sdk_ceiling`; over the ceiling fails the build.
-7. `tooling.sh` verifies every downloaded build tool against its recorded sha256.
+6. `check_sdk.sh` rejects an excessive or unreadable `min_sdk_ceiling` measurement.
+7. `tooling.sh` verifies pup and APKEditor; morphe-desktop intentionally tracks latest.
 8. `readmegen.py --check` and `pagegen.py --check` fail a push that leaves docs stale.
 9. `shellcheck` at severity=error over every script in `src/build` and `src/etc`.
 

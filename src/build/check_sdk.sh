@@ -1,5 +1,5 @@
 #!/bin/bash
-# Report-only minSdk gate.
+# Fail-closed minSdk gate: an unreadable SDK is not a pass.
 # Tries four readers. Never hides why a read failed.
 APK="${1:?apk path}"; CEIL="${2:-29}"
 MIN=""
@@ -47,8 +47,8 @@ print(APK('$APK').get_min_sdk_version() or '')
 fi
 
 if [ -z "$MIN" ]; then
-  echo "::warning::UNVERIFIED - all four readers failed, minSdk unknown for $(basename "$APK")"
-  exit 0
+  echo "::error::UNVERIFIED - all four readers failed, minSdk unknown for $(basename "$APK")"
+  exit 1
 fi
 
 echo "minSdkVersion=$MIN ceiling=$CEIL"

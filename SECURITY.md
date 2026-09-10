@@ -11,7 +11,7 @@ here is exactly who, and what stops each one silently changing the output.
 | Build tools (`pup`, `APKEditor`) | sha256-pinned in `src/build/TOOLING.sha256`. A mismatch aborts the build. Re-pin deliberately with `src/build/repin.sh`. |
 | `morphe-desktop` (the patcher) | Taken as `latest` on purpose: new provider bundles need new patcher versions. **Not pinned.** This is the largest remaining supply-chain surface. |
 | Cloudflare-bypass containers | Pinned by image digest in `.github/actions/preparing/action.yml`. |
-| Patch bundles from providers | Not pinned; that is the point of the project. Constrained instead: `max_patch_age_days` disqualifies a stale provider, and every applied patch is compared by name against the include list. |
+| Patch bundles from providers | Intentionally not pinned. `max_patch_age_days` is advisory. Explicitly requested patches must appear in the applied log; this does not prove that provider code or default-on additions are safe. |
 | The APK from the store | Size floor, real zip, `AndroidManifest.xml` present, and the package name verified twice: on the download and against what the patcher says it filtered. |
 | Patches themselves | `src/patches/BANNED` blocks server-visible and identity-changing patches from any include list. `CONFIRM` warns. `EXCEPTIONS` documents each deliberate override with a date. |
 
