@@ -17,8 +17,7 @@ def require(ok, message):
         raise ValueError(message)
 
 
-def api_page(owner, repo, page, env):
-    url = 'https://api.github.com/repos/' + owner + '/' + repo + '/releases?per_page=100&page=' + str(page)
+def api_json(url, env, identity):
     headers = ['Accept: application/vnd.github+json']
     token = env.get('GITHUB_TOKEN') or env.get('GH_TOKEN')
     if token:
@@ -29,9 +28,14 @@ def api_page(owner, repo, page, env):
     result = subprocess.run(['curl', '--fail', '--silent', '--show-error', '--connect-timeout', '20',
                              '--max-time', '120', '--retry', '2', '--retry-delay', '2', '--config', '-', url],
                             input=config, capture_output=True, text=True, timeout=400)
-    require(result.returncode == 0, 'GitHub release API request failed for ' + owner + '/' + repo
+    require(result.returncode == 0, 'GitHub release API request failed for ' + identity
             + ' (curl exit ' + str(result.returncode) + '); not a version-compatibility result')
-    data = json.loads(result.stdout)
+    return json.loads(result.stdout)
+
+
+def api_page(owner, repo, page, env):
+    url = 'https://api.github.com/repos/' + owner + '/' + repo + '/releases?per_page=100&page=' + str(page)
+    data = api_json(url, env, owner + '/' + repo)
     require(isinstance(data, list), 'GitHub release API returned a non-array; refusing provider election')
     return data
 
