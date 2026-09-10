@@ -93,6 +93,7 @@ while IFS= read -r E; do
   fi
   EK=$(printf "%02d" "$EJ")
   FB=$(bash ./src/build/fetch_bundle.sh "$EH" "$EID" "$ECH" "./$EK-$ENM.mpp" 2>&1) || { red_log "[-] extra bundle $ENM failed: $FB"; exit 1; }
+  printf '%s\n' "$FB"
   green_log "[+] bundle $EK $ENM $(sed -n "s/^TAG=//p" <<<"$FB") $(sed -n "s/^SIZE=//p" <<<"$FB") bytes"
   WANT=$((WANT+1))
 done < <(jq -c '(.extra_bundles // [])[]' <<<"$T")
