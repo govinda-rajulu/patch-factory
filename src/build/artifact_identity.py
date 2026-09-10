@@ -12,6 +12,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 from verify_output import verify as verify_structure
+from native_payloads import verify_native_payloads
 
 SCHEMA = 1
 ANDROID = '{http://schemas.android.com/apk/res/android}'
@@ -175,31 +176,7 @@ def metadata(root, apk, env):
 
 
 def native_architecture(apk, source_apk=None):
-    with zipfile.ZipFile(apk) as z:
-        natives = [n for n in z.namelist() if n.startswith('lib/') and not n.endswith('/')]
-        for name in natives:
-            bits = name.split('/')
-            require(len(bits) >= 3 and bits[1] == 'arm64-v8a', 'non-arm64 native member: ' + name)
-            if name.endswith('.so'):
-                with z.open(name) as f:
-                    h = f.read(20)
-                valid = (len(h) == 20 and h[:4] == b'\x7fELF' and h[4] == 2 and h[5] == 1
-                         and int.from_bytes(h[18:20], 'little') == 183)
-                if not valid:
-                    evidence = {'member': name, 'output_header_hex': h.hex(),
-                                'output_member_bytes': z.getinfo(name).file_size,
-                                'policy': 'still rejected; classification needs evidence'}
-                    if source_apk is not None:
-                        with zipfile.ZipFile(source_apk) as source:
-                            if name in source.namelist():
-                                with source.open(name) as stream:
-                                    evidence['input_header_hex'] = stream.read(20).hex()
-                                evidence['input_member_bytes'] = source.getinfo(name).file_size
-                            else:
-                                evidence['input_member'] = 'not present at this path'
-                    print('NATIVE_MEMBER_DIAGNOSTIC ' + json.dumps(evidence, sort_keys=True), flush=True)
-                require(valid, 'native library is not ELF64 AArch64: ' + name)
-        return {'classification': 'arm64-v8a' if natives else 'no-native-libraries', 'native_file_count': len(natives)}
+    return verify_native_payloads(apk, source_apk)
 
 
 def parse_signers(text):

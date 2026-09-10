@@ -17,6 +17,7 @@ from unittest.mock import patch
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src/build'))
 import artifact_identity as identity
+import native_payloads
 
 
 class Identity(unittest.TestCase):
@@ -286,6 +287,126 @@ class Identity(unittest.TestCase):
         self.assertEqual(output['input_header_hex'], output['output_header_hex'])
         self.assertTrue(output['output_header_hex'].startswith('504b0304'))
         self.assertEqual(output['policy'], 'still rejected; classification needs evidence')
+
+    def zip_bytes(self, entries):
+        out = io.BytesIO()
+        with zipfile.ZipFile(out, 'w') as z:
+            for name, data in entries:
+                z.writestr(name, data)
+        return out.getvalue()
+
+    def preserved_payload(self, payload, name='lib/arm64-v8a/data.so'):
+        apk = self.apk({'lib/arm64-v8a/libreal.so': self.elf(), name: payload})
+        source = self.r / 'source.apk'
+        shutil.copy(apk, source)
+        return apk, source
+
+    def test_observed_three_byte_text_preserved(self):
+        apk, source = self.preserved_payload(bytes.fromhex('312e30'), 'lib/arm64-v8a/libAIVSecureRenderer.so')
+        result = identity.native_architecture(apk, source)
+        evidence = result['packaged_data'][0]
+        self.assertEqual(evidence['format'], 'literal-text-1.0')
+        self.assertEqual(evidence['input_sha256'], evidence['output_sha256'])
+        self.assertEqual(result['direct_arm64_elf_count'], 1)
+
+    def test_valid_zip_preserved_and_inspected(self):
+        payload = self.zip_bytes([('assets/data.txt', b'resource'), ('binary', self.elf())])
+        apk, source = self.preserved_payload(payload, 'lib/arm64-v8a/libassets.zip.so')
+        result = identity.native_architecture(apk, source)
+        evidence = result['packaged_data'][0]
+        self.assertEqual(evidence['format'], 'validated-zip')
+        self.assertEqual(evidence['archive_inspection']['visible_arm64_elf_members'], 1)
+        self.assertEqual(evidence['archive_inspection']['other_data_members'], 1)
+
+    def test_matching_header_size_not_enough(self):
+        original = self.zip_bytes([('data.txt', b'AAAA')])
+        changed = self.zip_bytes([('data.txt', b'BBBB')])
+        apk, source = self.preserved_payload(original)
+        self.apk({'lib/arm64-v8a/libreal.so': self.elf(), 'lib/arm64-v8a/data.so': changed})
+        with self.assertRaisesRegex(ValueError, 'bytes changed'):
+            identity.native_architecture(apk, source)
+
+    def test_text_changed_from_input_rejected(self):
+        apk, source = self.preserved_payload(b'1.0')
+        with zipfile.ZipFile(source, 'w') as z:
+            z.writestr('lib/arm64-v8a/data.so', b'2.0')
+        with self.assertRaisesRegex(ValueError, 'bytes changed'):
+            identity.native_architecture(apk, source)
+
+    def test_known_filename_not_a_pass(self):
+        apk, source = self.preserved_payload(b'unknown', 'lib/arm64-v8a/libAIVSecureRenderer.so')
+        with self.assertRaisesRegex(ValueError, 'unclassified'):
+            identity.native_architecture(apk, source)
+
+    def test_preserved_data_without_input_rejected(self):
+        apk, _ = self.preserved_payload(b'1.0')
+        with self.assertRaises(ValueError):
+            identity.native_architecture(apk)
+
+    def test_data_only_is_not_arm64_proof(self):
+        apk = self.apk({'lib/arm64-v8a/data.so': b'1.0'})
+        source = self.r / 'source.apk';shutil.copy(apk, source)
+        with self.assertRaisesRegex(ValueError, 'no direct arm64 ELF'):
+            identity.native_architecture(apk, source)
+
+    def test_x86_elf_inside_preserved_zip_rejected(self):
+        apk, source = self.preserved_payload(self.zip_bytes([('hidden.bin', self.elf(62))]))
+        with self.assertRaisesRegex(ValueError, 'not ELF64 AArch64'):
+            identity.native_architecture(apk, source)
+
+    def test_x86_elf_wrong_suffix_rejected(self):
+        apk = self.apk({'lib/arm64-v8a/not-a-so.dat': self.elf(62)})
+        with self.assertRaises(ValueError):
+            identity.native_architecture(apk)
+
+    def test_nested_zip_inspected(self):
+        payload = self.zip_bytes([('inner.zip', self.zip_bytes([('real', self.elf())]))])
+        apk, source = self.preserved_payload(payload)
+        result = identity.native_architecture(apk, source)
+        self.assertEqual(result['packaged_data'][0]['archive_inspection']['nested_zip_archives'], 1)
+
+    def test_nested_x86_zip_rejected(self):
+        payload = self.zip_bytes([('inner.zip', self.zip_bytes([('wrong', self.elf(3))]))])
+        apk, source = self.preserved_payload(payload)
+        with self.assertRaises(ValueError):
+            identity.native_architecture(apk, source)
+
+    def test_zip_crc_failure_rejected(self):
+        payload = self.zip_bytes([('data', b'UNIQUE-CONTENT')]).replace(b'UNIQUE-CONTENT', b'BROKEN-CONTENT')
+        apk, source = self.preserved_payload(payload)
+        with self.assertRaises(ValueError):
+            identity.native_architecture(apk, source)
+
+    def test_zip_duplicate_entries_rejected(self):
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            payload = self.zip_bytes([('same', b'a'), ('same', b'b')])
+        apk, source = self.preserved_payload(payload)
+        with self.assertRaisesRegex(ValueError, 'duplicate'):
+            identity.native_architecture(apk, source)
+
+    def test_zip_traversal_rejected(self):
+        apk, source = self.preserved_payload(self.zip_bytes([('../outside', b'a')]))
+        with self.assertRaisesRegex(ValueError, 'traversal'):
+            identity.native_architecture(apk, source)
+
+    def test_zip_expansion_limit_rejected(self):
+        apk, source = self.preserved_payload(self.zip_bytes([('large', b'x' * 100)]))
+        with patch.object(native_payloads, 'MAX_EXPANDED_BYTES', 50), self.assertRaisesRegex(ValueError, 'expansion'):
+            identity.native_architecture(apk, source)
+
+    def test_nested_zip_depth_limit_rejected(self):
+        payload = self.zip_bytes([('inner', self.zip_bytes([('data', b'a')]))])
+        apk, source = self.preserved_payload(payload)
+        with patch.object(native_payloads, 'MAX_DEPTH', 0), self.assertRaisesRegex(ValueError, 'nesting'):
+            identity.native_architecture(apk, source)
+
+    def test_packaged_zip_report_does_not_claim_opaque_abi(self):
+        apk, source = self.preserved_payload(self.zip_bytes([('compressed.bin', b'\xfd7zXZ\x00opaque')]))
+        result = identity.native_architecture(apk, source)
+        self.assertIn('not ABI-certified', result['scope'])
+        self.assertEqual(result['packaged_data'][0]['archive_inspection']['other_data_members'], 1)
 
 
 if __name__=='__main__':unittest.main()
