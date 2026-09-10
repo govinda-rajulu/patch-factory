@@ -11,6 +11,7 @@ python3 src/etc/preflight.py "$ID" || exit 1
 if [ -d release ] && [ -n "$(find release -mindepth 1 -print -quit)" ]; then
   echo "::error::release directory is not empty; use a fresh build checkout"; exit 1
 fi
+python3 src/build/artifact_identity.py capture-signer || exit 1
 
 # utils.sh is 29KB of upstream code written without `set -u`.
 # Scope strictness off around every call into it; our own logic stays strict.
@@ -185,6 +186,7 @@ if [ -z "$version" ]; then
 fi
 # --- 5. sdk gate, enforced ----------------------------------------------
 bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" || { red_log "[-] SDK ceiling $CEIL exceeded"; exit 1; }
+python3 src/build/artifact_identity.py capture-inputs "$ID" "$WINNER" || exit 1
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
 for i in 0; do
