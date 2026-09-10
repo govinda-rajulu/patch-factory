@@ -116,6 +116,9 @@ def packaged_data(output, source, name):
     if header == b'1.0' and info.file_size == 3:
         # Exact data bytes observed in Prime Video, not a general text/filename bypass.
         evidence.update(format='literal-text-1.0', executable_elf=False)
+    elif header == b'release=452' and info.file_size == 11:
+        # Full 11 bytes observed in input/output, run 34456028004.
+        evidence.update(format='literal-text-release-452', executable_elf=False)
     elif header[:4] in ZIP_HEADERS:
         with tempfile.SpooledTemporaryFile(max_size=8*1024*1024) as copy:
             with output.open(name) as stream:
@@ -135,6 +138,7 @@ def packaged_data(output, source, name):
 
 def verify_native_payloads(apk, source_apk=None):
     data = []
+    failures = []
     elf_count = 0
     with zipfile.ZipFile(apk) as output:
         names = output.namelist()
@@ -166,10 +170,15 @@ def verify_native_payloads(apk, source_apk=None):
                             evidence['input_header_hex'] = stream.read(20).hex()
                         evidence['input_member_bytes'] = source.getinfo(name).file_size
                     print('NATIVE_MEMBER_DIAGNOSTIC ' + json.dumps(evidence, sort_keys=True), flush=True)
-                    raise ValueError(str(error)) from error
+                    failures.append({'member': name, 'reason': str(error)})
         finally:
             if source is not None:
                 source.close()
+    if failures:
+        print('NATIVE_SCAN_SUMMARY ' + json.dumps({'unclassified': failures, 'accepted_packaged_data': data,
+                                                 'direct_arm64_elf_count': elf_count}, sort_keys=True), flush=True)
+        raise ValueError(str(len(failures)) + ' native-data member(s) rejected; complete inventory logged: '
+                         + '; '.join(x['reason'] for x in failures))
     # A data-only lib/ tree is not evidence of a functioning native application.
     require(not data or elf_count > 0, 'packaged data present but no direct arm64 ELF confirmed')
     return {'classification': 'arm64-v8a' if elf_count else 'no-native-libraries',

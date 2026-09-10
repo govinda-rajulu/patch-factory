@@ -277,6 +277,11 @@ if __name__ == '__main__':
             capture_inputs(root, sys.argv[2], sys.argv[3], os.environ)
         elif mode == 'verify':
             verify_final(root, sys.argv[2], os.environ)
+        elif mode == 'input-version':
+            t = target(root, sys.argv[2])
+            value = metadata(root, (root / 'download' / (t['apk_name'] + '.apk')).resolve(), os.environ)['version_name']
+            require(re.fullmatch(r'[0-9]+(?:[.][0-9]+)*', value), 'input version incompatible with existing release naming')
+            print(value)
         else:
             raise ValueError('unknown identity mode')
     except (ValueError, OSError, KeyError, IndexError, StopIteration, subprocess.TimeoutExpired, zipfile.BadZipFile) as e:

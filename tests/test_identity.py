@@ -283,7 +283,7 @@ class Identity(unittest.TestCase):
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf), self.assertRaises(ValueError):
             identity.native_architecture(apk, source)
-        output = json.loads(buf.getvalue().split('NATIVE_MEMBER_DIAGNOSTIC ', 1)[1])
+        output = json.loads(buf.getvalue().split('NATIVE_MEMBER_DIAGNOSTIC ', 1)[1].splitlines()[0])
         self.assertEqual(output['input_header_hex'], output['output_header_hex'])
         self.assertTrue(output['output_header_hex'].startswith('504b0304'))
         self.assertEqual(output['policy'], 'still rejected; classification needs evidence')
@@ -407,6 +407,26 @@ class Identity(unittest.TestCase):
         result = identity.native_architecture(apk, source)
         self.assertIn('not ABI-certified', result['scope'])
         self.assertEqual(result['packaged_data'][0]['archive_inspection']['other_data_members'], 1)
+
+    def test_observed_release_text_preserved(self):
+        apk, source = self.preserved_payload(b'release=452', 'lib/arm64-v8a/libInit.so')
+        result = identity.native_architecture(apk, source)
+        self.assertEqual(result['packaged_data'][0]['format'], 'literal-text-release-452')
+
+    def test_other_release_text_still_rejected(self):
+        apk, source = self.preserved_payload(b'release=453', 'lib/arm64-v8a/libInit.so')
+        with self.assertRaises(ValueError):
+            identity.native_architecture(apk, source)
+
+    def test_all_unknown_data_members_are_reported(self):
+        apk = self.apk({'lib/arm64-v8a/libreal.so': self.elf(),
+                        'lib/arm64-v8a/first.so': b'unknown1', 'lib/arm64-v8a/second.so': b'unknown2'})
+        source = self.r / 'source.apk';shutil.copy(apk, source)
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer), self.assertRaises(ValueError):
+            identity.native_architecture(apk, source)
+        summary = json.loads(buffer.getvalue().split('NATIVE_SCAN_SUMMARY ', 1)[1])
+        self.assertEqual(len(summary['unclassified']), 2)
 
 
 if __name__=='__main__':unittest.main()
