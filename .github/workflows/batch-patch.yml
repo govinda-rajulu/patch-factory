@@ -1,9 +1,15 @@
 name: 6. Batch Patch
+run-name: Batch ${{ inputs.targets }} / publish=${{ inputs.publish }}
 permissions:
   contents: write
 on:
   workflow_dispatch:
     inputs:
+      publish:
+        description: 'Publish releases (false is a nonpublishing smoke batch)'
+        required: false
+        type: boolean
+        default: true
       targets:
         description: 'Comma-separated target ids'
         required: true
@@ -30,4 +36,5 @@ jobs:
     uses: ./.github/workflows/manual-patch.yml
     with:
       target: ${{ matrix.target }}
+      publish: ${{ inputs.publish }}
     secrets: inherit

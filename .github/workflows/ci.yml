@@ -36,15 +36,20 @@ jobs:
           mapfile -t IDS < <(jq -r '.[] | select(.enabled != false) | select((.poll // false) == true) | .id' src/targets.json)
           echo "opted in: ${IDS[*]:-none}"
           WANT=()
+          POLL_ERRORS=0
           for id in "${IDS[@]:-}"; do
             [ -n "$id" ] || continue
             OUT=$(mktemp)
-            GITHUB_OUTPUT="$OUT" bash src/etc/poll.sh "$id" || echo "  $id: poll exited non-zero, skipping"
+            if ! GITHUB_OUTPUT="$OUT" bash src/etc/poll.sh "$id"; then
+              echo "::error::$id poll failed"; POLL_ERRORS=$((POLL_ERRORS+1))
+              rm -f "$OUT"; continue
+            fi
             NEW=$(grep -E '^new_patch=' "$OUT" | tail -1 | cut -d= -f2)
             echo "  $id: new_patch=${NEW:-0}"
             [ "${NEW:-0}" = "1" ] && WANT+=("$id")
             rm -f "$OUT"
           done
+          [ "$POLL_ERRORS" -eq 0 ] || { echo "::error::$POLL_ERRORS target polls unknown; no build plan emitted"; exit 1; }
           COUNT=${#WANT[@]}
           MATRIX=$(printf '%s\n' "${WANT[@]:-}" | jq -R . | jq -sc '{target: map(select(length>0))}')
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"

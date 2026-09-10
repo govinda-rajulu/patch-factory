@@ -12,7 +12,7 @@ AUTH=()
 [ -n "${GITHUB_TOKEN:-}" ] && AUTH=(-H "Authorization: token $GITHUB_TOKEN")
 
 # newest source bundle date across every candidate and extra
-NEWEST=0; NEWEST_WHO=""
+NEWEST=0; NEWEST_WHO=""; UNKNOWN=0
 srcs=$(jq -r '[(.candidates[] | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name}),
               ((.extra_bundles // [])[] | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name})]
              | .[] | [.n,.h,.p,.o,.r] | @tsv' <<<"$T")
@@ -26,22 +26,25 @@ while IFS=$'\t' read -r n h p o r; do
         "https://api.github.com/repos/$o/$r/releases" \
         | jq -r 'first(.[] | .assets[] | select(.name | test("[.]mpp$")) | .updated_at) // ""')
   fi
-  [ -n "$D" ] && [ "$D" != "null" ] || { echo "  $n: no date, skipped"; continue; }
-  S=$(date -d "$D" +%s)
+  [ -n "$D" ] && [ "$D" != "null" ] || { echo "::error::$n: provider date unknown"; UNKNOWN=1; continue; }
+  S=$(date -d "$D" +%s) || { UNKNOWN=1; continue; }
   echo "  $n: $D"
   [ "$S" -gt "$NEWEST" ] && { NEWEST=$S; NEWEST_WHO="$n"; }
 done <<< "$srcs"
 
-if [ "$NEWEST" = 0 ]; then
-  echo "::warning::$ID: could not read any provider date, not building"
-  echo "new_patch=0" >> "$GITHUB_OUTPUT"; exit 0
+if [ "$UNKNOWN" = 1 ] || [ "$NEWEST" = 0 ]; then
+  echo "::error::$ID: freshness unknown; refusing to report up to date"
+  echo "poll_state=unknown" >> "$GITHUB_OUTPUT"; exit 2
 fi
 
 # my newest release for this prefix
 MINE=$(curl -sSL "${AUTH[@]}" \
   "https://api.github.com/repos/$REPO/releases?per_page=100" \
   | jq -r --arg p "$PREFIX-v" '[.[] | select(.tag_name | startswith($p))]
-      | map(.assets[]?.updated_at) | sort | last // ""')
+      | map(.assets[]?.updated_at) | sort | last // ""') || {
+  echo "::error::$ID: release inventory unreadable"
+  echo "poll_state=unknown" >> "$GITHUB_OUTPUT"; exit 2
+}
 
 if [ -z "$MINE" ] || [ "$MINE" = "null" ]; then
   echo "::warning::$ID: no existing release for prefix $PREFIX, refusing to auto-build"
