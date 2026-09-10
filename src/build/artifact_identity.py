@@ -200,7 +200,19 @@ def apk_signer(root, apk, env):
     tools = sdk_tools('apksigner', env)
     require(tools, 'apksigner unavailable; final signature is unverified')
     # A verification failure must not be silently retried with an older verifier.
-    text = command([tools[0], 'verify', '--print-certs', '--verbose', str(apk)], root).decode()
+    result = subprocess.run(
+        [tools[0], 'verify', '--print-certs', '--verbose', str(apk)],
+        cwd=root, capture_output=True, timeout=120)
+    # Public verification output only: this invocation receives no key/password.
+    # JSON escaping preserves formatting and prevents output becoming CI commands.
+    print('APKSIGNER_DIAGNOSTIC ' + json.dumps({
+        'tool': tools[0], 'exit_code': result.returncode,
+        'stdout': result.stdout.decode('utf-8', errors='replace'),
+        'stderr': result.stderr.decode('utf-8', errors='replace')
+    }, sort_keys=True), flush=True)
+    require(result.returncode == 0,
+            'apksigner failed (exit ' + str(result.returncode) + ')')
+    text = result.stdout.decode()
     return {'certificate_sha256': parse_signers(text), 'verifier': tools[0], 'cryptographic_verification': 'passed'}
 
 
