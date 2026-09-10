@@ -12,6 +12,7 @@ import re
 import sys
 import uuid
 from artifact_identity import SCHEMA, command, expected_package, record, require, target
+from build_identity import parse as parse_build_suffix, verify_run
 
 
 def read_text(root, relative):
@@ -63,8 +64,9 @@ def verify(root, ident):
     prefix = one_line(read_text(root, 'release/.tagprefix'), 'prefix')
     require(prefix == t['tag_prefix'] and re.fullmatch('[a-z0-9-]+', prefix), 'release target prefix mismatch')
     suffix = one_line(read_text(root, 'release/.tagsuffix'), 'suffix')
-    require(re.fullmatch('-b[0-9]{8}', suffix), 'release date suffix mismatch')
-    datetime.datetime.strptime(suffix[2:], '%Y%m%d')
+    build_id = parse_build_suffix(suffix)
+    if not build_id['legacy']:
+        verify_run(suffix, os.environ)
     provider = one_line(read_text(root, 'release/.provider'), 'provider')
     patchver = one_line(read_text(root, 'release/.patchver'), 'patchver')
     applied = [line.removeprefix('- ').strip() for line in read_text(root, 'release/.applied').splitlines() if line.strip()]
@@ -92,6 +94,7 @@ def output_text(fields):
 def main():
     fields = verify(pathlib.Path.cwd(), sys.argv[1])
     if '--github-output' in sys.argv[2:]:
+        verify_run(fields['suffix'], os.environ)
         dest = pathlib.Path(os.environ['GITHUB_OUTPUT'])
         with dest.open('a') as out:
             out.write(output_text(fields))

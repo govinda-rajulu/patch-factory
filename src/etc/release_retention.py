@@ -11,6 +11,9 @@ import json
 import pathlib
 import re
 import subprocess
+import sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / 'build'))
+from build_identity import parse as parse_build_suffix
 
 FROZEN = {'truecaller-v26.10.6'}
 CI_MARKER = 'Built in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).'
@@ -65,20 +68,20 @@ def preview(rows, targets, repo, prefix=None):
         require(isinstance(url,str) and url.startswith('https://github.com/'+repo+'/releases/tag/'), 'unexpected release URL')
         require(type(row.get('draft')) is bool and type(row.get('prerelease')) is bool
                 and isinstance(row.get('assets'),list), 'incomplete release metadata')
-        match=re.fullmatch(r'([a-z0-9-]+)-v([0-9]+(?:[.][0-9]+)*)-b([0-9]{8})',tag)
+        match=re.fullmatch(r'([a-z0-9-]+)-v([0-9]+(?:[.][0-9]+)*)-b([0-9]{8}(?:[0-9]{26})?)',tag)
         reason=None
         if tag in FROZEN:reason='explicit frozen tag'
         elif not match or match[1] not in known:reason='manual, unknown-prefix or nonstandard tag'
         elif prefix is not None and match[1]!=prefix:reason='outside requested prefix'
         elif row['draft'] or row['prerelease']:reason='draft/prerelease protected'
         else:
-            try:datetime.datetime.strptime(match[3],'%Y%m%d')
+            try:parse_build_suffix('-b'+match[3])
             except ValueError:reason='invalid date tag protected'
         if reason:
             protected.append(dict(item,reason=reason));continue
         item.update(prefix=match[1],published_at=row.get('published_at'))
         published=stamp(row.get('published_at'))
-        # Rank dated releases by tag date, then publication time/id. A manually
+        # Rank by numeric build suffix (date, run id, attempt), then publication time/id. A manually
         # uploaded dated release is kept if it is among the newest two too.
         body=row.get('body') or ''
         require(isinstance(body,str), 'invalid release body')

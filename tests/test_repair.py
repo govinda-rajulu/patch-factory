@@ -279,6 +279,7 @@ class Repair(unittest.TestCase):
 green_log(){ echo "$1"; }; red_log(){ echo "$1"; }; yellow_log(){ echo "$1"; }
 python3(){ if [ "$1" = src/build/patch_target.py ]; then echo 'Filtering patches for com.fixture'; echo 'Applied: Fixture patch'; return 0; elif [ "${2:-}" = input-version ]; then echo 1.0; else command python3 "$@"; fi; }
 apkanalyzer(){ echo 1.0; }
+export GITHUB_RUN_ID=12345 GITHUB_RUN_ATTEMPT=1
 APK_NAME=fixture; OPTS=fixture; PKG=com.fixture; EXCL=true; WANT_E=1; version=1.0; PREFIX=fixture; WINNER=fixture; ID=fixture
 excludePatches=""; includePatches=""
 '''

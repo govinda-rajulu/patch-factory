@@ -243,7 +243,8 @@ for A in ./release/*-arm64-v8a.apk; do
   case "$B" in *-v$version-*) continue ;; esac
   mv "$A" "./release/$NB" && green_log "[+] renamed $B -> $NB"
 done
-echo "-b$(date -u +%Y%m%d)" > ./release/.tagsuffix
+BUILD_SUFFIX=$(python3 src/build/build_identity.py) || { red_log "[-] unique build identity unavailable"; exit 1; }
+printf '%s\n' "$BUILD_SUFFIX" > ./release/.tagsuffix
 echo "${PV:-unknown}" > ./release/.patchver
 PROV=""
 for M in ./*.mpp ./extra/*.mpp; do
