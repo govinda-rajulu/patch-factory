@@ -174,7 +174,7 @@ def metadata(root, apk, env):
     raise ValueError('final APK metadata unreadable; no valid Android reader result')
 
 
-def native_architecture(apk):
+def native_architecture(apk, source_apk=None):
     with zipfile.ZipFile(apk) as z:
         natives = [n for n in z.namelist() if n.startswith('lib/') and not n.endswith('/')]
         for name in natives:
@@ -183,15 +183,44 @@ def native_architecture(apk):
             if name.endswith('.so'):
                 with z.open(name) as f:
                     h = f.read(20)
-                require(len(h) == 20 and h[:4] == b'\x7fELF' and h[4] == 2 and h[5] == 1
-                        and int.from_bytes(h[18:20], 'little') == 183, 'native library is not ELF64 AArch64: ' + name)
+                valid = (len(h) == 20 and h[:4] == b'\x7fELF' and h[4] == 2 and h[5] == 1
+                         and int.from_bytes(h[18:20], 'little') == 183)
+                if not valid:
+                    evidence = {'member': name, 'output_header_hex': h.hex(),
+                                'output_member_bytes': z.getinfo(name).file_size,
+                                'policy': 'still rejected; classification needs evidence'}
+                    if source_apk is not None:
+                        with zipfile.ZipFile(source_apk) as source:
+                            if name in source.namelist():
+                                with source.open(name) as stream:
+                                    evidence['input_header_hex'] = stream.read(20).hex()
+                                evidence['input_member_bytes'] = source.getinfo(name).file_size
+                            else:
+                                evidence['input_member'] = 'not present at this path'
+                    print('NATIVE_MEMBER_DIAGNOSTIC ' + json.dumps(evidence, sort_keys=True), flush=True)
+                require(valid, 'native library is not ELF64 AArch64: ' + name)
         return {'classification': 'arm64-v8a' if natives else 'no-native-libraries', 'native_file_count': len(natives)}
 
 
 def parse_signers(text):
-    matches = re.findall(r'^Signer #([0-9]+) certificate SHA-256 digest:\s*([0-9a-fA-F:]+)\s*$', text, re.M)
-    require(len(matches) == 1 and matches[0][0] == '1', 'expected exactly one APK signer certificate')
-    fingerprint = matches[0][1].replace(':', '').lower()
+    counts = re.findall(r'^Number of signers:[ \t]*([0-9]+)[ \t]*$', text, re.M)
+    require(not counts or counts == ['1'], 'expected exactly one APK signer')
+    legacy = re.findall(r'^Signer #([0-9]+) certificate SHA-256 digest:[ \t]*([0-9a-fA-F:]+)[ \t]*$', text, re.M)
+    # SDK 37.0.0 output captured from run 34453111340. Only this observed
+    # scheme-labelled format is added; ambiguous/multiple identities still fail.
+    scheme = re.findall(r'^V3[.]0 Signer: certificate SHA-256 digest:[ \t]*([0-9a-fA-F:]+)[ \t]*$', text, re.M)
+    certificate_lines = [line for line in text.splitlines() if 'certificate SHA-256 digest:' in line]
+    require(len(certificate_lines) == len(legacy) + len(scheme),
+            'unrecognized certificate identity in verifier output')
+    if scheme:
+        require(counts == ['1'] and not legacy and len(scheme) == 1,
+                'ambiguous scheme-labelled APK signer certificate')
+        raw = scheme[0]
+    else:
+        require(len(legacy) == 1 and legacy[0][0] == '1',
+                'expected exactly one APK signer certificate')
+        raw = legacy[0][1]
+    fingerprint = raw.replace(':', '').lower()
     require(re.fullmatch('[0-9a-f]{64}', fingerprint), 'invalid signer fingerprint')
     return fingerprint
 
@@ -241,7 +270,7 @@ def verify_final(root, ident, env):
     require(expected_package(root, t) == captured['expected_package'] and t['min_sdk_ceiling'] == captured['sdk_ceiling'], 'identity contract changed')
     apk = next((root / 'release').glob('*.apk')).resolve()
     meta = metadata(root, apk, env)
-    arch = native_architecture(apk)
+    arch = native_architecture(apk, root / captured['patcher_input_apk']['path'])
     signer = apk_signer(root, apk, env)
     version = (root / 'release/.version').read_text().strip()
     validate_identity(meta, arch, signer, captured, version)

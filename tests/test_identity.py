@@ -242,5 +242,50 @@ class Identity(unittest.TestCase):
         self.assertLess(s.index('capture-signer'),s.index('source ./src/build/utils.sh'))
         self.assertLess(s.index('capture-inputs'),s.index('python3 src/build/patch_target.py'))
 
+    def observed_output(self):
+        # User-provided stdout from SDK 37.0.0, run 34453111340. DN masking
+        # retained as supplied; the certificate digest and labels are verbatim.
+        return (ROOT / 'tests/fixtures/apksigner-37-keymapper.txt').read_text()
+
+    def test_observed_sdk37_format(self):
+        self.assertEqual(identity.parse_signers(self.observed_output()),
+                         '08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050')
+
+    def test_scheme_count_two_rejected(self):
+        with self.assertRaises(ValueError):
+            identity.parse_signers(self.observed_output().replace('Number of signers: 1', 'Number of signers: 2'))
+
+    def test_scheme_missing_count_rejected(self):
+        with self.assertRaises(ValueError):
+            identity.parse_signers(self.observed_output().replace('Number of signers: 1\n', ''))
+
+    def test_scheme_duplicate_certificate_rejected(self):
+        with self.assertRaises(ValueError):
+            identity.parse_signers(self.observed_output() + 'V3.0 Signer: certificate SHA-256 digest: ' + 'a' * 64 + '\n')
+
+    def test_mixed_certificate_labels_rejected(self):
+        with self.assertRaises(ValueError):
+            identity.parse_signers(self.observed_output() + 'Signer #1 certificate SHA-256 digest: ' + 'a' * 64 + '\n')
+
+    def test_unknown_scheme_identity_rejected(self):
+        with self.assertRaises(ValueError):
+            identity.parse_signers(self.observed_output() + 'V9.0 Signer: certificate SHA-256 digest: ' + 'a' * 64 + '\n')
+
+    def test_legacy_declared_count_two_rejected(self):
+        with self.assertRaises(ValueError):
+            identity.parse_signers('Number of signers: 2\nSigner #1 certificate SHA-256 digest: ' + self.fingerprint)
+
+    def test_nonelf_still_rejected_with_header_evidence(self):
+        apk = self.apk({'lib/arm64-v8a/fixture.zip.so': b'PK\x03\x04fixture'})
+        source = self.r / 'source.apk'
+        shutil.copy(apk, source)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf), self.assertRaises(ValueError):
+            identity.native_architecture(apk, source)
+        output = json.loads(buf.getvalue().split('NATIVE_MEMBER_DIAGNOSTIC ', 1)[1])
+        self.assertEqual(output['input_header_hex'], output['output_header_hex'])
+        self.assertTrue(output['output_header_hex'].startswith('504b0304'))
+        self.assertEqual(output['policy'], 'still rejected; classification needs evidence')
+
 
 if __name__=='__main__':unittest.main()
