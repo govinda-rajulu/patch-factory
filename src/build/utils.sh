@@ -202,15 +202,51 @@ detect_version() {
 	fi
 }
 
+_fs_session_start() {
+	# One browser context for one APKMirror navigation chain; no session ID in logs.
+	local response
+	response=$(curl -fsS --max-time 30 -X POST 'http://localhost:8191/v1' \
+		-H 'Content-Type: application/json' -d '{"cmd":"sessions.create"}') || {
+		red_log "[-] APKMirror browser session creation failed"
+		return 1
+	}
+	_PF_FS_SESSION=$(printf '%s' "$response" | jq -er \
+		'select(.status == "ok") | .session | select(type == "string" and test("^[A-Za-z0-9_-]{1,128}$"))') || {
+		red_log "[-] APKMirror browser session response invalid"
+		return 1
+	}
+	green_log "[+] APKMirror browser session created"
+}
+
+_fs_session_close() {
+	[[ -n "${_PF_FS_SESSION:-}" ]] || return 0
+	local request response
+	request=$(jq -cn --arg session "$_PF_FS_SESSION" '{cmd:"sessions.destroy",session:$session}') || return 1
+	response=$(curl -fsS --max-time 30 -X POST 'http://localhost:8191/v1' \
+		-H 'Content-Type: application/json' -d "$request") || {
+		yellow_log "[!] APKMirror session cleanup unavailable; runner container still owns it"
+		return 1
+	}
+	printf '%s' "$response" | jq -e '.status == "ok"' > /dev/null || {
+		yellow_log "[!] APKMirror session cleanup unconfirmed"
+		return 1
+	}
+	_PF_FS_SESSION=""
+	green_log "[+] APKMirror browser session closed"
+}
+
 _fs_get() {
 	local url=$1
 	local max_retries=3
 	local attempt
 	for attempt in $(seq 1 $max_retries); do
-		local response
+		local response request
+		request=$(jq -cn --arg url "$url" --arg session "${_PF_FS_SESSION:-}" \
+			'{cmd:"request.get",url:$url,maxTimeout:15000}
+			+ (if $session == "" then {} else {session:$session} end)') || return 1
 		response=$(curl -s -X POST 'http://localhost:8191/v1' \
 			-H 'Content-Type: application/json' \
-			-d "{\"cmd\":\"request.get\",\"url\":\"$url\",\"maxTimeout\":15000}")
+			-d "$request")
 		# Redacted observation only: never log cookies, signed URLs or raw response.
 		if ! PF_DIAG_REQUEST="$url" python3 src/build/transfer_diagnostic.py resolver <<<"$response"; then
 			yellow_log "[!] Download diagnostic unavailable"
@@ -276,6 +312,17 @@ _cf_get() {
 }
 
 get_apk() {
+	# Function scope, not a subshell: version changes must survive for build.sh.
+	# Cleanup is limited to our newly created session, on every normal return.
+	local _PF_FS_SESSION="" _FFS_FAILED=0 result
+	_fs_session_start || return 1
+	_get_apk_impl "$@"
+	result=$?
+	_fs_session_close || :
+	return "$result"
+}
+
+_get_apk_impl() {
 	local pkg_name=$1 apk_name=$2
 	local pkg_type=${3:-apk} arch=${4:-} dpi=${5:-} minver=${6:-}
 	local allow_near_version=${near_version:-0}

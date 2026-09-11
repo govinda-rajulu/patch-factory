@@ -80,6 +80,134 @@ class Repair(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             preflight.check(self.r)
 
+    def session_functions(self):
+        source=(ROOT/'src/build/utils.sh').read_text()
+        helpers=source[source.index('_fs_session_start() {'):source.index('\n_cfb_get() {')]
+        wrapper=source[source.index('get_apk() {'):source.index('\n_get_apk_impl() {')]
+        return helpers+'\n'+wrapper
+
+    def session_probe(self, scenario, inner):
+        # Real shell helpers, real jq and a synthetic FlareSolverr HTTP boundary.
+        self.put('mock_fs.py', """
+import json,os,sys
+args=sys.argv[1:]
+d=json.loads(args[args.index('-d')+1])
+with open('fs-calls.jsonl','a') as f:f.write(json.dumps(d)+'\\n')
+s=os.environ['FS_CASE'];cmd=d['cmd']
+if cmd=='sessions.create':
+ if s=='create_http_fail':sys.exit(22)
+ if s=='bad_json':print('not-json');sys.exit(0)
+ if s=='bad_id':print(json.dumps({'status':'ok','session':'bad/id'}));sys.exit(0)
+ print(json.dumps({'status':'ok','session':'fixture-session'}))
+elif cmd=='sessions.destroy':
+ if s=='destroy_fail':sys.exit(22)
+ print(json.dumps({'status':'ok'}))
+elif cmd=='request.get':
+ print(json.dumps({'status':'ok','solution':{'url':d['url'],'response':'HTML',
+                   'status':200,'cookies':[{'name':'example','value':'COOKIE_SECRET'}],
+                   'userAgent':'UA'}}))
+else:sys.exit(99)
+""")
+        command="""
+curl(){ python3 mock_fs.py "$@"; }
+green_log(){ printf '%s\\n' "$*"; }
+yellow_log(){ printf '%s\\n' "$*"; }
+red_log(){ printf '%s\\n' "$*"; }
+""" + self.session_functions()+"""
+_get_apk_impl(){
+""" + inner + """
+}
+version=ORIGINAL
+get_apk com.fixture fixture apk
+rc=$?
+printf 'RESULT=%s VERSION=%s SESSION_AFTER=%s\\n' "$rc" "$version" "${_PF_FS_SESSION-absent}"
+exit "$rc"
+"""
+        result=self.run_cmd(['bash','-c',command],{'FS_CASE':scenario})
+        calls=[json.loads(x) for x in (self.r/'fs-calls.jsonl').read_text().splitlines()]
+        return result,calls
+
+    def test_persistent_session_reused_across_pages_and_closed(self):
+        r,calls=self.session_probe('success',"""
+_fs_get 'https://www.apkmirror.com/page?a=FAKE' || return 7
+_fs_get 'https://www.apkmirror.com/next?a=FAKE' || return 8
+version=CHANGED
+return 0
+""")
+        self.assertEqual(r.returncode,0,r.stdout+r.stderr)
+        self.assertEqual([x['cmd'] for x in calls],
+                         ['sessions.create','request.get','request.get','sessions.destroy'])
+        self.assertTrue(all(x['session']=='fixture-session' for x in calls[1:]))
+        self.assertIn('VERSION=CHANGED SESSION_AFTER=absent',r.stdout)
+        self.assertNotIn('fixture-session',r.stdout+r.stderr)
+        self.assertNotIn('COOKIE_SECRET',r.stdout+r.stderr)
+
+    def test_session_cleanup_preserves_download_failure_status(self):
+        r,calls=self.session_probe('success','return 17')
+        self.assertEqual(r.returncode,17)
+        self.assertEqual([x['cmd'] for x in calls],['sessions.create','sessions.destroy'])
+
+    def test_session_cleanup_failure_not_false_download_failure(self):
+        r,calls=self.session_probe('destroy_fail','version=CHANGED; return 0')
+        self.assertEqual(r.returncode,0)
+        self.assertIn('cleanup unavailable',r.stdout)
+        self.assertEqual(calls[-1]['cmd'],'sessions.destroy')
+
+    def test_session_creation_failure_stops_before_navigation(self):
+        for case in ('create_http_fail','bad_json','bad_id'):
+            with self.subTest(case=case):
+                path=self.r/'fs-calls.jsonl'
+                if path.exists():path.unlink()
+                r,calls=self.session_probe(case,'echo SHOULD_NOT_RUN; return 0')
+                self.assertNotEqual(r.returncode,0)
+                self.assertEqual([x['cmd'] for x in calls],['sessions.create'])
+                self.assertNotIn('SHOULD_NOT_RUN',r.stdout)
+
+    def test_session_scope_does_not_clobber_caller_state(self):
+        source=self.session_functions()
+        script="""
+green_log(){ :; }; yellow_log(){ :; }; red_log(){ :; }
+""" + source + """
+_fs_session_start(){ _PF_FS_SESSION=owned; }
+_fs_session_close(){ test "$_PF_FS_SESSION" = owned || return 9; _PF_FS_SESSION=; }
+_get_apk_impl(){ test "$_FFS_FAILED" = 0 || return 8; version=CHANGED; }
+_PF_FS_SESSION=caller-session
+_FFS_FAILED=7
+version=OLD
+get_apk fixture fixture apk || exit 1
+test "$_PF_FS_SESSION" = caller-session || exit 2
+test "$_FFS_FAILED" = 7 || exit 3
+test "$version" = CHANGED || exit 4
+"""
+        self.assertEqual(self.run_cmd(['bash','-c',script]).returncode,0)
+
+    def test_unscoped_resolver_retains_ephemeral_contract_and_quotes_url(self):
+        self.put('capture-request.py',"""
+import json,sys
+a=sys.argv[1:];d=json.loads(a[a.index('-d')+1])
+json.dump(d,open('unscoped-request.json','w'))
+print(json.dumps({'status':'ok','solution':{'response':'HTML','cookies':[],'userAgent':'UA'}}))
+""")
+        source=(ROOT/'src/build/utils.sh').read_text()
+        fn=source[source.index('_fs_get() {'):source.index('\n_cfb_get() {')]
+        url='https://www.apkmirror.com/page?q="quoted"&backslash=\\\\'
+        r=self.run_cmd(['bash','-c',"""
+curl(){ python3 capture-request.py "$@"; }
+yellow_log(){ :; }; red_log(){ :; }
+""" + fn + '\n_fs_get "$TEST_URL"\n'],{'TEST_URL':url})
+        self.assertEqual(r.returncode,0,r.stdout+r.stderr)
+        d=json.loads((self.r/'unscoped-request.json').read_text())
+        self.assertEqual(d['url'],url)
+        self.assertNotIn('session',d)
+
+    def test_session_change_does_not_touch_final_transfer_or_apkpure(self):
+        source=(ROOT/'src/build/utils.sh').read_text()
+        impl=source[source.index('_get_apk_impl() {'):source.index('\nget_apkpure() {')]
+        self.assertIn('if ! wget -nv -O "./download/$base_apk"',impl)
+        self.assertIn('"$base_url$final_href"; then',impl)
+        pure=source[source.index('get_apkpure() {'):]
+        self.assertNotIn('_PF_FS_SESSION',pure)
+
     def test_store_transfer_failures_never_claim_success(self):
         """Exercise the actual final-transfer blocks without sourcing network setup.
         Nonempty controls are transfer evidence only, not validated APKs.
