@@ -13,6 +13,7 @@ import zipfile
 
 from verify_output import verify as verify_structure
 from native_payloads import verify_native_payloads
+import input_recipe
 
 SCHEMA = 1
 ANDROID = '{http://schemas.android.com/apk/res/android}'
@@ -129,6 +130,7 @@ def capture_inputs(root, ident, winner, env):
     requested = record(root, '.requested')
     config_fingerprint = hashlib.sha256(json.dumps(repo_files, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     data = {'schema': SCHEMA, 'target': ident, 'winner': winner, 'source_commit': source,
+            'local_input_recipe': input_recipe.create(root, ident, winner, env),
             'expected_package': expected_package(root, t), 'sdk_ceiling': t['min_sdk_ceiling'],
             'expected_certificate_sha256': signer['certificate_sha256'], 'repository_files': repo_files,
             'repository_bytes_fingerprint': config_fingerprint, 'tools': tools, 'bundles': bundle_records,
@@ -242,6 +244,7 @@ def verify_final(root, ident, env):
     require(command(['git', 'rev-parse', 'HEAD'], root).decode().strip() == captured['source_commit'], 'source commit changed during build')
     verify_records(root, captured['repository_files'] + captured['tools'] + captured['bundles']
                    + [captured['patcher_input_apk'], captured['requested_ledger']])
+    input_recipe.verify(root, ident, captured['winner'], captured['local_input_recipe'], env)
     require(cert_from_keystore(root, env) == captured['expected_certificate_sha256'], 'CI keystore certificate changed during build')
     t = target(root, ident)
     require(expected_package(root, t) == captured['expected_package'] and t['min_sdk_ceiling'] == captured['sdk_ceiling'], 'identity contract changed')
