@@ -211,6 +211,10 @@ _fs_get() {
 		response=$(curl -s -X POST 'http://localhost:8191/v1' \
 			-H 'Content-Type: application/json' \
 			-d "{\"cmd\":\"request.get\",\"url\":\"$url\",\"maxTimeout\":15000}")
+		# Redacted observation only: never log cookies, signed URLs or raw response.
+		if ! PF_DIAG_REQUEST="$url" python3 src/build/transfer_diagnostic.py resolver <<<"$response"; then
+			yellow_log "[!] Download diagnostic unavailable"
+		fi
 		local status
 		status=$(echo "$response" | jq -r '.status // empty')
 		if [[ "$status" == "ok" ]]; then
@@ -495,14 +499,22 @@ get_apk() {
 	echo "$base_url$final_href"
 	local cookie_args=()
 	[[ -n "$FS_COOKIES" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
-	wget -nv -O "./download/$base_apk" \
+	if ! PF_DIAG_DEST="$base_url$final_href" PF_DIAG_REFERER="$base_url$dl_btn_href" \
+		PF_DIAG_COOKIES="$FS_COOKIES" PF_DIAG_UA="$user_agent" \
+		python3 src/build/transfer_diagnostic.py handoff; then
+		yellow_log "[!] Download diagnostic unavailable"
+	fi
+	if ! wget -nv -O "./download/$base_apk" \
 		--header="User-Agent: $user_agent" \
 		--referer="$base_url$dl_btn_href" \
 		"${cookie_args[@]}" \
 		--timeout=120 \
-		"$base_url$final_href"
+		"$base_url$final_href"; then
+		red_log "[-] APKMirror transfer failed; refusing partial or empty output"
+		return 1
+	fi
 
-	if [[ -f "./download/$base_apk" ]]; then
+	if [[ -s "./download/$base_apk" ]]; then
 		green_log "[+] Successfully downloaded $apk_name"
 	else
 		red_log "[-] Failed to download $apk_name"
@@ -573,14 +585,17 @@ get_apkpure() {
 
 	local cookie_args=()
 	[[ -n "$FS_COOKIES" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
-	wget -nv -O "./download/$base_apk" \
+	if ! wget -nv -O "./download/$base_apk" \
 		--header="User-Agent: $user_agent" \
 		--referer="$dl_page_url" \
 		"${cookie_args[@]}" \
 		--timeout=120 \
-		"$download_url"
+		"$download_url"; then
+		red_log "[-] APKPure transfer failed; refusing partial or empty output"
+		return 1
+	fi
 
-	if [[ -f "./download/$base_apk" ]]; then
+	if [[ -s "./download/$base_apk" ]]; then
 		green_log "[+] Successfully downloaded $apk_name"
 	else
 		red_log "[-] Failed to download $apk_name"

@@ -28,6 +28,7 @@ preflight = load('preflight', 'src/etc/preflight.py')
 writer = load('writer', 'src/etc/selection_writer.py')
 patcher = load('patcher', 'src/build/patch_target.py')
 output = load('output', 'src/build/verify_output.py')
+transfer_diagnostic = load('transfer_diagnostic', 'src/build/transfer_diagnostic.py')
 
 
 class Repair(unittest.TestCase):
@@ -78,6 +79,164 @@ class Repair(unittest.TestCase):
     def test_current_preflight(self):
         with contextlib.redirect_stdout(io.StringIO()):
             preflight.check(self.r)
+
+    def test_store_transfer_failures_never_claim_success(self):
+        """Exercise the actual final-transfer blocks without sourcing network setup.
+        Nonempty controls are transfer evidence only, not validated APKs.
+        """
+        source = (ROOT / 'src/build/utils.sh').read_text()
+        for store, function, end_anchor in (
+                ('APKMirror', 'get_apk()', '\n\tif [[ "$matched_type" == "BUNDLE" ]]'),
+                ('APKPure', 'get_apkpure()', '\n\tif [[ "$pkg_type" == "bundle" ]]')):
+            begin = source.index('\tif ! wget -nv -O "./download/$base_apk"', source.index(function))
+            end = source.index(end_anchor, begin)
+            block = source[begin:end]
+            self.assertEqual(block.count('wget -nv'), 1)
+            for rc, payload, expected in ((8, '', 1), (8, 'partial', 1),
+                                          (0, '', 1), (0, 'fixture-transfer-bytes', 0)):
+                with self.subTest(store=store, wget_exit=rc, bytes=len(payload)):
+                    command = """
+green_log(){ printf '%s\\n' "$*"; }
+red_log(){ printf '%s\\n' "$*"; }
+wget(){
+  printf '%s' "$FIXTURE_BYTES" > "./download/fixture.apk"
+  return "$FIXTURE_EXIT"
+}
+transfer(){
+  local base_apk=fixture.apk apk_name=fixture user_agent=fixture
+  local base_url=https://example.invalid dl_btn_href=/button final_href=/file
+  local dl_page_url=https://example.invalid/page download_url=https://example.invalid/file
+  local cookie_args=()
+""" + block + '\n}\ntransfer\n'
+                    result = self.run_cmd(['bash', '-c', command],
+                                          {'FIXTURE_BYTES':payload, 'FIXTURE_EXIT':str(rc)})
+                    self.assertEqual(result.returncode, expected, result.stdout+result.stderr)
+                    self.assertEqual('Successfully downloaded' in result.stdout, expected == 0)
+
+    def test_store_failed_transfer_stops_before_conversion(self):
+        source = (ROOT / 'src/build/utils.sh').read_text()
+        for function in ('get_apk()', 'get_apkpure()'):
+            start = source.index('\tif ! wget -nv',source.index(function))
+            end = source.index('\n}',start)
+            body = source[start:end]
+            stop = body.index('return 1')
+            self.assertLess(stop, body.index('Successfully downloaded'))
+            if 'java -jar' in body:
+                self.assertLess(stop, body.index('java -jar'))
+
+    def test_diagnostic_redacts_fake_signed_url_and_cookie(self):
+        request='https://www.apkmirror.com/download.php?key=FAKE_REQUEST_SECRET'
+        resolved='https://fixture.r2.cloudflarestorage.com/file.apk?X-Amz-Signature=FAKE_SIGNATURE'
+        data={'status':'ok','solution':{'url':resolved,'status':200,
+              'cookies':[{'name':'secret','value':'FAKE_COOKIE'}],'userAgent':'FAKE_USER_AGENT'}}
+        out=transfer_diagnostic.resolver(json.dumps(data).encode(),request)
+        text=json.dumps(out)
+        for secret in ('FAKE_REQUEST_SECRET','FAKE_SIGNATURE','FAKE_COOKIE','FAKE_USER_AGENT','file.apk'):
+            self.assertNotIn(secret,text)
+        self.assertEqual(out['resolved']['kind'],'r2-object')
+        self.assertFalse(out['same_url'])
+        self.assertTrue(out['cookies_present'])
+        self.assertEqual(out['http_status'],200)
+
+    def test_diagnostic_no_redirect_is_distinct_from_missing_url(self):
+        u='https://www.apkmirror.com/download.php?key=FAKE'
+        for resolved, expected in ((u,True),('',None),(None,None)):
+            with self.subTest(resolved=resolved):
+                raw=json.dumps({'status':'ok','solution':{'url':resolved}}).encode()
+                d=transfer_diagnostic.resolver(raw,u)
+                self.assertEqual(d['same_url'],expected)
+
+    def test_diagnostic_malformed_and_oversized_response_redacted(self):
+        for raw in (b'RAW_SECRET',b'[]',b'null',b'{"solution":[]}',
+                    b'x'*(transfer_diagnostic.MAX_RESPONSE+1)):
+            out=transfer_diagnostic.resolver(raw,'SECRET')
+            self.assertEqual(out,{'stage':'resolver','parser':'invalid-or-oversized'})
+
+    def test_diagnostic_url_shapes_never_raise_or_reveal_input(self):
+        values=('http://example.invalid/key=SECRET','https://name:SECRET@host/file',
+                'https://host:wrong/SECRET','https://host:444/SECRET',
+                'https://[invalid/SECRET','not-url-SECRET')
+        for u in values:
+            with self.subTest(url=u):
+                d=transfer_diagnostic.location(u)
+                self.assertNotIn('SECRET',json.dumps(d))
+                self.assertIn(d['kind'],('unsupported','unparseable'))
+
+    def test_diagnostic_http_status_cannot_inject_logs(self):
+        raw=json.dumps({'status':'ok','solution':{'status':'SECRET\nanother line'}}).encode()
+        d=transfer_diagnostic.resolver(raw,'')
+        self.assertIsNone(d['http_status'])
+        self.assertNotIn('SECRET',json.dumps(d))
+
+    def test_diagnostic_handoff_records_presence_not_values(self):
+        d=transfer_diagnostic.handoff({'PF_DIAG_DEST':'https://www.apkmirror.com/download.php?key=SECRET',
+                                      'PF_DIAG_REFERER':'https://www.apkmirror.com/page',
+                                      'PF_DIAG_COOKIES':'SECRET','PF_DIAG_UA':'SECRET'})
+        self.assertEqual(d['destination']['kind'],'apkmirror-download-endpoint')
+        self.assertTrue(d['cookies_present'])
+        self.assertNotIn('SECRET',json.dumps(d))
+
+    def test_real_resolver_calls_diagnostic_without_changing_url_or_cookie(self):
+        text=(ROOT/'src/build/utils.sh').read_text()
+        fn=text[text.index('_fs_get() {'):text.index('\n_cfb_get() {')]
+        req='https://www.apkmirror.com/download.php?key=FAKE_REQUEST'
+        resolved='https://fixture.r2.cloudflarestorage.com/file.apk?sig=FAKE_SIGNATURE'
+        raw=json.dumps({'status':'ok','solution':{'url':resolved,'response':'FIXTURE_HTML',
+                        'status':200,'cookies':[{'name':'test','value':'FAKE_COOKIE'}],
+                        'userAgent':'FIXTURE_UA'}})
+        command="""
+curl(){ printf '%s' "$FAKE_RESPONSE"; }
+yellow_log(){ printf '%s\\n' "$*"; }
+red_log(){ printf '%s\\n' "$*"; }
+""" + fn + """
+_fs_get "$FAKE_REQUEST"
+test "$html" = FIXTURE_HTML || exit 51
+test "$FS_COOKIES" = 'test=FAKE_COOKIE' || exit 52
+test "$user_agent" = FIXTURE_UA || exit 53
+"""
+        r=self.run_cmd(['bash','-c',command],{'FAKE_RESPONSE':raw,'FAKE_REQUEST':req})
+        self.assertEqual(r.returncode,0,r.stderr)
+        self.assertEqual(len(r.stdout.splitlines()),1,r.stdout)
+        self.assertTrue(r.stdout.startswith('DOWNLOAD_DIAGNOSTIC '))
+        self.assertIn('"kind": "r2-object"',r.stdout)
+        for secret in ('FAKE_SIGNATURE','FAKE_COOKIE','FAKE_REQUEST'):
+            self.assertNotIn(secret,r.stdout+r.stderr)
+
+    def test_diagnostic_failure_does_not_change_resolver_success(self):
+        text=(ROOT/'src/build/utils.sh').read_text()
+        fn=text[text.index('_fs_get() {'):text.index('\n_cfb_get() {')]
+        raw=json.dumps({'status':'ok','solution':{'response':'HTML','cookies':[],'userAgent':'UA'}})
+        command="curl(){ printf '%s' \"$FAKE_RESPONSE\"; }\npython3(){ return 9; }\nyellow_log(){ :; }\nred_log(){ :; }\n"+fn+"\n_fs_get https://example.invalid/page\n"
+        r=self.run_cmd(['bash','-c',command],{'FAKE_RESPONSE':raw})
+        self.assertEqual(r.returncode,0)
+
+    def test_handoff_diagnostic_does_not_change_wget_argv(self):
+        text=(ROOT/'src/build/utils.sh').read_text()
+        start=text.index('\tlocal cookie_args=()',text.index('\tlocal final_href',text.index('get_apk()')))
+        end=text.index('\n\tif [[ "$matched_type" == "BUNDLE" ]]',start)
+        block=text[start:end]
+        command="""
+green_log(){ printf '%s\\n' "$*"; }
+yellow_log(){ printf '%s\\n' "$*"; }
+red_log(){ printf '%s\\n' "$*"; }
+wget(){
+  python3 -c 'import json,sys;json.dump(sys.argv[1:],open("fixture-argv.json","w"))' "$@"
+  printf 'fixture bytes' > download/fixture.apk
+}
+transfer(){
+ local base_apk=fixture.apk apk_name=fixture base_url=https://www.apkmirror.com
+ local final_href='/download.php?key=FAKE_DEST' dl_btn_href='/button?key=FAKE_REF'
+ local FS_COOKIES='test=FAKE_COOKIE' user_agent=FAKE_UA
+""" + block + "\n}\ntransfer\n"
+        r=self.run_cmd(['bash','-c',command])
+        self.assertEqual(r.returncode,0,r.stderr)
+        args=json.loads((self.r/'fixture-argv.json').read_text())
+        self.assertEqual(args,['-nv','-O','./download/fixture.apk','--header=User-Agent: FAKE_UA',
+                             '--referer=https://www.apkmirror.com/button?key=FAKE_REF','--header',
+                             'Cookie: test=FAKE_COOKIE','--timeout=120',
+                             'https://www.apkmirror.com/download.php?key=FAKE_DEST'])
+        for secret in ('FAKE_DEST','FAKE_REF','FAKE_COOKIE','FAKE_UA'):
+            self.assertNotIn(secret,r.stdout+r.stderr)
 
     def test_unknown_target(self):
         with self.assertRaises(ValueError):

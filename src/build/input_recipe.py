@@ -25,6 +25,7 @@ SHARED = (
     "src/build/github_patcher.py", "src/build/extra_bundle.py",
     "src/build/fetch_bundle.sh", "src/build/tooling.sh",
     "src/build/TOOLING.sha256", "src/build/input_recipe.py",
+    "src/build/transfer_diagnostic.py",
     "src/etc/preflight.py", "src/etc/bancheck.sh", "src/etc/quarantine.sh",
     "src/patches/BANNED", "src/patches/CONFIRM",
     "src/patches/EXCEPTIONS", "src/patches/QUARANTINE",
