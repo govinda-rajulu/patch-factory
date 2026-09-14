@@ -690,5 +690,11 @@ excludePatches=""; includePatches=""
             self.assertEqual(x.returncode, 0, x.stderr)
 
 
+def load_tests(loader, tests, pattern):
+    import nightly_contracts
+    tests.addTests(loader.loadTestsFromTestCase(nightly_contracts.Nightly))
+    return tests
+
+
 if __name__ == '__main__':
     unittest.main()

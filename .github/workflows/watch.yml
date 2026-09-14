@@ -14,16 +14,34 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: '21' }
       - name: Fetch patcher
+        id: patcher
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          U=$(curl -sS https://api.github.com/repos/MorpheApp/morphe-desktop/releases/latest \
-            | jq -r '.assets[] | select(.name|endswith(".jar")) | .browser_download_url' | head -1)
-          [ -n "$U" ] || { echo "::error::no jar asset"; exit 1; }
-          curl -sSL -o "$(basename "$U")" "$U"
-          ls -l morphe-desktop-*.jar
-      - name: Report
+          python3 src/build/github_patcher.py .
+      - name: Collect full redacted report and coverage status
         id: rep
-        env: { GH_TOKEN: '${{ github.token }}' }
-        run: bash src/etc/report.sh full > /tmp/report.txt 2>&1 || true
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WATCH_SETUP: ${{ steps.patcher.outcome }}
+        run: python3 src/etc/nightly_report.py collect
+      - name: Preserve Nightly Watch evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            watch-evidence/nightly-report.txt
+            watch-evidence/nightly-report.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Open an issue only if something changed
-        env: { GH_TOKEN: '${{ github.token }}' }
+        if: ${{ !cancelled() && steps.rep.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WATCH_REPORT: .nightly-report.txt
         run: bash src/etc/watch_issue.sh
+      - name: Enforce report result (coverage listed separately)
+        if: ${{ !cancelled() }}
+        run: python3 src/etc/nightly_report.py enforce
