@@ -80,6 +80,79 @@ class Repair(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             preflight.check(self.r)
 
+    def batch_probe(self, raw, targets=None):
+        if targets is not None:
+            self.put('src/targets.json', json.dumps(targets))
+        self.put('batch-output.txt', 'preserved=yes\n')
+        result = self.run_cmd(['bash', 'src/etc/batchplan.sh'],
+                             {'RAW': raw, 'GITHUB_OUTPUT': str(self.r/'batch-output.txt')})
+        return result, (self.r/'batch-output.txt').read_text()
+
+    def test_batch_all_enabled_has_exact_unique_coverage(self):
+        targets = json.loads((self.r/'src/targets.json').read_text())
+        ids = [t['id'] for t in targets if t['enabled']]
+        self.assertEqual(len(ids), 14)
+        result, text = self.batch_probe(','.join(ids))
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        lines = text.splitlines()
+        self.assertEqual(len(lines), 2)
+        self.assertEqual(lines[0], 'preserved=yes')
+        self.assertEqual(json.loads(lines[1].removeprefix('matrix=')), {'target': ids})
+
+    def test_batch_invalid_requests_never_append_outputs(self):
+        for raw in ('', ' ', ',', 'youtube,', ',youtube', 'youtube,,reddit',
+                    'youtube,youtube', 'unknown', 'youtube\nmatrix=wrong', 'x'*8193):
+            with self.subTest(raw=raw[:40]):
+                result, text = self.batch_probe(raw)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(text, 'preserved=yes\n')
+
+    def test_batch_refuses_disabled_and_ambiguous_config(self):
+        for targets in ([], {}, [{'id':'youtube','enabled':False}],
+                        [{'id':'youtube','enabled':True}]*2,
+                        [{'id':'youtube','enabled':'true'}],
+                        [{'id':'youtube'}], [None], [{'id':'../x','enabled':True}]):
+            with self.subTest(targets=targets):
+                result, text = self.batch_probe('youtube', targets)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(text, 'preserved=yes\n')
+
+    def test_batch_json_duplicate_keys_fail_before_output(self):
+        self.put('src/targets.json', '[{"id":"youtube","enabled":true,"enabled":false}]')
+        result, text = self.batch_probe('youtube')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('duplicate JSON key', result.stderr)
+        self.assertEqual(text, 'preserved=yes\n')
+
+    def test_batch_keeps_requested_order_and_trims_outer_spaces(self):
+        result, text = self.batch_probe(' reddit , youtube ')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(text.splitlines()[1][len('matrix='):]),
+                         {'target':['reddit','youtube']})
+
+    def test_batch_malformed_json_is_not_empty_success(self):
+        self.put('src/targets.json', 'not json')
+        result, text = self.batch_probe('youtube')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(text, 'preserved=yes\n')
+
+    def test_test_apk_upload_follows_successful_handoff_only(self):
+        text = (ROOT/'.github/workflows/manual-patch.yml').read_text()
+        gate = text.index('      - name: Verify release handoff (no publishing)')
+        upload = text.index('      - name: Save verified test APK and evidence (not a release)')
+        publish = text.index('      - name: Releasing APK files')
+        self.assertLess(gate, upload)
+        self.assertLess(upload, publish)
+        block = text[upload:publish]
+        self.assertIn("if: success() && (!inputs.publish || github.ref != 'refs/heads/main')", block)
+        self.assertIn('uses: actions/upload-artifact@v4', block)
+        self.assertIn('test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}', block)
+        self.assertIn('            release/*.apk\n            build-evidence/${{ inputs.target }}.json\n', block)
+        self.assertIn('if-no-files-found: error', block)
+        self.assertIn('retention-days: 7', block)
+        for unsafe in ('src/', '**', 'always()', 'continue-on-error', 'keystore'):
+            self.assertNotIn(unsafe, block)
+
     def direct_navigation_probe(self, source=None):
         # Execute the real get_apk entrypoint; stop at its first page request.
         # This fixture does not download an APK or contact a live service.

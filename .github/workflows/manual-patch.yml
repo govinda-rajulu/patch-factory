@@ -100,6 +100,16 @@ jobs:
         env:
           TARGET: ${{ inputs.target }}
         run: python3 src/build/release_contract.py "$TARGET"
+      - name: Save verified test APK and evidence (not a release)
+        if: success() && (!inputs.publish || github.ref != 'refs/heads/main')
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            release/*.apk
+            build-evidence/${{ inputs.target }}.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Releasing APK files
         if: steps.check-gh.outputs.internet_error == '0' && inputs.publish && github.ref == 'refs/heads/main'
         uses: ./.github/actions/release
