@@ -8,6 +8,15 @@ const RAW='https://raw.githubusercontent.com/'+REPO+'/main/';
 const $=id=>document.getElementById(id);
 let tab='apps',generation=0,importGeneration=0,pollTimer=null;
 let targets=null,importBlob=null,customApps=[];
+let appQuery='',appCategory='all';
+const GROUPS=[
+ ['media','Watch & listen',['youtube','primevideo','hotstar','mxplayer']],
+ ['social','Social & communities',['instagram','facebook','reddit','telegram']],
+ ['tools','Everyday essentials',['adguard','photos','truecaller-combo','esfile','edge','keymapper']]
+];
+function appGroup(id){
+ return GROUPS.find(g=>g[2].includes(id))||['other','More apps',[]];
+}
 const cache=new Map();
 function need(ok,message){if(!ok)throw new Error(message);}
 function el(tag,text,className){const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(className)n.className=className;return n;}
@@ -187,12 +196,86 @@ async function watchPanel(root){
 async function render(){
  const own=++generation;clearTimeout(pollTimer);$('status').textContent='Checking '+tab+'...';$('refresh').disabled=true;
  const root=document.createDocumentFragment();
- try{const message=await ({apps:appsPanel,builds:buildsPanel,watch:watchPanel}[tab])(root);if(own!==generation)return;$('panel').replaceChildren(root);$('status').textContent=message;}
+ try{const message=await ({apps:appsPanel,builds:buildsPanel,watch:watchPanel}[tab])(root);if(own!==generation)return;organizePanel(root,tab);$('panel').replaceChildren(root);$('status').textContent=message;filterApps();}
  catch(e){if(own!==generation)return;$('panel').replaceChildren(el('p',e.message,'notice'));$('status').textContent='Data unavailable. No success or empty coverage inferred.';}
  finally{if(own===generation){$('refresh').disabled=false;if(!document.hidden)pollTimer=setTimeout(()=>{if(!document.hidden)render();},120000);}}
 }
+function organizePanel(root,activeTab){
+ $('appTools').hidden=activeTab!=='apps';
+ const articles=Array.from(root.querySelectorAll('article'));
+ if(activeTab!=='apps'){
+  for(const article of articles){
+   article.classList.add('result-card');
+   const disclosure=el('details'),heading=article.querySelector('h3'),summary=el('summary');
+   if(heading)summary.append(heading);
+   const status=article.querySelector('p.meta');
+   if(status)summary.append(status);
+   disclosure.append(summary);
+   const content=el('div',undefined,'result-content');
+   while(article.firstChild)content.append(article.firstChild);
+   disclosure.append(content);article.append(disclosure);
+  }
+  return;
+ }
+ const groups=new Map();
+ for(const article of articles){
+  const id=article.dataset.target;
+  if(!id)continue;
+  article.classList.add('app-card');
+  article.dataset.category=appGroup(id)[0];
+  article.dataset.search=(article.querySelector('h3')?.textContent+' '+id).toLowerCase();
+  const heading=article.querySelector('.app-title');
+  if(heading){
+   const monogram=el('span',article.querySelector('h3')?.textContent.trim().slice(0,1)||'A','app-monogram');
+   monogram.setAttribute('aria-hidden','true');heading.prepend(monogram);
+  }
+  const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta'));
+  if(version)version.classList.add('app-version');
+  // Keep the main download action visible; detailed provenance/history goes under one disclosure.
+  const extra=Array.from(article.children).filter(n=>n.matches('p.meta,details'));
+  if(extra.length){
+   const details=el('details',undefined,'app-details');details.append(el('summary','Build details & older versions'));
+   for(const node of extra)details.append(node);
+   article.append(details);
+  }
+  const group=appGroup(id);
+  if(!groups.has(group[0])){
+   const box=el('details',undefined,'app-group');box.open=true;box.dataset.group=group[0];
+   const summary=el('summary');summary.append(el('span',group[1]),el('span','','group-count'));
+   const grid=el('div',undefined,'app-grid');box.append(summary,grid);groups.set(group[0],box);
+  }
+  groups.get(group[0]).querySelector('.app-grid').append(article);
+ }
+ for(const [id] of [...GROUPS,['other']])if(groups.has(id))root.append(groups.get(id));
+ const empty=el('p','No matching apps. Try a different name or category.','notice');empty.id='noApps';empty.hidden=true;root.append(empty);
+}
+function filterApps(){
+ if(tab!=='apps')return;
+ let shown=0;
+ for(const card of $('panel').querySelectorAll('.app-card')){
+  card.hidden=!(card.dataset.search.includes(appQuery)&&(appCategory==='all'||card.dataset.category===appCategory));
+  if(!card.hidden)shown++;
+ }
+ for(const group of $('panel').querySelectorAll('.app-group')){
+  const count=Array.from(group.querySelectorAll('.app-card')).filter(c=>!c.hidden).length;
+  group.hidden=count===0;group.querySelector('.group-count').textContent=count+' app'+(count===1?'':'s');
+  if(appQuery||appCategory!=='all')group.open=true;
+ }
+ if($('noApps'))$('noApps').hidden=shown!==0;
+ $('appCount').textContent=shown+' app'+(shown===1?'':'s');
+}
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateTargets,releaseRows,safeLink,selectApps};
+window.PFPortal={parseTag,validateImport,validateTargets,releaseRows,safeLink,selectApps,appGroup};
+const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
+const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
+search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});
+const categories=el('select');categories.id='appCategory';categories.setAttribute('aria-label','Filter app category');
+for(const [value,label] of [['all','All categories'],...GROUPS.map(g=>[g[0],g[1]]),['other','More apps']]){
+ const option=el('option',label);option.value=value;categories.append(option);
+}
+categories.addEventListener('change',()=>{appCategory=categories.value;filterApps();});
+const count=el('span','','meta');count.id='appCount';count.setAttribute('aria-live','polite');
+tools.append(search,categories,count);$('panel').before(tools);
 $('pack').querySelector('[value="govind"]').textContent='All apps';
 $('pack').querySelector('[value="parents"]').textContent="Parents' apps";
 const customOption=el('option','Choose apps');customOption.value='custom';$('pack').append(customOption);
