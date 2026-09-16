@@ -8,7 +8,7 @@ first release. targets.json is the only source of truth, so the page is generate
   python3 src/etc/pagegen.py          rewrite the catalog in place
   python3 src/etc/pagegen.py --check   exit 1 if the page has drifted (used by CI)
 """
-import io,json,re,sys
+import io,json,re,sys,hashlib
 PAGE='docs/index.html'
 OPEN='// >>> CATALOG GENERATED FROM src/targets.json - edit targets.json, not this'
 CLOSE='// <<< CATALOG GENERATED'
@@ -26,14 +26,10 @@ def main():
     check='--check' in sys.argv
     s=io.open(PAGE,encoding='utf-8').read()
     new=build()
+    original=s
     if OPEN in s and CLOSE in s:
         a=s.index(OPEN); b=s.index(CLOSE)+len(CLOSE)
         cur=s[a:b]
-        if cur==new:
-            print("catalog already current (%d apps)"%new.count('prefix:')); return 0
-        if check:
-            print("::error::docs/index.html catalog has drifted from src/targets.json. Run: python3 src/etc/pagegen.py")
-            return 1
         s=s[:a]+new+s[b:]
     else:
         m=re.search(r'^let CATALOG = \[.*?^\];\n',s,re.S|re.M)
@@ -42,6 +38,20 @@ def main():
         if check:
             print("::error::%s has no generated-catalog markers yet. Run: python3 src/etc/pagegen.py"%PAGE); return 1
         s=s[:m.start()]+new+"\n"+s[m.end():]
+    # Version the script from its actual bytes, not a manually maintained release label.
+    # A new HTML document must not boot an older cached, incompatible portal script.
+    script=io.open('docs/portal.js','rb').read()
+    if not script:
+        print("::error::empty portal.js"); return 4
+    digest=hashlib.sha256(script).hexdigest()
+    pattern=r'<script src="portal\.js(?:\?v=[0-9a-f]{64})?" defer></script>'
+    if len(re.findall(pattern,s))!=1:
+        print("::error::expected exactly one known portal.js script tag"); return 4
+    s=re.sub(pattern,'<script src="portal.js?v='+digest+'" defer></script>',s)
+    if s==original:
+        print("catalog and portal asset version already current"); return 0
+    if check:
+        print("::error::page catalog or script version drifted. Run: python3 src/etc/pagegen.py"); return 1
     io.open(PAGE,'w',encoding='utf-8',newline='\n').write(s)
     n=new.count('prefix:')
     print("wrote %s catalog: %d apps, %d bytes total"%(PAGE,n,len(s.encode())))

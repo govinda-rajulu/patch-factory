@@ -730,6 +730,70 @@ excludePatches=""; includePatches=""
             self.assertEqual(x.returncode, 0, x.stderr)
 
 
+class PageAssetVersionTests(unittest.TestCase):
+    def fixture(self):
+        import tempfile, shutil
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        root = pathlib.Path(folder.name)
+        for name in ('docs/index.html', 'docs/portal.js', 'src/targets.json', 'src/etc/pagegen.py'):
+            p = root / name
+            p.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / name, p)
+        return root
+
+    def check(self, root, *args):
+        return subprocess.run([sys.executable, 'src/etc/pagegen.py', *args], cwd=root, capture_output=True)
+
+    def test_current_script_digest_and_noop(self):
+        import hashlib
+        root = self.fixture()
+        before = (root / 'docs/index.html').read_bytes()
+        self.assertIn(('portal.js?v=' + hashlib.sha256((root / 'docs/portal.js').read_bytes()).hexdigest()).encode(), before)
+        self.assertEqual(self.check(root, '--check').returncode, 0)
+        self.assertEqual(self.check(root).returncode, 0)
+        self.assertEqual((root / 'docs/index.html').read_bytes(), before)
+
+    def test_script_mutation_requires_new_version_and_revert_restores(self):
+        root = self.fixture()
+        script = root / 'docs/portal.js'
+        original = script.read_bytes()
+        page = (root / 'docs/index.html').read_bytes()
+        script.write_bytes(original + b'\n/* mutation */\n')
+        self.assertEqual(self.check(root, '--check').returncode, 1)
+        self.assertEqual((root / 'docs/index.html').read_bytes(), page)
+        self.assertEqual(self.check(root).returncode, 0)
+        self.assertNotEqual((root / 'docs/index.html').read_bytes(), page)
+        self.assertEqual(self.check(root, '--check').returncode, 0)
+        script.write_bytes(original)
+        self.assertEqual(self.check(root).returncode, 0)
+        self.assertEqual((root / 'docs/index.html').read_bytes(), page)
+
+    def test_missing_duplicate_unknown_script_tags_refuse_before_write(self):
+        for replacement in ('', '<script src="portal.js" defer></script>' * 2, '<script src="portal.js?v=wrong" defer></script>'):
+            root = self.fixture()
+            p = root / 'docs/index.html'
+            text = p.read_text()
+            import re
+            text = re.sub(r'<script src="portal\.js\?v=[0-9a-f]{64}" defer></script>', replacement, text)
+            p.write_text(text)
+            before = p.read_bytes()
+            self.assertEqual(self.check(root).returncode, 4)
+            self.assertEqual(p.read_bytes(), before)
+
+    def test_empty_script_refuses_and_catalog_mutation_still_detected(self):
+        root = self.fixture()
+        page = (root / 'docs/index.html').read_bytes()
+        (root / 'docs/portal.js').write_bytes(b'')
+        self.assertEqual(self.check(root).returncode, 4)
+        self.assertEqual((root / 'docs/index.html').read_bytes(), page)
+        root = self.fixture()
+        targets = root / 'src/targets.json'
+        data = json.loads(targets.read_text())
+        data[0]['label'] = 'Changed label'
+        targets.write_text(json.dumps(data))
+        self.assertEqual(self.check(root, '--check').returncode, 1)
+
 def load_tests(loader, tests, pattern):
     import nightly_contracts
     tests.addTests(loader.loadTestsFromTestCase(nightly_contracts.Nightly))
