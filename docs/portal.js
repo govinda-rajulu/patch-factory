@@ -7,7 +7,7 @@ const API='https://api.github.com/repos/'+REPO+'/';
 const RAW='https://raw.githubusercontent.com/'+REPO+'/main/';
 const $=id=>document.getElementById(id);
 let tab='apps',generation=0,importGeneration=0,pollTimer=null;
-let targets=null,importBlob=null;
+let targets=null,importBlob=null,customApps=[];
 const cache=new Map();
 function need(ok,message){if(!ok)throw new Error(message);}
 function el(tag,text,className){const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(className)n.className=className;return n;}
@@ -73,14 +73,59 @@ function validateImport(data,ts,pack){
  if(pack==='govind')need(data.apps.length===enabled.length,'Full import does not cover every enabled target');
  return data.apps;
 }
-function resetImport(){++importGeneration;$('openImport').hidden=true;$('openImport').removeAttribute('href');$('downloadImport').hidden=true;if(importBlob){URL.revokeObjectURL(importBlob);importBlob=null;}$('importMessage').textContent='';}
+function selectApps(apps,ids){
+ need(Array.isArray(apps)&&Array.isArray(ids)&&ids.length>0,'Select at least one app');
+ need(new Set(ids).size===ids.length&&ids.every(id=>apps.some(app=>app.id===id)),'Unknown or duplicate selected app');
+ const chosen=new Set(ids);
+ return apps.filter(app=>chosen.has(app.id));
+}
+function clearImportLinks(){
+ $('openImport').hidden=true;$('openImport').removeAttribute('href');
+ $('downloadImport').hidden=true;$('downloadImport').removeAttribute('href');
+ if(importBlob){URL.revokeObjectURL(importBlob);importBlob=null;}
+}
+function resetImport(){
+ ++importGeneration;clearImportLinks();customApps=[];
+ $('customApps').replaceChildren();$('customApps').hidden=true;
+ $('importMessage').textContent='';
+}
+function setImportLinks(apps,pack){
+ clearImportLinks();
+ const uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));need(uri.length<100000,'Configuration link too large for this page');
+ $('openImport').href=uri;$('openImport').textContent='Import / update '+apps.length+' apps in Obtainium';$('openImport').hidden=false;
+ importBlob=URL.createObjectURL(new Blob([JSON.stringify({apps},null,2)+'\n'],{type:'application/json'}));
+ $('downloadImport').href=importBlob;$('downloadImport').download='obtainium-'+pack+'.json';$('downloadImport').hidden=false;
+ $('importMessage').textContent='Ready: '+apps.length+' configs. Tap Open, then confirm in Obtainium. Unselected apps already tracked in Obtainium are not removed. If the link cannot open, use the JSON fallback.';
+}
+function updateCustom(){
+ clearImportLinks();
+ const ids=Array.from($('customApps').querySelectorAll('input:checked'),n=>n.value);
+ if(!ids.length){$('importMessage').textContent='Select at least one app. Nothing will be imported or removed.';return;}
+ try{setImportLinks(selectApps(customApps,ids),'selected');}
+ catch(e){$('importMessage').textContent='Import unavailable: '+e.message;}
+}
+function showCustom(apps){
+ customApps=apps;
+ const field=$('customApps');field.hidden=false;field.append(el('legend','Choose which apps to track'));
+ const controls=el('div',undefined,'actions');
+ for(const [label,checked] of [['Select all',true],['Clear selection',false]]){
+  const b=el('button',label);b.type='button';b.addEventListener('click',()=>{for(const input of field.querySelectorAll('input'))input.checked=checked;updateCustom();});controls.append(b);
+ }
+ field.append(controls);
+ for(const app of apps){
+  const label=el('label');label.style.cssText='display:flex;align-items:center;gap:12px;min-height:44px;padding:6px';
+  const input=el('input');input.type='checkbox';input.value=app.id;input.style.cssText='width:20px;height:20px;flex:none';input.addEventListener('change',updateCustom);
+  label.append(input,el('span',app.name));field.append(label);
+ }
+ updateCustom();
+}
 async function prepareImport(){
  resetImport();const token=importGeneration,pack=$('pack').value;$('prepareImport').disabled=true;
- try{cache.delete(RAW+'docs/obtainium-'+pack+'.json');targets=null;const [ts,data]=await Promise.all([getTargets(),read(RAW+'docs/obtainium-'+pack+'.json',0)]);if(token!==importGeneration)return;
- const apps=validateImport(data,ts,pack);const uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));need(uri.length<100000,'Configuration link too large for this page');
- $('openImport').href=uri;$('openImport').textContent='Import / update '+apps.length+' apps in Obtainium';$('openImport').hidden=false;
- importBlob=URL.createObjectURL(new Blob([JSON.stringify({apps},null,2)+'\n'],{type:'application/json'}));$('downloadImport').href=importBlob;$('downloadImport').download='obtainium-'+pack+'.json';$('downloadImport').hidden=false;
- $('importMessage').textContent='Ready: '+apps.length+' configs. Tap Open, then confirm in Obtainium. No silent sync or installation. If your installed version/browser cannot open it, use the JSON fallback.';
+ try{need(['govind','parents','custom'].includes(pack),'Unknown app list');
+ const sourcePack=pack==='custom'?'govind':pack;
+ cache.delete(RAW+'docs/obtainium-'+sourcePack+'.json');targets=null;const [ts,data]=await Promise.all([getTargets(),read(RAW+'docs/obtainium-'+sourcePack+'.json',0)]);if(token!==importGeneration)return;
+ const apps=validateImport(data,ts,sourcePack);
+ if(pack==='custom')showCustom(apps);else setImportLinks(apps,pack);
  }catch(e){if(token===importGeneration)$('importMessage').textContent='Import unavailable: '+e.message;}finally{$('prepareImport').disabled=false;}
 }
 function releaseRows(rows,ts){
@@ -147,7 +192,12 @@ async function render(){
  finally{if(own===generation){$('refresh').disabled=false;if(!document.hidden)pollTimer=setTimeout(()=>{if(!document.hidden)render();},120000);}}
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateTargets,releaseRows,safeLink};
+window.PFPortal={parseTag,validateImport,validateTargets,releaseRows,safeLink,selectApps};
+$('pack').querySelector('[value="govind"]').textContent='All apps';
+$('pack').querySelector('[value="parents"]').textContent="Parents' apps";
+const customOption=el('option','Choose apps');customOption.value='custom';$('pack').append(customOption);
+const customField=el('fieldset');customField.id='customApps';customField.hidden=true;customField.style.cssText='margin:16px 0;border:1px solid var(--rule);border-radius:8px;min-width:0';
+$('importMessage').before(customField);
 $('prepareImport').addEventListener('click',prepareImport);$('pack').addEventListener('change',resetImport);
 $('refresh').addEventListener('click',()=>{cache.clear();targets=null;render();});
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{tab=b.dataset.tab;for(const x of document.querySelectorAll('[data-tab]'))x.setAttribute('aria-selected',String(x===b));render();});
