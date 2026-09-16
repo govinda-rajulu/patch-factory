@@ -13,6 +13,7 @@ import sys
 import uuid
 from artifact_identity import SCHEMA, command, expected_package, record, require, target
 from build_identity import parse as parse_build_suffix, verify_run
+import input_recipe
 
 
 def read_text(root, relative):
@@ -40,6 +41,7 @@ def verify(root, ident):
     head = command(['git', 'rev-parse', 'HEAD'], root).decode().strip()
     require(captured['source_commit'] == head and captured['target'] == ident,
             'release evidence is from a different source commit/target')
+    input_recipe.verify(root, ident, captured['winner'], captured['local_input_recipe'])
     sig = d['signature']
     cert = sig['certificate_sha256']
     require(re.fullmatch('[0-9a-f]{64}', cert) and sig['cryptographic_verification'] == 'passed'

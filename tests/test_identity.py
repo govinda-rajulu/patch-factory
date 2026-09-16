@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT / 'src/build'))
 import artifact_identity as identity
 import native_payloads
 import release_contract
+import input_recipe
 
 
 class Identity(unittest.TestCase):
@@ -27,6 +28,7 @@ class Identity(unittest.TestCase):
         self.r = pathlib.Path(self.temp.name).resolve()
         shutil.copytree(ROOT / 'src', self.r / 'src')
         shutil.copytree(ROOT / 'docs', self.r / 'docs')
+        shutil.copytree(ROOT / '.github', self.r / '.github')
         (self.r / 'release').mkdir()
         (self.r / 'download').mkdir()
         (self.r / 'extra').mkdir()
@@ -657,7 +659,8 @@ class ReleaseContractTests(unittest.TestCase):
         (self.root / self.name).write_bytes(b'x' * 1000001)
         self.target = {'tag_prefix': 'fixture', 'min_sdk_ceiling': 29}
         self.report = {'schema': 1, 'status': 'verified', 'target': 'fixture',
-                       'inputs': {'source_commit': 'a'*40, 'target': 'fixture',
+                       'inputs': {'source_commit': 'a'*40, 'target': 'fixture', 'winner': 'fixture',
+                                  'local_input_recipe': {'fixture_only': True},
                                   'expected_package': 'org.fixture', 'expected_certificate_sha256': 'b'*64},
                        'manifest': {'package': 'org.fixture', 'min_sdk': 29, 'version_name': '4.2.1'},
                        'signature': {'certificate_sha256': 'b'*64, 'cryptographic_verification': 'passed'},
@@ -672,6 +675,9 @@ class ReleaseContractTests(unittest.TestCase):
         patch.object(release_contract, 'target', return_value=self.target).start()
         patch.object(release_contract, 'expected_package', return_value='org.fixture').start()
         patch.object(release_contract, 'command', return_value=('a'*40).encode()).start()
+        # Legacy narrow handoff tests isolate metadata. InputRecipeFlow below exercises
+        # the real capture/final/release recipe chain without mocking this new gate.
+        patch.object(input_recipe, 'verify', return_value=None).start()
 
     def save(self):
         (self.root / 'build-evidence/fixture.json').write_text(json.dumps(self.report))
@@ -791,6 +797,14 @@ class ReleaseContractTests(unittest.TestCase):
         with patch.dict(os.environ,{'GITHUB_RUN_ID':'12346','GITHUB_RUN_ATTEMPT':'2'}):
             with self.assertRaisesRegex(ValueError,'another workflow'):
                 self.verify()
+
+
+def load_tests(loader, tests, pattern):
+    # Keep the existing CI entrypoint; no workflow edit required for these contracts.
+    import input_recipe_contracts
+    tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeTests))
+    tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeFlow))
+    return tests
 
 
 if __name__=='__main__':unittest.main()
