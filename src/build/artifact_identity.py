@@ -98,7 +98,7 @@ def target(root, ident):
 
 def expected_package(root, t):
     # The committed, generated import is already the installation identity contract.
-    apps = json.loads((root / 'docs/obtainium-govind.json').read_text())['apps']
+    apps = json.loads((root / 'docs/obtainium.json').read_text())['apps']
     matches = [a for a in apps if a['name'] == t['label']]
     require(len(matches) == 1, 'ambiguous/missing expected output package in committed imports')
     package = matches[0]['id']
