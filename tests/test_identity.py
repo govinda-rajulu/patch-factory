@@ -66,7 +66,7 @@ class Identity(unittest.TestCase):
             self.put(name, 'fixture')
         self.put('.requested', 'lain\tUnlock Premium\n')
         for args in (['git','init','-q'], ['git','config','user.name','Fixture'], ['git','config','user.email','fixture@example.invalid'],
-                     ['git','add','src/targets.json','src/build/artifact_identity.py','docs/obtainium-govind.json'], ['git','commit','-qm','fixture']):
+                     ['git','add','src/targets.json','src/build/artifact_identity.py','docs/obtainium.json'], ['git','commit','-qm','fixture']):
             subprocess.run(args, cwd=self.r, check=True, capture_output=True)
         with patch.object(identity, 'cert_from_keystore', return_value=self.fingerprint), contextlib.redirect_stdout(io.StringIO()):
             identity.capture_signer(self.r, self.env)
@@ -191,7 +191,7 @@ class Identity(unittest.TestCase):
             self.assertEqual(identity.expected_package(self.r,t),expected)
 
     def test_ambiguous_output_package_rejected(self):
-        p=self.r/'docs/obtainium-govind.json';d=json.loads(p.read_text());d['apps'] += copy.deepcopy(d['apps']);p.write_text(json.dumps(d))
+        p=self.r/'docs/obtainium.json';d=json.loads(p.read_text());d['apps'] += copy.deepcopy(d['apps']);p.write_text(json.dumps(d))
         with self.assertRaises(ValueError):identity.expected_package(self.r,identity.target(self.r,'youtube'))
 
     def identity_args(self):

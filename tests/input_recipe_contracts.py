@@ -112,7 +112,7 @@ class InputRecipeTests(unittest.TestCase):
     def test_json_formatting_and_object_order_are_noop(self):
         a=self.recipe()
         for name in ('src/options/adobo.json','src/targets.json',
-                     'src/build/helper/apps.json','docs/obtainium-govind.json'):
+                     'src/build/helper/apps.json','docs/obtainium.json'):
             p=self.r/name
             value=json.loads(p.read_text())
             p.write_text(json.dumps(value,indent=4,sort_keys=True))

@@ -80,6 +80,40 @@ class Repair(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             preflight.check(self.r)
 
+    def test_public_import_generator_roundtrip_and_retired_exports_absent(self):
+        path = self.r/'docs/obtainium.json'
+        before = path.read_bytes()
+        result = self.run_cmd(['python3','src/etc/obtainium.py'])
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        self.assertEqual(path.read_bytes(), before)
+        exports = sorted(p.name for p in (self.r/'docs').glob('obtainium*.json'))
+        self.assertEqual(exports, ['obtainium.json'])
+        apps = json.loads(before)['apps']
+        targets = json.loads((self.r/'src/targets.json').read_text())
+        self.assertEqual({a['name'] for a in apps},
+                         {t['label'] for t in targets if t['enabled']})
+        self.assertEqual(len(apps), len({a['id'] for a in apps}))
+
+    def test_neutral_import_check_is_readonly_and_mismatch_is_failure(self):
+        before = {str(p.relative_to(self.r)):p.read_bytes()
+                  for p in (self.r/'docs').rglob('*') if p.is_file()}
+        result = self.run_cmd(['python3','src/etc/obtainium.py','--check'])
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        after = {str(p.relative_to(self.r)):p.read_bytes()
+                 for p in (self.r/'docs').rglob('*') if p.is_file()}
+        self.assertEqual(before,after)
+        self.put('docs/obtainium.json','{"apps":[]}')
+        result = self.run_cmd(['python3','src/etc/obtainium.py','--check'])
+        self.assertNotEqual(result.returncode,0)
+        self.assertEqual((self.r/'docs/obtainium.json').read_text(),'{"apps":[]}')
+
+    def test_identity_and_recipe_use_only_neutral_catalog_path(self):
+        for name in ('artifact_identity.py','input_recipe.py'):
+            source=(ROOT/'src/build'/name).read_text()
+            self.assertIn('docs/obtainium.json',source)
+            self.assertNotIn('obtainium-'+'govind.json',source)
+            self.assertNotIn('obtainium-'+'parents.json',source)
+
     def test_portal_import_release_and_rendering_contracts(self):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
@@ -674,7 +708,7 @@ excludePatches=""; includePatches=""
         self.assertEqual(x.returncode, 0, x.stdout + x.stderr)
 
     def test_obtainium_detects_drift(self):
-        self.put('docs/obtainium-govind.json', '{}')
+        self.put('docs/obtainium.json', '{}')
         self.assertNotEqual(self.run_cmd([sys.executable, 'src/etc/obtainium.py', '--check']).returncode, 0)
 
     def test_workflow_guards_exist(self):

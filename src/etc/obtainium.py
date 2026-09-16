@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Generate deterministic import files for enabled targets; no network access.
+# Generate one deterministic public import for enabled targets; no network access.
 # --check compares bytes without writing. Release availability is separate.
 import json, re, sys, pathlib
 
@@ -9,11 +9,8 @@ AUTHOR = "govinda-rajulu"
 
 LABELS = {}  # filled from targets.json below
 SKIP = {}
-# DERIVED FROM targets.json. These were two hand-typed prefix lists, so removing a target
-# left dead prefixes behind and every assert below failed with ("no label", prefix).
-# Set A is every enabled target. Set B is the subset the other two phones take, which is a
-# distribution decision, so it is the only list a human edits.
-SET_B = ["tc-combo", "prime-video", "facebook", "gg-photos", "es-file", "hotstar", "mx-player"]
+# Everyone uses the same enabled-target catalog. Subsets are selected in the page,
+# never a hard-coded person/device distribution list in the generator.
 targets = json.load(open("src/targets.json"))
 pkg = {}
 for t in targets:
@@ -25,12 +22,8 @@ for t in targets:
     LABELS[p] = t.get("label") or p
 pkg["gg-photos"] = "app.morphe.android.apps.photos"
 pkg["youtube-morphe"] = "app.morphe.android.youtube" # GmsCore support renames the package  # Change package name patch default
-MINE = sorted(LABELS)
-THEIRS = [p for p in SET_B if p in LABELS]
-_dropped = [p for p in SET_B if p not in LABELS]
-if _dropped:
- print("SET_B names prefixes that are no longer targets, ignoring:", " ".join(_dropped))
-for p in sorted(set(MINE + THEIRS)):
+ALL_APPS = sorted(LABELS)
+for p in ALL_APPS:
     assert p in LABELS, ("no label", p)
     assert p in pkg, ("no target", p)
 
@@ -67,9 +60,8 @@ def write(path, wanted):
         dest.write_text(content)
     print(path, len(ok), "apps:", " ".join(ok))
 
-write("docs/obtainium-govind.json", MINE)
-write("docs/obtainium-parents.json", THEIRS)
-for p in sorted(set(MINE + THEIRS)):
+write("docs/obtainium.json", ALL_APPS)
+for p in ALL_APPS:
     if p in SKIP:
         print("SKIP", p, "-", SKIP[p])
     elif p not in live:

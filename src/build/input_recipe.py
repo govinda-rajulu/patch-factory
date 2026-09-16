@@ -169,11 +169,11 @@ def create(root, ident, winner, env=None):
         parts.append(component(root,path))
     for path in SHARED:
         parts.append(component(root,path))
-    apps = read_json(root,"docs/obtainium-govind.json")
+    apps = read_json(root,"docs/obtainium.json")
     entries = [a for a in apps["apps"] if a.get("name")==t.get("label")]
     need(len(entries)==1 and isinstance(entries[0].get("id"),str),
          "missing or ambiguous installation identity")
-    parts.append(component(root,"docs/obtainium-govind.json","identity-map",
+    parts.append(component(root,"docs/obtainium.json","identity-map",
                            {"name":entries[0]["name"],"id":entries[0]["id"]}))
     stores = read_json(root,"src/build/helper/apps.json")
     store = t.get("source","apkmirror")

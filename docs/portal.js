@@ -65,7 +65,7 @@ function validateTargets(data){
  return data;
 }
 async function getTargets(){if(!targets)targets=validateTargets(await read(RAW+'src/targets.json'));return targets;}
-function validateImport(data,ts,pack){
+function validateImport(data,ts){
  need(data&&Object.keys(data).length===1&&Array.isArray(data.apps),'Import must contain apps only, no global settings');
  const enabled=ts.filter(t=>t.enabled),ids=new Set(),names=new Set(),matched=new Set();
  need(data.apps.length>0&&data.apps.length<=enabled.length,'Invalid import count');
@@ -79,7 +79,7 @@ function validateImport(data,ts,pack){
  need(!Object.keys(settings).some(k=>/token|password|secret|credential/i.test(k)),'Credentials not permitted in import');
  need(Object.keys(app).every(k=>['id','url','author','name','categories','preferredApkIndex','additionalSettings'].includes(k)),'Unsupported import field');
  }
- if(pack==='govind')need(data.apps.length===enabled.length,'Full import does not cover every enabled target');
+ need(data.apps.length===enabled.length,'Full import does not cover every enabled target');
  return data.apps;
 }
 function selectApps(apps,ids){
@@ -103,7 +103,7 @@ function setImportLinks(apps,pack){
  const uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));need(uri.length<100000,'Configuration link too large for this page');
  $('openImport').href=uri;$('openImport').textContent='Import / update '+apps.length+' apps in Obtainium';$('openImport').hidden=false;
  importBlob=URL.createObjectURL(new Blob([JSON.stringify({apps},null,2)+'\n'],{type:'application/json'}));
- $('downloadImport').href=importBlob;$('downloadImport').download='obtainium-'+pack+'.json';$('downloadImport').hidden=false;
+ $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected.json':'obtainium.json';$('downloadImport').hidden=false;
  $('importMessage').textContent='Ready: '+apps.length+' configs. Tap Open, then confirm in Obtainium. Unselected apps already tracked in Obtainium are not removed. If the link cannot open, use the JSON fallback.';
 }
 function updateCustom(){
@@ -130,10 +130,9 @@ function showCustom(apps){
 }
 async function prepareImport(){
  resetImport();const token=importGeneration,pack=$('pack').value;$('prepareImport').disabled=true;
- try{need(['govind','parents','custom'].includes(pack),'Unknown app list');
- const sourcePack=pack==='custom'?'govind':pack;
- cache.delete(RAW+'docs/obtainium-'+sourcePack+'.json');targets=null;const [ts,data]=await Promise.all([getTargets(),read(RAW+'docs/obtainium-'+sourcePack+'.json',0)]);if(token!==importGeneration)return;
- const apps=validateImport(data,ts,sourcePack);
+ try{need(['all','custom'].includes(pack),'Unknown app list');
+ cache.delete(RAW+'docs/obtainium.json');targets=null;const [ts,data]=await Promise.all([getTargets(),read(RAW+'docs/obtainium.json',0)]);if(token!==importGeneration)return;
+ const apps=validateImport(data,ts);
  if(pack==='custom')showCustom(apps);else setImportLinks(apps,pack);
  }catch(e){if(token===importGeneration)$('importMessage').textContent='Import unavailable: '+e.message;}finally{$('prepareImport').disabled=false;}
 }
@@ -276,9 +275,7 @@ for(const [value,label] of [['all','All categories'],...GROUPS.map(g=>[g[0],g[1]
 categories.addEventListener('change',()=>{appCategory=categories.value;filterApps();});
 const count=el('span','','meta');count.id='appCount';count.setAttribute('aria-live','polite');
 tools.append(search,categories,count);$('panel').before(tools);
-$('pack').querySelector('[value="govind"]').textContent='All apps';
-$('pack').querySelector('[value="parents"]').textContent="Parents' apps";
-const customOption=el('option','Choose apps');customOption.value='custom';$('pack').append(customOption);
+// The static page lists the same two public choices; no personal presets.
 const customField=el('fieldset');customField.id='customApps';customField.hidden=true;customField.style.cssText='margin:16px 0;border:1px solid var(--rule);border-radius:8px;min-width:0';
 $('importMessage').before(customField);
 $('prepareImport').addEventListener('click',prepareImport);$('pack').addEventListener('change',resetImport);

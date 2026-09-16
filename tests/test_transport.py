@@ -471,7 +471,7 @@ class BuildIdentityTests(unittest.TestCase):
   with self.assertRaises(ValueError):build_identity.create(self.env,self.now.replace(tzinfo=None))
  def test_existing_obtainium_filters_match_both_formats(self):
   import re
-  for filename in ['obtainium-govind.json','obtainium-parents.json']:
+  for filename in ['obtainium.json']:
    for app in json.loads((ROOT/'docs'/filename).read_text())['apps']:
     settings=json.loads(app['additionalSettings'])
     prefix=next(t['tag_prefix'] for t in json.loads((ROOT/'src/targets.json').read_text()) if t['label']==app['name'])
