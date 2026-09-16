@@ -1,4 +1,4 @@
-name: 6. Batch Patch
+name: 9. Batch Patch
 run-name: Batch ${{ inputs.targets }} / publish=${{ inputs.publish }}
 permissions:
   contents: write
