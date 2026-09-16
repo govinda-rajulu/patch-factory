@@ -80,6 +80,12 @@ class Repair(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             preflight.check(self.r)
 
+    def test_portal_import_release_and_rendering_contracts(self):
+        result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
+                                cwd=ROOT, capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        self.assertIn('PORTAL_CONTRACTS_PASS=9', result.stdout)
+
     def batch_probe(self, raw, targets=None):
         if targets is not None:
             self.put('src/targets.json', json.dumps(targets))
