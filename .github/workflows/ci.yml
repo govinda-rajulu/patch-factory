@@ -15,6 +15,7 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
+      shadow_keys: ${{ steps.shadow.outputs.keys }}
     env:
       repository: ${{ github.repository }}
       GITHUB_TOKEN: ${{ github.token }}
@@ -32,6 +33,20 @@ jobs:
       - name: Poll every opted-in target
         id: plan
         run: python3 src/etc/daily_plan.py
+      - name: Record shadow Plan declarations (not build selection)
+        id: shadow
+        continue-on-error: true
+        timeout-minutes: 3
+        run: python3 src/build/shadow_inputs.py plan
+      - name: Preserve shadow Plan evidence
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}
+          path: shadow-evidence/plan.json
+          if-no-files-found: warn
+          retention-days: 30
 
   build:
     needs: plan
@@ -44,3 +59,5 @@ jobs:
     secrets: inherit
     with:
       target: ${{ matrix.target }}
+      shadow_plan_key: ${{ fromJSON(needs.plan.outputs.shadow_keys || '{}')[matrix.target] || '' }}
+      shadow_plan_required: true

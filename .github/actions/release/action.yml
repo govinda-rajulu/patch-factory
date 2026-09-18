@@ -43,6 +43,22 @@ runs:
         # most recently, so the releases page advertises a random app as the current one.
         makeLatest: false
 
+    - name: Record confirmed-publication input receipt (shadow only)
+      id: shadow_receipt
+      continue-on-error: true
+      shell: bash
+      env:
+        TARGET: ${{ inputs.target }}
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        timeout 180s python3 src/build/shadow_inputs.py receipt "$TARGET"
+    - name: Report incomplete shadow publication evidence
+      if: steps.shadow_receipt.outcome == 'failure'
+      shell: bash
+      run: |
+        echo "::warning::APK publication may have succeeded; shadow receipt is NOT verified. Do not rebuild or overwrite to force a baseline."
+        echo "Shadow publication receipt unavailable. Published APK status and baseline evidence are separate." >> "$GITHUB_STEP_SUMMARY"
+
     - name: Preview retention (no deletion)
       shell: bash
       env:

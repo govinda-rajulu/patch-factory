@@ -31,6 +31,16 @@ on:
           - 'keymapper'
   workflow_call:
     inputs:
+      shadow_plan_required:
+        description: Distinguish a missing daily Plan from an intentional direct/manual build
+        required: false
+        type: boolean
+        default: false
+      shadow_plan_key:
+        description: Optional shadow declaration from the daily Plan, never a skip instruction
+        required: false
+        type: string
+        default: ''
       publish:
         required: false
         type: boolean
@@ -51,6 +61,8 @@ jobs:
       KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
       KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
       COE: ${{ vars.COE }}
+      PF_SHADOW_PLAN_KEY: ${{ inputs.shadow_plan_key || '' }}
+      PF_SHADOW_PLAN_REQUIRED: ${{ inputs.shadow_plan_required || false }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
@@ -100,6 +112,22 @@ jobs:
         env:
           TARGET: ${{ inputs.target }}
         run: python3 src/build/release_contract.py "$TARGET"
+      - name: Compare consumed inputs in shadow mode
+        id: shadow
+        continue-on-error: true
+        timeout-minutes: 3
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/build/shadow_inputs.py observe "$TARGET"
+      - name: Preserve shadow consumed-input comparison
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadow-inputs-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: shadow-evidence/*.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Save verified test APK and evidence (not a release)
         if: success() && (!inputs.publish || github.ref != 'refs/heads/main')
         uses: actions/upload-artifact@v4
