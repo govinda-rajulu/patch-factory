@@ -65,7 +65,7 @@ jobs:
       PF_SHADOW_PLAN_REQUIRED: ${{ inputs.shadow_plan_required || false }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Preflight before secrets and downloads
@@ -79,7 +79,7 @@ jobs:
           echo "keystore bytes: $SZ"
           [ "$SZ" -gt 3000 ] || { echo "::error::keystore truncated - KEYSTORE_B64 secret is incomplete"; exit 1; }
       - name: Cache the patcher jar
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: morphe-desktop-*.jar
           key: morphe-jar-${{ hashFiles('src/targets.json') }}
@@ -102,7 +102,7 @@ jobs:
           TARGET: ${{ inputs.target }}
         run: python3 src/build/artifact_identity.py verify "$TARGET"
       - name: Save build evidence (JSON only)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-evidence-${{ inputs.target }}
           path: build-evidence/*.json
@@ -122,7 +122,7 @@ jobs:
       - name: Preserve shadow consumed-input comparison
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: shadow-inputs-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: shadow-evidence/*.json
@@ -130,7 +130,7 @@ jobs:
           retention-days: 30
       - name: Save verified test APK and evidence (not a release)
         if: success() && (!inputs.publish || github.ref != 'refs/heads/main')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: |

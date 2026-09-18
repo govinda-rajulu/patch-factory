@@ -16,7 +16,7 @@ jobs:
     steps:
       # No checkout, artifact download, external script or raw log copying in this
       # privileged workflow_run context. Only trusted inline code and API metadata.
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@v9
         with:
           script: |
             // PF_NOTIFY_CONTRACT_START

@@ -21,7 +21,7 @@ jobs:
       GITHUB_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Check github connection
@@ -41,7 +41,7 @@ jobs:
       - name: Preserve shadow Plan evidence
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}
           path: shadow-evidence/plan.json
