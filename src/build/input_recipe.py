@@ -102,6 +102,11 @@ def resource_paths(value, key=""):
     external-URL resolver. hosts/filePathOption are the supported file-valued keys.
     """
     result = set()
+    # Known file-valued keys must be single strings, before generic traversal.
+    # Null/bool/number/list/object must not silently erase resource coverage.
+    if key in ("hosts", "filePathOption"):
+        need(isinstance(value, str) and bool(value),
+             "file resource option must be a nonempty string")
     if isinstance(value, dict):
         for k, v in value.items():
             result.update(resource_paths(v, k))
