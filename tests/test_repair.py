@@ -120,6 +120,12 @@ class Repair(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
         self.assertIn('PORTAL_CONTRACTS_PASS=9', result.stdout)
 
+    def test_failure_notifier_contracts(self):
+        result = subprocess.run(['node', str(ROOT / 'tests/notify_contracts.cjs')],
+                                cwd=ROOT, capture_output=True, text=True, timeout=30)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('NOTIFY_CONTRACTS_PASS=21', result.stdout)
+
     def batch_probe(self, raw, targets=None):
         if targets is not None:
             self.put('src/targets.json', json.dumps(targets))
