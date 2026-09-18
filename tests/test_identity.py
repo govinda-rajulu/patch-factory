@@ -802,8 +802,10 @@ class ReleaseContractTests(unittest.TestCase):
 def load_tests(loader, tests, pattern):
     # Keep the existing CI entrypoint; no workflow edit required for these contracts.
     import input_recipe_contracts
+    import shadow_contracts
     tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeTests))
     tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeFlow))
+    tests.addTests(loader.loadTestsFromTestCase(shadow_contracts.ShadowContracts))
     return tests
 
 
