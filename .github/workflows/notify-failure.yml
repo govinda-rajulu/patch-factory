@@ -1,63 +1,166 @@
 name: Notify on failure
 on:
   workflow_run:
-    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target"]
+    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "9. Batch Patch"]
     types: [completed]
 permissions:
   issues: write
   actions: read
+concurrency:
+  group: notify-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+  cancel-in-progress: false
 jobs:
   open-issue:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ contains(fromJSON('["failure","timed_out","startup_failure","action_required"]'), github.event.workflow_run.conclusion) }}
     runs-on: ubuntu-latest
     steps:
+      # No checkout, artifact download, external script or raw log copying in this
+      # privileged workflow_run context. Only trusted inline code and API metadata.
       - uses: actions/github-script@v7
         with:
           script: |
-            const r = context.payload.workflow_run;
-            const O = context.repo.owner, R = context.repo.repo;
-            const RX = /severe|caused by|exception|unmatched argument|could not|unable to|no viable provider|cannot pick|applied 0 patches|refusing|not found|failed for|##\[error\]/i;
-            const SKIP = /DeprecationWarning|keystore truncated|Process completed with exit code/i;
-
-            let label = '', diag = '';
-            try {
-              const jl = await github.rest.actions.listJobsForWorkflowRun({
-                owner: O, repo: R, run_id: r.id, per_page: 100, filter: 'latest'
-              });
-              const bad = jl.data.jobs.filter(j => j.conclusion === 'failure');
-              if (bad.length) {
-                label = bad[0].name.split('/').pop().trim();
-                for (const j of bad.slice(0, 3)) {
-                  const steps = (j.steps || []).filter(s => s.conclusion === 'failure').map(s => s.name);
-                  diag += `\n**${j.name}** failed at: ${steps.join(', ') || 'unknown step'}\n`;
-                  try {
-                    const lg = await github.request('GET /repos/{owner}/{repo}/actions/jobs/{job_id}/logs', {
-                      owner: O, repo: R, job_id: j.id
-                    });
-                    const hits = String(lg.data).split('\n')
-                      .map(l => l.replace(/^\S+\s/, '').replace(/\x1b\[[0-9;]*[mGK]/g, '').trim())
-                      .filter(l => RX.test(l) && !SKIP.test(l));
-                    const tail = hits.slice(-8);
-                    if (tail.length) diag += '```\n' + tail.join('\n').slice(0, 1400) + '\n```\n';
-                  } catch (e) { diag += `_log unavailable: ${e.status || e.message}_\n`; }
-                }
-              }
-            } catch (e) { diag += `_job list unavailable: ${e.status || e.message}_\n`; }
-
-            const title = label ? `Build failed: ${r.name} · ${label}` : `Build failed: ${r.name}`;
-            const line = `Run [${r.id}](${r.html_url}) failed on \`${r.head_branch}\` (event: ${r.event}).`;
-            const body = `${line}\n${diag}\nRerun with:\n\`\`\`\ngh run rerun ${r.id} --failed\n\`\`\``;
-
-            const found = await github.rest.issues.listForRepo({
-              owner: O, repo: R, state: 'open', per_page: 100
-            });
-            const open = found.data.find(i => i.title === title);
-            if (open) {
-              await github.rest.issues.createComment({
-                owner: O, repo: R, issue_number: open.number, body
-              });
-              core.info(`commented on existing issue ${open.number}`);
-            } else {
-              const made = await github.rest.issues.create({ owner: O, repo: R, title, body });
-              core.info(`opened issue ${made.data.number}`);
+            // PF_NOTIFY_CONTRACT_START
+            const O = context.repo.owner, R = context.repo.repo, repo = O + "/" + R;
+            const trigger = context.payload.workflow_run;
+            const permitted = new Map([
+              [".github/workflows/manual-patch.yml", "1. Manual Patch"],
+              [".github/workflows/ci.yml", "2. Check new patch"],
+              [".github/workflows/explore.yml", "4. Explore patches"],
+              [".github/workflows/add-target.yml", "5. Add target"],
+              [".github/workflows/batch-patch.yml", "9. Batch Patch"]
+            ]);
+            const failures = new Set(["failure", "timed_out", "startup_failure", "action_required"]);
+            const validConclusions = new Set([...failures, "success", "neutral", "cancelled", "skipped", "stale"]);
+            function need(ok, message) { if (!ok) throw new Error(message); }
+            function id(n) { return Number.isSafeInteger(n) && n > 0; }
+            function label(value) {
+              need(typeof value === "string" && value.length <= 10000, "Invalid metadata label");
+              // Metadata is untrusted text: no mentions, Markdown links, HTML,
+              // bidi/control characters or token-shaped strings in the public body.
+              return value.replace(/\b(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+)\b/g, "[redacted]")
+                .replace(/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/g, " ")
+                .replace(/@/g, "＠").replace(/[\\`*_{}\[\]()<>#!|]/g, c => "\\" + c)
+                .slice(0, 240);
             }
+            function identity(run) {
+              need(run && id(run.id) && id(run.run_attempt), "Invalid run identity");
+              need(run.repository?.full_name === repo && run.head_repository?.full_name === repo,
+                "Foreign or missing repository identity");
+              need(typeof run.head_sha === "string" && /^[0-9a-f]{40}$/.test(run.head_sha), "Invalid source commit");
+              need(run.status === "completed" && failures.has(run.conclusion), "Run is not a completed failure");
+              need(permitted.get(run.path) === run.name, "Workflow path/name outside notification scope");
+              need(["workflow_dispatch", "schedule", "push", "workflow_call"].includes(run.event),
+                "Unexpected triggering event; no privileged report");
+            }
+            identity(trigger);
+            // Read this exact attempt, never the latest jobs of a later rerun.
+            const run = (await github.rest.actions.getWorkflowRunAttempt({
+              owner: O, repo: R, run_id: trigger.id, attempt_number: trigger.run_attempt
+            })).data;
+            identity(run);
+            need(run.id === trigger.id && run.run_attempt === trigger.run_attempt &&
+              run.head_sha === trigger.head_sha && run.path === trigger.path &&
+              run.name === trigger.name && run.conclusion === trigger.conclusion &&
+              run.head_branch === trigger.head_branch && run.event === trigger.event,
+              "Event and exact-attempt record disagree");
+            const jobs = [], seen = new Set();
+            let expected = null, finished = false;
+            for (let page = 1; page <= 100; page++) {
+              const data = (await github.rest.actions.listJobsForWorkflowRunAttempt({
+                owner: O, repo: R, run_id: run.id, attempt_number: run.run_attempt,
+                per_page: 100, page
+              })).data;
+              need(Number.isSafeInteger(data.total_count) && data.total_count >= 0 &&
+                data.total_count <= 10000 && Array.isArray(data.jobs) && data.jobs.length <= 100,
+                "Invalid jobs inventory");
+              if (expected === null) expected = data.total_count;
+              need(expected === data.total_count, "Jobs inventory changed during pagination");
+              for (const job of data.jobs) {
+                need(id(job.id) && !seen.has(job.id) && job.run_id === run.id &&
+                  job.run_attempt === run.run_attempt && job.head_sha === run.head_sha,
+                  "Duplicate or wrong-attempt job");
+                need(job.status === "completed" && validConclusions.has(job.conclusion),
+                  "Incomplete or unknown job state");
+                need(typeof job.name === "string" && (job.steps === undefined || Array.isArray(job.steps)), "Invalid job metadata");
+                seen.add(job.id); jobs.push(job);
+              }
+              need(jobs.length <= expected, "Too many jobs for attempt");
+              if (jobs.length === expected) { finished = true; break; }
+              need(data.jobs.length === 100, "Incomplete jobs page; no partial report");
+            }
+            need(finished, "Jobs exceeded complete-inventory bound");
+            const failed = jobs.filter(j => failures.has(j.conclusion) || ["cancelled", "stale"].includes(j.conclusion));
+            const marker = `<!-- pf-failure:v2:${repo}:${run.id}:${run.run_attempt}:${run.head_sha} -->`;
+            const runURL = `https://github.com/${repo}/actions/runs/${run.id}/attempts/${run.run_attempt}`;
+            const lines = [
+              marker, `## ${label(run.name)}: ${run.conclusion}`,
+              `Run [${run.id}, attempt ${run.run_attempt}](${runURL})`,
+              `Source commit: \`${run.head_sha}\``,
+              `Branch: ${label(run.head_branch || "(none)")} | Event: ${run.event}`,
+              `Job inventory: ${jobs.length}/${expected}. Failed or interrupted jobs: ${failed.length}.`,
+              `Skipped: ${jobs.filter(j => j.conclusion === "skipped").length}; neutral: ${jobs.filter(j => j.conclusion === "neutral").length}.`,
+              ""
+            ];
+            if (!failed.length) lines.push("The workflow failed but no failed/interrupted job is recorded. Inspect the linked run and startup annotations; this is NOT recovery or an all-clear.", "");
+            for (const job of failed) {
+              lines.push(`### Job ${job.id}: ${label(job.name)}`,
+                `Conclusion: ${job.conclusion}. [Job details](https://github.com/${repo}/actions/runs/${run.id}/job/${job.id})`);
+              const numbers = new Set();
+              const steps = (job.steps || []).filter(s => {
+                need(id(s.number) && !numbers.has(s.number) && typeof s.name === "string",
+                  "Invalid or duplicate step metadata");
+                numbers.add(s.number);
+                need(["completed", "queued", "in_progress"].includes(s.status), "Unknown step status");
+                need(s.conclusion === null || validConclusions.has(s.conclusion), "Unknown step conclusion");
+                return failures.has(s.conclusion) || ["cancelled", "stale"].includes(s.conclusion);
+              });
+              if (steps.length) for (const s of steps) lines.push(`- Step ${s.number}: ${label(s.name)} (${s.conclusion})`);
+              else lines.push("- No failing step recorded; inspect startup/cancellation details.");
+              lines.push("");
+            }
+            lines.push("Raw logs are deliberately not copied to this public issue. Review the linked exact-attempt logs privately; never post keys, tokens, signed URLs or signing arguments.",
+              "", "This record does not close, reopen or claim recovery of an older issue. A rerun is a different attempt; inspect current source before rerunning old work.");
+            const body = lines.join("\n");
+            need(Buffer.byteLength(body, "utf8") <= 60000, "Report exceeds issue limit; refusing truncation or partial posting");
+            // Search all issue states; a closed report must not be reopened, and
+            // a repeated event must not create a duplicate or comment storm.
+            const matches = [];
+            let completeIssues = false;
+            const seenIssues = new Set();
+            for (let page = 1; page <= 100; page++) {
+              const rows = (await github.rest.issues.listForRepo({
+                owner: O, repo: R, state: "all", sort: "created", direction: "asc", per_page: 100, page
+              })).data;
+              need(Array.isArray(rows) && rows.length <= 100, "Invalid issue inventory");
+              for (const issue of rows) {
+                need(id(issue.id) && !seenIssues.has(issue.id), "Duplicate issue inventory row");
+                seenIssues.add(issue.id);
+                if (!issue.pull_request && typeof issue.body === "string" && issue.body.split("\n")[0] === marker)
+                  matches.push(issue);
+              }
+              if (rows.length < 100) { completeIssues = true; break; }
+            }
+            need(completeIssues, "Issue inventory exceeded bound; no write");
+            need(matches.length <= 1, "Duplicate report identity; no automatic edits");
+            if (matches.length) {
+              need(matches[0].user?.login === "github-actions[bot]", "Report identity collision with another author");
+              core.info("Exact run-attempt report already exists; no issue edits or comments.");
+              return;
+            }
+            // Detect a later attempt starting during collection before publishing
+            // a misleading old-attempt notification. Old logs remain linked in CI.
+            const current = (await github.rest.actions.getWorkflowRun({
+              owner: O, repo: R, run_id: run.id
+            })).data;
+            need(current.run_attempt === run.run_attempt && current.head_sha === run.head_sha &&
+              current.status === "completed" && current.conclusion === run.conclusion &&
+              current.repository?.full_name === repo && current.head_repository?.full_name === repo,
+              "Run changed during collection; no notification");
+            const result = await github.rest.issues.create({
+              owner: O, repo: R,
+              title: `Workflow failure: ${run.id} / attempt ${run.run_attempt}`,
+              body
+            });
+            need(id(result.data.number), "Issue creation not confirmed; inspect before retry");
+            core.info(`Created exact-attempt failure issue ${result.data.number}.`);
+            // PF_NOTIFY_CONTRACT_END
