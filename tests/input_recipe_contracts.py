@@ -181,6 +181,46 @@ class InputRecipeTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.recipe('unknown','adobo')
         with self.assertRaises(ValueError):self.recipe('reddit','unknown')
 
+    def test_wrong_type_file_options_refused_by_actual_recipe_and_cli(self):
+        p = self.r / 'src/options/adobo.json'
+        for key in ('hosts', 'filePathOption'):
+            for value in (None, False, True, 0, 7, [], {}, ['src/options/hosts.txt'],
+                          {'nested': 'src/options/hosts.txt'}):
+                with self.subTest(key=key, value=value):
+                    p.write_text(json.dumps([{'patches': {'p': {'options': {key: value}}}}]))
+                    before = p.read_bytes()
+                    with self.assertRaisesRegex(ValueError, 'nonempty string'):
+                        self.recipe()
+                    proc = subprocess.run(
+                        [sys.executable, str(ROOT / 'src/build/input_recipe.py'),
+                         'reddit', 'adobo'], cwd=self.r, capture_output=True, text=True)
+                    self.assertNotEqual(proc.returncode, 0)
+                    self.assertEqual(proc.stdout, '')
+                    self.assertEqual(p.read_bytes(), before)
+
+    def test_valid_nested_resources_canonical_revert_and_unknown_options(self):
+        p = self.r / 'src/options/adobo.json'
+        original = p.read_bytes()
+        baseline = self.recipe()
+        # Formatting-only changes must preserve the existing recipe.
+        p.write_text(json.dumps(json.loads(original), separators=(',', ':')))
+        self.assertEqual(self.recipe(), baseline)
+        p.write_text(json.dumps([{'patches': {'p': {'options': {
+            'filePathOption': './src/options/hosts.txt',
+            'unknownBoolean': False, 'unknownNumber': 7}}}}]))
+        changed = self.recipe()
+        self.assertEqual(changed['resource_paths'], ['src/options/hosts.txt'])
+        self.assertNotEqual(changed['sha256'], baseline['sha256'])
+        p.write_bytes(original)
+        self.assertEqual(self.recipe(), baseline)
+
+    def test_malformed_resource_cannot_verify_an_earlier_manifest(self):
+        manifest = self.recipe()
+        p = self.r / 'src/options/adobo.json'
+        p.write_text(json.dumps([{'patches': {'p': {'options': {'hosts': None}}}}]))
+        with self.assertRaisesRegex(ValueError, 'nonempty string'):
+            input_recipe.verify(self.r, 'reddit', 'adobo', manifest)
+
     def test_corrupt_missing_and_wrong_manifest_refused(self):
         a=self.recipe()
         for value in (None,{},dict(a,sha256='0'*64),dict(a,target='keymapper'),dict(a,winner='lain')):
@@ -316,6 +356,20 @@ class InputRecipeFlow(unittest.TestCase):
                          cwd=self.r,env={**os.environ,'GITHUB_OUTPUT':str(dest)},capture_output=True,text=True)
         self.assertNotEqual(r.returncode,0)
         self.assertEqual(dest.read_text(),'existing=value\n')
+
+    def test_wrong_type_resource_after_verification_cannot_publish(self):
+        self.setup_verified()
+        self.fixture.put('src/options/lain.json',
+                         '[{"patches":{"p":{"options":{"hosts":null}}}}]')
+        dest = self.r / 'output.txt'
+        dest.write_text('existing=value\n')
+        proc = subprocess.run(
+            [sys.executable, str(ROOT / 'src/build/release_contract.py'),
+             'keymapper', '--github-output'], cwd=self.r,
+            env={**os.environ, 'GITHUB_OUTPUT': str(dest)},
+            capture_output=True, text=True)
+        self.assertNotEqual(proc.returncode, 0)
+        self.assertEqual(dest.read_text(), 'existing=value\n')
 
     def test_mutation_removing_final_gate_is_caught(self):
         self.fixture.capture_fixture()

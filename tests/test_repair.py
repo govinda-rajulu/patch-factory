@@ -718,7 +718,8 @@ excludePatches=""; includePatches=""
         val = (ROOT / '.github/workflows/validate.yml').read_text()
         self.assertIn('  pull_request:', val)
         self.assertIn('contents: read', val)
-        self.assertIn('POLL_ERRORS', (ROOT / '.github/workflows/ci.yml').read_text())
+        self.assertIn('run: python3 src/etc/daily_plan.py',
+                      (ROOT / '.github/workflows/ci.yml').read_text())
         batch = (ROOT / '.github/workflows/batch-patch.yml').read_text()
         self.assertIn('publish: ${{ inputs.publish }}', batch)
 
@@ -796,7 +797,9 @@ class PageAssetVersionTests(unittest.TestCase):
 
 def load_tests(loader, tests, pattern):
     import nightly_contracts
+    import daily_plan_contracts
     tests.addTests(loader.loadTestsFromTestCase(nightly_contracts.Nightly))
+    tests.addTests(loader.loadTestsFromTestCase(daily_plan_contracts.DailyPlanTests))
     return tests
 
 
