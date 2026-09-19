@@ -1,78 +1,106 @@
 # Open work
 
-Written by the closing block on 7 Sep 2026, from the repo rather than from memory. Every line
-here is something not done, with what unblocks it. When a line stops being true, delete it.
+## Verified checkpoint: 19 September 2026
 
-## Only you can do these
+[PR67](https://github.com/govinda-rajulu/patch-factory/pull/67) merged as
+`d2777e30d4e06c8f28a1e4cfe600d1309344b865`, tree
+`efb2797ba0f29983596fd48b5b68edfda1166441`.
+[Main validation](https://github.com/govinda-rajulu/patch-factory/actions/runs/35456210369)
+and [Pages](https://github.com/govinda-rajulu/patch-factory/actions/runs/35456209682)
+passed on that commit. This is a dated evidence checkpoint, not a permanent
+claim about the current branch.
 
-1. **A second offline copy of the signing keystore.** One emailed archive is one deleted thread
-   from losing every app in the set, and Truecaller charges phone verifications to re-establish.
-   The drill is in `RECOVERY.md`. Fifteen minutes. This is the largest single risk in the project.
-2. **Install a build on a phone.** Nothing has been installed since 16 Aug. `es-file` and
-   `mx-player` first: they apply four resource-rewriting CONFIRM patches for the first time.
-   Then `reddit`, whose hosts blocker ran for the first time on 6 Sep, where a bad blocklist
-   entry looks like content failing to load.
-3. **Decide the patches in `docs/review/DECISIONS-*.tsv`.** Generated and classified against
-   `BANNED` and `CONFIRM`, but a patch reaching an APK on your accounts is your call, never a
-   script's. Mark column 1 IN or OUT.
+## Before a fresh all-target publication
 
-## Decided and closed, so nobody reopens them
+- **Reddit exact-version source:** the
+  [page-only probe](https://github.com/govinda-rajulu/patch-factory/actions/runs/35456286555)
+  observed HTTP 200 for both requests. The 2026.38.0 request had no download
+  anchor and resolved outside the expected package path; the current-download
+  page had one anchor and retained the package path. No APK was transferred.
+  This does not prove historical cause or recovery. Verify the exact supported
+  version's source/identity before changing a downloader or choosing a fallback.
+- **Six unresolved CONFIRM selections:** APK Junk Cleanup, Remove Duplicate
+  Graphics and Remove Languages in each of `esfile-ftl` and `mxplayer-ftl`.
+  They are configured/applied, not inactive and not implicitly owner-approved.
+  Do not silently approve or disable them during a bulk rebuild.
+- **Campaign authorization and inventory:** explicit targets, publication intent,
+  exact source commit and duplicate-run checks before dispatch. The Batch
+  workflow can publish successful targets even when another target fails.
+  A failed target retains its prior working download.
+- **Recovery and cleanup:** independently recoverable copies before destructive
+  cleanup; exact fresh release/asset preview and explicit approval afterward.
+  No release deletion, signing restore or phone installation is authorized by
+  this file.
 
-- **`list-patches` must be run with `-x`.** morphe marks newer app versions EXPERIMENTAL and
-  hides them without that flag. A dump taken without it made morphe's Reddit support look like it
-  topped out at 2026.14.0 when it actually reaches 2026.35.0, the version this repo builds.
-  `resolve.sh` has always passed `-x -u`; the one-off command that produced the dump had not.
-  Every dump under `docs/review/` is now generated with `-x`. **Govind caught this from morphe's
-  own README while I was about to write the wrong conclusion into this file.**
-- **`morphe-desktop` stays unpinned.** `build.sh` takes its `latest` release on purpose, because
-  new provider bundles routinely need a newer patcher. Pinning it freezes every provider.
-  Recorded in `SECURITY.md` as the largest accepted supply-chain surface.
-- **sonyliv and zee5 are out of scope**, removed 7 Sep. Both were Android-TV-only providers, and
-  sonyliv also shipped a server-visible `Change app name` on a paid account.
-- **`_attic` is kept, not cleaned.** An archive is unreferenced by design; the rule is in
-  `src/etc/cleanup_guard.md` and `src/etc/orphans.sh` now warns instead of deleting.
+## Shipped, with limits
 
-## Open, and now unblocked
+- PR41-47: requested/applied and output gates, transport checks, preview-only
+  retention, unique build identities and the exact YouTube exclusion.
+- PR48 separation and PR51-59: useful planning/validation/notifier/shadow work
+  merged; the failed mandatory-session experiment is not a current prerequisite.
+- PR60/61: optional MicroG, neutral catalog and unified imports, filters,
+  self-hosted font/navigation icons, prepared dependency reuse and qualification
+  groundwork. MicroG is not a fifteenth patched target.
+- PR62/63: action compatibility repair, mandatory runtime smoke, grouped
+  minor/patch Dependabot updates, visitor-first release notes and inline reports.
+  No automatic merge or blanket compatibility guarantee.
+- PR64: prepared dependency subset comparison for all configured targets and a
+  read-only report. This is shadow-only, not full fingerprints or build selection.
+- PR66/67: scoped store logging/missing-link diagnostics, visible MicroG channel
+  selection and mixed-run reporting. Reddit recovery is not established.
 
-- **Wire morphe as a second Reddit provider.** Confirmed to support the version this repo builds.
-  It needs an include list, which is a decision, not a script: `docs/review/DECISIONS-reddit-morphe.tsv`
-  has every patch classified against `BANNED` and `CONFIRM`. Mark column 1, then add morphe as an
-  `extra_bundles` entry on the `reddit` target with its own `patch_dir`. Note that `adobo` and
-  morphe both ship a `Hide ads`-style patch, so watch the duplicate-name gate.
+## Core engineering still open or partial
 
-## Real, and not urgent
+1. **Full fingerprints and durable baselines:** pre-resolve exact source APK and
+   remaining runtime/OS/transitive/effective-default inputs; consume those exact
+   files; observe every enabled target, including legacy-omitted ones. Preserve
+   the original semantic poller controls, not just a new test count. Missing or
+   legacy evidence is UNKNOWN. No scheduling/skip authority from partial hashes.
+2. **Qualification trust:** current qualification requires a successful whole
+   source workflow. A published app from a mixed red run is not automatically
+   qualified. Per-target qualification would be a separate policy change;
+   independent provenance/attestation and reproducibility remain unfinished.
+3. **Watcher decisions:** complete expected-versus-checked provider/extra/default
+   coverage, trustworthy changes and actionable options on the existing site.
+   Inline issue text and green workflows are not complete evidence.
+4. **Same-version Obtainium delivery:** APPVERSION-only extraction does not
+   guarantee notification for patch-only rebuilds. Existing tracking migration
+   and Android behavior require separate consent and tests; no catalog autosync.
+5. **Governance and onboarding:** required-CI/bypass inspection, shared add-target
+   schema and disabled semantics, GitLab-primary capability and effective/default
+   patch approvals. Do not infer settings enforcement from a CODEOWNERS file.
+6. **Supply chain and recovery:** independent original-APK trust, reviewed
+   alternative-source pilot, narrower fetch/patch/sign boundaries, container
+   update review, fresh restore-tested repository/assets backup, signing restore
+   and phone validation. Do not make an unrelated MX verifier retry a prerequisite.
+7. **Reconciliation:** targeted agent guidance/skills and issue evidence still
+   need review. Historical issue corrections are not posted or closed merely
+   because repository documentation changes. PR53 disposition needs its own
+   current inspection, not automatic closure.
+8. **Remaining UI request:** official app logos need provenance/usage review.
+   Font/navigation icons are shipped; neither equals official app artwork.
 
-- **`src/build/utils.sh`** is unvendored upstream code from the FiorenMas template, sourced with
-  `set +u` because it is not strict-mode safe, and `split_arch` builds its command with `eval`.
-  Nothing untrusted reaches it, so this is debt rather than a hole. Splitting it into focused
-  modules is a quiet afternoon, not a fix.
-- **No reproducible-build check.** Two builds of the same input are not proven identical. Worth
-  having, and the version an external audit proposed would not run: it called paths that do not
-  exist here. Write it against `src/build/build.sh` if you want it.
-- **No integration test on pull requests.** `main` is currently the test. This matters the day an
-  agent opens PRs; until then it costs a runner per PR for little.
-- **Three community providers considered and parked**: esfile/rushiranpise, photos/RookieEnough,
-  instagram/Stylus. Each needs its own include list, which is a decision.
-- **Docker images are digest-pinned now**, but nothing re-pins them when upstream ships. Dependabot
-  covers actions, not these. Re-run the digest read by hand occasionally.
+## Owner decisions to preserve
 
-## Standing risks, per target
+Keep the generated enabled-target inventory, the frozen `truecaller-v26.10.6`
+release and the attic. SonyLIV/ZEE5 remain retired; do not invent a shared reason
+or reactivate them. The patcher intentionally moves with validated latest stable.
+Provider age is advisory. Preserve channels, pins, ceilings and per-bundle
+selection semantics unless separately reviewed.
 
-- **Provider age is advisory since 7 Sep 2026.** `resolve.sh` warns past `max_patch_age_days`
-  and builds anyway, because the applied-vs-requested-by-name gate is what actually proves a
-  bundle is usable. An old bundle that still applies is still good. **No date fuse exists in
-  this repo any more**, including the one truecaller-combo used to carry.
-- **13 of 14 targets have a single candidate**: youtube, photos, truecaller-combo, primevideo, esfile, facebook, instagram, reddit, hotstar, edge, mxplayer, telegram, keymapper.
-  Age no longer kills them, but a provider that **breaks** against a new app version still
-  will, and only a candidate can win a version election, so an extra bundle is not a fallback.
-  Promoting a working extra to a second candidate is the fix, per target, when you want it.
-- The weekly **6. Provider watch** workflow is the early warning: it diffs every provider's
-  patch list against `docs/review/providers/` and opens one issue when a name appears or
-  disappears. That is what tells you a provider is drifting, not a date.
+Keep YouTube's exact exclusion `Remember live stream playback position` and the
+approved GmsCore support, PoToken provider and Spoof video streams dependencies.
+The older differently spelled review-sheet entry does not override that decision.
+Remove Debug Info is quarantined, not established upstream-fixed.
 
-## How to keep this file honest
+Optional Reddit Morphe, ES File/rushiranpise, Photos/RookieEnough and
+Instagram/Stylus remain candidates for review, not approved configuration changes.
+Patch-name presence is not proof of compatibility or collision-free composition.
 
-Everything factual about the repo is generated: the README state block, the Pages catalog, the
-target dropdown, `CREDITS.md` and the Obtainium import files, each with a `--check` gate in
-**3. Validate**. This file is the one place allowed to hold opinion, so it is the one place that
-can rot. Read it before planning a session, and delete what is no longer true.
+## Keeping this page useful
+
+Update evidence links and mark shipped/partial/blocked/deferred explicitly.
+Generated target data belongs in README's state block, not another hand-maintained
+inventory. Never publish private backup details, signing information or chat
+exports to make a handover look complete. Preparation, approval, local tests,
+CI, publication and phone tests are separate states.
