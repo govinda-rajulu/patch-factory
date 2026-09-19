@@ -62,6 +62,8 @@ def verify(api, release, asset, ident):
          body.get("trust") == "repository-actions-writer; not independent attestation" and
          body.get("workflow_path") in WORKFLOWS, "qualification scope/trust differs")
     receipt = shadow.unseal(body["receipt"], shadow.RECEIPT_DOMAIN)
+    import dependency_observation
+    dependency_observation.receipt_snapshot(receipt)
     need(receipt["target"] == ident and receipt["repository"] == api.repo and
          receipt["publication"] == "confirmed" and shadow.hash_ok(receipt["effective_sha256"]) and
          shadow.hash_ok(receipt["declaration_sha256"]), "receipt identity invalid")
