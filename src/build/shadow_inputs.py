@@ -117,7 +117,8 @@ def semantics(root, ident, winner=None):
             paths[(p, item["encoding"])] = item
     # Explicitly bind the new consumer and daily workflow, which the existing
     # same-run input_recipe predates. No unrelated docs or community index.
-    for path in ("src/build/shadow_inputs.py", "src/build/resolved_inputs.py", ".github/workflows/ci.yml"):
+    for path in ("src/build/shadow_inputs.py", "src/build/resolved_inputs.py",
+                 "src/build/dependency_observation.py", ".github/workflows/ci.yml"):
         item = recipe.component(root, path)
         paths[(path, item["encoding"])] = item
     return {"target": ident, "config": config,
@@ -287,6 +288,8 @@ def tag_commit(api, tag):
 
 def verify_receipt(api, release, doc, ident, proof_out=None):
     body = unseal(doc, RECEIPT_DOMAIN)
+    import dependency_observation
+    dependency_observation.receipt_snapshot(body)
     need(body["target"] == ident and body["repository"] == api.repo and
          body["publication"] == "confirmed" and hash_ok(body["effective_sha256"]) and
          hash_ok(body["declaration_sha256"]), "receipt identity invalid")
@@ -492,6 +495,9 @@ def publish_receipt(root, ident, env, api=None, upload=None):
             "eligibility": "REQUIRES_COMPLETED_SUCCESSFUL_RUN_AND_TARGET_JOB",
             "limits": ["same-run recorded evidence, not an independent signature or trust anchor",
                        "runtime/OS/container transitive dependencies incomplete"]}
+    if doc.get("resolution", {}).get("status") == "MATCH":
+        import dependency_observation
+        body["prepared_dependencies"] = dependency_observation.snapshot(root, ident, env, captured)
     confirmed_apk(api, r, body)
     receipt = seal(body)
     name = receipt_name(ident)

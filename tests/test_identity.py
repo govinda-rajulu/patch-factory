@@ -933,11 +933,13 @@ def load_tests(loader, tests, pattern):
     import shadow_contracts
     import resolved_contracts
     import qualified_contracts
+    import dependency_contracts
     tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeTests))
     tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeFlow))
     tests.addTests(loader.loadTestsFromTestCase(shadow_contracts.ShadowContracts))
     tests.addTests(loader.loadTestsFromTestCase(resolved_contracts.ResolvedContracts))
     tests.addTests(loader.loadTestsFromTestCase(qualified_contracts.QualifiedContracts))
+    tests.addTests(loader.loadTestsFromTestCase(dependency_contracts.DependencyContracts))
     return tests
 
 
