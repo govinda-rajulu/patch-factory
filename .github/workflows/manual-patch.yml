@@ -31,6 +31,11 @@ on:
           - 'keymapper'
   workflow_call:
     inputs:
+      resolved_requested:
+        description: Consume this run's checked dependency packet when shadow preparation succeeded
+        required: false
+        type: boolean
+        default: false
       shadow_plan_required:
         description: Distinguish a missing daily Plan from an intentional direct/manual build
         required: false
@@ -63,6 +68,7 @@ jobs:
       COE: ${{ vars.COE }}
       PF_SHADOW_PLAN_KEY: ${{ inputs.shadow_plan_key || '' }}
       PF_SHADOW_PLAN_REQUIRED: ${{ inputs.shadow_plan_required || false }}
+      PF_RESOLVED_REQUESTED: ${{ inputs.resolved_requested || false }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
@@ -72,6 +78,25 @@ jobs:
         env:
           TARGET: ${{ inputs.target }}
         run: python3 src/etc/preflight.py "$TARGET"
+      - name: Download this attempt's exact dependency packet
+        id: resolved_download
+        if: inputs.resolved_requested
+        continue-on-error: true
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: resolved-inputs-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: resolved-inputs/
+      - name: Verify dependency packet before signing secrets
+        id: resolved_verify
+        if: inputs.resolved_requested && steps.resolved_download.outcome == 'success'
+        continue-on-error: true
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/build/resolved_inputs.py verify "$TARGET"
+      - name: Report missing shadow dependencies explicitly
+        if: inputs.resolved_requested && steps.resolved_verify.outcome != 'success'
+        run: |
+          echo "::warning::Prepared dependencies unavailable or invalid. Legacy build continues; shadow baseline remains UNKNOWN."
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > src/ks.keystore
@@ -79,6 +104,7 @@ jobs:
           echo "keystore bytes: $SZ"
           [ "$SZ" -gt 3000 ] || { echo "::error::keystore truncated - KEYSTORE_B64 secret is incomplete"; exit 1; }
       - name: Cache the patcher jar
+        if: steps.resolved_verify.outcome != 'success'
         uses: actions/cache@v4
         with:
           path: morphe-desktop-*.jar
@@ -96,6 +122,7 @@ jobs:
         if: steps.check-gh.outputs.internet_error == '0'
         env:
           TARGET: ${{ inputs.target }}
+          PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' }}
         run: bash src/build/build.sh "$TARGET"
       - name: Verify finished APK identity
         env:
@@ -118,6 +145,7 @@ jobs:
         timeout-minutes: 3
         env:
           TARGET: ${{ inputs.target }}
+          PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' }}
         run: python3 src/build/shadow_inputs.py observe "$TARGET"
       - name: Preserve shadow consumed-input comparison
         if: always()
@@ -141,6 +169,8 @@ jobs:
       - name: Releasing APK files
         if: steps.check-gh.outputs.internet_error == '0' && inputs.publish && github.ref == 'refs/heads/main'
         uses: ./.github/actions/release
+        env:
+          PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' }}
         with:
           target: ${{ inputs.target }}
       - name: Nonpublishing smoke result

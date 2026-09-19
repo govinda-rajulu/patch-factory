@@ -16,6 +16,7 @@ jobs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}
       shadow_keys: ${{ steps.shadow.outputs.keys }}
+      resolution_matrix: ${{ steps.shadow.outputs.resolution_matrix }}
     env:
       repository: ${{ github.repository }}
       GITHUB_TOKEN: ${{ github.token }}
@@ -48,9 +49,58 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-  build:
+  resolve:
+    name: Resolve shadow dependencies (${{ matrix.target }})
     needs: plan
-    if: needs.plan.outputs.count != '0'
+    if: needs.plan.outputs.resolution_matrix != ''
+    # Observe every opted-in target, including those omitted by the old poller.
+    # Resolver failures are UNKNOWN evidence, never authority to change its matrix.
+    continue-on-error: true
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix: ${{ fromJSON(needs.plan.outputs.resolution_matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@v6.0.2
+        with:
+          persist-credentials: false
+      - name: Set up resolver Java
+        uses: actions/setup-java@v5.2.0
+        with:
+          distribution: zulu
+          java-version: '21'
+      - name: Resolve exact dependency files (no APK or signing)
+        env:
+          TARGET: ${{ matrix.target }}
+        run: python3 src/build/resolved_inputs.py prepare "$TARGET"
+      - name: Preserve exact target dependency packet
+        # Unbuilt targets retain the JSON observation, not duplicated large JARs.
+        if: contains(fromJSON(needs.plan.outputs.matrix).target, matrix.target)
+        uses: actions/upload-artifact@v4
+        with:
+          name: resolved-inputs-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: resolved-inputs/
+          if-no-files-found: error
+          retention-days: 2
+      - name: Preserve every resolution observation or explicit unknown
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resolved-observation-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: resolved-observation/
+          if-no-files-found: warn
+          retention-days: 30
+
+  build:
+    needs: [plan, resolve]
+    if: always() && !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.count != '0'
     strategy:
       fail-fast: false
       max-parallel: 6
@@ -61,3 +111,4 @@ jobs:
       target: ${{ matrix.target }}
       shadow_plan_key: ${{ fromJSON(needs.plan.outputs.shadow_keys || '{}')[matrix.target] || '' }}
       shadow_plan_required: true
+      resolved_requested: true

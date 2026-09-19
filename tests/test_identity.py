@@ -803,9 +803,13 @@ def load_tests(loader, tests, pattern):
     # Keep the existing CI entrypoint; no workflow edit required for these contracts.
     import input_recipe_contracts
     import shadow_contracts
+    import resolved_contracts
+    import qualified_contracts
     tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeTests))
     tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeFlow))
     tests.addTests(loader.loadTestsFromTestCase(shadow_contracts.ShadowContracts))
+    tests.addTests(loader.loadTestsFromTestCase(resolved_contracts.ResolvedContracts))
+    tests.addTests(loader.loadTestsFromTestCase(qualified_contracts.QualifiedContracts))
     return tests
 
 

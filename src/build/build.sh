@@ -37,6 +37,17 @@ EXCL=$(jq -r '.exclusive // false' <<<"$T")
 green_log "[+] target=$ID package=$PKG apk=$APK_NAME tagprefix=$PREFIX"
 
 # --- 2. tooling, then resolve ----------------------------------------------
+if [ "${PF_RESOLVED_READY:-false}" = "true" ]; then
+  RES=$(python3 src/build/resolved_inputs.py install "$ID") || { red_log "[-] checked Plan input consumption refused"; exit 1; }
+  WINNER=$(sed -n 's/^WINNER=//p' <<<"$RES")
+  RVER=$(sed -n 's/^VERSION=//p' <<<"$RES")
+  PV=$(sed -n 's/^PV=//p' <<<"$RES")
+  C=$(jq -c --arg n "$WINNER" '.candidates[] | select(.name==$n)' <<<"$T")
+  [ -n "$C" ] || { red_log "[-] resolved winner is not configured"; exit 1; }
+  PDIR=$(jq -r '.patch_dir' <<<"$C")
+  OPTS=$(jq -r '.options' <<<"$C")
+  green_log "[+] using checked Plan patcher and bundle bytes; no second download"
+else
 PATCHER_META=$(python3 src/build/github_patcher.py .) || { red_log "[-] patcher download verification failed"; exit 1; }
 echo "PATCHER_VERIFIED $PATCHER_META"
 KEEPJAR=$(jq -er '.name' <<<"$PATCHER_META") || exit 1
@@ -100,6 +111,7 @@ done < <(jq -c '(.extra_bundles // [])[]' <<<"$T")
 N=$(ls ./*.mpp 2>/dev/null | wc -l)
 [ "$N" -eq "$WANT" ] || { red_log "[-] need exactly $WANT .mpp in cwd, found $N"; ls ./*.mpp 2>/dev/null; exit 1; }
 green_log "[+] patch bundle: $(ls ./*.mpp)"
+fi
 
 # --- 3. patch selection ----------------------------------------------------
 [ -d "src/patches/$PDIR" ]      || { red_log "[-] missing src/patches/$PDIR"; exit 1; }

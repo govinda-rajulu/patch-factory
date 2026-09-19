@@ -3,8 +3,17 @@ set -uo pipefail
 ID="${1:?usage: resolve.sh <target-id>}"
 T=$(jq -c --arg id "$ID" '.[] | select(.id==$id)' src/targets.json)
 [ -z "$T" ] && { echo "no target '$ID'"; exit 1; }
-JAR=$(ls morphe-desktop-*.jar 2>/dev/null | head -1)
-[ -z "$JAR" ] && { echo "no morphe-desktop jar in cwd"; exit 1; }
+if [ -n "${PF_RESOLVE_JAR:-}" ]; then
+  JAR="$PF_RESOLVE_JAR"
+  [ -f "$JAR" ] && [ ! -L "$JAR" ] || { echo "invalid exact patcher path"; exit 1; }
+else
+  shopt -s nullglob
+  JARS=(morphe-desktop-*.jar)
+  [ "${#JARS[@]}" -eq 1 ] || { echo "need exactly one morphe-desktop jar"; exit 1; }
+  JAR="${JARS[0]}"
+  [ -f "$JAR" ] && [ ! -L "$JAR" ] || { echo "invalid patcher file"; exit 1; }
+fi
+RESOLVE_DIR="${PF_RESOLVE_DIR:-morphe-data/resolved}"
 PKG=$(jq -r '.package' <<<"$T")
 MAXVER=$(jq -r '.max_app_version // ""' <<<"$T")
 MAXAGE=$(jq -r '.max_patch_age_days // 60' <<<"$T")
@@ -19,7 +28,7 @@ for i in $(seq 0 $((n-1))); do
   REPO=$(jq -r '.repo' <<<"$C"); CH=$(jq -r '.channel' <<<"$C")
   if [ -n "$PIN" ] && [ "$PIN" != "null" ] && [ "$NAME" != "$PIN" ]; then
     echo "  - $NAME: skipped (pinned to $PIN)"; continue; fi
-  FETCH=$(python3 src/build/github_bundle.py "$OWNER" "$REPO" "$CH" "morphe-data/resolved/$OWNER-$REPO") || exit 2
+  FETCH=$(python3 src/build/github_bundle.py "$OWNER" "$REPO" "$CH" "$RESOLVE_DIR/$OWNER-$REPO") || exit 2
   PUB=$(jq -r '.published_at' <<<"$FETCH")
   MPP=$(jq -r '.path' <<<"$FETCH")
   HASH=$(jq -r '.sha256' <<<"$FETCH")

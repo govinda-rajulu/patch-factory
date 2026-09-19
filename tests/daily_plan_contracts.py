@@ -211,7 +211,8 @@ class DailyPlanTests(unittest.TestCase):
         self.assertIn('run: python3 src/etc/daily_plan.py', text)
         self.assertNotIn('NEW:-0', text)
         self.assertIn('    needs: plan\n', text)
-        self.assertIn("if: needs.plan.outputs.count != '0'", text)
+        self.assertIn("if: always() && !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.count != '0'", text)
+        self.assertIn("needs: [plan, resolve]", text)
         self.assertIn('max-parallel: 6', text)
         self.assertIn('secrets: inherit', text)
         # The workflow entrypoint itself is exercised, not only a helper import.
