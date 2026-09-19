@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
 check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,14);assert.equal(c.validateImport(pack,targets).length,14);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
@@ -77,5 +77,25 @@ check('unified selection permits upstream without changing fourteen build target
  const tc=targets.find(t=>t.id==='truecaller-combo');assert.equal(tc.label,'Truecaller');assert.equal(tc.tag_prefix,'tc-combo');
  for(const marker of ['Filter source type','Filter publication date','Sort apps'])assert.ok(source.includes(marker));
  assert.ok(html.includes('manrope-v4.504.woff2'));assert.ok(!html.includes('Truecaller (combo)'));
+});
+check('release summaries keep same-version rebuild and unknown history distinct',()=>{
+ const top={tag:{version:'1.0'},rel:{body:'Legacy notes'}};
+ assert.match(c.changeSummary(top,{tag:{version:'1.0'}})[0],/Same app version/);
+ assert.match(c.changeSummary(top,{tag:{version:'0.9'}})[0],/0.9 → 1.0/);
+ assert.match(c.changeSummary(top,null)[0],/No earlier comparable/);
+ top.rel.body='## What changed\n- App version unchanged.\n- Applied patch names added: A.\n\n## This download\nnot a change\n<!-- PF_RELEASE_V1 AAAA -->';
+ assert.equal(c.changeSummary(top,null).length,2);
+ assert.equal(c.changeSummary(top,null)[1],'Applied patch names added: A.');
+ assert.ok(!c.noteText(top.rel.body).includes('AAAA'));
+ assert.equal(c.noteText('Useful notes\n\n[pf-release-v1]: # "QUFBQQ=="'),'Useful notes');
+});
+check('reader flows retain disclosure, reset and explicit unknown evidence',()=>{
+ for(const id of ['importPanel','collapseImport','resetChoices'])assert.ok(html.includes('id="'+id+'"'));
+ for(const marker of ['Show job results and failed steps','Read latest saved report comments','Job/run identity changed','does not build or install apps','Read release notes here'])assert.ok(source.includes(marker));
+ assert.ok(source.includes('/attempts/'));
+ assert.ok(source.includes("j.run_attempt===run.run_attempt"));
+ assert.ok(source.includes("j.head_sha===run.head_sha"));
+ assert.ok(!source.includes("link('Release details',top.rel.html_url)"));
+ assert.ok(html.includes('About downloads, updates & status'));
 });
 console.log('PORTAL_CONTRACTS_PASS='+count);

@@ -94,8 +94,10 @@ class Nightly(unittest.TestCase):
         text=(ROOT/'.github/workflows/watch.yml').read_text()
         self.assertNotIn('|| true',text)
         self.assertIn('python3 src/build/github_patcher.py .',text)
-        self.assertLess(text.index('nightly_report.py collect'),text.index('uses: actions/upload-artifact@v7'))
-        self.assertLess(text.index('uses: actions/upload-artifact@v7'),text.index('nightly_report.py enforce'))
+        from action_refs import same_reference
+        same_reference(text, (ROOT/'.github/workflows/validate.yml').read_text(), 'actions/upload-artifact')
+        self.assertLess(text.index('nightly_report.py collect'),text.index('uses: actions/upload-artifact@'))
+        self.assertLess(text.index('uses: actions/upload-artifact@'),text.index('nightly_report.py enforce'))
         self.assertIn('if-no-files-found: error',text)
         self.assertIn('retention-days: 30',text)
         self.assertNotIn('secrets: inherit',text)

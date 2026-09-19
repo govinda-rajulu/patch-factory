@@ -118,7 +118,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=16', result.stdout)
+        self.assertIn('PORTAL_CONTRACTS_PASS=18', result.stdout)
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
@@ -209,7 +209,8 @@ class Repair(unittest.TestCase):
         self.assertLess(upload, publish)
         block = text[upload:publish]
         self.assertIn("if: success() && (!inputs.publish || github.ref != 'refs/heads/main')", block)
-        self.assertIn('uses: actions/upload-artifact@v7', block)
+        from action_refs import same_reference
+        same_reference(block, (ROOT/'.github/workflows/validate.yml').read_text(), 'actions/upload-artifact')
         self.assertIn('test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}', block)
         self.assertIn('            release/*.apk\n            build-evidence/${{ inputs.target }}.json\n', block)
         self.assertIn('if-no-files-found: error', block)
@@ -221,10 +222,20 @@ class Repair(unittest.TestCase):
         text = (ROOT/'.github/workflows/validate.yml').read_text()
         block = text.split('      # ACTION_COMPATIBILITY_SMOKE_START\n', 1)[1]
         self.assertIn('permissions:\n  contents: read\n', text)
-        for action in ('setup-java@v6', 'cache@v6', 'cache/save@v6',
-                       'upload-artifact@v7', 'github-script@v9',
-                       'download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'):
-            self.assertIn('uses: actions/' + action, block)
+        from action_refs import references, same_reference
+        for action in ('setup-java', 'cache', 'cache/save', 'upload-artifact',
+                       'github-script', 'download-artifact'):
+            references(block, 'actions/' + action, pinned=action == 'download-artifact')
+        self.assertEqual(references(block, 'actions/cache'), references(block, 'actions/cache/save'))
+        # Dependabot may update releases, but every production workflow use must
+        # still be exercised by the same mandatory runtime smoke.
+        for workflow in (ROOT/'.github/workflows').glob('*.yml'):
+            source = workflow.read_text()
+            for action in ('checkout', 'setup-java', 'cache', 'upload-artifact',
+                           'github-script', 'download-artifact'):
+                if 'uses: actions/' + action + '@' in source:
+                    same_reference(source, text, 'actions/' + action,
+                                   pinned=action == 'download-artifact')
         for forbidden in ('secrets.', 'continue-on-error', 'overwrite: true',
                           'restore-keys:', 'include-hidden-files: true',
                           'pull_request_target', 'workflow_run:', 'release/*.apk',
@@ -239,6 +250,23 @@ class Repair(unittest.TestCase):
         self.assertIn('cmp action-smoke-cache/value.txt action-smoke-download/nested/value.txt', block)
         self.assertIn('test ! -e action-smoke-download/.hidden-probe', block)
         self.assertIn('github.rest.actions.getWorkflowRun', block)
+
+    def test_action_refs_accept_coordinated_versions_but_reject_drift(self):
+        from action_refs import references, same_reference
+        for version in ('v7', 'v8.2.1', 'a'*40):
+            text = '  uses: actions/upload-artifact@' + version + '\n'
+            self.assertEqual(same_reference(text, text, 'actions/upload-artifact'), {version})
+        for version in ('main', '${{ inputs.ref }}', 'v0', 'abcd', 'v7;echo'):
+            with self.assertRaises(ValueError):
+                references('uses: actions/upload-artifact@' + version, 'actions/upload-artifact')
+        for source, smoke in [('v7', 'v8'), ('v8', 'v7')]:
+            with self.assertRaises(ValueError):
+                same_reference('uses: actions/upload-artifact@' + source,
+                               'uses: actions/upload-artifact@' + smoke, 'actions/upload-artifact')
+        with self.assertRaises(ValueError):
+            references('uses: actions/download-artifact@v8', 'actions/download-artifact', pinned=True)
+        with self.assertRaises(ValueError):
+            references('uses: other/upload-artifact@v7', 'actions/upload-artifact')
 
     def direct_navigation_probe(self, source=None):
         # Execute the real get_apk entrypoint; stop at its first page request.
