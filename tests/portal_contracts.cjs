@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,jobRole,jobSummary};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
 check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,14);assert.equal(c.validateImport(pack,targets).length,14);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
@@ -97,5 +97,29 @@ check('reader flows retain disclosure, reset and explicit unknown evidence',()=>
  assert.ok(source.includes("j.head_sha===run.head_sha"));
  assert.ok(!source.includes("link('Release details',top.rel.html_url)"));
  assert.ok(html.includes('About downloads, updates & status'));
+});
+check('job roles distinguish dependencies from app builds',()=>{
+ assert.equal(c.jobRole('Resolve shadow dependencies (youtube)'),'Dependencies only');
+ assert.equal(c.jobRole('build (reddit) / Patch reddit'),'App build');
+ assert.equal(c.jobRole('Patch youtube'),'App build');
+ assert.equal(c.jobRole('Plan'),'Build selection');
+ for(const name of [null,'Patch','Patch youtube malicious','Resolve shadow dependencies ()'])assert.equal(c.jobRole(name),'Other / unknown');
+});
+check('mixed jobs do not turn cancelled or incomplete jobs into successes',()=>{
+ const job=(name,status,conclusion)=>({name,status,conclusion});
+ const d=c.jobSummary([job('Patch youtube','completed','success'),job('Patch reddit','completed','failure'),job('Patch edge','completed','cancelled'),job('Patch instagram','in_progress',null),job('Resolve shadow dependencies (youtube)','completed','success'),job('Plan','completed','success')]);
+ assert.equal(d.succeeded,1);assert.equal(d.failed,1);assert.equal(d.other,2);assert.equal(d.dependencies,1);
+ assert.match(d.text,/Complete job inventory: 6/);
+ assert.equal(c.jobSummary([]).succeeded,0);assert.throws(()=>c.jobSummary(null));
+});
+check('MicroG direct control and toolbar share explicit page-only state',()=>{
+ assert.ok(source.includes("channelSelect.id='microgCardChannel'"));
+ assert.ok(source.includes("channelSelect.value=microgChannel"));
+ assert.ok(source.includes("async function changeMicrogChannel(value)"));
+ assert.ok(source.includes("microgChannel=value;$('microgChannel').value=value"));
+ assert.ok(source.includes('Open Obtainium import settings'));
+ assert.ok(!source.includes("'Change MicroG channel'"));
+ assert.ok(source.includes('tracked apps are unchanged'));
+ assert.ok(source.includes('can show the same version when stable is newest'));
 });
 console.log('PORTAL_CONTRACTS_PASS='+count);

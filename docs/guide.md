@@ -26,6 +26,10 @@ Prefer an in-place update when Android permits it. A matching key/package does n
 
 ## Reading status
 
+MicroG's download card has its own channel selector, synchronized with the Obtainium toolbar. The selected channel is visible even when both channels currently select the same release. Changing it updates page downloads and invalidates previously prepared imports; it does not update installed or tracked apps. To change Obtainium tracking, include MicroG, prepare a new import and confirm it in Obtainium. Refreshing this page resets the channel to stable.
+
+Build reports distinguish dependency-only checks from app-build jobs and summarize successful, failed and other/pending app builds. A red batch can contain a successful app publication. The step named `Patch apk` also performs source downloading, so its failure is not proof that applying a patch failed. Open the exact job for the actual error. Existing baseline qualification requires the whole source run to succeed, even when one app published successfully.
+
 | Surface | What it means | What it does not prove |
 | --- | --- | --- |
 | Published app | An eligible APK exists in that app's release history | Phone compatibility or a newer app version |
@@ -36,5 +40,7 @@ Prefer an in-place update when Android permits it. A matching key/package does n
 Missing, rate-limited, failed or truncated reads remain unknown. Timestamps describe the underlying run/report. Watcher coverage remains partial; issue comments are reports, not trusted build-selection instructions.
 
 ## Maintaining dependencies
+
+The manual-only Reddit source page diagnostic observes two fixed APKPure HTML pages (version 2026.38.0 and the current download page) using the existing pinned resolver. It has no signing secrets and performs no APK download, build, publication or fallback. Its small seven-day report contains counts and boolean response-shape markers, not raw HTML, cookies or signed URLs. A marker is a hint, not a diagnosis, and today's response does not reconstruct a failed historical response. Observation failure stays UNKNOWN; this workflow is not an app-recovery test.
 
 Dependabot groups minor/patch action updates, while major action upgrades receive individual PRs. Structural tests check action identity, pin format, production/smoke agreement, permissions and order instead of hardcoding yesterday's version number. The mandatory runtime smoke still has to execute the proposed versions successfully. No automatic merge and no promise that every future action upgrade is compatible.
