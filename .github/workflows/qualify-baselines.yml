@@ -1,0 +1,36 @@
+name: Qualify published shadow baselines
+on:
+  workflow_run:
+    workflows: ['2. Check new patch', '1. Manual Patch', '9. Batch Patch']
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  qualify:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: qualify-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout trusted default-branch code, never the source head
+        uses: actions/checkout@v6.0.2
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Qualify only exact completed successful publication receipts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 src/build/qualified_baselines.py
+      - name: Preserve qualification results (no APKs or secrets)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: shadow-qualified/
+          if-no-files-found: warn
+          retention-days: 30

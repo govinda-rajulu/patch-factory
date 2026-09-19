@@ -5,16 +5,20 @@ const REPO='govinda-rajulu/patch-factory';
 const WEB='https://github.com/'+REPO;
 const API='https://api.github.com/repos/'+REPO+'/';
 const RAW='https://raw.githubusercontent.com/'+REPO+'/main/';
+const MICROG_WEB='https://github.com/MorpheApp/MicroG-RE';
+const MICROG_API='https://api.github.com/repos/MorpheApp/MicroG-RE/releases';
 const $=id=>document.getElementById(id);
 let tab='apps',generation=0,importGeneration=0,pollTimer=null;
 let targets=null,importBlob=null,customApps=[];
-let appQuery='',appCategory='all';
+let appQuery='',appCategory='all',appType='all',appAge='all',appSort='name';
+let microgChannel='stable';
 const GROUPS=[
  ['media','Watch & listen',['youtube','primevideo','hotstar','mxplayer']],
  ['social','Social & communities',['instagram','facebook','reddit','telegram']],
  ['tools','Everyday essentials',['adguard','photos','truecaller-combo','esfile','edge','keymapper']]
 ];
 function appGroup(id){
+ if(id==='microg')return ['tools','Everyday essentials',[]];
  return GROUPS.find(g=>g[2].includes(id))||['other','More apps',[]];
 }
 const cache=new Map();
@@ -32,7 +36,10 @@ function safeLink(url,kind='repo'){
 }
 function link(text,url,kind='repo'){const safe=safeLink(url,kind);if(!safe)return el('span',text+' (link unavailable)','meta');const a=el('a',text,'button');a.href=safe;a.target='_blank';a.rel='noopener noreferrer';return a;}
 async function read(url,ttl=30000){
- const u=new URL(url);need(u.origin==='https://api.github.com'&&u.pathname.startsWith('/repos/'+REPO+'/')||u.origin==='https://raw.githubusercontent.com'&&u.pathname.startsWith('/'+REPO+'/main/'),'Unsupported data source');
+ const u=new URL(url);need(!u.username&&!u.password&&!u.port&&(
+ u.origin==='https://api.github.com'&&u.pathname.startsWith('/repos/'+REPO+'/')||
+ u.origin==='https://raw.githubusercontent.com'&&u.pathname.startsWith('/'+REPO+'/main/')||
+ u.origin==='https://api.github.com'&&u.pathname==='/repos/MorpheApp/MicroG-RE/releases'),'Unsupported data source');
  const existing=cache.get(url);if(existing&&Date.now()-existing.at<ttl)return existing.data;
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),25000);
  try{const r=await fetch(url,{headers:{Accept:'application/vnd.github+json'},credentials:'omit',cache:'no-store',signal:ctrl.signal});
@@ -102,6 +109,55 @@ function selectApps(apps,ids){
  const chosen=new Set(ids);
  return apps.filter(app=>chosen.has(app.id));
 }
+function microgConfig(data,channel){
+ need(['stable','prerelease'].includes(channel),'Unknown MicroG channel');
+ const app=JSON.parse(JSON.stringify(validateMicroG(data)[0]));
+ if(channel==='prerelease'){
+  const s=JSON.parse(app.additionalSettings);
+  s.includePrereleases=true;
+  s.filterReleaseTitlesByRegEx='^v?[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?$';
+  s.apkFilterRegEx='^microg-[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?[.]apk$';
+  s.versionExtractionRegEx='^v?([0-9]+(?:[.][0-9]+)*(?:-dev[.][0-9]+)?)$';
+  app.additionalSettings=JSON.stringify(s);
+ }
+ return app;
+}
+function microgRelease(rows,channel){
+ need(['stable','prerelease'].includes(channel),'Unknown upstream channel');
+ need(Array.isArray(rows)&&rows.length<=100,'Invalid upstream release inventory');
+ const candidates=rows.filter(r=>r&&!r.draft&&(channel==='prerelease'||r.prerelease===false));
+ candidates.sort((a,b)=>(Date.parse(b.published_at)||0)-(Date.parse(a.published_at)||0));
+ need(candidates.length>0,'No eligible upstream release in this 100-release window');
+ const r=candidates[0],tag=r.tag_name;
+ const pattern=channel==='stable'?/^v?[0-9]+(?:[.][0-9]+)*$/:/^v?[0-9]+(?:[.][0-9]+)*(?:-dev[.][0-9]+)?$/;
+ need(typeof tag==='string'&&pattern.test(tag)&&date(r.published_at),'Unsupported upstream release identity; inspect upstream instead');
+ const version=tag.replace(/^v/,''),name='microg-'+version+'.apk';
+ need(r.html_url===MICROG_WEB+'/releases/tag/'+encodeURIComponent(tag),'Upstream release URL mismatch');
+ const assets=Array.isArray(r.assets)?r.assets.filter(a=>a&&a.name===name):[];
+ need(assets.length===1,'Standard universal upstream APK missing or ambiguous; no variant fallback');
+ const a=assets[0];
+ need(a.state==='uploaded'&&Number.isSafeInteger(a.size)&&a.size>1000000&&a.browser_download_url===MICROG_WEB+'/releases/download/'+encodeURIComponent(tag)+'/'+encodeURIComponent(name),'Upstream APK identity mismatch');
+ return {rel:r,asset:a,version};
+}
+async function microgCard(root){
+ const article=el('article');article.dataset.target='microg';article.dataset.type='upstream';
+ const heading=el('div',undefined,'app-title');heading.append(el('h3','Morphe MicroG RE'),el('span','Upstream','badge'));article.append(heading);
+ article.append(el('p','Direct from MorpheApp. Not patched or re-signed here.','meta'));
+ try{
+  const row=microgRelease(await read(MICROG_API+'?per_page=100'),microgChannel);
+  article.dataset.published=row.rel.published_at;
+  article.append(el('p',row.version),el('p',(row.rel.prerelease?'Prerelease':'Stable')+' · '+Math.round(row.asset.size/1048576)+' MB · '+when(row.rel.published_at),'meta'));
+  const actions=el('div',undefined,'actions');
+  for(const [text,url] of [['Download upstream APK',row.asset.browser_download_url],['Release details',row.rel.html_url]]){
+   const a=el('a',text,'button');a.href=url;a.target='_blank';a.rel='noopener noreferrer';actions.append(a);
+  }
+  article.append(actions);
+ }catch(e){article.append(el('p','Upstream unavailable: '+e.message,'notice'));}
+ const details=el('details');details.append(el('summary','Channel & installation notes'),
+ el('p','Channel is selected in the Obtainium toolbar. Prereleases allowed means stable plus dev prereleases, not prereleases only. Standard universal APK only.'),
+ el('p','Keep existing MicroG data. Installed signer compatibility is not checked here; never uninstall or bypass Android checks to force an update.'));
+ article.append(details);root.append(article);
+}
 function clearImportLinks(){
  $('openImport').hidden=true;$('openImport').removeAttribute('href');
  $('downloadImport').hidden=true;$('downloadImport').removeAttribute('href');
@@ -119,6 +175,7 @@ function setImportLinks(apps,pack){
  importBlob=URL.createObjectURL(new Blob([JSON.stringify({apps},null,2)+'\n'],{type:'application/json'}));
  $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected.json':pack==='microg'?'obtainium-microg.json':'obtainium.json';$('downloadImport').hidden=false;
  $('importMessage').textContent='Ready: '+apps.length+' configs. Tap Open, then confirm in Obtainium. Unselected apps already tracked in Obtainium are not removed. If the link cannot open, use the JSON fallback.';
+ if(apps.some(app=>app.id==='app.revanced.android.gms'))$('importMessage').textContent+=' Includes MicroG directly from upstream ('+(microgChannel==='stable'?'stable only':'stable + dev prereleases')+'). Existing tracked settings may change; installed signer compatibility is unverified.';
  if(pack==='microg')$('importMessage').textContent='Ready: Morphe MicroG RE from its own upstream repository. Confirm in Obtainium. A matching tracked entry may be replaced; installed signer compatibility is not verified here. Keep existing app data and do not uninstall to force an update.';
 }
 function updateCustom(){
@@ -145,14 +202,12 @@ function showCustom(apps){
 }
 async function prepareImport(){
  resetImport();const token=importGeneration,pack=$('pack').value;$('prepareImport').disabled=true;
- try{need(['all','custom','microg'].includes(pack),'Unknown app list');
- if(pack==='microg'){
-  const data=await read(RAW+'docs/obtainium-microg.json',0);if(token!==importGeneration)return;
-  setImportLinks(validateMicroG(data),'microg');return;
- }
- cache.delete(RAW+'docs/obtainium.json');targets=null;const [ts,data]=await Promise.all([getTargets(),read(RAW+'docs/obtainium.json',0)]);if(token!==importGeneration)return;
+ try{need(['all','custom'].includes(pack),'Unknown app list');
+ const wantMicrog=pack==='custom'||$('includeMicrog').checked;
+ cache.delete(RAW+'docs/obtainium.json');targets=null;const [ts,data,companion]=await Promise.all([getTargets(),read(RAW+'docs/obtainium.json',0),wantMicrog?read(RAW+'docs/obtainium-microg.json',0):Promise.resolve(null)]);if(token!==importGeneration)return;
  const apps=validateImport(data,ts);
- if(pack==='custom')showCustom(apps);else setImportLinks(apps,pack);
+ const microg=wantMicrog?microgConfig(companion,microgChannel):null;
+ if(pack==='custom')showCustom([...apps,microg]);else setImportLinks($('includeMicrog').checked?[...apps,microg]:apps,pack);
  }catch(e){if(token===importGeneration)$('importMessage').textContent='Import unavailable: '+e.message;}finally{if(token===importGeneration)$('prepareImport').disabled=false;}
 }
 function releaseRows(rows,ts){
@@ -169,14 +224,16 @@ function releaseRows(rows,ts){
 }
 function buildMeta(row){const t=row.tag;return 'Build '+t.day+(t.run?' · run '+t.run+' · attempt '+t.attempt:' · legacy tag');}
 async function appsPanel(root){
- const [ts,rels]=await Promise.all([getTargets(),pages('releases')]);const {map,rejected}=releaseRows(rels,ts);
- root.append(el('p','Published releases only. Test APKs are in Builds, not automatic Obtainium updates.','notice'));
+ const [ts,releaseResult]=await Promise.all([getTargets(),pages('releases').then(rows=>({rows})).catch(error=>({error}))]);
+ const {map,rejected}=releaseRows(releaseResult.rows||[],ts);
+ if(releaseResult.error)root.append(el('p','Patched releases unavailable: '+releaseResult.error.message+' Catalog and upstream companion remain usable.','notice'));
  if(rejected)root.append(el('p',rejected+' ambiguous or incomplete APK releases withheld; inspect All releases.','notice'));
- for(const t of ts){const article=el('article');article.dataset.target=t.id;const heading=el('div',undefined,'app-title');heading.append(el('h3',t.label||t.id));article.append(heading);
+ for(const t of ts){const article=el('article');article.dataset.target=t.id;article.dataset.type='patched';const heading=el('div',undefined,'app-title');heading.append(el('h3',t.label||t.id));article.append(heading);
  if(!t.enabled){heading.append(el('span','Disabled','badge'));article.append(el('p','Not eligible for new builds. Existing release history is available on GitHub.','meta'));root.append(article);continue;}
  const rows=map.get(t.tag_prefix||t.id)||[];
- if(!rows.length){article.append(el('p','No matching published APK in the complete release inventory.','meta'));root.append(article);continue;}
+ if(!rows.length){article.append(el('p',releaseResult.error?'Release availability unknown.':'No matching published APK in the complete release inventory.','meta'));root.append(article);continue;}
  const top=rows[0],age=Date.now()-Date.parse(top.asset.updated_at||top.rel.published_at);
+ article.dataset.published=top.rel.published_at;
  if(Number.isFinite(age)&&age>=0&&age<3*86400000)heading.append(el('span','Recent upload','badge'));
  article.append(el('p',top.tag.version),el('p',buildMeta(top),'meta'),el('p',Math.round(top.asset.size/1048576)+' MB · published '+when(top.rel.published_at),'meta'));
  const actions=el('div',undefined,'actions');actions.append(link('Download released APK',top.asset.browser_download_url,'download'),link('Release details',top.rel.html_url));article.append(actions);
@@ -184,7 +241,8 @@ async function appsPanel(root){
  if(rows.length>1){const d=el('details');d.append(el('summary',(rows.length-1)+' older releases'));for(const r of rows.slice(1)) {const p=el('p');p.append(link(r.tag.version+' · '+buildMeta(r),r.rel.html_url));d.append(p);}article.append(d);}
  root.append(article);
  }
- return 'Published inventory checked: '+rels.length+' releases. Recent upload is not version freshness.';
+ await microgCard(root);
+ return releaseResult.error?'Partial data: patched release availability unknown.':'Patched inventory checked: '+releaseResult.rows.length+' releases. Upstream channel checked separately.';
 }
 async function buildsPanel(root){
  root.append(el('p','Recent workflow runs, not a per-app guess. Open a run for target jobs and test APK artifacts (GitHub sign-in may be required).','notice'));
@@ -282,19 +340,25 @@ function filterApps(){
  if(tab!=='apps')return;
  let shown=0;
  for(const card of $('panel').querySelectorAll('.app-card')){
-  card.hidden=!(card.dataset.search.includes(appQuery)&&(appCategory==='all'||card.dataset.category===appCategory));
+  const age=Date.now()-Date.parse(card.dataset.published||'');
+  card.hidden=!(card.dataset.search.includes(appQuery)&&(appCategory==='all'||card.dataset.category===appCategory)&&
+   (appType==='all'||card.dataset.type===appType)&&(appAge==='all'||Number.isFinite(age)&&age>=0&&age<=Number(appAge)*86400000));
   if(!card.hidden)shown++;
  }
  for(const group of $('panel').querySelectorAll('.app-group')){
   const count=Array.from(group.querySelectorAll('.app-card')).filter(c=>!c.hidden).length;
   group.hidden=count===0;group.querySelector('.group-count').textContent=count+' app'+(count===1?'':'s');
+  const grid=group.querySelector('.app-grid'),cards=Array.from(grid.children);
+  cards.sort((a,b)=>appSort==='date'?((Date.parse(b.dataset.published)||0)-(Date.parse(a.dataset.published)||0)):
+   (a.querySelector('h3')?.textContent||'').localeCompare(b.querySelector('h3')?.textContent||''));
+  for(const card of cards)grid.append(card);
   if(appQuery||appCategory!=='all')group.open=true;
  }
  if($('noApps'))$('noApps').hidden=shown!==0;
  $('appCount').textContent=shown+' app'+(shown===1?'':'s');
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateMicroG,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain};
+window.PFPortal={parseTag,validateImport,validateMicroG,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain};
 const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
 const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
 search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});
@@ -305,10 +369,24 @@ for(const [value,label] of [['all','All categories'],...GROUPS.map(g=>[g[0],g[1]
 categories.addEventListener('change',()=>{appCategory=categories.value;filterApps();});
 const count=el('span','','meta');count.id='appCount';count.setAttribute('aria-live','polite');
 tools.append(search,categories,count);$('panel').before(tools);
+for(const [id,label,options,update] of [
+ ['appType','Filter source type',[['all','All sources'],['patched','Patched apps'],['upstream','Upstream']],v=>appType=v],
+ ['appAge','Filter publication date',[['all','Any date'],['7','Last 7 days'],['30','Last 30 days'],['90','Last 90 days']],v=>appAge=v],
+ ['appSort','Sort apps',[['name','Name A to Z'],['date','Recently published']],v=>appSort=v]]){
+ const select=el('select');select.id=id;select.setAttribute('aria-label',label);
+ for(const [value,text] of options){const o=el('option',text);o.value=value;select.append(o);}
+ select.addEventListener('change',()=>{update(select.value);filterApps();});count.before(select);
+}
 // The static page lists the same two public choices; no personal presets.
 const customField=el('fieldset');customField.id='customApps';customField.hidden=true;customField.style.cssText='margin:16px 0;border:1px solid var(--rule);border-radius:8px;min-width:0';
 $('importMessage').before(customField);
-$('prepareImport').addEventListener('click',prepareImport);$('pack').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
+$('prepareImport').addEventListener('click',prepareImport);$('pack').addEventListener('change',()=>{
+ resetImport();$('prepareImport').disabled=false;$('includeMicrog').parentElement.hidden=$('pack').value==='custom';
+});
+$('microgChannel').addEventListener('change',()=>{
+ microgChannel=$('microgChannel').value;resetImport();$('prepareImport').disabled=false;if(tab==='apps')render();
+});
+$('includeMicrog').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
 $('refresh').addEventListener('click',()=>{cache.clear();targets=null;render();});
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{tab=b.dataset.tab;for(const x of document.querySelectorAll('[data-tab]'))x.setAttribute('aria-selected',String(x===b));render();});
 document.addEventListener('visibilitychange',()=>{clearTimeout(pollTimer);if(!document.hidden)render();});

@@ -138,6 +138,13 @@ def capture_inputs(root, ident, winner, env):
             'limitations': ['Patcher input may be a merged/repacked store download; original publisher signature is not verified.',
                             'Runtime/OS/container transitive dependencies are not fully pinned or attested.',
                             'This is evidence collected in the same runner, not isolation against a malicious patcher.']}
+    if env.get('PF_RESOLVED_REQUESTED', 'false').lower() == 'true':
+        if env.get('PF_RESOLVED_READY', 'false').lower() == 'true':
+            import resolved_inputs
+            data['resolution'] = resolved_inputs.verify_consumed(root, ident, data, env)
+        else:
+            data['resolution'] = {'status': 'UNAVAILABLE',
+                                  'reason': 'PREPARED_DEPENDENCIES_UNAVAILABLE_OR_INVALID'}
     atomic_json(root / '.build-inputs.json', data)
     print('INPUTS RECORDED: commit, tracked bytes, patcher/tool/bundle hashes and exact patcher-input APK')
 
@@ -245,6 +252,10 @@ def verify_final(root, ident, env):
     verify_records(root, captured['repository_files'] + captured['tools'] + captured['bundles']
                    + [captured['patcher_input_apk'], captured['requested_ledger']])
     input_recipe.verify(root, ident, captured['winner'], captured['local_input_recipe'], env)
+    if captured.get('resolution', {}).get('status') == 'MATCH':
+        import resolved_inputs
+        require(resolved_inputs.verify_consumed(root, ident, captured, env) == captured['resolution'],
+                'resolved dependency binding changed after input capture')
     require(cert_from_keystore(root, env) == captured['expected_certificate_sha256'], 'CI keystore certificate changed during build')
     t = target(root, ident)
     require(expected_package(root, t) == captured['expected_package'] and t['min_sdk_ceiling'] == captured['sdk_ceiling'], 'identity contract changed')

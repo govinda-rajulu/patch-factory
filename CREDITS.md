@@ -30,9 +30,9 @@ generated docs are this repo's own work, also GPL-3.0.
 | Prime Video | hoo-dles | https://github.com/hoo-dles/morphe-patches |
 | Reddit | adobo | https://github.com/jkennethcarino/adobo |
 | Telegram | rushiranpise | https://github.com/rushiranpise/morphe-patches |
-| Truecaller (combo) | bufferk | https://github.com/bufferk/morphe-patches |
-| Truecaller (combo) | paresh | https://gitlab.com/Paresh-Maheshwari/paresh-patches |
-| Truecaller (combo) | binarymend | https://github.com/binarymend/morphe-patches |
+| Truecaller | bufferk | https://github.com/bufferk/morphe-patches |
+| Truecaller | paresh | https://gitlab.com/Paresh-Maheshwari/paresh-patches |
+| Truecaller | binarymend | https://github.com/binarymend/morphe-patches |
 | YouTube | morphe | https://github.com/MorpheApp/morphe-patches |
 
 Providers publish patch bundles on their own schedule and under their own licences. This repo

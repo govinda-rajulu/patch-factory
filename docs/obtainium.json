@@ -125,12 +125,12 @@
    "id": "com.truecaller",
    "url": "https://github.com/govinda-rajulu/patch-factory",
    "author": "govinda-rajulu",
-   "name": "Truecaller (combo)",
+   "name": "Truecaller",
    "categories": [
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^tc-combo-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"Truecaller (combo)\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^tc-combo-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"Truecaller\"}"
   },
   {
    "id": "org.telegram.messenger",

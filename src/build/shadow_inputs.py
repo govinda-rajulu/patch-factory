@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Connected SHADOW evidence, never authority to skip or publish a build.
 
-Plan declaration -> Build-consumed key -> confirmed-publication receipt.
-Dynamic remote resolution is still performed by the existing build resolver;
-Plan alone cannot declare UNCHANGED. Missing or unverified baselines stay UNKNOWN.
+Plan declaration -> prepared dependencies -> Build-consumed key -> publication.
+The existing resolver prepares patcher/bundles for daily builds; source APK and
+runtime closure remain incomplete. Missing or unverified baselines stay UNKNOWN.
 """
 import hashlib
 import json
@@ -117,7 +117,7 @@ def semantics(root, ident, winner=None):
             paths[(p, item["encoding"])] = item
     # Explicitly bind the new consumer and daily workflow, which the existing
     # same-run input_recipe predates. No unrelated docs or community index.
-    for path in ("src/build/shadow_inputs.py", ".github/workflows/ci.yml"):
+    for path in ("src/build/shadow_inputs.py", "src/build/resolved_inputs.py", ".github/workflows/ci.yml"):
         item = recipe.component(root, path)
         paths[(path, item["encoding"])] = item
     return {"target": ident, "config": config,
@@ -170,9 +170,20 @@ def realized(root, captured, env):
         "continue_on_error": bool(env.get("COE")),
     }
     need(hash_ok(material["certificate_sha256"]), "invalid certificate identity")
+    resolution = captured.get("resolution", {"status": "NOT_REQUESTED"})
+    need(isinstance(resolution, dict) and resolution.get("status") in
+         ("MATCH", "UNAVAILABLE", "NOT_REQUESTED"), "invalid resolution state")
+    if resolution["status"] == "MATCH":
+        import resolved_inputs
+        need(resolved_inputs.verify_consumed(root, ident, captured, env) == resolution,
+             "consumed resolution changed")
+    elif env.get("PF_RESOLVED_REQUESTED", "false").lower() == "true":
+        resolution = {"status": "UNAVAILABLE",
+                      "reason": "PREPARED_DEPENDENCIES_UNAVAILABLE_OR_INVALID"}
     return seal({"domain": DOMAIN, "schema": 1, "kind": "consumed", "target": ident,
                  "declaration_sha256": declared["sha256"], "plan_sha256": expected or None,
                  "binding": binding, "material": material, "effective_sha256": sha(material),
+                 "resolution": resolution,
                  "limits": ["shadow only; same-run evidence, not independent attestation",
                             "runtime/OS/container transitive identities are incomplete",
                             "source APK publisher authenticity not established"]})
@@ -274,7 +285,7 @@ def tag_commit(api, tag):
         obj = api.get("/repos/" + api.repo + "/git/tags/" + obj["sha"])["object"]
     raise ValueError("shadow inputs: tag chain too deep")
 
-def verify_receipt(api, release, doc, ident):
+def verify_receipt(api, release, doc, ident, proof_out=None):
     body = unseal(doc, RECEIPT_DOMAIN)
     need(body["target"] == ident and body["repository"] == api.repo and
          body["publication"] == "confirmed" and hash_ok(body["effective_sha256"]) and
@@ -323,6 +334,20 @@ def verify_receipt(api, release, doc, ident):
         matching = [s for s in job.get("steps", []) if s.get("name") == step]
         need(len(matching) == 1 and matching[0].get("status") == "completed" and
              matching[0].get("conclusion") == "success", "publication step not successful")
+    if proof_out is not None:
+        # Store only public verification fields, not arbitrary job logs/env/URLs.
+        proof_out.update({
+            "run": {k: run[k] for k in ("id", "run_attempt", "head_sha", "head_branch",
+                                       "status", "conclusion")},
+            "repository": api.repo,
+            "job": {k: job[k] for k in ("id", "run_id", "run_attempt", "head_sha", "name",
+                                       "status", "conclusion")},
+            "steps": [{"name": step, "status": "completed", "conclusion": "success"}
+                      for step in ("Verify finished APK identity",
+                                   "Verify release handoff (no publishing)", "Releasing APK files")],
+            "jobs_checked": count,
+            "coverage": "complete"
+        })
     return body
 
 def latest_baseline(api, ident, prefix):
@@ -353,7 +378,13 @@ def latest_baseline(api, ident, prefix):
     releases.sort(key=lambda r:(datetime.datetime.fromisoformat(r["published_at"].replace("Z","+00:00")),
                                r["id"]), reverse=True)
     r = releases[0]
-    matches = [a for a in assets(api, r["id"]) if a.get("name") == receipt_name(ident)]
+    rows = assets(api, r["id"])
+    qualified = [a for a in rows if a.get("name") == "pf-qualified-v1-" + ident + ".json"]
+    if qualified:
+        need(len(qualified) == 1, "ambiguous qualified baseline")
+        import qualified_baselines
+        return qualified_baselines.verify(api, r, qualified[0], ident), "VERIFIED_DURABLE_ACTIONS_RECORD"
+    matches = [a for a in rows if a.get("name") == receipt_name(ident)]
     if not matches:
         return None, "LATEST_RELEASE_HAS_NO_RECEIPT"
     need(len(matches) == 1 and matches[0].get("state") == "uploaded", "ambiguous receipt")
@@ -368,6 +399,8 @@ def compare(consumed, baseline, reason):
         return {"state": "BLOCKED", "reason": "PLAN_BUILD_DECLARATION_DRIFT", "authority": "shadow-only"}
     if consumed["binding"] == "MISSING_REQUIRED_PLAN":
         return {"state": "UNKNOWN", "reason": "REQUIRED_PLAN_UNAVAILABLE", "authority": "shadow-only"}
+    if consumed.get("resolution", {}).get("status") == "UNAVAILABLE":
+        return {"state": "UNKNOWN", "reason": "PREPARED_DEPENDENCIES_UNAVAILABLE_OR_INVALID", "authority": "shadow-only"}
     if baseline is None:
         return {"state": "UNKNOWN", "reason": reason, "authority": "shadow-only"}
     need(baseline["target"] == consumed["target"], "comparison target mismatch")
@@ -394,7 +427,8 @@ def plan(root, env):
     write(root, "shadow-evidence/plan.json", {"mode": "shadow-only", "targets": rows,
           "limits": "This stage does not elect/download remote inputs or alter the legacy matrix."})
     # Fixed safe hash/ID JSON only, bounded to GitHub output size.
-    text = "keys=" + json.dumps(keys, separators=(",", ":")) + "\n"
+    text = ("keys=" + json.dumps(keys, separators=(",", ":")) + "\n" +
+            "resolution_matrix=" + json.dumps({"target": list(keys)}, separators=(",", ":")) + "\n")
     need(len(text.encode()) < 60000 and env.get("GITHUB_OUTPUT"), "shadow output unavailable")
     with open(env["GITHUB_OUTPUT"], "a") as f:
         f.write(text)
@@ -435,6 +469,8 @@ def publish_receipt(root, ident, env, api=None, upload=None):
     captured = report["inputs"]
     doc = realized(root, captured, env)
     need(doc["binding"] in ("MATCH", "NO_PLAN"), "missing or drifting plan cannot advance baseline")
+    need(doc.get("resolution", {}).get("status") != "UNAVAILABLE",
+         "unavailable prepared inputs cannot advance baseline")
     # Recheck the actual consumed files, not just the identity report assertions.
     from artifact_identity import verify_records
     verify_records(Path(root), captured["tools"] + captured["bundles"] +
