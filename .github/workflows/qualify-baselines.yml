@@ -18,7 +18,7 @@ jobs:
       actions: read
     steps:
       - name: Checkout trusted default-branch code, never the source head
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           ref: main
           persist-credentials: false
@@ -28,7 +28,7 @@ jobs:
         run: python3 src/build/qualified_baselines.py
       - name: Preserve qualification results (no APKs or secrets)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: baseline-qualification-${{ github.run_id }}-${{ github.run_attempt }}
           path: shadow-qualified/

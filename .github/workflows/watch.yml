@@ -10,8 +10,8 @@ jobs:
   watch:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.2
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with: { distribution: temurin, java-version: '21' }
       - name: Fetch patcher
         id: patcher
@@ -28,7 +28,7 @@ jobs:
         run: python3 src/etc/nightly_report.py collect
       - name: Preserve Nightly Watch evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nightly-report-${{ github.run_id }}-${{ github.run_attempt }}
           path: |

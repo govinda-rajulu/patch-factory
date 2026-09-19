@@ -280,7 +280,7 @@ class ResolvedContracts(unittest.TestCase):
         manual = (self.r / ".github/workflows/manual-patch.yml").read_text()
         self.assertLess(manual.index("Verify dependency packet before signing secrets"), manual.index("Decode keystore"))
         download = manual.split("id: resolved_download", 1)[1].split("      - name:", 1)[0]
-        self.assertIn("actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093", download)
+        self.assertIn("actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c", download)
         self.assertNotIn("github-token", download)
         self.assertIn("github.run_attempt", download)
         self.assertIn("Cache the patcher jar\n        if: steps.resolved_verify.outcome != 'success'", manual)

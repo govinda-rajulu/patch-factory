@@ -15,9 +15,12 @@ jobs:
   validate:
     name: Validate targets and scripts
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
       - name: Shared preflight
         run: python3 src/etc/preflight.py
       - name: Local regression contracts
@@ -166,4 +169,88 @@ jobs:
           sudo apt-get install -y -q shellcheck >/dev/null
           # SC1091 sourced file not followed, SC2086 word splitting we rely on for flag lists
           shellcheck -S error -e SC1091,SC2086 src/build/*.sh src/etc/*.sh
+      # ACTION_COMPATIBILITY_SMOKE_START
+      # Small synthetic files only. No APK, signing secrets, dispatch or API writes.
+      # These steps are part of the existing mandatory Validate check, not advisory.
+      - name: Exercise setup-java v6 with Temurin
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify Temurin Java major
+        run: java -XshowSettings:properties -version 2>&1 | grep -Eq 'java.specification.version = 21$'
+      - name: Exercise setup-java v6 with Zulu
+        uses: actions/setup-java@v6
+        with:
+          distribution: zulu
+          java-version: '21'
+      - name: Verify Zulu Java major and create synthetic fixtures
+        run: |
+          java -XshowSettings:properties -version 2>&1 | grep -Eq 'java.specification.version = 21$'
+          mkdir -p action-smoke-source/nested action-smoke-cache
+          printf 'patch-factory action compatibility\n' > action-smoke-source/nested/value.txt
+          printf 'not a secret; hidden-file exclusion probe\n' > action-smoke-source/.hidden-probe
+          cp action-smoke-source/nested/value.txt action-smoke-cache/value.txt
+          cd action-smoke-source
+          sha256sum nested/value.txt > SHA256SUMS
+      - name: Save isolated synthetic cache using v6
+        uses: actions/cache/save@v6
+        with:
+          path: action-smoke-cache
+          key: pf-action-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Change only the local synthetic cache probe
+        run: printf 'must be replaced by the cache restore\n' > action-smoke-cache/value.txt
+      - name: Restore and exercise cache v6
+        id: smoke_cache
+        uses: actions/cache@v6
+        with:
+          path: action-smoke-cache
+          key: pf-action-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          fail-on-cache-miss: true
+      - name: Verify exact cache hit and restored bytes
+        env:
+          CACHE_HIT: ${{ steps.smoke_cache.outputs.cache-hit }}
+        run: |
+          test "$CACHE_HIT" = true
+          cmp action-smoke-source/nested/value.txt action-smoke-cache/value.txt
+      - name: Upload synthetic artifact with v7
+        uses: actions/upload-artifact@v7
+        with:
+          name: pf-action-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: action-smoke-source/
+          archive: true
+          if-no-files-found: error
+          retention-days: 1
+      - name: Download exact same-run synthetic artifact with v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: pf-action-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          path: action-smoke-download/
+          digest-mismatch: error
+          skip-decompress: false
+      - name: Verify extraction layout, content and hidden-file exclusion
+        run: |
+          (cd action-smoke-download && sha256sum -c SHA256SUMS)
+          cmp action-smoke-cache/value.txt action-smoke-download/nested/value.txt
+          test ! -e action-smoke-download/.hidden-probe
+      - name: Exercise github-script v9 with read-only current-run metadata
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const result = await github.rest.actions.getWorkflowRun({
+              ...context.repo, run_id: context.runId
+            });
+            const expectedHead = context.eventName === 'pull_request'
+              ? context.payload.pull_request.head.sha : context.sha;
+            if (result.data.head_sha !== expectedHead ||
+                result.data.event !== context.eventName) throw new Error('Run/head/event mismatch');
+            if (typeof github.paginate !== 'function' ||
+                typeof github.paginate.iterator !== 'function' ||
+                typeof getOctokit !== 'function') throw new Error('Required API helpers missing');
+            const rows = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              ...context.repo, run_id: context.runId, per_page: 100
+            });
+            if (!rows.some(job => job.head_sha === expectedHead &&
+                job.name === 'Validate targets and scripts')) throw new Error('Current job absent');
+            core.info('Read-only action compatibility smoke passed');
 

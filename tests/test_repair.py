@@ -209,13 +209,36 @@ class Repair(unittest.TestCase):
         self.assertLess(upload, publish)
         block = text[upload:publish]
         self.assertIn("if: success() && (!inputs.publish || github.ref != 'refs/heads/main')", block)
-        self.assertIn('uses: actions/upload-artifact@v4', block)
+        self.assertIn('uses: actions/upload-artifact@v7', block)
         self.assertIn('test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}', block)
         self.assertIn('            release/*.apk\n            build-evidence/${{ inputs.target }}.json\n', block)
         self.assertIn('if-no-files-found: error', block)
         self.assertIn('retention-days: 7', block)
         for unsafe in ('src/', '**', 'always()', 'continue-on-error', 'keystore'):
             self.assertNotIn(unsafe, block)
+
+    def test_action_upgrade_smoke_stays_inside_mandatory_readonly_validation(self):
+        text = (ROOT/'.github/workflows/validate.yml').read_text()
+        block = text.split('      # ACTION_COMPATIBILITY_SMOKE_START\n', 1)[1]
+        self.assertIn('permissions:\n  contents: read\n', text)
+        for action in ('setup-java@v6', 'cache@v6', 'cache/save@v6',
+                       'upload-artifact@v7', 'github-script@v9',
+                       'download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c'):
+            self.assertIn('uses: actions/' + action, block)
+        for forbidden in ('secrets.', 'continue-on-error', 'overwrite: true',
+                          'restore-keys:', 'include-hidden-files: true',
+                          'pull_request_target', 'workflow_run:', 'release/*.apk',
+                          'actions: write', 'contents: write', 'issues: write'):
+            self.assertNotIn(forbidden, block)
+        self.assertIn('archive: true', block)
+        self.assertIn('digest-mismatch: error', block)
+        self.assertIn('skip-decompress: false', block)
+        self.assertIn('retention-days: 1', block)
+        self.assertIn('pf-action-smoke-${{ github.run_id }}-${{ github.run_attempt }}', block)
+        self.assertIn('steps.smoke_cache.outputs.cache-hit', block)
+        self.assertIn('cmp action-smoke-cache/value.txt action-smoke-download/nested/value.txt', block)
+        self.assertIn('test ! -e action-smoke-download/.hidden-probe', block)
+        self.assertIn('github.rest.actions.getWorkflowRun', block)
 
     def direct_navigation_probe(self, source=None):
         # Execute the real get_apk entrypoint; stop at its first page request.
