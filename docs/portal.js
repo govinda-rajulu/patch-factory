@@ -152,11 +152,15 @@ async function microgCard(root){
    const a=el('a',text,'button');a.href=url;a.target='_blank';a.rel='noopener noreferrer';actions.append(a);
   }
   article.append(actions);
+  releaseNotes(article,row.rel.body,['Upstream release notes from MorpheApp. This companion is not built by Patch Factory.']);
  }catch(e){article.append(el('p','Upstream unavailable: '+e.message,'notice'));}
  const details=el('details');details.append(el('summary','Channel & installation notes'),
  el('p','Channel is selected in the Obtainium toolbar. Prereleases allowed means stable plus dev prereleases, not prereleases only. Standard universal APK only.'),
  el('p','Keep existing MicroG data. Installed signer compatibility is not checked here; never uninstall or bypass Android checks to force an update.'));
  article.append(details);root.append(article);
+ const channelButton=el('button','Change MicroG channel');channelButton.type='button';
+ channelButton.addEventListener('click',()=>{$('importPanel').open=true;$('microgChannel').focus();$('importPanel').scrollIntoView({block:'center'});});
+ article.append(channelButton);
 }
 function clearImportLinks(){
  $('openImport').hidden=true;$('openImport').removeAttribute('href');
@@ -223,6 +227,61 @@ function releaseRows(rows,ts){
  return {map,rejected};
 }
 function buildMeta(row){const t=row.tag;return 'Build '+t.day+(t.run?' · run '+t.run+' · attempt '+t.attempt:' · legacy tag');}
+function noteText(body){
+ if(typeof body!=='string')return '';
+ return body.replace(/<!--[\s\S]*?-->/g,'').replace(/^\[pf-release-v1\]: # "[A-Za-z0-9+/=]+"[ \t]*$/gm,'').trim();
+}
+function readable(text){
+ return text.replace(/\\([\\`*_[\]|])/g,'$1').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
+}
+function inline(parent,text){
+ // Small literal-safe Markdown subset. Never interpret HTML or load images/scripts.
+ const pattern=/\[([^\]\n]+)\]\((https:\/\/[^\s)]+)\)|`([^`\n]+)`|\*\*([^*\n]+)\*\*/g;
+ let start=0;
+ for(const match of text.matchAll(pattern)){
+  parent.append(document.createTextNode(readable(text.slice(start,match.index))));
+  if(match[1]){
+   let url=safeLink(match[2]);
+   try{const u=new URL(match[2]);if(!u.username&&!u.password&&!u.port&&u.origin==='https://github.com'&&u.pathname.startsWith('/MorpheApp/MicroG-RE/'))url=u.href;}catch{}
+   if(url){const a=el('a',readable(match[1]));a.href=url;a.target='_blank';a.rel='noopener noreferrer';parent.append(a);}
+   else parent.append(document.createTextNode(readable(match[1])));
+  }else parent.append(el(match[3]?'code':'strong',readable(match[3]||match[4])));
+  start=match.index+match[0].length;
+ }
+ parent.append(document.createTextNode(readable(text.slice(start))));
+}
+function markdown(body){
+ const box=el('div',undefined,'release-copy'),text=noteText(body),limited=text.slice(0,24000);
+ if(!text){box.append(el('p','No release notes were recorded. Changes are unknown, not “nothing changed”.','meta'));return box;}
+ let list=null,table=null,code=null;
+ for(const line of limited.split('\n').slice(0,400)){
+  if(line.startsWith('```')){if(code){code=null;}else{code=el('pre','');box.append(code);}continue;}
+  if(code){code.textContent+=line+'\n';continue;}
+  if(/^\s*\|/.test(line)){
+   if(/^[\s|:\-]+$/.test(line))continue;
+   if(!table){const wrap=el('div',undefined,'table-scroll');table=el('table');wrap.append(table);box.append(wrap);}
+   const row=el('tr');for(const cell of line.trim().replace(/^\||\|$/g,'').split(/(?<!\\)\|/)){const td=el(table.children.length?'td':'th');inline(td,cell.trim());row.append(td);}table.append(row);list=null;continue;
+  }
+  table=null;
+  if(/^\s*[-*]\s+/.test(line)){if(!list){list=el('ul');box.append(list);}const item=el('li');inline(item,line.replace(/^\s*[-*]\s+/,''));list.append(item);continue;}
+  list=null;if(!line.trim())continue;
+  const heading=/^#{1,6}\s+/.test(line),node=el(heading?'h4':'p');inline(node,line.replace(/^#{1,6}\s+/,''));box.append(node);
+ }
+ if(text.length>24000||limited.split('\n').length>400)box.append(el('p','Long notes shortened here; the exact release has the full text.','notice'));
+ return box;
+}
+function changeSummary(top,previous){
+ const body=noteText(top.rel.body),section=/^## What changed[ \t]*\n([\s\S]*?)(?=^## |$(?![\s\S]))/m.exec(body);
+ if(section){const rows=section[1].split('\n').filter(x=>x.startsWith('- ')).slice(0,3);if(rows.length)return rows.map(x=>readable(x.slice(2)));}
+ if(previous)return [previous.tag.version===top.tag.version?'Same app version, another build.':'App version '+previous.tag.version+' → '+top.tag.version+'.','Patch-by-patch changes were not recorded in comparable release metadata.'];
+ return ['No earlier comparable release in this inventory. Read the publisher’s notes below.'];
+}
+function releaseNotes(article,body,summary){
+ const overview=el('div',undefined,'change-preview');overview.append(el('h4','What changed'));
+ for(const line of summary.slice(0,2))overview.append(el('p',line.length>160?line.slice(0,157)+'…':line));
+ const details=el('details',undefined,'release-notes');details.append(el('summary','Read release notes here'),markdown(body));
+ article.append(overview,details);
+}
 async function appsPanel(root){
  const [ts,releaseResult]=await Promise.all([getTargets(),pages('releases').then(rows=>({rows})).catch(error=>({error}))]);
  const {map,rejected}=releaseRows(releaseResult.rows||[],ts);
@@ -235,8 +294,10 @@ async function appsPanel(root){
  const top=rows[0],age=Date.now()-Date.parse(top.asset.updated_at||top.rel.published_at);
  article.dataset.published=top.rel.published_at;
  if(Number.isFinite(age)&&age>=0&&age<3*86400000)heading.append(el('span','Recent upload','badge'));
- article.append(el('p',top.tag.version),el('p',buildMeta(top),'meta'),el('p',Math.round(top.asset.size/1048576)+' MB · published '+when(top.rel.published_at),'meta'));
- const actions=el('div',undefined,'actions');actions.append(link('Download released APK',top.asset.browser_download_url,'download'),link('Release details',top.rel.html_url));article.append(actions);
+ article.append(el('p',top.tag.version),el('p',buildMeta(top),'meta'),el('p',Math.round(top.asset.size/1048576)+' MB · published '+when(top.rel.published_at),'meta release-facts'));
+ const actions=el('div',undefined,'actions');actions.append(link('Download released APK',top.asset.browser_download_url,'download'));article.append(actions);
+ releaseNotes(article,top.rel.body,changeSummary(top,rows[1]));
+ const original=el('p',undefined,'meta');original.append(link('Original release / evidence',top.rel.html_url));article.append(original);
  if(top.asset.digest&&/^sha256:[a-f0-9]{64}$/.test(top.asset.digest)){const d=el('details');d.append(el('summary','APK SHA256'),el('pre',top.asset.digest.slice(7)));article.append(d);}
  if(rows.length>1){const d=el('details');d.append(el('summary',(rows.length-1)+' older releases'));for(const r of rows.slice(1)) {const p=el('p');p.append(link(r.tag.version+' · '+buildMeta(r),r.rel.html_url));d.append(p);}article.append(d);}
  root.append(article);
@@ -245,7 +306,7 @@ async function appsPanel(root){
  return releaseResult.error?'Partial data: patched release availability unknown.':'Patched inventory checked: '+releaseResult.rows.length+' releases. Upstream channel checked separately.';
 }
 async function buildsPanel(root){
- root.append(el('p','Recent workflow runs, not a per-app guess. Open a run for target jobs and test APK artifacts (GitHub sign-in may be required).','notice'));
+ root.append(el('p','Builds make APKs. Read target results and failed steps here; a successful workflow alone does not prove a published download. Test artifacts may require GitHub sign-in.','notice'));
  const runs=[],failures=[];
  await Promise.all(['ci.yml','batch-patch.yml','manual-patch.yml'].map(async workflow=>{
   try{
@@ -256,23 +317,76 @@ async function buildsPanel(root){
  }));
  runs.sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0));
  for(const failure of failures)root.append(el('p',failure,'notice'));
- for(const r of runs){const a=el('article');a.append(el('h3',r.display_title||r.name),el('p',(r.status==='completed'?(r.conclusion||'Unknown result'):r.status)+' · '+when(r.created_at),'meta'),el('p','Branch '+r.head_branch+' · commit '+String(r.head_sha).slice(0,8),'meta'),link('Open exact run / artifacts',r.html_url,'run'));root.append(a);}
+ for(const r of runs){const a=el('article');a.append(el('h3',r.display_title||r.name),el('p',(r.status==='completed'?(r.conclusion||'Unknown result'):r.status)+' · '+when(r.created_at),'meta'),
+ el('p','Branch '+r.head_branch+' · commit '+String(r.head_sha).slice(0,8),'meta'));
+ addJobs(a,r);
+ a.append(link('Exact run / downloadable test artifacts',r.html_url,'run'));root.append(a);}
  if(!runs.length)root.append(el('p',failures.length?'Build inventory unavailable or incomplete, not proof of no builds.':'No visible runs in these workflow windows. Open GitHub for older builds.'));
  return failures.length?'Build inventory incomplete: '+failures.length+' workflow read(s) failed. Available runs remain visible.':'Up to 10 runs per app-build workflow. Unrelated validations cannot crowd this window out.';
 }
 const WATCH=[['agent-watch.yml','Provider Watch','provider watch:'],['community-watch.yml','Community Watch','community: index changed for apps you build'],['watch.yml','Nightly Watch','watch: repo and provider status']];
+function lazySection(parent,label,loader){
+ const section=el('details',undefined,'inline-report'),summary=el('summary',label),content=el('div');
+ section.append(summary,content);parent.append(section);
+ let loaded=false,busy=false;
+ async function load(){
+  if(busy)return;busy=true;content.replaceChildren(el('p','Loading report…','meta'));
+  try{const root=document.createDocumentFragment();await loader(root);content.replaceChildren(root);loaded=true;}
+  catch(e){const retry=el('button','Retry report');retry.type='button';retry.addEventListener('click',load);content.replaceChildren(el('p','Report unavailable: '+e.message+' No success inferred.','notice'),retry);}
+  finally{busy=false;}
+ }
+ section.addEventListener('toggle',()=>{if(section.open&&!loaded)load();});
+}
+function addJobs(parent,run){
+ lazySection(parent,'Show job results and failed steps',async root=>{
+  need(Number.isSafeInteger(run.id)&&Number.isSafeInteger(run.run_attempt)&&run.run_attempt>0,'Invalid run identity');
+  const jobs=await pages('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs','jobs',10);
+  need(jobs.every(j=>j.run_id===run.id&&j.run_attempt===run.run_attempt&&j.head_sha===run.head_sha&&safeLink(j.html_url,'run')),'Job/run identity changed; refresh the page');
+  if(!jobs.length){root.append(el('p','No jobs visible yet. This is not a passed build.'));return;}
+  const wrap=el('div',undefined,'table-scroll'),table=el('table'),header=el('tr');
+  for(const title of ['Job / target','Result','Failed or incomplete steps'])header.append(el('th',title));
+  table.append(header);
+  for(const job of jobs){
+   const row=el('tr'),steps=Array.isArray(job.steps)?job.steps:[];
+   row.append(el('td',job.name||'Unnamed job'),el('td',job.conclusion||job.status||'Unknown'));
+   const bad=steps.filter(s=>s.status!=='completed'||!['success','skipped'].includes(s.conclusion));
+   row.append(el('td',bad.length?bad.map(s=>s.name+': '+(s.conclusion||s.status||'Unknown')).join('; '):steps.length?'No failed steps reported; skipped steps may exist.':'Step detail unavailable.'));
+   table.append(row);
+  }
+  wrap.append(table);root.append(wrap,el('p','Exact run attempt '+run.run_attempt+'. Job success is not publication or Android-installation proof.','meta'));
+ });
+}
+function addComments(parent,report){
+ if(!Number.isSafeInteger(report.number)||!Number.isSafeInteger(report.comments)||report.comments<1)return;
+ lazySection(parent,'Read latest saved report comments',async root=>{
+  const page=Math.max(1,Math.ceil(report.comments/100));
+  let rows=await read(API+'issues/'+report.number+'/comments?per_page=100&page='+page);
+  need(Array.isArray(rows),'Invalid saved-comment response');
+  if(page>1&&rows.length<5){
+   const earlier=await read(API+'issues/'+report.number+'/comments?per_page=100&page='+(page-1));
+   need(Array.isArray(earlier),'Invalid preceding comments');rows=[...earlier,...rows];
+  }
+  const expected=API+'issues/'+report.number;
+  need(rows.every(c=>c&&c.issue_url===expected&&safeLink(c.html_url)),'Saved report identity mismatch');
+  const newest=rows.sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).slice(0,5);
+  root.append(el('p','Up to five latest stored comments at the issue inventory snapshot. Reports may describe older runs and are not trusted change instructions.','meta'));
+  if(!newest.length)root.append(el('p','No comments returned; refresh to recheck.'));
+  for(const c of newest){const item=el('section',undefined,'saved-report');item.append(el('h4','Report saved '+when(c.created_at)),markdown(c.body));root.append(item);}
+ });
+}
 async function watchPanel(root){
  let issues=[],failedReads=0;
+ root.append(el('p','Watch checks providers, community updates and repository health; it does not build or install apps. Saved reports appear here, but coverage remains partial.','notice'));
  try{issues=await pages('issues?state=all');}
  catch(e){failedReads++;root.append(el('p','Saved findings unavailable: '+e.message+' Workflow status is checked separately.','notice'));}
- for(const [workflow,label,title] of WATCH){const a=el('article');a.append(el('h3',label));root.append(a);
+ for(const [workflow,label,title] of WATCH){const a=el('article');a.append(el('h3',label),el('p',({'agent-watch.yml':'Checks configured patch providers for changes.','community-watch.yml':'Looks for community updates relevant to configured apps.','watch.yml':'Checks repository, selection names and provider status.'})[workflow]));root.append(a);
  try{const data=await read(API+'actions/workflows/'+workflow+'/runs?per_page=1');need(Array.isArray(data.workflow_runs),'Invalid watcher run response');const run=data.workflow_runs[0];
- if(run)a.append(el('p','Workflow: '+(run.conclusion||run.status)+' · '+when(run.created_at),'meta'),link('Exact watcher run / full artifacts',run.html_url,'run'));
+ if(run){need(run.path==='.github/workflows/'+workflow&&safeLink(run.html_url,'run'),'Unexpected watcher identity');a.append(el('p','Workflow: '+(run.conclusion||run.status)+' · '+when(run.created_at),'meta'));addJobs(a,run);a.append(link('Exact watcher run / full artifacts',run.html_url,'run'));}
  else a.append(el('p','No visible watcher runs.','meta'));
  }catch(e){failedReads++;a.append(el('p','Workflow read unavailable: '+e.message,'notice'));}
  const reports=issues.filter(x=>!x.pull_request&&typeof x.title==='string'&&(workflow==='agent-watch.yml'?x.title.startsWith(title):x.title===title)).sort((a,b)=>Date.parse(b.updated_at)-Date.parse(a.updated_at));
  const report=reports[0];if(report){a.append(link('Saved findings / comments',report.html_url),el('p','Issue updated '+when(report.updated_at)+'; may summarize an older run.','meta'));
- const d=el('details');d.append(el('summary','Latest stored issue body (literal text)'),el('pre',typeof report.body==='string'?report.body:'No stored report text'));a.append(d);
+ const d=el('details',undefined,'inline-report');d.append(el('summary','Read saved report here'),markdown(report.body));a.append(d);addComments(a,report);
  const failures=typeof report.body==='string'&&/report mode=full fail=1\b/.test(report.body);if(failures)a.append(el('p','Stored report declares fail=1. A green workflow is not a healthy report.','notice'));
  }else a.append(el('p','No saved issue found. Inspect run logs; absent findings are not an all-clear.','meta'));
  a.append(el('p','Coverage: legacy / partial. This page does not infer a verified delta from issue text or consume expiring JSON as durable baseline state.','meta'));
@@ -282,26 +396,25 @@ async function watchPanel(root){
 async function render(){
  const own=++generation;clearTimeout(pollTimer);$('status').textContent='Checking '+tab+'...';$('refresh').disabled=true;
  $('appTools').hidden=tab!=='apps';
+ $('importPanel').hidden=tab!=='apps';
  const root=document.createDocumentFragment();
  try{const message=await ({apps:appsPanel,builds:buildsPanel,watch:watchPanel}[tab])(root);if(own!==generation)return;organizePanel(root,tab);$('panel').replaceChildren(root);$('status').textContent=message;filterApps();}
  catch(e){if(own!==generation)return;$('panel').replaceChildren(el('p',e.message,'notice'));$('status').textContent='Data unavailable. No success or empty coverage inferred.';}
- finally{if(own===generation){$('refresh').disabled=false;if(!document.hidden)pollTimer=setTimeout(()=>{if(!document.hidden)render();},120000);}}
+ finally{if(own===generation){$('refresh').disabled=false;schedulePoll();}}
+}
+function schedulePoll(){
+ clearTimeout(pollTimer);
+ if(!document.hidden)pollTimer=setTimeout(()=>{
+  if(document.hidden)return;
+  if($('panel').querySelector('.inline-report[open],.release-notes[open]'))schedulePoll();
+  else render();
+ },120000);
 }
 function organizePanel(root,activeTab){
  $('appTools').hidden=activeTab!=='apps';
  const articles=Array.from(root.querySelectorAll('article'));
  if(activeTab!=='apps'){
-  for(const article of articles){
-   article.classList.add('result-card');
-   const disclosure=el('details'),heading=article.querySelector('h3'),summary=el('summary');
-   if(heading)summary.append(heading);
-   const status=article.querySelector('p.meta');
-   if(status)summary.append(status);
-   disclosure.append(summary);
-   const content=el('div',undefined,'result-content');
-   while(article.firstChild)content.append(article.firstChild);
-   disclosure.append(content);article.append(disclosure);
-  }
+  for(const article of articles)article.classList.add('result-card');
   return;
  }
  const groups=new Map();
@@ -319,7 +432,7 @@ function organizePanel(root,activeTab){
   const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta'));
   if(version)version.classList.add('app-version');
   // Keep the main download action visible; detailed provenance/history goes under one disclosure.
-  const extra=Array.from(article.children).filter(n=>n.matches('p.meta,details'));
+  const extra=Array.from(article.children).filter(n=>n.matches('p.meta:not(.release-facts),details:not(.release-notes)'));
   if(extra.length){
    const details=el('details',undefined,'app-details');details.append(el('summary','Build details & older versions'));
    for(const node of extra)details.append(node);
@@ -358,7 +471,7 @@ function filterApps(){
  $('appCount').textContent=shown+' app'+(shown===1?'':'s');
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateMicroG,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain};
+window.PFPortal={parseTag,validateImport,validateMicroG,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary};
 const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
 const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
 search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});
@@ -387,6 +500,13 @@ $('microgChannel').addEventListener('change',()=>{
  microgChannel=$('microgChannel').value;resetImport();$('prepareImport').disabled=false;if(tab==='apps')render();
 });
 $('includeMicrog').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
+$('collapseImport').addEventListener('click',()=>{$('importPanel').open=false;$('importPanel').querySelector('summary').focus();});
+$('resetChoices').addEventListener('click',()=>{
+ resetImport();$('pack').value='all';$('includeMicrog').checked=false;$('includeMicrog').parentElement.hidden=false;
+ $('microgChannel').value='stable';microgChannel='stable';$('prepareImport').disabled=false;
+ $('importMessage').textContent='Page choices reset. No tracked or installed apps were changed.';
+ if(tab==='apps')render();
+});
 $('refresh').addEventListener('click',()=>{cache.clear();targets=null;render();});
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{tab=b.dataset.tab;for(const x of document.querySelectorAll('[data-tab]'))x.setAttribute('aria-selected',String(x===b));render();});
 document.addEventListener('visibilitychange',()=>{clearTimeout(pollTimer);if(!document.hidden)render();});

@@ -21,19 +21,8 @@ runs:
         artifacts: ${{ steps.meta.outputs.apkpath }}
         tag: ${{ steps.meta.outputs.tag }}
         name: ${{ steps.meta.outputs.tag }}
-        body: |
-          Patch provider(s): ${{ steps.meta.outputs.provider }}
-          App version ${{ steps.meta.outputs.version }} · arm64-v8a
-          
-          **Applied patches**
-          ${{ steps.meta.outputs.aplist }}
-          Patch bundle ${{ steps.meta.outputs.patchver }}, built ${{ steps.meta.outputs.suffix }}
-          
-          `${{ steps.meta.outputs.apkname }}` · ${{ steps.meta.outputs.sizemb }} MB
-          SHA-256 `${{ steps.meta.outputs.sha256 }}`
-          
-          Verify before installing: `sha256sum ${{ steps.meta.outputs.apkname }}`
-          Built in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).
+        # Same verified summary used by the public shelf and release-note readers.
+        body: ${{ steps.meta.outputs.notes }}
         # A repeated tag is a failure, never permission to overwrite published bytes.
         allowUpdates: false
         replacesArtifacts: false

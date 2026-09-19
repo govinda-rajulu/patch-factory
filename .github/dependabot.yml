@@ -10,5 +10,8 @@ updates:
     open-pull-requests-limit: 5
     labels: ["dependencies"]
     groups:
-      actions:
+      # Routine updates travel together; majors are individual reviewable PRs.
+      # No ignored majors and no automatic merge. Validate exercises actual refs.
+      action-maintenance:
         patterns: ["*"]
+        update-types: ["minor", "patch"]

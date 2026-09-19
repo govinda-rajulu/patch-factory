@@ -14,6 +14,7 @@ import uuid
 from artifact_identity import SCHEMA, command, expected_package, record, require, target
 from build_identity import parse as parse_build_suffix, verify_run
 import input_recipe
+import release_notes
 
 
 def read_text(root, relative):
@@ -79,6 +80,9 @@ def verify(root, ident):
               'apkname': apk.name, 'apkpath': relative, 'sha256': output['sha256'],
               'sizemb': format(output['bytes']/1048576, '.1f'), 'provider': provider,
               'patchver': patchver, 'aplist': '\n'.join('- '+name for name in applied)}
+    summary = release_notes.snapshot(fields, d, t)
+    fields['summary'] = json.dumps(summary, sort_keys=True)
+    fields['notes'] = release_notes.render(summary)
     return fields
 
 
@@ -97,6 +101,9 @@ def main():
     fields = verify(pathlib.Path.cwd(), sys.argv[1])
     if '--github-output' in sys.argv[2:]:
         verify_run(fields['suffix'], os.environ)
+        summary = json.loads(fields['summary'])
+        previous, reason = release_notes.previous_release(summary)
+        fields['notes'] = release_notes.render(summary, previous, reason)
         dest = pathlib.Path(os.environ['GITHUB_OUTPUT'])
         with dest.open('a') as out:
             out.write(output_text(fields))

@@ -691,6 +691,134 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertEqual(fields['apkpath'], self.name)
         self.assertEqual(fields['sha256'], self.report['output']['sha256'])
 
+    def test_shared_release_notes_are_bound_to_verified_current_report(self):
+        import release_notes as notes
+        fields = self.verify()
+        doc = notes.decode(fields['notes'], fields['tag'], 'fixture')
+        self.assertEqual(doc['sha256'], fields['sha256'])
+        self.assertEqual(doc['patches'], self.report['applied_patch_names'])
+        self.assertEqual(doc['min_sdk'], 29)
+        self.assertIn('## What changed', fields['notes'])
+        self.assertIn('## This download', fields['notes'])
+        self.assertIn('/blob/' + 'a'*40 + '/docs/guide.md', fields['notes'])
+        self.assertIn('not proof of original-publisher', fields['notes'])
+        action = (ROOT/'.github/actions/release/action.yml').read_text()
+        self.assertIn('body: ${{ steps.meta.outputs.notes }}', action)
+        self.assertIn('allowUpdates: false', action)
+
+    def test_release_notes_compare_actual_fields_without_same_names_claim(self):
+        import release_notes as notes
+        current = json.loads(self.verify()['summary'])
+        previous = dict(current, version='4.2.0', provider='older', source='c'*40,
+                        signer='d'*64, patches=['Old patch'], sha256='e'*64)
+        changes = '\n'.join(notes.changes(current, previous))
+        for marker in ('4.2.0 -> 4.2.1', 'Patch providers changed', 'Signing certificate changed',
+                       'Applied patch names added', 'Applied patch names removed', 'APK bytes differ'):
+            self.assertIn(marker, changes)
+        same = '\n'.join(notes.changes(current, current))
+        self.assertIn('does not prove unchanged patch code or defaults', same)
+        self.assertIn('App version unchanged', same)
+
+    def test_release_notes_do_not_fall_back_past_newer_legacy_release(self):
+        import release_notes as notes
+        current = json.loads(self.verify()['summary'])
+        current['tag'] = 'fixture-v4.2.1-b20260912'
+        old = dict(current, tag='fixture-v4.2.0-b20260910', version='4.2.0')
+        rows = [{'tag_name':old['tag'], 'body':notes.render(old)},
+                {'tag_name':'fixture-v4.2.1-b20260911', 'body':'legacy notes'}]
+        previous, reason = notes.choose_previous(rows, current)
+        self.assertEqual(previous['tag'], 'fixture-v4.2.1-b20260911')
+        self.assertTrue(previous['legacy'])
+        self.assertIn('lacks comparable', reason)
+        self.assertIn('not recorded', '\n'.join(notes.changes(current, previous)))
+
+    def test_release_notes_decode_rejects_wrong_identity_malformed_and_duplicate(self):
+        import release_notes as notes
+        fields = self.verify()
+        for body, tag, ident in [(fields['notes'], 'other-v1-b20260910', 'fixture'),
+                                 (fields['notes'], fields['tag'], 'other'),
+                                 (fields['notes']*2, fields['tag'], 'fixture'),
+                                 ('<!-- PF_RELEASE_V1 AAAA -->', fields['tag'], 'fixture'),
+                                 ('x'*250001, fields['tag'], 'fixture')]:
+            with self.assertRaises((ValueError, UnicodeError)):
+                notes.decode(body, tag, ident)
+
+    def test_release_notes_history_failure_stays_unknown_and_env_excludes_signing(self):
+        import release_notes as notes
+        current = json.loads(self.verify()['summary'])
+        with patch.dict(os.environ, {'KEYSTORE_PASS':'never-forward-this', 'GITHUB_TOKEN':'fixture-token'}):
+            with patch.object(notes.subprocess, 'run', return_value=subprocess.CompletedProcess([],1,b'',b'private')) as proc:
+                previous, reason = notes.previous_release(current)
+        self.assertIsNone(previous)
+        self.assertIn('does not mean nothing changed', reason)
+        self.assertNotIn('KEYSTORE_PASS', proc.call_args.kwargs['env'])
+        self.assertNotIn('fixture-token', repr(proc.call_args.args))
+        self.assertNotIn('private', reason)
+
+    def test_release_notes_metadata_injection_is_literal_not_markdown(self):
+        import release_notes as notes
+        current = json.loads(self.verify()['summary'])
+        current['patches'] = ['<img src=x onerror=alert(1)>', '[fake](https://example.invalid)', 'a|b']
+        body = notes.render(current)
+        self.assertNotIn('<img src=x', body)
+        self.assertIn('&lt;img', body)
+        self.assertIn('\\[fake\\]', body)
+        self.assertIn('a\\|b', body)
+
+    def test_release_notes_previous_asset_must_match_summary(self):
+        import release_notes as notes
+        current = json.loads(self.verify()['summary'])
+        current['tag'] = 'fixture-v4.2.1-b20260912'
+        prior = dict(current, tag='fixture-v4.2.1-b20260911')
+        asset = {'name':prior['apk'], 'state':'uploaded', 'size':prior['bytes'],
+                 'browser_download_url': notes.WEB+'/releases/download/'+prior['tag']+'/'+prior['apk'],
+                 'digest':'sha256:'+prior['sha256']}
+        row = {'tag_name':prior['tag'], 'body':notes.render(prior), 'assets':[asset]}
+        found, _ = notes.choose_previous([row], current)
+        self.assertFalse(found.get('legacy', False))
+        asset['digest'] = 'sha256:' + 'f'*64
+        found, _ = notes.choose_previous([row], current)
+        self.assertTrue(found['legacy'])
+
+    def test_release_notes_bounded_history_pagination_and_duplicate_refusal(self):
+        import release_notes as notes
+        current = json.loads(self.verify()['summary'])
+        first = [{'id':i+1, 'tag_name':'unrelated-v1.0-b20260909'} for i in range(100)]
+        final = [{'id':101, 'tag_name':'fixture-v4.2.0-b20260909', 'body':'legacy'}]
+        replies = [subprocess.CompletedProcess([],0,json.dumps(rows).encode(),b'') for rows in (first,final)]
+        with patch.object(notes.subprocess, 'run', side_effect=replies) as proc:
+            previous, _ = notes.previous_release(current)
+        self.assertEqual(previous['version'], '4.2.0')
+        self.assertEqual(proc.call_count, 2)
+        self.assertTrue(proc.call_args.args[0][-1].endswith('page=2'))
+        replies[1] = subprocess.CompletedProcess([],0,json.dumps(first[:1]).encode(),b'')
+        with patch.object(notes.subprocess, 'run', side_effect=replies):
+            previous, reason = notes.previous_release(current)
+        self.assertIsNone(previous)
+        self.assertIn('unavailable', reason)
+
+    def test_release_notes_order_tie_draft_prerelease_and_future_refuse_comparison(self):
+        import release_notes as notes
+        current = json.loads(self.verify()['summary'])
+        rows = [{'tag_name':'fixture-v4.2.0-b20260909'}, {'tag_name':'fixture-v4.1.9-b20260909'}]
+        previous, reason = notes.choose_previous(rows, current)
+        self.assertIsNone(previous);self.assertIn('Ambiguous', reason)
+        previous, reason = notes.choose_previous([{'tag_name':'fixture-v4.2.2-b20260911'}], current)
+        self.assertIsNone(previous);self.assertIn('ordering changed', reason)
+        for flag in ('draft','prerelease'):
+            previous, reason = notes.choose_previous([dict(rows[0], **{flag:True})], current)
+            self.assertIsNone(previous)
+
+    def test_release_notes_current_signature_change_is_warning_not_install_advice(self):
+        import release_notes as notes
+        current = json.loads(self.verify()['summary'])
+        older = dict(current, signer='d'*64, tag='fixture-v4.2.1-b20260909')
+        body = notes.render(current, older, 'Fixture comparison')
+        self.assertIn('Signing certificate changed', body)
+        self.assertIn('No automatic uninstall', body)
+        self.assertIn('Same-version patch-only update delivery', body)
+        self.assertEqual(notes.decode(body,current['tag'],'fixture')['signer'],current['signer'])
+
     def test_apk_changed_after_identity(self):
         (self.root / self.name).write_bytes(b'y'*1000001)
         with self.assertRaisesRegex(ValueError, 'verified bytes'):self.verify()
