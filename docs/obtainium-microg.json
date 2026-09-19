@@ -1,0 +1,15 @@
+{
+ "apps": [
+  {
+   "id": "app.revanced.android.gms",
+   "url": "https://github.com/MorpheApp/MicroG-RE",
+   "author": "MorpheApp",
+   "name": "Morphe MicroG RE",
+   "categories": [
+    "morphe-companion"
+   ],
+   "preferredApkIndex": 0,
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": false, \"filterReleaseTitlesByRegEx\": \"^v?[0-9]+([.][0-9]+)*$\", \"apkFilterRegEx\": \"^microg-[0-9]+([.][0-9]+)*[.]apk$\", \"versionExtractionRegEx\": \"^v?([0-9]+(?:[.][0-9]+)*)$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"Morphe MicroG RE\"}"
+  }
+ ]
+}

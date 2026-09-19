@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateTargets,releaseRows,safeLink,selectApps,appGroup};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
 check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,14);assert.equal(c.validateImport(pack,targets).length,14);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
@@ -15,4 +15,35 @@ check('unsafe and cross-repository links refused',()=>{for(const url of ['javasc
 check('release grouping stays per target and ambiguous assets withheld',()=>{const tag='youtube-morphe-v21.36.45-b20260913',r={id:1,tag_name:tag,draft:false,prerelease:false,published_at:'2026-09-13T00:00:00Z',assets:[{name:'youtube-v21.36.45-arm64-v8a.apk',state:'uploaded',size:2000000,browser_download_url:'https://github.com/govinda-rajulu/patch-factory/releases/download/'+tag+'/youtube-v21.36.45-arm64-v8a.apk'}]};assert.equal(c.releaseRows([r],targets).map.get('youtube-morphe').length,1);assert.equal(c.releaseRows([r],targets).map.get('instagram').length,0);r.assets.push(r.assets[0]);assert.equal(c.releaseRows([r],targets).rejected,1)});
 check('no credential input, persistent-token use or API write path',()=>{for(const s of ['localStorage','sessionStorage','innerHTML','insertAdjacentHTML','/dispatches','Authorization','method:'])assert.ok(!source.includes(s),s);assert.ok(!html.includes('type="password"'));assert.ok(html.includes('portal.js'));assert.ok(source.includes('credentials:\'omit\''))});
 check('disabled or duplicate targets refused for full imports',()=>{let t=structuredClone(targets);t[0].enabled=false;assert.throws(()=>c.validateImport(pack,t));t=structuredClone(targets);t.push(t[0]);assert.throws(()=>c.validateTargets(t));assert.equal(c.appGroup('youtube')[0],'media');assert.equal(c.appGroup('instagram')[0],'social');assert.equal(c.appGroup('keymapper')[0],'tools');assert.equal(c.appGroup('future-app')[0],'other');for(const marker of ['Search apps','Filter app category','Build details & older versions','No matching apps.'])assert.ok(source.includes(marker),marker)});
+check('labels allow hyphens but refuse controls and empty strings',()=>{
+ assert.equal(c.plain('MicroG-RE'),true);
+ for(const value of ['',null,'bad\nname','bad\tname','bad\u0000name','bad\u001fname','bad\u007fname'])assert.equal(c.plain(value),false);
+});
+check('ordinary import binds package and all reviewed tracking settings',()=>{
+ for(const mutate of [d=>d.apps[0].id='other.valid.package',d=>d.apps[0].preferredApkIndex=2,d=>{const s=JSON.parse(d.apps[0].additionalSettings);s.trackOnly=true;d.apps[0].additionalSettings=JSON.stringify(s)},d=>{const s=JSON.parse(d.apps[0].additionalSettings);s.versionExtractionRegEx='.*';d.apps[0].additionalSettings=JSON.stringify(s)}]){
+  const d=structuredClone(pack);mutate(d);assert.throws(()=>c.validateImport(d,targets));
+ }
+});
+check('optional MicroG stays separate and preserves upstream package and exact filters',()=>{
+ const d=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
+ const [app]=c.validateMicroG(d),s=JSON.parse(app.additionalSettings);
+ assert.equal(app.id,'app.revanced.android.gms');
+ assert.equal(pack.apps.length,14);assert.ok(!pack.apps.some(x=>x.id===app.id));
+ assert.equal(new RegExp(s.apkFilterRegEx).test('microg-6.1.4.apk'),true);
+ for(const name of ['microg-6.1.4-hw.apk','microg-6.1.4-arm64.apk','other.apk','microg-6.1.4.apk.sig','microg-6.1.4-no-icon.apk'])assert.equal(new RegExp(s.apkFilterRegEx).test(name),false);
+ assert.equal(new RegExp(s.versionExtractionRegEx).exec('v6.1.4')[1],'6.1.4');
+ for(const mutate of [x=>x.settings={},x=>x.apps.push(x.apps[0]),x=>x.apps[0].id='com.google.android.gms',x=>x.apps[0].url='https://github.com/other/microg',x=>x.apps[0].additionalSettings='{}',x=>{let y=JSON.parse(x.apps[0].additionalSettings);y.fallbackToOlderReleases=true;x.apps[0].additionalSettings=JSON.stringify(y)}]){
+  const bad=structuredClone(d);mutate(bad);assert.throws(()=>c.validateMicroG(bad));
+ }
+ assert.ok(html.includes('<option value="microg">Morphe MicroG RE only</option>'));
+ assert.ok(html.includes('obtainium://refresh'));
+});
+check('APK URL must belong to its exact release tag and asset name',()=>{
+ const tag='youtube-morphe-v21.36.45-b20260913',name='youtube-v21.36.45-arm64-v8a.apk';
+ const r={id:1,tag_name:tag,published_at:'2026-09-13T00:00:00Z',assets:[{name,state:'uploaded',size:2000000,browser_download_url:'https://github.com/govinda-rajulu/patch-factory/releases/download/'+tag+'/'+name}]};
+ assert.equal(c.releaseRows([r],targets).rejected,0);
+ for(const url of [r.assets[0].browser_download_url.replace('b20260913','b20260912'),r.assets[0].browser_download_url+'?redirect=other',r.assets[0].browser_download_url.replace(name,'other.apk')]){
+  const bad=structuredClone(r);bad.assets[0].browser_download_url=url;assert.equal(c.releaseRows([bad],targets).rejected,1);
+ }
+});
 console.log('PORTAL_CONTRACTS_PASS='+count);

@@ -20,7 +20,7 @@ function appGroup(id){
 const cache=new Map();
 function need(ok,message){if(!ok)throw new Error(message);}
 function el(tag,text,className){const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(className)n.className=className;return n;}
-function plain(v,max=500){return typeof v==='string'&&v.length<=max&&!/[-\u001f\u007f]/.test(v);}
+function plain(v,max=500){return typeof v==='string'&&v.length>0&&v.length<=max&&!/[\u0000-\u001f\u007f]/.test(v);}
 function date(v){return typeof v==='string'&&Number.isFinite(Date.parse(v))?new Date(v):null;}
 function when(v){const d=date(v);return d?d.toLocaleString(): 'Date unknown';}
 function safeLink(url,kind='repo'){
@@ -72,14 +72,28 @@ function validateImport(data,ts){
  for(const app of data.apps){need(app&&plain(app.id,200)&&/^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$/.test(app.id)&&!ids.has(app.id),'Invalid/duplicate app package');ids.add(app.id);
  need(app.url===WEB&&plain(app.name,200)&&!names.has(app.name),'Invalid import source/name');names.add(app.name);
  const target=enabled.find(t=>(t.label||t.id)===app.name);need(target&&!matched.has(target.id),'Import app not in enabled catalog');matched.add(target.id);
+ const packageId=({youtube:'app.morphe.android.youtube',photos:'app.morphe.android.apps.photos'})[target.id]||target.package;
+ need(app.id===packageId,'Import package does not match this target');
  need(typeof app.additionalSettings==='string'&&app.additionalSettings.length<10000,'Invalid app filters');const settings=JSON.parse(app.additionalSettings);
  need(settings&&Object.keys(settings).every(k=>['includePrereleases','fallbackToOlderReleases','filterReleaseTitlesByRegEx','apkFilterRegEx','versionExtractionRegEx','matchGroupToUse','trackOnly','appName'].includes(k)),'Unreviewed tracking settings; use reviewed JSON import instead');
  need(settings.filterReleaseTitlesByRegEx==='^'+(target.tag_prefix||target.id)+'-v[0-9.]+-b[0-9]+$','Unexpected release filter');
  need(settings.apkFilterRegEx==='arm64-v8a[.]apk$'&&settings.fallbackToOlderReleases===true&&settings.includePrereleases===false,'Unexpected APK/release policy');
+ need(settings.versionExtractionRegEx==='-v([0-9.]+)-b[0-9]+$'&&settings.matchGroupToUse==='1'&&settings.trackOnly===false&&settings.appName===app.name,'Unexpected version/import policy');
+ need(Object.keys(settings).length===8&&app.preferredApkIndex===0&&app.author==='govinda-rajulu'&&JSON.stringify(app.categories)==='["patch-factory"]','Unexpected import identity/settings');
  need(!Object.keys(settings).some(k=>/token|password|secret|credential/i.test(k)),'Credentials not permitted in import');
  need(Object.keys(app).every(k=>['id','url','author','name','categories','preferredApkIndex','additionalSettings'].includes(k)),'Unsupported import field');
  }
  need(data.apps.length===enabled.length,'Full import does not cover every enabled target');
+ return data.apps;
+}
+function validateMicroG(data){
+ need(data&&Object.keys(data).length===1&&Array.isArray(data.apps)&&data.apps.length===1,'Expected one optional MicroG companion');
+ const app=data.apps[0];
+ need(app&&Object.keys(app).length===7&&Object.keys(app).every(k=>['id','url','author','name','categories','preferredApkIndex','additionalSettings'].includes(k)),'Unsupported companion fields');
+ need(app.id==='app.revanced.android.gms'&&app.url==='https://github.com/MorpheApp/MicroG-RE'&&app.author==='MorpheApp'&&app.name==='Morphe MicroG RE'&&app.preferredApkIndex===0&&JSON.stringify(app.categories)==='["morphe-companion"]','Unexpected companion identity');
+ need(typeof app.additionalSettings==='string'&&app.additionalSettings.length<10000,'Invalid companion settings');
+ const s=JSON.parse(app.additionalSettings),expected={includePrereleases:false,fallbackToOlderReleases:false,filterReleaseTitlesByRegEx:'^v?[0-9]+([.][0-9]+)*$',apkFilterRegEx:'^microg-[0-9]+([.][0-9]+)*[.]apk$',versionExtractionRegEx:'^v?([0-9]+(?:[.][0-9]+)*)$',matchGroupToUse:'1',trackOnly:false,appName:'Morphe MicroG RE'};
+ need(s&&Object.keys(s).length===Object.keys(expected).length&&Object.entries(expected).every(([k,v])=>s[k]===v),'Unreviewed companion filters/settings');
  return data.apps;
 }
 function selectApps(apps,ids){
@@ -103,8 +117,9 @@ function setImportLinks(apps,pack){
  const uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));need(uri.length<100000,'Configuration link too large for this page');
  $('openImport').href=uri;$('openImport').textContent='Import / update '+apps.length+' apps in Obtainium';$('openImport').hidden=false;
  importBlob=URL.createObjectURL(new Blob([JSON.stringify({apps},null,2)+'\n'],{type:'application/json'}));
- $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected.json':'obtainium.json';$('downloadImport').hidden=false;
+ $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected.json':pack==='microg'?'obtainium-microg.json':'obtainium.json';$('downloadImport').hidden=false;
  $('importMessage').textContent='Ready: '+apps.length+' configs. Tap Open, then confirm in Obtainium. Unselected apps already tracked in Obtainium are not removed. If the link cannot open, use the JSON fallback.';
+ if(pack==='microg')$('importMessage').textContent='Ready: Morphe MicroG RE from its own upstream repository. Confirm in Obtainium. A matching tracked entry may be replaced; installed signer compatibility is not verified here. Keep existing app data and do not uninstall to force an update.';
 }
 function updateCustom(){
  clearImportLinks();
@@ -130,11 +145,15 @@ function showCustom(apps){
 }
 async function prepareImport(){
  resetImport();const token=importGeneration,pack=$('pack').value;$('prepareImport').disabled=true;
- try{need(['all','custom'].includes(pack),'Unknown app list');
+ try{need(['all','custom','microg'].includes(pack),'Unknown app list');
+ if(pack==='microg'){
+  const data=await read(RAW+'docs/obtainium-microg.json',0);if(token!==importGeneration)return;
+  setImportLinks(validateMicroG(data),'microg');return;
+ }
  cache.delete(RAW+'docs/obtainium.json');targets=null;const [ts,data]=await Promise.all([getTargets(),read(RAW+'docs/obtainium.json',0)]);if(token!==importGeneration)return;
  const apps=validateImport(data,ts);
  if(pack==='custom')showCustom(apps);else setImportLinks(apps,pack);
- }catch(e){if(token===importGeneration)$('importMessage').textContent='Import unavailable: '+e.message;}finally{$('prepareImport').disabled=false;}
+ }catch(e){if(token===importGeneration)$('importMessage').textContent='Import unavailable: '+e.message;}finally{if(token===importGeneration)$('prepareImport').disabled=false;}
 }
 function releaseRows(rows,ts){
  const map=new Map(ts.map(t=>[t.tag_prefix||t.id,[]]));let rejected=0;
@@ -142,6 +161,7 @@ function releaseRows(rows,ts){
  const apks=Array.isArray(rel.assets)?rel.assets.filter(a=>a&&typeof a.name==='string'&&a.name.endsWith('.apk')):[];
  if(apks.length!==1){rejected++;continue;}const a=apks[0];
  if(!a.name.endsWith('-v'+tag.version+'-arm64-v8a.apk')||!safeLink(a.browser_download_url,'download')||!Number.isSafeInteger(a.size)||a.size<=1000000||a.state!=='uploaded'||!date(rel.published_at)){rejected++;continue;}
+ if(a.browser_download_url!==WEB+'/releases/download/'+encodeURIComponent(rel.tag_name)+'/'+encodeURIComponent(a.name)){rejected++;continue;}
  map.get(tag.prefix).push({tag,rel,asset:a});
  }
  for(const rows of map.values())rows.sort((a,b)=>b.tag.build.localeCompare(a.tag.build)||Date.parse(b.rel.published_at)-Date.parse(a.rel.published_at));
@@ -168,32 +188,42 @@ async function appsPanel(root){
 }
 async function buildsPanel(root){
  root.append(el('p','Recent workflow runs, not a per-app guess. Open a run for target jobs and test APK artifacts (GitHub sign-in may be required).','notice'));
- const data=await read(API+'actions/runs?per_page=30');need(Array.isArray(data.workflow_runs),'Invalid workflow results');
- const runs=data.workflow_runs.filter(r=>['.github/workflows/ci.yml','.github/workflows/batch-patch.yml','.github/workflows/manual-patch.yml'].includes(r.path));
+ const runs=[],failures=[];
+ await Promise.all(['ci.yml','batch-patch.yml','manual-patch.yml'].map(async workflow=>{
+  try{
+   const data=await read(API+'actions/workflows/'+workflow+'/runs?per_page=10');need(Array.isArray(data.workflow_runs),'Invalid workflow results');
+   for(const r of data.workflow_runs){need(r&&Number.isSafeInteger(r.id)&&r.path==='.github/workflows/'+workflow&&safeLink(r.html_url,'run'),'Invalid app-build run');}
+   runs.push(...data.workflow_runs);
+  }catch(e){failures.push(workflow+': '+e.message);}
+ }));
+ runs.sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0));
+ for(const failure of failures)root.append(el('p',failure,'notice'));
  for(const r of runs){const a=el('article');a.append(el('h3',r.display_title||r.name),el('p',(r.status==='completed'?(r.conclusion||'Unknown result'):r.status)+' · '+when(r.created_at),'meta'),el('p','Branch '+r.head_branch+' · commit '+String(r.head_sha).slice(0,8),'meta'),link('Open exact run / artifacts',r.html_url,'run'));root.append(a);}
- if(!runs.length)root.append(el('p','No app-build runs in this 30-run window. This does not mean no builds exist.'));
- return 'Showing app-build runs from the latest 30 workflows; open GitHub for older runs.';
+ if(!runs.length)root.append(el('p',failures.length?'Build inventory unavailable or incomplete, not proof of no builds.':'No visible runs in these workflow windows. Open GitHub for older builds.'));
+ return failures.length?'Build inventory incomplete: '+failures.length+' workflow read(s) failed. Available runs remain visible.':'Up to 10 runs per app-build workflow. Unrelated validations cannot crowd this window out.';
 }
 const WATCH=[['agent-watch.yml','Provider Watch','provider watch:'],['community-watch.yml','Community Watch','community: index changed for apps you build'],['watch.yml','Nightly Watch','watch: repo and provider status']];
 async function watchPanel(root){
- const issues=await pages('issues?state=all');
- let failedReads=0;
+ let issues=[],failedReads=0;
+ try{issues=await pages('issues?state=all');}
+ catch(e){failedReads++;root.append(el('p','Saved findings unavailable: '+e.message+' Workflow status is checked separately.','notice'));}
  for(const [workflow,label,title] of WATCH){const a=el('article');a.append(el('h3',label));root.append(a);
  try{const data=await read(API+'actions/workflows/'+workflow+'/runs?per_page=1');need(Array.isArray(data.workflow_runs),'Invalid watcher run response');const run=data.workflow_runs[0];
  if(run)a.append(el('p','Workflow: '+(run.conclusion||run.status)+' · '+when(run.created_at),'meta'),link('Exact watcher run / full artifacts',run.html_url,'run'));
  else a.append(el('p','No visible watcher runs.','meta'));
+ }catch(e){failedReads++;a.append(el('p','Workflow read unavailable: '+e.message,'notice'));}
  const reports=issues.filter(x=>!x.pull_request&&typeof x.title==='string'&&(workflow==='agent-watch.yml'?x.title.startsWith(title):x.title===title)).sort((a,b)=>Date.parse(b.updated_at)-Date.parse(a.updated_at));
  const report=reports[0];if(report){a.append(link('Saved findings / comments',report.html_url),el('p','Issue updated '+when(report.updated_at)+'; may summarize an older run.','meta'));
  const d=el('details');d.append(el('summary','Latest stored issue body (literal text)'),el('pre',typeof report.body==='string'?report.body:'No stored report text'));a.append(d);
  const failures=typeof report.body==='string'&&/report mode=full fail=1\b/.test(report.body);if(failures)a.append(el('p','Stored report declares fail=1. A green workflow is not a healthy report.','notice'));
  }else a.append(el('p','No saved issue found. Inspect run logs; absent findings are not an all-clear.','meta'));
  a.append(el('p','Coverage: legacy / partial. This page does not infer a verified delta from issue text or consume expiring JSON as durable baseline state.','meta'));
- }catch(e){failedReads++;a.append(el('p',e.message,'notice'));}
  }
  return failedReads?'Watcher inventory incomplete: '+failedReads+' workflow read(s) failed. No all-clear.':'Watcher runs and saved issues loaded. Findings coverage remains explicitly partial.';
 }
 async function render(){
  const own=++generation;clearTimeout(pollTimer);$('status').textContent='Checking '+tab+'...';$('refresh').disabled=true;
+ $('appTools').hidden=tab!=='apps';
  const root=document.createDocumentFragment();
  try{const message=await ({apps:appsPanel,builds:buildsPanel,watch:watchPanel}[tab])(root);if(own!==generation)return;organizePanel(root,tab);$('panel').replaceChildren(root);$('status').textContent=message;filterApps();}
  catch(e){if(own!==generation)return;$('panel').replaceChildren(el('p',e.message,'notice'));$('status').textContent='Data unavailable. No success or empty coverage inferred.';}
@@ -264,7 +294,7 @@ function filterApps(){
  $('appCount').textContent=shown+' app'+(shown===1?'':'s');
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateTargets,releaseRows,safeLink,selectApps,appGroup};
+window.PFPortal={parseTag,validateImport,validateMicroG,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain};
 const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
 const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
 search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});
@@ -278,7 +308,7 @@ tools.append(search,categories,count);$('panel').before(tools);
 // The static page lists the same two public choices; no personal presets.
 const customField=el('fieldset');customField.id='customApps';customField.hidden=true;customField.style.cssText='margin:16px 0;border:1px solid var(--rule);border-radius:8px;min-width:0';
 $('importMessage').before(customField);
-$('prepareImport').addEventListener('click',prepareImport);$('pack').addEventListener('change',resetImport);
+$('prepareImport').addEventListener('click',prepareImport);$('pack').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
 $('refresh').addEventListener('click',()=>{cache.clear();targets=null;render();});
 for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{tab=b.dataset.tab;for(const x of document.querySelectorAll('[data-tab]'))x.setAttribute('aria-selected',String(x===b));render();});
 document.addEventListener('visibilitychange',()=>{clearTimeout(pollTimer);if(!document.hidden)render();});

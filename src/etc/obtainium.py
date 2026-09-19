@@ -61,6 +61,36 @@ def write(path, wanted):
     print(path, len(ok), "apps:", " ".join(ok))
 
 write("docs/obtainium.json", ALL_APPS)
+# Upstream companion, NOT a patched target or a change to the 14-app import.
+# Release 6.1.4, commit d8df10ab687a1c1ca05221634cfa46bad262023a:
+# build.gradle basePackageName + play-services-core applicationId => this ID.
+# Default release asset: microg-6.1.4.apk. No fallback to another variant.
+companion = {
+    "id": "app.revanced.android.gms",
+    "url": "https://github.com/MorpheApp/MicroG-RE",
+    "author": "MorpheApp",
+    "name": "Morphe MicroG RE",
+    "categories": ["morphe-companion"],
+    "preferredApkIndex": 0,
+    "additionalSettings": json.dumps({
+        "includePrereleases": False,
+        "fallbackToOlderReleases": False,
+        "filterReleaseTitlesByRegEx": "^v?[0-9]+([.][0-9]+)*$",
+        "apkFilterRegEx": "^microg-[0-9]+([.][0-9]+)*[.]apk$",
+        "versionExtractionRegEx": "^v?([0-9]+(?:[.][0-9]+)*)$",
+        "matchGroupToUse": "1",
+        "trackOnly": False,
+        "appName": "Morphe MicroG RE",
+    }),
+}
+companion_path = pathlib.Path("docs/obtainium-microg.json")
+companion_content = json.dumps({"apps": [companion]}, indent=1)
+if CHECK:
+    if not companion_path.exists() or companion_path.read_text() != companion_content:
+        raise SystemExit("STALE: " + str(companion_path) + "; run python3 src/etc/obtainium.py")
+else:
+    companion_path.write_text(companion_content)
+print(str(companion_path), "1 optional upstream companion; not a build target")
 for p in ALL_APPS:
     if p in SKIP:
         print("SKIP", p, "-", SKIP[p])
