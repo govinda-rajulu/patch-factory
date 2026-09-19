@@ -8,9 +8,54 @@ The resolver's URL is evidence only, never automatically used as a download sour
 import json
 import os
 import sys
+from html.parser import HTMLParser
 from urllib.parse import urlsplit
 
 MAX_RESPONSE = 16 * 1024 * 1024
+MAX_PAGE = 2 * 1024 * 1024
+
+
+def page(raw):
+    """Bounded shape only. No text, hrefs, titles, cookies or selector authority."""
+    result = {"stage": "download-page", "authority": "diagnostic-only",
+              "parser": "invalid-or-oversized"}
+    if not isinstance(raw, bytes) or len(raw) > MAX_PAGE:
+        return result
+    try:
+        text = raw.decode("utf-8", errors="strict")
+    except UnicodeError:
+        return result
+    counts = {"anchors": 0, "apkpure_download_ids": 0,
+              "apkmirror_download_ids": 0, "download_ids_with_href": 0,
+              "download_ids_with_duplicate_href": 0}
+    class Shape(HTMLParser):
+        def handle_starttag(self, tag, attrs):
+            if tag != "a":
+                return
+            counts["anchors"] += 1
+            ids = [v for k, v in attrs if k == "id"]
+            hrefs = [v for k, v in attrs if k == "href"]
+            if "download_link" in ids:
+                counts["apkpure_download_ids"] += 1
+            if "download-link" in ids:
+                counts["apkmirror_download_ids"] += 1
+            if "download_link" in ids or "download-link" in ids:
+                counts["download_ids_with_href"] += int(any(hrefs))
+                counts["download_ids_with_duplicate_href"] += int(len(hrefs) > 1)
+    try:
+        parser = Shape(convert_charrefs=True)
+        parser.feed(text)
+        parser.close()
+    except (ValueError, AssertionError, RecursionError):
+        return result
+    lower = text.lower()
+    result.update(parser="ok", bytes=len(raw), empty=not text.strip(), **counts,
+                  challenge_marker_present=any(x in lower for x in
+                      ("cf-chl-", "challenge-platform", "just a moment", "verify you are human")),
+                  unavailable_marker_present=any(x in lower for x in
+                      ("version not found", "page not found", "no longer available")),
+                  marker_limit="heuristic presence only, not a diagnosis")
+    return result
 
 def location(value):
     if not isinstance(value,str) or not value or len(value)>32768:
@@ -43,7 +88,9 @@ def resolver(raw, request):
                 "requested":location(request),"resolved":location(resolved),
                 "same_url":resolved==request if isinstance(resolved,str) and bool(resolved) else None,
                 "cookies_present":bool(sol.get("cookies")),
-                "user_agent_present":isinstance(sol.get("userAgent"),str) and bool(sol["userAgent"])}
+                "user_agent_present":isinstance(sol.get("userAgent"),str) and bool(sol["userAgent"]),
+                "response_shape":page(sol["response"].encode("utf-8"))
+                    if isinstance(sol.get("response"),str) else page(None)}
     except (ValueError,TypeError,AttributeError):
         return {"stage":"resolver","parser":"invalid-or-oversized"}
 
@@ -58,6 +105,7 @@ def main():
     if mode=="resolver":
         result=resolver(sys.stdin.buffer.read(MAX_RESPONSE+1),os.environ.get("PF_DIAG_REQUEST"))
     elif mode=="handoff":result=handoff(os.environ)
+    elif mode=="page":result=page(sys.stdin.buffer.read(MAX_PAGE+1))
     else:
         result={"stage":"diagnostic","parser":"invalid-mode"}
     print("DOWNLOAD_DIAGNOSTIC "+json.dumps(result,sort_keys=True))

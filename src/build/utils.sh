@@ -227,10 +227,10 @@ _fs_get() {
 			user_agent=$(echo "$response" | jq -r '.solution.userAgent // empty')
 			return 0
 		fi
-		yellow_log "[!] FlareSolverr attempt $attempt/$max_retries failed: $url"
+		yellow_log "[!] FlareSolverr attempt $attempt/$max_retries failed (request URL withheld)"
 		sleep 5
 	done
-	red_log "[-] FlareSolverr failed after $max_retries attempts: $url"
+	red_log "[-] FlareSolverr failed after $max_retries attempts (request URL withheld)"
 	return 1
 }
 
@@ -261,7 +261,7 @@ _cfb_get() {
 				return 0
 			fi
 		else
-			yellow_log "[!] CFB attempt $attempt/$max_retries: HTTP $http_code: $url"
+			yellow_log "[!] CFB attempt $attempt/$max_retries: HTTP $http_code (request URL withheld)"
 		fi
 	done
 	return 1
@@ -346,7 +346,7 @@ get_apk() {
 		fi
 	fi
 
-	echo "$base_url$version_href"
+	green_log "[+] APKMirror release page selected (URL withheld)"
 
 	_cf_get "$base_url$version_href" || return 1
 
@@ -394,7 +394,7 @@ get_apk() {
 			red_log "[-] Could not find version on APKMirror"
 			return 1
 		fi
-		echo "$base_url$version_href"
+		green_log "[+] APKMirror release page selected (URL withheld)"
 	_cf_get "$base_url$version_href" || return 1
 	fi
 
@@ -456,7 +456,7 @@ get_apk() {
 	fi
 	if [[ "$variant_page_loaded" == false ]]; then
 		variant_href=$(echo "$variant_href" | sed 's/&amp;/\&/g')
-		echo "$base_url$variant_href"
+		green_log "[+] APKMirror variant page selected (URL withheld)"
 	fi
 
 	if [[ "$matched_type" == "BUNDLE" ]]; then
@@ -499,7 +499,7 @@ get_apk() {
 	fi
 	final_href=$(echo "$final_href" | sed 's/&amp;/\&/g')
 
-	echo "$base_url$final_href"
+	# Do not print endpoint or redirected signed URLs; retain redacted diagnostics.
 	local cookie_args=()
 	[[ -n "$FS_COOKIES" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
 	if ! PF_DIAG_DEST="$base_url$final_href" PF_DIAG_REFERER="$base_url$dl_btn_href" \
@@ -507,7 +507,7 @@ get_apk() {
 		python3 src/build/transfer_diagnostic.py handoff; then
 		yellow_log "[!] Download diagnostic unavailable"
 	fi
-	if ! wget -nv -O "./download/$base_apk" \
+	if ! wget -q -O "./download/$base_apk" \
 		--header="User-Agent: $user_agent" \
 		--referer="$base_url$dl_btn_href" \
 		"${cookie_args[@]}" \
@@ -566,9 +566,13 @@ get_apkpure() {
 	fi
 
 	green_log "[+] Downloading $apk_name from APKPure (type=$pkg_type)"
-	echo "$dl_page_url"
+	green_log "[+] APKPure download page selected (URL withheld)"
 
 	_cf_get "$dl_page_url" || return 1
+	# Covers both resolver routes. Observation only: do not alter link selection.
+	if ! printf '%s' "$html" | python3 src/build/transfer_diagnostic.py page; then
+		yellow_log "[!] Download page diagnostic unavailable"
+	fi
 
 	if [[ -z "$version" ]]; then
 		version=$(echo "$html" | $pup 'h2 text{}' | grep -oP '\d+(\.\d+)+' | head -1)
@@ -582,13 +586,18 @@ get_apkpure() {
 
 	if [[ -z "$download_url" ]]; then
 		red_log "[-] Could not find download link on APKPure"
+		printf '%s\n' 'DOWNLOAD_FAILURE {"source":"apkpure","stage":"link-extraction","reason":"missing-download-link","binary_transfer_started":false}'
 		return 1
 	fi
-	echo "$download_url"
+	if ! PF_DIAG_DEST="$download_url" PF_DIAG_REFERER="$dl_page_url" \
+		PF_DIAG_COOKIES="$FS_COOKIES" PF_DIAG_UA="$user_agent" \
+		python3 src/build/transfer_diagnostic.py handoff; then
+		yellow_log "[!] Download diagnostic unavailable"
+	fi
 
 	local cookie_args=()
 	[[ -n "$FS_COOKIES" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
-	if ! wget -nv -O "./download/$base_apk" \
+	if ! wget -q -O "./download/$base_apk" \
 		--header="User-Agent: $user_agent" \
 		--referer="$dl_page_url" \
 		"${cookie_args[@]}" \
