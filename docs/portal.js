@@ -143,6 +143,18 @@ async function microgCard(root){
  const article=el('article');article.dataset.target='microg';article.dataset.type='upstream';
  const heading=el('div',undefined,'app-title');heading.append(el('h3','Morphe MicroG RE'),el('span','Upstream','badge'));article.append(heading);
  article.append(el('p','Direct from MorpheApp. Not patched or re-signed here.','meta'));
+ const channelLabel=el('label','Download channel: '),channelSelect=el('select');
+ channelSelect.id='microgCardChannel';channelSelect.setAttribute('aria-label','MicroG download channel');
+ for(const [value,text] of [['stable','Stable only'],['prerelease','Stable + dev prereleases']]){
+  const option=el('option',text);option.value=value;channelSelect.append(option);
+ }
+ channelSelect.value=microgChannel;channelLabel.append(channelSelect);article.append(channelLabel);
+ channelSelect.addEventListener('change',async()=>{
+  await changeMicrogChannel(channelSelect.value);
+  $('microgCardChannel')?.focus({preventScroll:true});
+ });
+ const channelStatus=el('p','Selected: '+(microgChannel==='stable'?'Stable only':'Stable + dev prereleases')+'. Applies to this page; tracked apps are unchanged.','channel-status');
+ channelStatus.setAttribute('role','status');article.append(channelStatus);
  try{
   const row=microgRelease(await read(MICROG_API+'?per_page=100'),microgChannel);
   article.dataset.published=row.rel.published_at;
@@ -155,12 +167,19 @@ async function microgCard(root){
   releaseNotes(article,row.rel.body,['Upstream release notes from MorpheApp. This companion is not built by Patch Factory.']);
  }catch(e){article.append(el('p','Upstream unavailable: '+e.message,'notice'));}
  const details=el('details');details.append(el('summary','Channel & installation notes'),
- el('p','Channel is selected in the Obtainium toolbar. Prereleases allowed means stable plus dev prereleases, not prereleases only. Standard universal APK only.'),
+ el('p','The card and Obtainium toolbar share one channel choice. Stable + dev prereleases can show the same version when stable is newest. Standard universal APK only.'),
  el('p','Keep existing MicroG data. Installed signer compatibility is not checked here; never uninstall or bypass Android checks to force an update.'));
  article.append(details);root.append(article);
- const channelButton=el('button','Change MicroG channel');channelButton.type='button';
+ const channelButton=el('button','Open Obtainium import settings');channelButton.type='button';
  channelButton.addEventListener('click',()=>{$('importPanel').open=true;$('microgChannel').focus();$('importPanel').scrollIntoView({block:'center'});});
  article.append(channelButton);
+}
+async function changeMicrogChannel(value){
+ need(['stable','prerelease'].includes(value),'Unknown MicroG channel');
+ microgChannel=value;$('microgChannel').value=value;
+ resetImport();$('prepareImport').disabled=false;
+ $('importMessage').textContent='MicroG channel changed for this page. Prepare a new import and confirm in Obtainium to update tracking; installed apps are unchanged.';
+ if(tab==='apps')await render();
 }
 function clearImportLinks(){
  $('openImport').hidden=true;$('openImport').removeAttribute('href');
@@ -341,20 +360,39 @@ function addJobs(parent,run){
  lazySection(parent,'Show job results and failed steps',async root=>{
   need(Number.isSafeInteger(run.id)&&Number.isSafeInteger(run.run_attempt)&&run.run_attempt>0,'Invalid run identity');
   const jobs=await pages('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs','jobs',10);
-  need(jobs.every(j=>j.run_id===run.id&&j.run_attempt===run.run_attempt&&j.head_sha===run.head_sha&&safeLink(j.html_url,'run')),'Job/run identity changed; refresh the page');
+  need(jobs.every(j=>Number.isSafeInteger(j.id)&&j.id>0&&j.run_id===run.id&&j.run_attempt===run.run_attempt&&j.head_sha===run.head_sha&&j.html_url===WEB+'/actions/runs/'+run.id+'/job/'+j.id),'Job/run identity changed; refresh the page');
   if(!jobs.length){root.append(el('p','No jobs visible yet. This is not a passed build.'));return;}
+  const summary=jobSummary(jobs);
+  root.append(el('p',summary.text,'job-summary'));
+  if(run.conclusion==='failure'&&summary.succeeded>0)root.append(el('p','Mixed result: the red workflow does not mean every app failed. Successful releases may exist; baseline qualification currently requires the whole source run to succeed.','notice'));
   const wrap=el('div',undefined,'table-scroll'),table=el('table'),header=el('tr');
-  for(const title of ['Job / target','Result','Failed or incomplete steps'])header.append(el('th',title));
+  for(const title of ['Job / target','Role','Result','Failed or incomplete steps'])header.append(el('th',title));
   table.append(header);
   for(const job of jobs){
    const row=el('tr'),steps=Array.isArray(job.steps)?job.steps:[];
-   row.append(el('td',job.name||'Unnamed job'),el('td',job.conclusion||job.status||'Unknown'));
+   const title=el('td');title.append(link(job.name||'Unnamed job',job.html_url,'run'));
+   row.append(title,el('td',jobRole(job.name)),el('td',job.conclusion||job.status||'Unknown'));
    const bad=steps.filter(s=>s.status!=='completed'||!['success','skipped'].includes(s.conclusion));
    row.append(el('td',bad.length?bad.map(s=>s.name+': '+(s.conclusion||s.status||'Unknown')).join('; '):steps.length?'No failed steps reported; skipped steps may exist.':'Step detail unavailable.'));
    table.append(row);
   }
-  wrap.append(table);root.append(wrap,el('p','Exact run attempt '+run.run_attempt+'. Job success is not publication or Android-installation proof.','meta'));
+  wrap.append(table);root.append(wrap,el('p','Exact run attempt '+run.run_attempt+'. Dependency checks are not APK builds. “Patch apk” includes source download: open that job for the actual error. Job success is not publication or Android-installation proof.','meta'));
  });
+}
+function jobRole(name){
+ if(typeof name!=='string')return 'Other / unknown';
+ if(/^Resolve shadow dependencies \([a-z0-9-]+\)$/.test(name))return 'Dependencies only';
+ if(/^(?:.* \/ )?Patch [a-z0-9-]+$/.test(name))return 'App build';
+ if(name==='Plan')return 'Build selection';
+ return 'Other / unknown';
+}
+function jobSummary(jobs){
+ need(Array.isArray(jobs),'Invalid job inventory');
+ const builds=jobs.filter(j=>jobRole(j.name)==='App build');
+ const succeeded=builds.filter(j=>j.status==='completed'&&j.conclusion==='success').length;
+ const failed=builds.filter(j=>j.status==='completed'&&['failure','timed_out','startup_failure','action_required'].includes(j.conclusion)).length;
+ const other=builds.length-succeeded-failed,dependencies=jobs.filter(j=>jobRole(j.name)==='Dependencies only').length;
+ return {succeeded,failed,other,dependencies,text:'App-build jobs: '+builds.length+' · succeeded '+succeeded+' · failed '+failed+' · other/pending '+other+'. Dependency-only jobs: '+dependencies+'. Complete job inventory: '+jobs.length+'.'};
 }
 function addComments(parent,report){
  if(!Number.isSafeInteger(report.number)||!Number.isSafeInteger(report.comments)||report.comments<1)return;
@@ -429,7 +467,7 @@ function organizePanel(root,activeTab){
    const monogram=el('span',article.querySelector('h3')?.textContent.trim().slice(0,1)||'A','app-monogram');
    monogram.setAttribute('aria-hidden','true');heading.prepend(monogram);
   }
-  const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta'));
+  const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta')&&!n.classList.contains('channel-status'));
   if(version)version.classList.add('app-version');
   // Keep the main download action visible; detailed provenance/history goes under one disclosure.
   const extra=Array.from(article.children).filter(n=>n.matches('p.meta:not(.release-facts),details:not(.release-notes)'));
@@ -496,9 +534,7 @@ $('importMessage').before(customField);
 $('prepareImport').addEventListener('click',prepareImport);$('pack').addEventListener('change',()=>{
  resetImport();$('prepareImport').disabled=false;$('includeMicrog').parentElement.hidden=$('pack').value==='custom';
 });
-$('microgChannel').addEventListener('change',()=>{
- microgChannel=$('microgChannel').value;resetImport();$('prepareImport').disabled=false;if(tab==='apps')render();
-});
+$('microgChannel').addEventListener('change',()=>changeMicrogChannel($('microgChannel').value));
 $('includeMicrog').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
 $('collapseImport').addEventListener('click',()=>{$('importPanel').open=false;$('importPanel').querySelector('summary').focus();});
 $('resetChoices').addEventListener('click',()=>{

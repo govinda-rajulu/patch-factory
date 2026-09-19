@@ -1,0 +1,40 @@
+name: Reddit source page diagnostic
+run-name: Reddit pages only (${{ github.sha }})
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  observe:
+    name: Observe Reddit pages (no APK or signing)
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Start the existing pinned resolver on loopback only
+        shell: bash
+        run: |
+          docker run -d --name reddit-page-resolver -p 127.0.0.1:8191:8191 ghcr.io/flaresolverr/flaresolverr@sha256:139dfee1c6f89249c8d665d1333a42e8ec74ec0a86bc6bb1c8461e10d3a66a47
+          ready=0
+          for i in $(seq 1 30); do
+            if curl --fail --silent --max-time 2 http://127.0.0.1:8191/ > /dev/null; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          test "$ready" = 1
+      - name: Observe two fixed pages and emit redacted shape only
+        run: python3 src/build/reddit_page_probe.py
+      - name: Preserve small redacted observations
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reddit-page-probe-${{ github.run_id }}-${{ github.run_attempt }}
+          path: page-probe/report.json
+          if-no-files-found: warn
+          retention-days: 7

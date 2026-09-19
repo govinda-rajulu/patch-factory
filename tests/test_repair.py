@@ -118,7 +118,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=18', result.stdout)
+        self.assertIn('PORTAL_CONTRACTS_PASS=21', result.stdout)
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
@@ -990,8 +990,10 @@ class PageAssetVersionTests(unittest.TestCase):
 def load_tests(loader, tests, pattern):
     import nightly_contracts
     import daily_plan_contracts
+    import reddit_probe_contracts
     tests.addTests(loader.loadTestsFromTestCase(nightly_contracts.Nightly))
     tests.addTests(loader.loadTestsFromTestCase(daily_plan_contracts.DailyPlanTests))
+    tests.addTests(loader.loadTestsFromTestCase(reddit_probe_contracts.RedditProbe))
     return tests
 
 
