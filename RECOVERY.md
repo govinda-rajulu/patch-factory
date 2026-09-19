@@ -1,337 +1,119 @@
-# patch-factory - recovery
+# Recovery and operations
 
-Patches Android APKs in GitHub Actions, publishes signed releases, consumed by
-Obtainium. Target device: Micromax IN Note 1, Android 10 (SDK 29), arm64-v8a,
-not rooted, MicroG RE installed alongside real Play Services.
+This is operating guidance, not permission to dispatch, publish, delete, restore
+secrets or install anything. Verify the current repository state and approve the
+specific action first. Historical incident notes are not executable recovery
+instructions.
 
-## Signing key - READ FIRST
-- Alias: `factory`. Same key forever. Signer sha256 starts `08480f6649a2`.
-- Losing it means uninstall and clean reinstall of every app, permanently.
-  On Truecaller that also costs a phone verification, and the app allows only
-  3-4 per 24 hours.
-- The key file is NOT in this repo and must never be. `.gitignore` blocks `*.keystore`.
-- Offline copies:
-  - Emailed to self as an attachment. Search the mail account for `family.keystore`.
-    VERIFIED 16 Aug 2026: the attachment is the real .keystore file, and a
-    second file alongside it holds the password, the alias and the cert validity.
-  - **GitHub secrets are NOT a backup.** `KEYSTORE_B64`, `KEYSTORE_PASS` and
-    `KEYSTORE_ALIAS` are write-only: they can be overwritten, never read back.
-  - ONE copy today, so one deleted mail thread loses every app permanently.
-    A second offline copy (USB or encrypted folder) is still owed.
-- The keystore PASSWORD may exist only inside the `KEYSTORE_PASS` secret, which
-  cannot be read back. Without it the key file is useless. Write it down wherever
-  the key file lives. Alias is `factory`.
-- Secrets used by CI: `KEYSTORE_B64`, `KEYSTORE_PASS`, `KEYSTORE_ALIAS`.
-- Installing and updating: see the Installing a build section below.
+## Preserve recovery before changing distribution
 
-## Installing a build
+Keep independent, access-controlled copies of the repository and required
+release assets. A Git clone or bundle does **not** include release APKs, Actions
+artifacts, repository settings or secrets. A knowledge export is not a repository
+or signing-key backup. Keep old copies until the new copy has been restored and
+checked in an isolated location.
 
-Same package plus same signing key means Android accepts a patched APK as a
-normal update: app data, logins and sessions survive. That is the default path
-and it costs nothing.
+Record the exact refs, release/tag/asset IDs, sizes and hashes in a manifest.
+Verify downloaded bytes, not filenames. Check storage capacity before copying
+large APK collections. Do not place signing material, private environment data,
+chat exports or personal backup locations in public repository files.
 
-**Update in place first, every time.** Do not uninstall as a reflex.
+The frozen `truecaller-v26.10.6` release and `src/patches/_attic/` are retained.
+A frozen APK is a historical recovery option, not proof that Android will accept
+a downgrade or preserve sessions. No backup location or restore success is
+asserted by this document.
 
-If the installer refuses (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`, or a generic
-"App not installed"), work down this ladder and stop at the first one that works:
+## Signing recovery
 
-1. Confirm the APK is the arch you expect (`*-arm64-v8a.apk`) and finished
-   downloading. A truncated file fails with the same useless message.
-2. Confirm the new version is not LOWER than what is installed. Android refuses
-   downgrades even with a matching key. Check Settings > Apps > the app > version.
-3. If Play Protect blocks it, turn Play Protect scanning off for the install and
-   back on after.
-4. Only now consider uninstalling, and read the app-specific rules below first.
+GitHub Actions uses `KEYSTORE_B64`, `KEYSTORE_PASS` and `KEYSTORE_ALIAS`.
+GitHub secrets are not a retrievable backup. Keep the original keystore and the
+information needed to unlock it in independently recoverable private storage;
+do not paste keys, passwords or base64 material into issues, chat or public logs.
 
-`INSTALL_FAILED_UPDATE_INCOMPATIBLE` with the right arch and a higher version
-means the SIGNATURE differs. That is either a build signed with a different key
-or an app installed from a different source (Play Store copy vs patched copy).
-Uninstalling is then genuinely required, and the app-specific cost applies.
+The configured CI certificate SHA-256 is
+`08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050`.
+This identifies the expected CI signer, not an original publisher or the signer
+of an app already installed on a phone.
 
-### Truecaller: the verification budget
+A restore drill is separate work: in a trusted isolated environment, recover
+the saved material, open the keystore successfully and compare its certificate
+fingerprint without replacing production secrets. Record only non-secret
+evidence. A minimum file size, successful base64 decode, or green workflow does
+not prove that a restored key/password/alias is correct.
 
-Truecaller allows roughly **3-4 phone verifications per 24 hours**, then a
-cooldown you cannot shorten. Uninstalling clears the session, so the next
-install needs one.
+Do not rotate the key to fix a build failure. If signing continuity cannot be
+established, stop before publication or installation and preserve existing
+working artifacts. Lost signing access does not justify automatic uninstall.
 
-- **Budget it: one verification per day, deliberately.** Never uninstall twice
-  in one session while trying variations of a build.
-- Before uninstalling, be sure the replacement APK is already on the device and
-  verified (correct size, arch, and version). Uninstalling first and discovering
-  the download failed is how a whole day gets burned.
-- If a patched Truecaller build turns out bad, the revert is
-  `truecaller-arm64-v8a.apk` from the `truecaller-v26.10.6` release, installed
-  OVER the top. Same key, so no verification needed. Keep that release alive.
-- `GMS sign-in bypass` (paresh) forces SMS OTP instead of the GMS retriever,
-  which is what makes sign-in possible at all on a re-signed APK. Without it a
-  fresh sign-in can fail outright and still consume an attempt.
-- Two patched Truecaller builds cannot coexist: same package, so one replaces
-  the other. A/B testing therefore costs verifications, which is exactly why
-  `truecaller-combo` loads both providers in a single APK instead.
+## Installation and rollback
 
-### Photos, YouTube, and anything else
+Check package, versionName/versionCode, Android API requirement, native
+architecture, file size, SHA-256 and signer compatibility. Prefer an in-place
+update when Android permits it. Matching package and certificate are necessary
+in common update paths, but not a guarantee of installability or data retention.
 
-No verification cost, so uninstalling is merely inconvenient.
+If Android refuses an update, capture the actual installer error and compare
+the artifact and installed identity before trying another file. Do not clear
+data, uninstall, disable Play Protect, or bypass signature checks as routine
+troubleshooting. Downgrade restrictions, split packages, storage and OS
+requirements can matter independently of the signing key.
 
-- **Photos:** signed in through MicroG. Uninstalling loses that account link and
-  it must be set up again, but nothing rate-limits you. A DIFFERENT patch set on
-  the same package IS a real reason to uninstall first: Android rejects it as an
-  update when the signature or manifest conflicts.
-- **YouTube:** no login required for the patched build to work. Uninstall freely.
-  Play Store will keep offering an uninstallable update forever; ignore it.
-- Any app patched with a CHANGED package name is a separate app. Installing it
-  does not touch the original, and Obtainium tracks them separately.
+Authentication/session recovery and data export are app-specific. No fixed
+Truecaller verification quota or promise of cost-free reinstall is made here.
+MicroG is optional upstream software with its own variant, signer and data
+considerations. Phone validation and signing-restore validation remain separate
+from repository CI and publication.
 
-## Build it
+## A controlled fresh-release campaign
 
-    gh workflow run "1. Manual Patch" -f target=youtube
-    # targets: youtube | photos | truecaller | truecaller-combo   (adguard disabled)
+1. Confirm the reviewed main commit, exact CI result and target list. Finish
+   source/selection decisions first. Do not quietly omit blocked targets or
+   override a pin to make the run green.
+2. Inventory active runs and existing releases. Do not duplicate a running
+   target. Preserve rollback assets and obtain a restorable copy before cleanup.
+3. Dispatch the approved workflow once with explicit targets and publication
+   intent. Manual and Batch default to publishing; `publish=false` is still a
+   real signed build, not a harmless read.
+4. Bind the new run to workflow, commit, inputs and attempt. A failed dispatch
+   must not lead to watching an older run. An uncertain acknowledgement is a
+   stop-and-inspect condition, not an automatic second dispatch.
+5. Inspect every target job, including source download under `Patch apk`,
+   finished identity, release handoff and publication. Batch does not fail-fast:
+   a failed target does not erase successful publications.
+6. Verify new release/tag/source identity and APK bytes against recorded hashes
+   and reports. Retain logs/reports needed for diagnosis. Qualification requires
+   the whole source run to succeed under the current policy.
+7. Only then prepare a fresh exact cleanup preview, with release/asset totals,
+   protected records and backup references. Obtain explicit deletion approval.
+   A failed replacement keeps its previous working release.
 
-Two to three minutes per target.
+Do not rerun an old workflow to test a new fix: reruns keep the original commit.
+Do not rebuild successful targets merely because a sibling failed. Existing
+daily schedules can run independently; approval for a manual campaign neither
+disables them nor authorizes changing their schedule.
 
-Weekly cron (Fri 12:30 UTC) polls only targets with `"poll": true` in
-targets.json, one matrix leg each, via `src/etc/poll.sh`. It compares the
-newest bundle date across ALL of a target's candidates AND extra_bundles
-against my newest release for that tag_prefix, and builds only if a source is
-newer. An unreadable provider date or a missing prior release means it refuses
-to build rather than guessing, because "empty lookup" used to mean "rebuild"
-and that quietly rebuilt every week forever after an asset rename.
+## Cleanup boundaries
 
-Polled today: youtube, photos. `truecaller` stays manual on purpose (frozen
-revert path) and `truecaller-combo` joins once its device test is settled: a
-cron rebuild replaces the asset under you mid-test.
+`src/etc/release_retention.py` makes a read-only, fingerprinted inventory preview.
+It has no apply mode. It keeps the newest two dated releases per configured
+prefix and protects frozen/manual/unknown/draft/prerelease/ambiguous entries.
+Known evidence JSON assets can be recognized as part of a release's metadata
+shape, but the planner does not fetch or validate their contents.
 
-`build.sh` prints `[+] release tag: PREFIX-vVERSION` BEFORE the release step
-runs. That line is the cancel window: if it is wrong, `gh run cancel ` now.
-Release retention is preview-only. The two newest dated releases per configured
-prefix are protected, along with frozen/manual or ambiguous entries. Older
-CI-marked releases are review candidates, never automatically deleted.
-`src/etc/release_retention.py` emits the complete inventory-based plan and a
-fingerprint; it has no apply mode. Deleting any release or tag requires a separate
-review and explicit approval against a fresh inventory. CI text in a release body
-is not authenticated provenance; manually created dated tags can copy it.
+The preview fingerprint binds the observed release records and asset metadata,
+not APK byte backups, future GitHub state or independent provenance. Re-read
+the inventory before any write. A changed fingerprint or uncertain identity
+requires another review.
 
-## Layout
-- `src/targets.json` - source of truth. Per target: candidates, `extra_bundles`,
-  `tag_prefix`, `min_sdk_ceiling`, `enabled`.
-- `src/build/build.sh` - the build, generic over target id.
-- `src/build/fetch_bundle.sh` - fetches exactly one .mpp from a github or gitlab
-  release. `fetch_bundle.sh HOST IDENT CHANNEL OUT`, prints PUB= TAG= SIZE=.
-- `src/build/resolve.sh` - elects a provider, prints WINNER / VERSION / PATCHES / MPP.
-  you pass it. Do not use it for other targets.
-- `src/build/check_sdk.sh` - minSdk gate, four readers, report-only.
-- `src/build/utils.sh` - upstream engine. `split_arch` at ~line 830. Do not edit.
-- `src/patches/DIR/{include,exclude}-patches` - one exact patch name per line.
-- `src/options/NAME.json` - **must be a JSON array**, not an object.
-- `docs/` - the GitHub Pages download site. Nothing else goes in here.
-- `reference/` - notes, patch dumps, FAQ.
+Release deletion removes its downloadable assets; tag deletion is a separate
+operation. Actions run/artifact deletion can remove diagnosis and qualification
+evidence. Branches, local folders and the attic are different scopes again.
+Never interpret "clean releases" as permission to delete all of these.
 
-## Multi-provider targets
+## Known gaps and entrypoints
 
-A target elects ONE winner via `resolve.sh` (which decides the app version and
-which patch_dir and options file to use), and may list `extra_bundles` that are
-fetched afterwards and loaded alongside. `truecaller-combo` is the working
-example: winner bufferk on github, extra paresh on gitlab, 17 patches loaded,
-11 applied, 6 bufferk duplicates disabled by name in exclude-patches.
-
-- **A gitlab candidate or extra needs `project_id`.** Release assets there live
-  at opaque `/-/project//uploads//` URLs that cannot be constructed;
-  they must come from the API every run.
-- **`exclude-patches` matches by name across every loaded bundle.** That is what
-  makes dedupe work. Confirm no patch name exists in both bundles first, or an
-  exclude will silently take out the one you wanted to keep.
-- **Bundle filenames set load order.** When two bundles ship a class with the
-  same name the first loaded wins, so build.sh renames them `01-` (primary) and
-  `09-` (winner), rather than trusting version digits to sort as intended.
-- **`patch` takes ONE `-p` per bundle.** Its `-p=` is not variadic,
-  unlike `--patches=...` on `list-patches` and `list-versions`.
-  `-p *.mpp` silently consumes the second bundle as the `` argument and the
-  real APK becomes an unmatched argument. Also: `--patches` has no short form on
-  the list subcommands, where `-p` means `--with-packages`.
-- Provider defaults differ per repo. Always confirm `Applying N patches` and the
-  `Applied:` lines. `Skipping disabled: X` lines are expected and should number
-  exactly as many as your exclude list.
-
-## Never exclude
-GmsCore support (MicroG breaks), Spoof video streams (playback breaks).
-The re-signing trio (`Provide Original app certificate` and its two dependents)
-cannot work in CI: it reads the cert from an installed app, and a runner has no
-device.
-
-## Hard-won lessons
-- Never let an AI write repo files via the GitHub Contents API. It silently ate
-  every backslash escape in utils.sh: right byte count, broken file.
-- **Never run `cd $(git rev-parse --show-toplevel)` from outside the repo.** The
-  subshell fails, `cd` gets an empty argument and puts you in `$HOME`, and
-  everything after it runs in the wrong place. Use the absolute path.
-- **`gh run watch` prints step status only, never log lines.** To see the cancel
-  window either open the run in a browser or pull `gh run view  --log` after.
-- **Never read `databaseId` right after a dispatch** without checking it changed;
-  a rejected dispatch leaves you watching an older run that already succeeded.
-- Never paste base64 through a phone clipboard. Pipe it: `gh secret set NAME < file`
-- EOFException on the keystore means the secret is truncated, not a wrong password.
-- After any file write, read it back and check byte size.
-- **An options file of `{}` fails the whole patch step.** `[]` is the correct
-  empty value. CI guards this.
-- **`tag_prefix` must not contain the provider name.** A provider change would
-  break Obtainium matching, and prune deletes by prefix. `youtube-morphe` is
-  grandfathered; `tc-combo` names a patch-set experiment, not a provider.
-- check_sdk exiting 0 used to mean "could not read", identical to a pass.
-  Silence is not success. It now says UNVERIFIED out loud.
-- A green run does not mean an artifact exists. Check the release, not the tick.
-
-## Known gap
-`resolve.sh` and `dl_gh` both take the newest release on the prerelease channel
-and agree in practice. Only the unused MPP cache fallback path can serve a stale
-bundle, and `fetch_bundle.sh` clears its target directory before writing.
-
-## Ageing out
-`max_patch_age_days` is 60. bufferk's bundle is dated 18 Jul 2026 and is the
-candidate for BOTH `truecaller` and `truecaller-combo`, so around 17 Sep 2026
-both will fail with "no viable provider" even though the patches still work.
-Fix then by raising the gate for that target or swapping the winner.
-`extra_bundles` are deliberately NOT age-checked.
-
-## On-device
-MicroG RE installed and signed in BEFORE the patched YouTube, battery
-Unrestricted. Play Store shows an uninstallable YouTube update forever; ignore it.
-Photos keeps the default package with the label overridden, because changing a
-package makes it a new app and Obtainium loses it.
-
-## Release tags are unique per build
-
-New tags are `PREFIX-vAPPVERSION-bBUILDID`. `BUILDID` is all digits:
-UTC date (8 digits), GitHub run ID (20 digits, zero-padded), then run attempt
-(6 digits, zero-padded). The existing `-b[0-9]+` filters therefore still match.
-`src/build/build_identity.py` creates and validates this identity; new builds
-refuse missing or invalid run metadata rather than inventing an ID.
-
-Different runs or rerun attempts produce different tags even on the same day.
-Repeating the same target within the same run attempt is not a new identity:
-publication refuses an existing release instead of overwriting it.
-The release action explicitly disables release updates and artifact replacement,
-fails artifact-upload errors, and binds a newly created tag to the build commit.
-This is not GitHub-enforced release immutability against a repository owner.
-
-Old date-only tags remain readable by the retention planner. The planner ranks
-new identities by date/run/attempt and still requires separate deletion approval.
-App package, versionName, versionCode and APK filename formats are not changed.
-The provider bundle version remains in the release body.
-
-Costs, know them before you rely on this:
-
-- Automatic release/tag deletion is disabled. The two newest dated releases per
-  prefix are protected; older candidates are previewed for approval. Frozen tags
-  such as `truecaller-v26.10.6`, manual/nonstandard tags, drafts, prereleases,
-  keep-marked releases and ambiguous asset/provenance records are protected.
-  If a manual dated release copies the CI body, review it manually before deletion.
-  A preview is not permission to delete and does not verify rollback on a phone.
-- Different workflow runs or attempts no longer share a date-only tag. Existing
-  releases are not overwritten. A failed/partial publication needs inspection;
-  rerunning creates a new attempt identity, not a repair of the previous release.
-- Obtainium: the import files in `docs/` are generated by `src/etc/obtainium.py`
-  and carry every per-app setting. Do not hand-configure. The version regex is
-  `-v([0-9.]+)-b[0-9]+$` with match group `1`, and it needs the capture group or
-  version detection stays off. `fallbackToOlderReleases` must also be true, or
-  only one app in this repo resolves.
-  Tag filters are still mandatory, one per app.
-  These unchanged imports extract only APPVERSION, not BUILDID. Thus tag matching
-  is backward-compatible, but patch-only update detection is NOT fixed or claimed
-  verified. A separate migration and eventual device check are required.
-
-## Obtainium, one entry per app
-
-Repo URL for every app, never a release URL. APK filter `arm64-v8a`.
-Use the generated import settings above; a regex without the required capture
-group is not an equivalent configuration. Do not silently migrate installed apps.
-
-**Tag filters are mandatory and specific**, one per app, or Obtainium will
-offer you another app's release:
-
-    ^youtube-   ^truecaller-   ^tc-combo-   ^gg-photos-   ^adguard-
-    ^instagram- ^reddit-       ^telegram-   ^edge-        ^key-mapper-
-    ^hotstar-   ^prime-video- ^mx-player-
-    ^es-file-   ^facebook-
-
-Background checks on, battery Unrestricted, auto-install off.
-
-`truecaller-` still carries a suffixless tag on purpose: it is the frozen
-revert path and is never rebuilt, so the version regex will not match it.
-Install that one by hand if you ever need it.
-
-## any_version, and why a build says "Could not find download link"
-
-A provider pins the app version its patches target. If the store does not
-carry that exact version, the download step fails with
-`Could not find download link`. Setting `"any_version": true` clears the pin
-and takes the store's newest build.
-
-It works by setting `lock_version=1` as well, because `get_apkpure` calls
-`detect_version` internally and would otherwise re-derive the pinned version
-and overwrite an empty one.
-
-The risk is a store build newer than the patches support. The applied-count
-gate is the protection: with `exclusive` on, a patch that no longer matches
-means applied does not equal the include list, and the build refuses to
-release.
-
-## Two failure shapes that cost hours
-
-**A job that goes green having built nothing.** `connection.sh` failed, every
-later step was skipped by its `if` condition, and the job reported success.
-There is now an explicit "Fail if no connection" step. Any time a gate can be
-satisfied by skipping work, it is not a gate.
-
-**A provider blamed for an API error.** `resolve.sh` read a rate-limit error
-object as "no releases" and printed `DISQUALIFIED`, which reads like a fact
-about the provider. It now aborts with `API ERROR` instead. Note that a
-personal token and the repo's `GITHUB_TOKEN` have separate quotas: local
-testing can be throttled while CI is completely fine, and for these public
-reads an unauthenticated curl often works when a throttled token does not.
-
-<!-- state-5sep2026 -->
-## State
-
-Live counts, the app table and the gate list are generated into README.md from
-`src/targets.json`, and **3. Validate** fails a push that leaves them stale. This file
-holds only what a command cannot print: the failures we hit, why a decision was made,
-and the drills. Nothing here should restate a number.
-
-- The weekly run (`2. Check new patch`) polls **every** target with `poll: true` and builds
-  the ones whose provider shipped something newer. A `plan` job emits the matrix from
-  `src/targets.json`, so adding a target to the weekly build is one field, not a workflow edit.
-  Before this it was a hardcoded list of three.
-- Every candidate and extra bundle is on `channel: prerelease`, deliberately: providers ship
-  dev builds constantly and the newest release wins whether or not it is marked stable.
-- Include lists are reconciled against what each provider currently offers. When a build says
-  `applied N but include list says M`, a provider renamed or dropped a patch: run
-  `list-patches` for that bundle and compare, do not weaken the gate.
-- `src/etc/bancheck.sh` runs in `3. Validate` and blocks any banned patch reaching an include
-  list. `BANNED` and `CONFIRM` hold **lowercase substrings**, not exact patch names.
-- Build failures open one issue **per target** with the failing job, step and error lines in the
-  body. Older issues titled per workflow accumulated unrelated targets for weeks.
-- `gh run rerun` replays a run at its **original commit**, so it never tests a new fix.
-  Dispatch `manual-patch.yml -f target=<id>` instead.
-
-## Key restore drill
-
-Every APK in this repo is signed with one keystore. Android refuses an update signed by a
-different key, so losing it means every app must be uninstalled and reinstalled from scratch,
-and Truecaller costs phone verifications to re-establish. The keystore is **not** in the repo
-and GitHub secrets are write-only, so a secret is not a backup.
-
-Copies that must exist, at least two of them off this machine:
-
-1. The emailed archive. Verified once. One deleted thread and it is gone.
-2. **An offline copy on removable media, encrypted.** This is the one that does not exist yet.
-   `gpg -c ks.keystore` then copy the `.gpg` to a USB drive kept away from the laptop.
-   Write the keystore password somewhere that is not the same drive.
-
-To restore into CI: base64 the keystore, paste it into the `KEYSTORE_B64` secret, and set
-`KEYSTORE_PASS` and `KEYSTORE_ALIAS`. `manual-patch.yml` decodes it and refuses to build if
-the decoded file is under 3000 bytes, so a truncated paste fails loudly instead of producing
-an unsigned or wrongly signed APK.
-
-To prove a restore worked without shipping anything: dispatch **1. Manual Patch** for
-`keymapper`, the smallest target, and check the release asset installs over the copy already
-on the phone. An install that asks you to uninstall first means the key is wrong.
+Use [OPEN-WORK](docs/review/OPEN-WORK.md) for dated blockers and remaining work,
+[README](README.md) for generated target inventory, and the
+[visitor guide](docs/guide.md) for download/import behavior.
+Same-version Obtainium delivery, full semantic fingerprints, independent
+provenance and phone/recovery drills are not solved by a fresh release campaign.

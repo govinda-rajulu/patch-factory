@@ -415,6 +415,114 @@ class Retention(unittest.TestCase):
   s=retention.summary(self.plan([self.row(n) for n in range(1,4)]))
   self.assertIn('Nothing deleted',s);self.assertIn('Approval is required separately',s)
 
+class ModernRetention(unittest.TestCase):
+ def setUp(self):
+  self.repo='owner/repo'
+  self.targets=[{'id':'app','tag_prefix':'app','apk_name':'app'}]
+ def row(self,n,structured=True,qualified=False):
+  import base64
+  tag='app-v1.0-b202609'+str(n).zfill(2)
+  apk='app-v1.0-arm64-v8a.apk'
+  info=dict(schema=1,target='app',version='1.0',source='a'*40,sha256='b'*64,
+            signer='c'*64,package='io.example.app',tag=tag,provider='fixture',
+            bundle='1.0',apk=apk,label='Fixture',arch='arm64-v8a',patches=['Hide ads'],
+            min_sdk=29,bytes=2000000)
+  body=('[pf-release-v1]: # "'+base64.b64encode(json.dumps(info).encode()).decode()+'"'
+        if structured else retention.CI_MARKER)
+  names=[apk,'pf-publication-v1-app.json']+(['pf-qualified-v1-app.json'] if qualified else [])
+  assets=[{'id':n*10+i+1,'name':name,'size':2000000 if i==0 else 1024,'state':'uploaded',
+           'digest':'sha256:'+'b'*64,'browser_download_url':'https://github.com/'+self.repo+'/releases/download/'+tag+'/'+name}
+          for i,name in enumerate(names)]
+  return dict(id=n,tag_name=tag,html_url='https://github.com/'+self.repo+'/releases/tag/'+tag,
+              published_at='2026-09-19T00:00:00Z',draft=False,prerelease=False,
+              author={'login':'github-actions[bot]','id':41898282},body=body,assets=assets)
+ def plan(self,old):
+  return retention.preview([old,self.row(2),self.row(3)],self.targets,self.repo)
+ def protected(self,row):
+  plan=self.plan(row);self.assertEqual(plan['candidate_count'],0)
+  self.assertEqual(len(plan['protected']),3)
+ def test_structured_receipt_candidate_is_review_only(self):
+  p=self.plan(self.row(1))
+  self.assertEqual(p['candidate_count'],1);self.assertEqual(p['candidate_asset_count'],2)
+  self.assertEqual(p['candidates'][0]['metadata_shape'],'structured-apk-with-evidence')
+  self.assertFalse(p['deletion_authorized']);self.assertEqual(p['mode'],'preview-only')
+  self.assertIn('not fetched or verified',p['limits'])
+ def test_structured_qualified_metadata_candidate(self):
+  p=self.plan(self.row(1,qualified=True))
+  self.assertEqual(p['candidate_asset_count'],3)
+ def test_legacy_receipt_recognized_without_inventing_qualification(self):
+  p=self.plan(self.row(1,structured=False))
+  self.assertEqual(p['candidates'][0]['metadata_shape'],'legacy-apk-with-evidence')
+ def test_newest_two_still_kept(self):
+  p=self.plan(self.row(1))
+  self.assertEqual({r['release_id'] for r in p['protected']},{2,3})
+ def test_unknown_asset_is_protected(self):
+  r=self.row(1);r['assets'][1]['name']='unexpected.json';self.protected(r)
+ def test_wrong_target_receipt_protected(self):
+  r=self.row(1);r['assets'][1]['name']='pf-publication-v1-other.json';self.protected(r)
+ def test_qualified_without_receipt_protected(self):
+  r=self.row(1,qualified=True);r['assets'].pop(1);self.protected(r)
+ def test_duplicate_name_protected(self):
+  r=self.row(1);r['assets'].append(dict(r['assets'][1],id=999));self.protected(r)
+ def test_duplicate_asset_id_protected(self):
+  r=self.row(1);r['assets'][1]['id']=r['assets'][0]['id'];self.protected(r)
+ def test_wrong_asset_url_protected(self):
+  r=self.row(1);r['assets'][0]['browser_download_url']='https://example.invalid/file';self.protected(r)
+ def test_unuploaded_asset_protected(self):
+  r=self.row(1);r['assets'][1]['state']='new';self.protected(r)
+ def test_empty_evidence_protected(self):
+  r=self.row(1);r['assets'][1]['size']=0;self.protected(r)
+ def test_oversized_evidence_protected(self):
+  r=self.row(1);r['assets'][1]['size']=2097153;self.protected(r)
+ def test_bad_digest_protected(self):
+  r=self.row(1);r['assets'][1]['digest']='md5:wrong';self.protected(r)
+ def test_summary_apk_digest_mismatch_protected(self):
+  r=self.row(1);r['assets'][0]['digest']='sha256:'+'a'*64;self.protected(r)
+ def test_summary_apk_size_mismatch_protected(self):
+  r=self.row(1);r['assets'][0]['size']+=1;self.protected(r)
+ def test_missing_structured_apk_digest_protected(self):
+  r=self.row(1);r['assets'][0]['digest']=None;self.protected(r)
+ def test_legacy_missing_digest_stays_metadata_only(self):
+  r=self.row(1,structured=False);r['assets'][0]['digest']=None
+  self.assertEqual(self.plan(r)['candidate_count'],1)
+ def test_malformed_marker_never_legacy_fallback(self):
+  r=self.row(1);r['body']=retention.CI_MARKER+'\n[pf-release-v1]: # "not-json"';self.protected(r)
+ def test_duplicate_marker_protected(self):
+  r=self.row(1);r['body']+='\n'+r['body'];self.protected(r)
+ def test_wrong_publisher_protected(self):
+  r=self.row(1);r['author']['id']=1;self.protected(r)
+ def test_structured_single_apk_not_legacy_laundered(self):
+  r=self.row(1);r['assets'].pop();r['body']+='\n'+retention.CI_MARKER;self.protected(r)
+ def test_keep_marker_precedes_new_shape(self):
+  r=self.row(1);r['body']+='\nretention: keep';self.protected(r)
+ def test_non_object_asset_protected(self):
+  r=self.row(1);r['assets'][1]=None;self.protected(r)
+ def test_missing_asset_inventory_refuses(self):
+  r=self.row(1);r['assets']=None
+  with self.assertRaises(ValueError):self.plan(r)
+ def test_asset_metadata_changes_fingerprint(self):
+  r=self.row(1);before=self.plan(r)['fingerprint']
+  r['assets'][1]['digest']='sha256:'+'d'*64
+  self.assertNotEqual(before,self.plan(r)['fingerprint'])
+ def test_release_body_changes_fingerprint(self):
+  r=self.row(1);before=self.plan(r)['fingerprint']
+  r['body']+='\nAdditional public note.'
+  self.assertNotEqual(before,self.plan(r)['fingerprint'])
+ def test_asset_id_changes_fingerprint(self):
+  r=self.row(1);before=self.plan(r)['fingerprint']
+  r['assets'][1]['id']=11111
+  self.assertNotEqual(before,self.plan(r)['fingerprint'])
+ def test_rows_reordered_same_inventory_fingerprint(self):
+  rows=[self.row(i) for i in range(1,4)]
+  a=retention.preview(rows,self.targets,self.repo)
+  b=retention.preview(rows[::-1],self.targets,self.repo)
+  self.assertEqual(a['inventory_fingerprint'],b['inventory_fingerprint'])
+  self.assertEqual(a['fingerprint'],b['fingerprint'])
+ def test_no_network_in_metadata_classification(self):
+  with patch.object(retention.subprocess,'run',side_effect=AssertionError('network forbidden')):
+   self.assertEqual(self.plan(self.row(1))['candidate_count'],1)
+
+
 class BuildIdentityTests(unittest.TestCase):
  def setUp(self):
   import datetime

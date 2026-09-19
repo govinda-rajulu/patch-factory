@@ -1,97 +1,78 @@
-# Security
+# Security and trust boundaries
 
-`patch-factory` downloads Android APKs, rewrites them with third-party patch bundles, signs
-them, and publishes them. Anyone reusing this repo is trusting several parties at once, so
-here is exactly who, and what stops each one silently changing the output.
+Patch Factory fetches third-party Android APKs and patch bundles, modifies APKs,
+signs them with its configured CI key, and can publish them. Checks reduce
+specific failure modes; they do not establish that every input, patched app,
+runner or account interaction is safe.
 
-## What is trusted, and what checks it
+## Inputs and checks
 
-| Trusted input | Control |
-|---|---|
-| Build tools (`pup`, `APKEditor`) | sha256-pinned in `src/build/TOOLING.sha256`. A mismatch aborts the build. Re-pin deliberately with `src/build/repin.sh`. |
-| `morphe-desktop` (the patcher) | Taken as `latest` on purpose: new provider bundles need new patcher versions. **Not pinned.** This is the largest remaining supply-chain surface. |
-| Cloudflare-bypass containers | Pinned by image digest in `.github/actions/preparing/action.yml`. |
-| Patch bundles from providers | Intentionally not pinned. `max_patch_age_days` is advisory. Explicitly requested patches must appear in the applied log; this does not prove that provider code or default-on additions are safe. |
-| The APK from the store | Size floor, real zip, `AndroidManifest.xml` present, and the package name verified twice: on the download and against what the patcher says it filtered. |
-| Patches themselves | `src/patches/BANNED` blocks server-visible and identity-changing patches from any include list. `CONFIRM` warns. `EXCEPTIONS` documents each deliberate override with a date. |
+| Input | Existing control | Remaining boundary |
+| --- | --- | --- |
+| `pup` and APKEditor | SHA-256 entries in `src/build/TOOLING.sha256` | Pin review and upstream provenance still matter |
+| Patcher | Validated latest-stable GitHub asset, size/hash when supplied, archive/Main-Class checks and cache verification | Moving version is intentional; host metadata is not independent authenticity |
+| Primary and extra bundles | Exact selected bytes reused; validated GitHub/GitLab transport and bounded archives | Providers can change code/defaults; some upstream assets lack an advertised digest |
+| Store APK | Container, package, minimum Android API and finished-output checks | Original publisher identity, exact source availability and device behavior are separate questions |
+| Prepared dependencies | Same-run packet identity and consumed-byte checks | Full source APK/runtime/transitive semantic coverage remains incomplete |
+| Patch selections | BANNED/CONFIRM substring rules, quarantine, per-bundle binding and requested/applied checks | CONFIRM warns; unresolved owner choices and effective/default approval coverage remain open |
+| Finished APK | Manifest/native-payload/signing identity and checked release handoff | CI signer is not original-publisher or installed-app signer proof |
 
-## Signing
+Do not infer provenance from a filename, matching timestamp, same patch names,
+or the presence of a publication/qualification JSON file. Retention recognition
+is metadata classification only. Qualified baselines are repository-bot
+evidence, not independently signed or owner-immutable attestations.
 
-Releases are signed with a keystore that is **not** in this repo and never leaves the owner.
-GitHub Actions secrets are write-only, so they are not a backup. A truncated `KEYSTORE_B64`
-fails the build rather than producing an unsigned APK. See the key restore drill in
-`RECOVERY.md`.
+## Signing and permissions
 
-**If you fork this, generate your own keystore.** APKs signed by a different key cannot
-update each other, and you do not want your users' apps tied to somebody else's key.
+Signing material is supplied to trusted build jobs through Actions secrets and
+decoded on the runner. It is not stored in Git, but saying it "never leaves the
+owner" would be false. Protect the runner, workflow code, dependencies, logs and
+secret configuration accordingly. GitHub secrets are not a retrievable backup.
+See [RECOVERY](RECOVERY.md) for a separate, nonpublishing restore process.
 
-## Workflow permissions
+Read-only diagnostics must not inherit signing credentials. APK build jobs have
+signing access, and publication/qualification jobs require write permissions.
+Review permissions and consumers per workflow; a top-level declaration alone
+does not prove least privilege or complete isolation. Required-check and bypass
+settings must be inspected separately from repository source.
 
-Every workflow declares least-privilege `permissions`. `workflow_dispatch` inputs are passed
-to shell through `env:`, never interpolated into a `run:` block, so a crafted input cannot
-become a command. There is no `pull_request_target` and no workflow that runs untrusted code
-from a fork.
+Use reviewed PRs and exact-head validation, not direct-main pushes. Do not feed
+untrusted event text into shell commands, trust a fork artifact as a signed
+baseline, or grant an agent broader permissions to bypass a failed gate.
 
-## Verifying a download
+## Transport diagnostics and logs
 
-Every release body carries the APK filename, its size and its SHA-256. Check it before
-installing:
+Store downloads now suppress the observed wget URL logging path. Page probes
+emit bounded counts/booleans rather than raw HTML, cookies or signed URLs.
+These are scoped controls, not a claim that all historic logs or third-party
+tools are sanitized. Treat existing logs as potentially sensitive and avoid
+reposting signed download URLs.
 
-    sha256sum patch-factory-app-vX.Y.Z-arm64-v8a.apk
+HTTP 200 is not download success. A challenge/unavailable marker is a heuristic,
+not a diagnosis. Do not weaken source/version/signature gates to bypass a
+download failure. A patch count does not establish behavioral compatibility.
 
-## Reporting something
+## Distribution and device risks
 
-Open an issue. This is a personal project with no SLA, and it ships modified builds of apps
-whose terms may forbid them: **use at your own risk**, on accounts you are willing to lose.
-Patches that are visible to a server (signature spoofing, package renaming, ad-ID spoofing)
-are banned here for exactly that reason.
+Modified APK redistribution can be restricted by licensing, service terms and
+applicable law. Review rights before publishing or promoting a build; technical
+success does not grant distribution permission. Do not claim that releases in
+a public GitHub repository can be made individually private.
 
-## Before you make this public
+Account restrictions and device/data loss remain possible; timing alone does
+not prove which patch caused an account action. Avoid guarantees that a patch
+is undetectable, a same-key update preserves data, or a checksum makes software
+safe. Never recommend routine uninstall, data clearing or device-protection
+bypass to force an update.
 
-Read this once, properly. The code here is defensible; **the release assets are the exposure.**
+Obtainium imports require user confirmation and may replace tracking settings.
+MicroG is optional upstream software, not a build signed here. A new same-version
+release does not necessarily trigger an Obtainium update.
 
-### The releases are the liability, not the repo
+## Reporting
 
-Publishing a patch is publishing a diff. Publishing a signed APK is redistributing someone
-else's application binary, modified. That is a materially different act and it is what a
-rights holder acts on. Several of these builds unlock paid functionality:
-
-- Truecaller premium
-- MX Player **Pro**
-- AdGuard lifetime premium
-- Key Mapper premium
-
-Those four are the ones that turn "a hobby build pipeline" into "a distribution channel for
-paid software". A takedown against this repo would name the release assets, not `build.sh`.
-
-### What each risk actually looks like
-
-| Risk | How it arrives | What reduces it |
-|---|---|---|
-| DMCA takedown of the repo | GitHub forwards a notice; the repo is disabled pending response | Publish the pipeline, not the binaries. A public repo whose releases are private, or absent, is far harder to complain about. |
-| Trademark complaint | App names and icons in the docs and the Pages catalog | Use package names; do not ship icons or logos you do not own. |
-| Provider objection | A patch author objects to being listed or aggregated | `CREDITS.md` names every provider with a link, and offers same-day removal. Keep that promise. |
-| Account action against **you** | You install these on accounts you own | Server-visible patches are already banned here. The JioHotstar build got a paid streaming account suspended in Aug 2026: that already happened once. |
-| Someone else's device breaks | A stranger installs a build and loses data | The releases carry a checksum and this file carries the warning. Do not add an install script that hides the risk. |
-
-### The honest recommendation
-
-Make the **repository** public if you want it used as a template. Do not advertise the
-**releases**. Specifically:
-
-1. Keep the four paid-unlock apps out of any public download page. They are the ones that
-   attract a complaint, and they are the least defensible.
-2. Do not add a README badge, a Telegram channel or a Reddit post pointing strangers at the
-   releases. Distribution scale is what converts legal risk into legal action.
-3. Never accept a patch bundle from a provider you have not read. A public repo invites pull
-   requests, and a malicious `extra_bundles` entry would be signed with your key.
-4. If you ever hand this to someone else, they generate their own keystore. Your key signing
-   somebody else's build is your name on their APK.
-
-### What you would regret most
-
-Not a takedown. The realistic worst case is quieter: a provider ships a patch that phones home
-or spoofs an identity, it lands in a build you signed, and someone's account is banned by an
-app you handed them. That is why `BANNED` exists, why the applied-patch list is printed in every
-release body, and why nothing here should ever be installed on an account you cannot afford to
-lose. Including yours.
+Use a minimal public issue only for non-sensitive reproduction details. Do not
+post keystores, passwords, tokens, signed URLs, raw private logs or personal
+backup locations. This repository has no stated private disclosure channel or
+service-level guarantee. Suspected exposed credentials need scoped containment
+and rotation planning, not a public dump of the evidence.
