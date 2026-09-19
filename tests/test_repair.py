@@ -87,7 +87,7 @@ class Repair(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
         self.assertEqual(path.read_bytes(), before)
         exports = sorted(p.name for p in (self.r/'docs').glob('obtainium*.json'))
-        self.assertEqual(exports, ['obtainium.json'])
+        self.assertEqual(exports, ['obtainium-microg.json', 'obtainium.json'])
         apps = json.loads(before)['apps']
         targets = json.loads((self.r/'src/targets.json').read_text())
         self.assertEqual({a['name'] for a in apps},
@@ -118,7 +118,25 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=9', result.stdout)
+        self.assertIn('PORTAL_CONTRACTS_PASS=13', result.stdout)
+
+    def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
+        path = self.r/'docs/obtainium-microg.json'
+        before = path.read_bytes()
+        main = (self.r/'docs/obtainium.json').read_bytes()
+        result = self.run_cmd(['python3','src/etc/obtainium.py'])
+        self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+        self.assertEqual(path.read_bytes(),before)
+        self.assertEqual((self.r/'docs/obtainium.json').read_bytes(),main)
+        apps=json.loads(before)['apps']
+        self.assertEqual(len(apps),1)
+        self.assertEqual(apps[0]['id'],'app.revanced.android.gms')
+        self.assertFalse(any(t['package']==apps[0]['id'] for t in json.loads((self.r/'src/targets.json').read_text())))
+        self.put('docs/obtainium-microg.json','{"apps":[]}')
+        result=self.run_cmd(['python3','src/etc/obtainium.py','--check'])
+        self.assertNotEqual(result.returncode,0)
+        self.assertEqual(path.read_text(),'{"apps":[]}')
+        self.assertEqual((self.r/'docs/obtainium.json').read_bytes(),main)
 
     def test_failure_notifier_contracts(self):
         result = subprocess.run(['node', str(ROOT / 'tests/notify_contracts.cjs')],
