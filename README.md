@@ -151,7 +151,7 @@ that leaves this block stale, so it cannot drift.
 | Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |
 | Reddit | `reddit` | `reddit` | apkpure | adobo | yes |
 | Telegram | `telegram` | `telegram` | apkmirror | rushiranpise | yes |
-| Truecaller (combo) | `truecaller-combo` | `tc-combo` | apkmirror | bufferk + paresh + binarymend | yes |
+| Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | bufferk + paresh + binarymend | yes |
 | YouTube | `youtube` | `youtube-morphe` | apkmirror | morphe | yes |
 
 ### Build gates and separate validation checks

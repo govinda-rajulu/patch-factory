@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
 check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,14);assert.equal(c.validateImport(pack,targets).length,14);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
@@ -35,7 +35,8 @@ check('optional MicroG stays separate and preserves upstream package and exact f
  for(const mutate of [x=>x.settings={},x=>x.apps.push(x.apps[0]),x=>x.apps[0].id='com.google.android.gms',x=>x.apps[0].url='https://github.com/other/microg',x=>x.apps[0].additionalSettings='{}',x=>{let y=JSON.parse(x.apps[0].additionalSettings);y.fallbackToOlderReleases=true;x.apps[0].additionalSettings=JSON.stringify(y)}]){
   const bad=structuredClone(d);mutate(bad);assert.throws(()=>c.validateMicroG(bad));
  }
- assert.ok(html.includes('<option value="microg">Morphe MicroG RE only</option>'));
+ assert.ok(!html.includes('<option value="microg">'));
+ assert.ok(html.includes('id="includeMicrog"'));
  assert.ok(html.includes('obtainium://refresh'));
 });
 check('APK URL must belong to its exact release tag and asset name',()=>{
@@ -45,5 +46,36 @@ check('APK URL must belong to its exact release tag and asset name',()=>{
  for(const url of [r.assets[0].browser_download_url.replace('b20260913','b20260912'),r.assets[0].browser_download_url+'?redirect=other',r.assets[0].browser_download_url.replace(name,'other.apk')]){
   const bad=structuredClone(r);bad.assets[0].browser_download_url=url;assert.equal(c.releaseRows([bad],targets).rejected,1);
  }
+});
+check('MicroG channel retains full dev version and excludes every alternate asset',()=>{
+ const data=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
+ const before=JSON.stringify(data),app=c.microgConfig(data,'prerelease'),s=JSON.parse(app.additionalSettings);
+ assert.equal(s.includePrereleases,true);assert.equal(s.fallbackToOlderReleases,false);
+ assert.equal(new RegExp(s.versionExtractionRegEx).exec('7.2.1-dev.2')[1],'7.2.1-dev.2');
+ for(const name of ['microg-6.1.4.apk','microg-7.2.1-dev.2.apk'])assert.ok(new RegExp(s.apkFilterRegEx).test(name));
+ for(const name of ['microg-7.2.1-dev.2-arm64-v8a.apk','microg-7.2.1-dev.2-armeabi-v7a.apk','microg-7.2.1-dev.2-noicon.apk','microg-7.2.1-dev.2-noicon-arm64-v8a.apk','microg-7.2.1-dev.2-noicon-armeabi-v7a.apk','microg-7.2.1-dev.2.apk.sig','microg-7.2.1-beta.apk'])assert.ok(!new RegExp(s.apkFilterRegEx).test(name),name);
+ assert.equal(JSON.stringify(data),before);assert.throws(()=>c.microgConfig(data,'whatever'));
+ const stable=JSON.parse(c.microgConfig(data,'stable').additionalSettings);
+ assert.equal(stable.includePrereleases,false);assert.ok(!new RegExp(stable.apkFilterRegEx).test('microg-7.2.1-dev.2.apk'));
+});
+check('upstream downloads bind exact version, tag, universal asset and channel',()=>{
+ const web='https://github.com/MorpheApp/MicroG-RE';
+ function row(v,pre,day){const name='microg-'+v+'.apk';return {tag_name:v,prerelease:pre,draft:false,published_at:day,html_url:web+'/releases/tag/'+v,assets:[{name,state:'uploaded',size:112296635,browser_download_url:web+'/releases/download/'+v+'/'+name}]};}
+ const stable=row('6.1.4',false,'2026-04-28T00:00:00Z'),dev=row('7.2.1-dev.2',true,'2026-09-17T22:24:06Z');
+ assert.equal(c.microgRelease([dev,stable],'stable').version,'6.1.4');
+ assert.equal(c.microgRelease([stable,dev],'prerelease').version,'7.2.1-dev.2');
+ for(const mutate of [r=>r.assets.push(r.assets[0]),r=>r.assets[0].name='microg-7.2.1-dev.2-noicon.apk',r=>r.assets[0].browser_download_url+='?bad',r=>r.html_url=web+'/releases/tag/6.1.4',r=>r.assets[0].size=0]){
+  const r=structuredClone(dev);mutate(r);assert.throws(()=>c.microgRelease([r,stable],'prerelease'));
+ }
+ assert.throws(()=>c.microgRelease([],'stable'));
+});
+check('unified selection permits upstream without changing fourteen build targets or IDs',()=>{
+ const d=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
+ const mixed=[...pack.apps,c.microgConfig(d,'prerelease')];
+ assert.equal(new Set(mixed.map(a=>a.id)).size,15);
+ assert.equal(c.selectApps(mixed,['app.revanced.android.gms']).length,1);
+ const tc=targets.find(t=>t.id==='truecaller-combo');assert.equal(tc.label,'Truecaller');assert.equal(tc.tag_prefix,'tc-combo');
+ for(const marker of ['Filter source type','Filter publication date','Sort apps'])assert.ok(source.includes(marker));
+ assert.ok(html.includes('manrope-v4.504.woff2'));assert.ok(!html.includes('Truecaller (combo)'));
 });
 console.log('PORTAL_CONTRACTS_PASS='+count);

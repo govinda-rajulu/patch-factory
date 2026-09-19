@@ -1,0 +1,48 @@
+PATCH FACTORY / UI ASSET PROVENANCE
+
+The page design is original. It is not an official app store and is not
+affiliated with or endorsed by the apps, MorpheApp or Obtainium.
+App initials are navigation aids, not official app logos.
+No code, fonts, logos or other assets were copied from morphe-patches.software.
+
+MANROPE
+Project: https://github.com/sharanda/manrope
+License: SIL Open Font License 1.1, included in OFL-Manrope.txt.
+Source: preinstalled Google Fonts Manrope[wght].ttf, version 4.504,
+with embedded copyright 2019 The Manrope Project Authors.
+Converted losslessly to WOFF2 using fontTools. All glyphs retained.
+Self-hosted; the page makes no external font requests.
+The source was locally available, not independently redownloaded from upstream.
+
+HEROICONS
+Project: https://github.com/tailwindlabs/heroicons
+License: MIT (below). Navigation icons only, not app brand logos.
+Exact Git blob identities:
+squares-2x2.svg: 1fe6594da8072ebb984ecae2f64316171ff2939f
+square-3-stack-3d.svg: d11f07bc101b930d2f6d50699a80bbb56da0482e
+eye.svg: f4ae935cd44af163eb7375986f8e1870fada178d
+The squares response resolved master despite a v2.2.0 request; this notice
+binds that icon to its checked blob, not an unverified tag.
+The other two responses resolved v2.2.0.
+
+MIT License
+
+Copyright (c) Tailwind Labs, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

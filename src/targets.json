@@ -128,7 +128,7 @@
     "tag_prefix": "tc-combo",
     "poll": true,
     "exclusive": true,
-    "label": "Truecaller (combo)",
+    "label": "Truecaller",
     "note": "paresh premium plus bufferk ad blocking Cap raised to 120 on 2026-09-06: bufferk publishes rarely (newest 1.8.0, 18 Jul) but its patches still apply and both targets build green. 60 days was catching slowness, not abandonment. Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {

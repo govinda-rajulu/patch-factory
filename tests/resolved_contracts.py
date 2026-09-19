@@ -25,6 +25,10 @@ class ResolvedContracts(unittest.TestCase):
             shutil.copytree(fixtures.ROOT / d, self.r / d)
         for args in (["git", "init", "-q"], ["git", "config", "user.name", "Fixture"],
                      ["git", "config", "user.email", "fixture@example.invalid"],
+                     # Keep Git maintenance synchronous inside the disposable fixture.
+                     # Detached writers can race strict TemporaryDirectory cleanup.
+                     ["git", "config", "--local", "gc.autoDetach", "false"],
+                     ["git", "config", "--local", "maintenance.autoDetach", "false"],
                      ["git", "add", "src", "docs", ".github"],
                      ["git", "commit", "-qm", "fixture"]):
             subprocess.run(args, cwd=self.r, check=True, capture_output=True)
@@ -92,6 +96,16 @@ class ResolvedContracts(unittest.TestCase):
         self.assertEqual(resolved.verify_consumed(self.r, self.ident, captured, self.env)["status"], "MATCH")
         for r in [m["patcher"]] + m["bundles"]:
             self.assertEqual(resolved.regular(self.r, r["path"])["sha256"], r["sha256"])
+
+    def test_fixture_maintenance_is_synchronous_and_cleanup_is_strict(self):
+        for key in ("gc.autoDetach", "maintenance.autoDetach"):
+            value = subprocess.check_output(
+                ["git", "config", "--local", "--get", key], cwd=self.r, text=True)
+            self.assertEqual(value.strip(), "false")
+        self.assertFalse(self.tmp._ignore_cleanup_errors)
+        root = self.r
+        self.doCleanups()
+        self.assertFalse(root.exists())
 
     def test_all_fourteen_target_locks_preserve_configured_extras_and_roles(self):
         ts = json.loads((self.r / "src/targets.json").read_text())
