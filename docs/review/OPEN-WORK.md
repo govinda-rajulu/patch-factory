@@ -19,10 +19,12 @@ claim about the current branch.
   page had one anchor and retained the package path. No APK was transferred.
   This does not prove historical cause or recovery. Verify the exact supported
   version's source/identity before changing a downloader or choosing a fallback.
-- **Six unresolved CONFIRM selections:** APK Junk Cleanup, Remove Duplicate
+- **Six resource-reduction selections excluded:** APK Junk Cleanup, Remove Duplicate
   Graphics and Remove Languages in each of `esfile-ftl` and `mxplayer-ftl`.
-  They are configured/applied, not inactive and not implicitly owner-approved.
-  Do not silently approve or disable them during a bulk rebuild.
+  Following the owner's delegated reliability review, they are removed from
+  includes and explicitly excluded in their own bundle. This is not approval
+  to apply them and does not change historical APKs. See the
+  [resource decision](RESOURCE-DECISION-2026-09-19.md) for rationale and limits.
 - **Campaign authorization and inventory:** explicit targets, publication intent,
   exact source commit and duplicate-run checks before dispatch. The Batch
   workflow can publish successful targets even when another target fails.

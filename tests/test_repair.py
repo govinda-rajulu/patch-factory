@@ -829,6 +829,55 @@ transfer(){
         self.assertEqual(x.returncode, 0, x.stderr)
         return x.stdout
 
+    def test_resource_reduction_explicitly_disabled_both_ftl_bundles(self):
+        removed=['APK Junk Cleanup','Remove Duplicate Graphics','Remove Languages']
+        for directory in ('esfile-ftl','mxplayer-ftl'):
+            with self.subTest(directory=directory):
+                inc=(self.r/'src/patches'/directory/'include-patches').read_text().splitlines()
+                exc=(self.r/'src/patches'/directory/'exclude-patches').read_text().splitlines()
+                self.assertTrue(inc)
+                for name in removed:
+                    self.assertNotIn(name,inc)
+                    self.assertEqual(exc.count(name),1)
+                self.assertIn('Remove Debug Info',exc)
+
+    def test_resource_exclusions_bind_to_ftl_in_actual_argv(self):
+        targets=json.loads((self.r/'src/targets.json').read_text())
+        for ident in ('esfile','mxplayer'):
+            t=next(t for t in targets if t['id']==ident)
+            c=next(c for c in t['candidates'] if c['name']=='ftl')
+            self.prepare_bundles(t,c)
+            args=patcher.command(self.r,ident,'ftl',{'KEYSTORE_PASS':'fixture','KEYSTORE_ALIAS':'fixture'})
+            scopes={};current=None;i=args.index('patch')+1
+            while i<args.index('--options-file'):
+                token=args[i]
+                if token=='-p':
+                    current=pathlib.Path(args[i+1]).stem.split('-',1)[1]
+                    scopes[current]={'-e':[],'-d':[]};i+=2
+                elif token in ('-e','-d'):
+                    scopes[current][token].append(args[i+1]);i+=2
+                else:i+=1
+            for name in ('APK Junk Cleanup','Remove Duplicate Graphics','Remove Languages'):
+                self.assertEqual(scopes['ftl']['-d'].count(name),1)
+                self.assertNotIn(name,scopes['ftl']['-e'])
+            self.assertIn('Remove Ads',scopes['ftl']['-e'])
+            self.assertIn('Remove Debug Info',scopes['ftl']['-d'])
+            if ident=='mxplayer':
+                self.assertEqual(scopes['paresh']['-e'],['MX Player Pro License'])
+                self.assertNotIn('Remove Languages',scopes['paresh']['-d'])
+            ledger=(self.r/'.requested').read_text()
+            self.assertNotIn('ftl\tRemove Languages',ledger)
+
+    def test_resource_decision_does_not_change_options_or_target_limits(self):
+        self.assertEqual((self.r/'src/options/ftl.json').read_text().strip(),'[]')
+        targets=json.loads((self.r/'src/targets.json').read_text())
+        mx=next(t for t in targets if t['id']=='mxplayer')
+        self.assertEqual(mx['max_app_version'],'1.93.4')
+        self.assertEqual(mx['min_sdk_ceiling'],29)
+        self.assertFalse(mx['any_version'])
+        self.assertEqual(mx['extra_bundles'][0]['patch_dir'],'mxplayer-paresh')
+
+
     def test_safe_argv_all_current_targets(self):
         targets = json.loads((self.r / 'src/targets.json').read_text())
         for t in targets:
