@@ -36,7 +36,7 @@ class OperationalDocs(unittest.TestCase):
 
     def test_pending_decisions_not_lost(self):
         text=self.text('docs/review/OPEN-WORK.md')
-        for phrase in ('Six unresolved CONFIRM','APK Junk Cleanup','Remove Duplicate',
+        for phrase in ('Six resource-reduction selections excluded','APK Junk Cleanup','Remove Duplicate',
                        'Remove Languages','esfile-ftl','mxplayer-ftl','APPVERSION-only',
                        'Remember live stream playback position','original semantic poller',
                        'Reddit recovery is not established','independent provenance',
