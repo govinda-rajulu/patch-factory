@@ -5,13 +5,16 @@ checks the finished output, and publishes a separate signed release per build.
 
 **[Downloads and status](https://govinda-rajulu.github.io/patch-factory/)**
 | [Install and Obtainium guide](docs/guide.md)
+| [Optional companions and review queue](docs/companions.md)
 | [Recovery and operations](RECOVERY.md)
 | [Security boundaries](SECURITY.md)
 | [Open work](docs/review/OPEN-WORK.md)
 
 The generated table below is the configured patched-app inventory. Morphe MicroG
 RE is an optional upstream companion, not another patched target. The site
-offers stable or stable-plus-dev tracking for its standard universal APK.
+offers stable or stable-plus-dev tracking, with Universal as the default and
+explicit MicroG architecture choices. Standard Obtainium self-update is also
+opt-in; it does not migrate the F-Droid package.
 Neither importing a catalog nor refreshing the site changes installed apps.
 
 ## Builds and releases
