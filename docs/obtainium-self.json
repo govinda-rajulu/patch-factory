@@ -1,0 +1,15 @@
+{
+ "apps": [
+  {
+   "id": "dev.imranr.obtainium",
+   "url": "https://github.com/ImranR98/Obtainium",
+   "author": "ImranR98",
+   "name": "Obtainium",
+   "categories": [
+    "obtainium-companion"
+   ],
+   "preferredApkIndex": 0,
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"verifyLatestTag\": true, \"trackOnly\": false, \"versionDetection\": true, \"apkFilterRegEx\": \"fdroid\", \"invertAPKFilter\": true, \"autoApkFilterByArch\": true, \"appName\": \"Obtainium\"}"
+  }
+ ]
+}
