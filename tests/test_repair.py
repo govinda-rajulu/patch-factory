@@ -87,7 +87,7 @@ class Repair(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
         self.assertEqual(path.read_bytes(), before)
         exports = sorted(p.name for p in (self.r/'docs').glob('obtainium*.json'))
-        self.assertEqual(exports, ['obtainium-microg.json', 'obtainium.json'])
+        self.assertEqual(exports, ['obtainium-microg.json', 'obtainium-self.json', 'obtainium.json'])
         apps = json.loads(before)['apps']
         targets = json.loads((self.r/'src/targets.json').read_text())
         self.assertEqual({a['name'] for a in apps},
@@ -118,7 +118,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=21', result.stdout)
+        self.assertIn('PORTAL_CONTRACTS_PASS=23', result.stdout)
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
