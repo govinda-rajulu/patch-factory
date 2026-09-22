@@ -76,8 +76,9 @@ companion = {
         "includePrereleases": False,
         "fallbackToOlderReleases": False,
         "filterReleaseTitlesByRegEx": "^v?[0-9]+([.][0-9]+)*$",
-        "apkFilterRegEx": "^microg-[0-9]+([.][0-9]+)*[.]apk$",
+        "apkFilterRegEx": "^microg-[0-9]+([.][0-9]+)*(?:-arm64-v8a|-armeabi-v7a)?[.]apk$",
         "versionExtractionRegEx": "^v?([0-9]+(?:[.][0-9]+)*)$",
+        "autoApkFilterByArch": False,
         "matchGroupToUse": "1",
         "trackOnly": False,
         "appName": "Morphe MicroG RE",
@@ -91,6 +92,37 @@ if CHECK:
 else:
     companion_path.write_text(companion_content)
 print(str(companion_path), "1 optional upstream companion; not a build target")
+
+# Obtainium itself is a separate opt-in companion. Mirror its official standard
+# self-entry: exclude F-Droid assets and let its filename-based CPU filter choose
+# an architecture. This does not affect dev.imranr.obtainium.fdroid installs.
+self_companion = {
+    "id": "dev.imranr.obtainium",
+    "url": "https://github.com/ImranR98/Obtainium",
+    "author": "ImranR98",
+    "name": "Obtainium",
+    "categories": ["obtainium-companion"],
+    "preferredApkIndex": 0,
+    "additionalSettings": json.dumps({
+        "includePrereleases": False,
+        "fallbackToOlderReleases": True,
+        "verifyLatestTag": True,
+        "trackOnly": False,
+        "versionDetection": True,
+        "apkFilterRegEx": "fdroid",
+        "invertAPKFilter": True,
+        "autoApkFilterByArch": True,
+        "appName": "Obtainium",
+    }),
+}
+self_path = pathlib.Path("docs/obtainium-self.json")
+self_content = json.dumps({"apps": [self_companion]}, indent=1)
+if CHECK:
+    if not self_path.exists() or self_path.read_text() != self_content:
+        raise SystemExit("STALE: " + str(self_path) + "; run python3 src/etc/obtainium.py")
+else:
+    self_path.write_text(self_content)
+print(str(self_path), "1 optional upstream self-update companion; not a build target")
 for p in ALL_APPS:
     if p in SKIP:
         print("SKIP", p, "-", SKIP[p])

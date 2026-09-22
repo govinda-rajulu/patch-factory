@@ -93,7 +93,4 @@ for pkg, v in sorted(cand, key=lambda kv: score(kv[1]), reverse=True)[:15]:
     print("  %-44s %d bundle(s), %3d patches   %s" % (pkg, len(v), tot, who))
 print("  (%d packages in the index you do not build)" % len(cand))
 
-os.makedirs("src/community", exist_ok=True)
-if IDX != SNAP:
-    json.dump(d, open(SNAP, "w"), separators=(",",":"), sort_keys=True)
-    print("\nsnapshot written to %s (%d bytes)" % (SNAP, os.path.getsize(SNAP)))
+# Discovery is read-only. Commit the snapshot only after reporting succeeds.

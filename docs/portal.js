@@ -7,11 +7,12 @@ const API='https://api.github.com/repos/'+REPO+'/';
 const RAW='https://raw.githubusercontent.com/'+REPO+'/main/';
 const MICROG_WEB='https://github.com/MorpheApp/MicroG-RE';
 const MICROG_API='https://api.github.com/repos/MorpheApp/MicroG-RE/releases';
+const OBTAINIUM_WEB='https://github.com/ImranR98/Obtainium';
 const $=id=>document.getElementById(id);
 let tab='apps',generation=0,importGeneration=0,pollTimer=null;
 let targets=null,importBlob=null,customApps=[];
 let appQuery='',appCategory='all',appType='all',appAge='all',appSort='name';
-let microgChannel='stable';
+let microgChannel='stable',microgArch='universal';
 const GROUPS=[
  ['media','Watch & listen',['youtube','primevideo','hotstar','mxplayer']],
  ['social','Social & communities',['instagram','facebook','reddit','telegram']],
@@ -99,8 +100,18 @@ function validateMicroG(data){
  need(app&&Object.keys(app).length===7&&Object.keys(app).every(k=>['id','url','author','name','categories','preferredApkIndex','additionalSettings'].includes(k)),'Unsupported companion fields');
  need(app.id==='app.revanced.android.gms'&&app.url==='https://github.com/MorpheApp/MicroG-RE'&&app.author==='MorpheApp'&&app.name==='Morphe MicroG RE'&&app.preferredApkIndex===0&&JSON.stringify(app.categories)==='["morphe-companion"]','Unexpected companion identity');
  need(typeof app.additionalSettings==='string'&&app.additionalSettings.length<10000,'Invalid companion settings');
- const s=JSON.parse(app.additionalSettings),expected={includePrereleases:false,fallbackToOlderReleases:false,filterReleaseTitlesByRegEx:'^v?[0-9]+([.][0-9]+)*$',apkFilterRegEx:'^microg-[0-9]+([.][0-9]+)*[.]apk$',versionExtractionRegEx:'^v?([0-9]+(?:[.][0-9]+)*)$',matchGroupToUse:'1',trackOnly:false,appName:'Morphe MicroG RE'};
+ const s=JSON.parse(app.additionalSettings),expected={includePrereleases:false,fallbackToOlderReleases:false,filterReleaseTitlesByRegEx:'^v?[0-9]+([.][0-9]+)*$',apkFilterRegEx:'^microg-[0-9]+([.][0-9]+)*(?:-arm64-v8a|-armeabi-v7a)?[.]apk$',versionExtractionRegEx:'^v?([0-9]+(?:[.][0-9]+)*)$',matchGroupToUse:'1',autoApkFilterByArch:false,trackOnly:false,appName:'Morphe MicroG RE'};
  need(s&&Object.keys(s).length===Object.keys(expected).length&&Object.entries(expected).every(([k,v])=>s[k]===v),'Unreviewed companion filters/settings');
+ return data.apps;
+}
+function validateObtainium(data){
+ need(data&&Object.keys(data).length===1&&Array.isArray(data.apps)&&data.apps.length===1,'Expected one optional Obtainium companion');
+ const app=data.apps[0];
+ need(app&&Object.keys(app).length===7&&Object.keys(app).every(k=>['id','url','author','name','categories','preferredApkIndex','additionalSettings'].includes(k)),'Unsupported companion fields');
+ need(app.id==='dev.imranr.obtainium'&&app.url===OBTAINIUM_WEB&&app.author==='ImranR98'&&app.name==='Obtainium'&&app.preferredApkIndex===0&&JSON.stringify(app.categories)==='["obtainium-companion"]','Unexpected Obtainium identity');
+ need(typeof app.additionalSettings==='string'&&app.additionalSettings.length<10000,'Invalid companion settings');
+ const s=JSON.parse(app.additionalSettings),expected={includePrereleases:false,fallbackToOlderReleases:true,verifyLatestTag:true,trackOnly:false,versionDetection:true,apkFilterRegEx:'fdroid',invertAPKFilter:true,autoApkFilterByArch:true,appName:'Obtainium'};
+ need(s&&Object.keys(s).length===Object.keys(expected).length&&Object.entries(expected).every(([k,v])=>s[k]===v),'Unreviewed Obtainium filters/settings');
  return data.apps;
 }
 function selectApps(apps,ids){
@@ -109,21 +120,30 @@ function selectApps(apps,ids){
  const chosen=new Set(ids);
  return apps.filter(app=>chosen.has(app.id));
 }
-function microgConfig(data,channel){
+function microgConfig(data,channel,arch='auto'){
  need(['stable','prerelease'].includes(channel),'Unknown MicroG channel');
+ need(['auto','universal','arm64-v8a','armeabi-v7a'].includes(arch),'Unknown MicroG architecture');
  const app=JSON.parse(JSON.stringify(validateMicroG(data)[0]));
  if(channel==='prerelease'){
   const s=JSON.parse(app.additionalSettings);
   s.includePrereleases=true;
   s.filterReleaseTitlesByRegEx='^v?[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?$';
-  s.apkFilterRegEx='^microg-[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?[.]apk$';
+  s.apkFilterRegEx='^microg-[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?(?:-arm64-v8a|-armeabi-v7a)?[.]apk$';
   s.versionExtractionRegEx='^v?([0-9]+(?:[.][0-9]+)*(?:-dev[.][0-9]+)?)$';
   app.additionalSettings=JSON.stringify(s);
  }
+ if(arch!=='auto'){
+  const s=JSON.parse(app.additionalSettings),version=channel==='stable'?'[0-9]+([.][0-9]+)*':'[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?';
+  s.apkFilterRegEx='^microg-'+version+(arch==='universal'?'[.]apk$':'-'+arch+'[.]apk$');
+  s.autoApkFilterByArch=false;app.additionalSettings=JSON.stringify(s);
+ }else{
+  const s=JSON.parse(app.additionalSettings);s.autoApkFilterByArch=true;app.additionalSettings=JSON.stringify(s);
+ }
  return app;
 }
-function microgRelease(rows,channel){
+function microgRelease(rows,channel,arch='auto'){
  need(['stable','prerelease'].includes(channel),'Unknown upstream channel');
+ need(['auto','universal','arm64-v8a','armeabi-v7a'].includes(arch),'Unknown architecture');
  need(Array.isArray(rows)&&rows.length<=100,'Invalid upstream release inventory');
  const candidates=rows.filter(r=>r&&!r.draft&&(channel==='prerelease'||r.prerelease===false));
  candidates.sort((a,b)=>(Date.parse(b.published_at)||0)-(Date.parse(a.published_at)||0));
@@ -131,10 +151,10 @@ function microgRelease(rows,channel){
  const r=candidates[0],tag=r.tag_name;
  const pattern=channel==='stable'?/^v?[0-9]+(?:[.][0-9]+)*$/:/^v?[0-9]+(?:[.][0-9]+)*(?:-dev[.][0-9]+)?$/;
  need(typeof tag==='string'&&pattern.test(tag)&&date(r.published_at),'Unsupported upstream release identity; inspect upstream instead');
- const version=tag.replace(/^v/,''),name='microg-'+version+'.apk';
+ const version=tag.replace(/^v/,''),name='microg-'+version+(arch==='auto'||arch==='universal'?'':'-'+arch)+'.apk';
  need(r.html_url===MICROG_WEB+'/releases/tag/'+encodeURIComponent(tag),'Upstream release URL mismatch');
  const assets=Array.isArray(r.assets)?r.assets.filter(a=>a&&a.name===name):[];
- need(assets.length===1,'Standard universal upstream APK missing or ambiguous; no variant fallback');
+ need(assets.length===1,(arch==='auto'||arch==='universal'?'Standard universal upstream APK':'Requested '+arch+' upstream APK')+' missing or ambiguous; no variant fallback');
  const a=assets[0];
  need(a.state==='uploaded'&&Number.isSafeInteger(a.size)&&a.size>1000000&&a.browser_download_url===MICROG_WEB+'/releases/download/'+encodeURIComponent(tag)+'/'+encodeURIComponent(name),'Upstream APK identity mismatch');
  return {rel:r,asset:a,version};
@@ -156,7 +176,7 @@ async function microgCard(root){
  const channelStatus=el('p','Selected: '+(microgChannel==='stable'?'Stable only':'Stable + dev prereleases')+'. Applies to this page; tracked apps are unchanged.','channel-status');
  channelStatus.setAttribute('role','status');article.append(channelStatus);
  try{
-  const row=microgRelease(await read(MICROG_API+'?per_page=100'),microgChannel);
+  const row=microgRelease(await read(MICROG_API+'?per_page=100'),microgChannel,microgArch);
   article.dataset.published=row.rel.published_at;
   article.append(el('p',row.version),el('p',(row.rel.prerelease?'Prerelease':'Stable')+' · '+Math.round(row.asset.size/1048576)+' MB · '+when(row.rel.published_at),'meta'));
   const actions=el('div',undefined,'actions');
@@ -167,7 +187,7 @@ async function microgCard(root){
   releaseNotes(article,row.rel.body,['Upstream release notes from MorpheApp. This companion is not built by Patch Factory.']);
  }catch(e){article.append(el('p','Upstream unavailable: '+e.message,'notice'));}
  const details=el('details');details.append(el('summary','Channel & installation notes'),
- el('p','The card and Obtainium toolbar share one channel choice. Stable + dev prereleases can show the same version when stable is newest. Standard universal APK only.'),
+ el('p',"The card and Obtainium toolbar share one channel and architecture choice. Stable + dev prereleases can show the same version when stable is newest. Universal is the default; Auto uses Obtainium's filename-based CPU filter, and exact ARM64/ARMv7 choices never fall back to another CPU file."),
  el('p','Keep existing MicroG data. Installed signer compatibility is not checked here; never uninstall or bypass Android checks to force an update.'));
  article.append(details);root.append(article);
  const channelButton=el('button','Open Obtainium import settings');channelButton.type='button';
@@ -196,10 +216,10 @@ function setImportLinks(apps,pack){
  const uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));need(uri.length<100000,'Configuration link too large for this page');
  $('openImport').href=uri;$('openImport').textContent='Import / update '+apps.length+' apps in Obtainium';$('openImport').hidden=false;
  importBlob=URL.createObjectURL(new Blob([JSON.stringify({apps},null,2)+'\n'],{type:'application/json'}));
- $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected.json':pack==='microg'?'obtainium-microg.json':'obtainium.json';$('downloadImport').hidden=false;
+ $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected.json':apps.length===1&&apps[0].id==='app.revanced.android.gms'?'obtainium-microg.json':apps.length===1&&apps[0].id==='dev.imranr.obtainium'?'obtainium-self.json':'obtainium.json';$('downloadImport').hidden=false;
  $('importMessage').textContent='Ready: '+apps.length+' configs. Tap Open, then confirm in Obtainium. Unselected apps already tracked in Obtainium are not removed. If the link cannot open, use the JSON fallback.';
  if(apps.some(app=>app.id==='app.revanced.android.gms'))$('importMessage').textContent+=' Includes MicroG directly from upstream ('+(microgChannel==='stable'?'stable only':'stable + dev prereleases')+'). Existing tracked settings may change; installed signer compatibility is unverified.';
- if(pack==='microg')$('importMessage').textContent='Ready: Morphe MicroG RE from its own upstream repository. Confirm in Obtainium. A matching tracked entry may be replaced; installed signer compatibility is not verified here. Keep existing app data and do not uninstall to force an update.';
+ if(apps.some(app=>app.id==='dev.imranr.obtainium'))$('importMessage').textContent+=' Includes standard Obtainium tracking. F-Droid installs are not replaced or migrated.';
 }
 function updateCustom(){
  clearImportLinks();
@@ -227,10 +247,10 @@ async function prepareImport(){
  resetImport();const token=importGeneration,pack=$('pack').value;$('prepareImport').disabled=true;
  try{need(['all','custom'].includes(pack),'Unknown app list');
  const wantMicrog=pack==='custom'||$('includeMicrog').checked;
- cache.delete(RAW+'docs/obtainium.json');targets=null;const [ts,data,companion]=await Promise.all([getTargets(),read(RAW+'docs/obtainium.json',0),wantMicrog?read(RAW+'docs/obtainium-microg.json',0):Promise.resolve(null)]);if(token!==importGeneration)return;
+ cache.delete(RAW+'docs/obtainium.json');targets=null;const wantSelf=$('includeObtainium').checked;const [ts,data,companion,selfPack]=await Promise.all([getTargets(),read(RAW+'docs/obtainium.json',0),wantMicrog?read(RAW+'docs/obtainium-microg.json',0):Promise.resolve(null),wantSelf?read(RAW+'docs/obtainium-self.json',0):Promise.resolve(null)]);if(token!==importGeneration)return;
  const apps=validateImport(data,ts);
- const microg=wantMicrog?microgConfig(companion,microgChannel):null;
- if(pack==='custom')showCustom([...apps,microg]);else setImportLinks($('includeMicrog').checked?[...apps,microg]:apps,pack);
+ const microg=wantMicrog?microgConfig(companion,microgChannel,microgArch):null;const self=wantSelf?validateObtainium(selfPack)[0]:null;
+ const extras=[microg,self].filter(Boolean);if(pack==='custom')showCustom([...apps,...extras]);else setImportLinks([...apps,...extras],pack);
  }catch(e){if(token===importGeneration)$('importMessage').textContent='Import unavailable: '+e.message;}finally{if(token===importGeneration)$('prepareImport').disabled=false;}
 }
 function releaseRows(rows,ts){
@@ -509,7 +529,7 @@ function filterApps(){
  $('appCount').textContent=shown+' app'+(shown===1?'':'s');
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateMicroG,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary};
+window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary};
 const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
 const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
 search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});
@@ -535,11 +555,12 @@ $('prepareImport').addEventListener('click',prepareImport);$('pack').addEventLis
  resetImport();$('prepareImport').disabled=false;$('includeMicrog').parentElement.hidden=$('pack').value==='custom';
 });
 $('microgChannel').addEventListener('change',()=>changeMicrogChannel($('microgChannel').value));
+$('microgArch').addEventListener('change',()=>{need(['auto','universal','arm64-v8a','armeabi-v7a'].includes($('microgArch').value),'Unknown architecture');microgArch=$('microgArch').value;resetImport();$('prepareImport').disabled=false;if(tab==='apps')render();});
 $('includeMicrog').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
 $('collapseImport').addEventListener('click',()=>{$('importPanel').open=false;$('importPanel').querySelector('summary').focus();});
 $('resetChoices').addEventListener('click',()=>{
- resetImport();$('pack').value='all';$('includeMicrog').checked=false;$('includeMicrog').parentElement.hidden=false;
- $('microgChannel').value='stable';microgChannel='stable';$('prepareImport').disabled=false;
+ resetImport();$('pack').value='all';$('includeMicrog').checked=false;$('includeObtainium').checked=false;$('includeMicrog').parentElement.hidden=false;
+ $('microgChannel').value='stable';microgChannel='stable';$('microgArch').value='universal';microgArch='universal';$('prepareImport').disabled=false;
  $('importMessage').textContent='Page choices reset. No tracked or installed apps were changed.';
  if(tab==='apps')render();
 });
