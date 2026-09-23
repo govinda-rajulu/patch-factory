@@ -318,8 +318,7 @@ function changeSummary(top,previous){
 function releaseNotes(article,body,summary){
  const overview=el('div',undefined,'change-preview');overview.append(el('h4','What changed'));
  for(const line of summary.slice(0,2))overview.append(el('p',line.length>160?line.slice(0,157)+'…':line));
- const details=el('details',undefined,'release-notes');details.append(el('summary','Read release notes here'),markdown(body));
- article.append(overview,details);
+ article.append(overview);
 }
 async function appsPanel(root){
  const [ts,releaseResult]=await Promise.all([getTargets(),pages('releases').then(rows=>({rows})).catch(error=>({error}))]);
@@ -464,7 +463,7 @@ function schedulePoll(){
  clearTimeout(pollTimer);
  if(!document.hidden)pollTimer=setTimeout(()=>{
   if(document.hidden)return;
-  if($('panel').querySelector('.inline-report[open],.release-notes[open]'))schedulePoll();
+  if($('panel').querySelector('.inline-report[open]'))schedulePoll();
   else render();
  },120000);
 }
@@ -490,9 +489,9 @@ function organizePanel(root,activeTab){
   const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta')&&!n.classList.contains('channel-status'));
   if(version)version.classList.add('app-version');
   // Keep the main download action visible; detailed provenance/history goes under one disclosure.
-  const extra=Array.from(article.children).filter(n=>n.matches('p.meta:not(.release-facts),details:not(.release-notes)'));
+  const extra=Array.from(article.children).filter(n=>n.matches('p.meta:not(.release-facts),details'));
   if(extra.length){
-   const details=el('details',undefined,'app-details');details.append(el('summary','Build details & older versions'));
+   const details=el('details',undefined,'app-details');details.append(el('summary','Evidence, notes & older versions'));
    for(const node of extra)details.append(node);
    article.append(details);
   }

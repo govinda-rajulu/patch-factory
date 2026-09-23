@@ -172,7 +172,7 @@ def render(current, previous=None, reason='Previous-release comparison not reque
     checked(current)
     guide = WEB + '/blob/' + current['source'] + '/docs/guide.md'
     lines = ['## What changed', *('- ' + text(x) for x in changes(current, previous)), '',
-             text(reason), '', '## This download', '',
+             text(reason), '', '## Release summary', '',
              '| Detail | Value |', '| --- | --- |']
     values = [('App', current['label']), ('App version', current['version']),
               ('Android package', current['package']), ('Minimum Android API', current['min_sdk']),
@@ -180,8 +180,10 @@ def render(current, previous=None, reason='Previous-release comparison not reque
               ('Patch providers', current['provider']), ('Primary bundle', current['bundle']),
               ('Applied patch names', len(current['patches']))]
     lines += ['| ' + name + ' | ' + text(value) + ' |' for name, value in values]
-    lines += ['', '## Applied patches', *('- ' + text(name) for name in current['patches']),
-              '', '## Checks and limitations',
+    lines += ['', '## Applied patches (' + str(len(current['patches'])) + ')',
+              '<details>', '<summary>All applied patch names</summary>', '',
+              *('- ' + text(name) for name in current['patches']),
+              '', '</details>', '', '## Checks and limitations',
               '- CI checked APK identity, declared minimum Android API, native payloads, applied patch names and its configured signing certificate.',
               '- Not phone-tested by this pipeline; not proof of original-publisher authenticity or installed-app compatibility.',
               '- Same-version patch-only update delivery in Obtainium remains limited. New build does not necessarily mean a new app version.',

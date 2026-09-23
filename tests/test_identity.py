@@ -180,9 +180,81 @@ class Identity(unittest.TestCase):
     def test_badging_missing_sdk_rejected(self):
         with self.assertRaises(ValueError):identity.parse_badging("package: name='com.fixture' versionCode='1' versionName='1'")
 
+    def test_google35_captured_badging_through_metadata_reader(self):
+        # Exact relevant output captured from Google build-tools 35.0.0 / PotHelper 1.1.1.
+        text = ("package: name='app.morphe.pot.helper' versionCode='100100199' "
+                "versionName='1.1.1' platformBuildVersionName='15' "
+                "platformBuildVersionCode='35' compileSdkVersion='35' "
+                "compileSdkVersionCodename='15'\nminSdkVersion:'26'\n"
+                "targetSdkVersion:'35'\napplication-label:'PotHelper'\n")
+        tool = self.tool('aapt2', "cat <<'CAPTURE'\n" + text + 'CAPTURE')
+        meta = identity.metadata(self.r, self.r/'fixture.apk', self.env)
+        self.assertEqual(meta, {'package': 'app.morphe.pot.helper', 'version_code': '100100199',
+                               'version_name': '1.1.1', 'min_sdk': 26, 'reader': tool})
+
+    def test_badging_duplicate_conflicting_malformed_sdk(self):
+        prefix = "package: name='com.fixture' versionCode='42' versionName='1.2'\n"
+        for sdk in ("sdkVersion:'26'\nsdkVersion:'26'\n",
+                    "sdkVersion:'26'\nminSdkVersion:'26'\n",
+                    "sdkVersion:'26'\nminSdkVersion:'35'\n",
+                    "minSdkVersion:'26junk'\n", "minSdkVersion:'0'\n",
+                    "minSdkVersion:'Preview'\n", "sdkVersion:'26' trailing\n",
+                    "sdkVersion:'26'\nminSdkVersion:bad\n",
+                    "targetSdkVersion:'26'\n"):
+            with self.subTest(sdk=sdk), self.assertRaises(ValueError):
+                identity.parse_badging(prefix + sdk)
+
+    def test_badging_conflict_does_not_fallback(self):
+        text = ("package: name='com.fixture' versionCode='42' versionName='1.2'\n"
+                "sdkVersion:'26'\nminSdkVersion:'35'\n")
+        with patch.object(identity, 'sdk_tools', return_value=['fixture-aapt2']) as tools, \
+             patch.object(identity, 'command', return_value=text.encode()) as command:
+            with self.assertRaises(identity.InvalidSdkMetadata):
+                identity.metadata(self.r, self.r/'fixture.apk', self.env)
+        self.assertEqual(tools.call_count, 1)
+        self.assertEqual(command.call_count, 1)
+
+    def test_badging_nonzero_tool_result_not_accepted(self):
+        text = ("package: name='com.fixture' versionCode='42' versionName='1.2'\n"
+                "minSdkVersion:'26'\n")
+        self.tool('aapt2', "cat <<'CAPTURE'\n" + text + 'CAPTURE\nexit 9')
+        with patch.object(identity, 'sdk_tools',
+                          side_effect=lambda name, env: [str(self.r/'sdk/build-tools/35.0.0/aapt2')]
+                          if name == 'aapt2' else []):
+            with self.assertRaisesRegex(ValueError, 'unreadable'):
+                identity.metadata(self.r, self.r/'fixture.apk', self.env)
+
     def test_parse_xml(self):
         text='<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.fixture" android:versionCode="42" android:versionName="1.2"><uses-sdk android:minSdkVersion="29"/></manifest>'
         self.assertEqual(identity.parse_manifest(text)['package'],'com.fixture')
+
+    def test_parse_xml_duplicate_or_invalid_sdk_rejected(self):
+        base='<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.fixture" android:versionCode="42" android:versionName="1.2">{}</manifest>'
+        for sdk in ('<uses-sdk android:minSdkVersion="29"/><uses-sdk android:minSdkVersion="29"/>',
+                    '<uses-sdk android:minSdkVersion="29"/><uses-sdk android:minSdkVersion="30"/>',
+                    '<uses-sdk android:minSdkVersion="0"/>','<uses-sdk android:minSdkVersion="abc"/>','<uses-sdk/>'):
+            with self.subTest(sdk=sdk):
+                with self.assertRaises(ValueError):identity.parse_manifest(base.format(sdk))
+
+    def test_shared_sdk_reader_is_bound_into_every_recipe(self):
+        self.assertIn('src/build/sdk_metadata.py', input_recipe.SHARED)
+        targets = json.loads((self.r/'src/targets.json').read_text())
+        original = {t['id']: input_recipe.create(self.r, t['id'], t['candidates'][0]['name'])
+                    for t in targets if t['enabled']}
+        self.assertEqual(len(original), 14)
+        path = self.r/'src/build/sdk_metadata.py'
+        data = path.read_bytes()
+        path.write_bytes(data.replace(b'{0,8}', b'{0,7}'))
+        self.assertNotEqual(path.read_bytes(), data)
+        for t in targets:
+            if t['enabled']:
+                with self.subTest(target=t['id']), self.assertRaises(ValueError):
+                    input_recipe.verify(self.r, t['id'], t['candidates'][0]['name'], original[t['id']])
+        path.write_bytes(data)
+        self.assertEqual(input_recipe.create(self.r, 'reddit', 'adobo'), original['reddit'])
+        path.unlink()
+        with self.assertRaises(ValueError):
+            input_recipe.create(self.r, 'reddit', 'adobo')
 
     def test_output_package_mapping_matches_current_imports(self):
         targets=json.loads((self.r/'src/targets.json').read_text())
@@ -699,12 +771,24 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertEqual(doc['patches'], self.report['applied_patch_names'])
         self.assertEqual(doc['min_sdk'], 29)
         self.assertIn('## What changed', fields['notes'])
-        self.assertIn('## This download', fields['notes'])
+        self.assertIn('## Release summary', fields['notes'])
+        self.assertNotIn('## This download', fields['notes'])
         self.assertIn('/blob/' + 'a'*40 + '/docs/guide.md', fields['notes'])
         self.assertIn('not proof of original-publisher', fields['notes'])
         action = (ROOT/'.github/actions/release/action.yml').read_text()
         self.assertIn('body: ${{ steps.meta.outputs.notes }}', action)
         self.assertIn('allowUpdates: false', action)
+
+    def test_release_notes_collapse_patch_inventory_but_keep_machine_record(self):
+        import release_notes as notes
+        fields = self.verify()
+        body = fields['notes']
+        self.assertIn('## Applied patches (2)', body)
+        self.assertIn('<details>', body)
+        self.assertIn('<summary>All applied patch names</summary>', body)
+        self.assertIn('[pf-release-v1]: # "', body)
+        self.assertEqual(notes.decode(body, fields['tag'], 'fixture')['patches'],
+                         ['Remove ads', 'PEOF'])
 
     def test_release_notes_compare_actual_fields_without_same_names_claim(self):
         import release_notes as notes

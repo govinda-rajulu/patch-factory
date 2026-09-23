@@ -54,15 +54,20 @@ Reviewed release metadata:
 `pot-helper-1.1.1.apk`, 184718 bytes, host-reported SHA-256
 `8e808a4f33d42e5c7534cf578305ca9cb48a0196a97bb35914d7a27a5f099a02`.
 The release reports `immutable: false`; a version label alone cannot pin future
-bytes. The APK was not downloaded, signature-checked or phone-tested in this
-documentation review. Host metadata is not independent authenticity.
+bytes. On 23 September 2026 the owner-run retained Google tool audit matched the
+published hash (Host metadata is not independent authenticity), read package
+`app.morphe.pot.helper`, version 1.1.1
+(code 100100199), minimum SDK 26 and four native ABIs, and passed APK Signature
+Scheme v2 with certificate SHA-256
+`534a2bff84b03dcec34f914afea26ab2bd1844944dc55bd31a2d68c490791da3`.
+This is binary integrity and certificate evidence, not independent publisher
+identity, installed-app signer continuity, runtime safety or phone testing.
 
-**Next integration gate:** inspect exact APK bytes, package, version, minimum
-SDK, native ABIs and signing certificate; design a separate opt-in upstream
-Obtainium entry with unambiguous asset matching and no incompatible fallback.
-Check the client consumer and existing-install implications before adding the
-entry. Device testing remains a separate, explicitly unverified step.
-There is no PotHelper one-click import in this PR.
+**Next integration gate:** design a separate opt-in upstream Obtainium entry
+with unambiguous asset matching and no incompatible fallback. Check the client
+consumer, native-component license/source caveat and existing-install
+implications before adding the entry. Device testing remains a separate,
+explicitly unverified step. There is no PotHelper one-click import in this PR.
 
 ## Helper for Morphe: manual workflow and source-audit candidate
 
