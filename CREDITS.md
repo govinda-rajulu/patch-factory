@@ -9,7 +9,10 @@ patches, and every one of them deserves the click.
 Forked from [FiorenMas/Revanced-And-Revanced-Extended-Non-Root](https://github.com/FiorenMas/Revanced-And-Revanced-Extended-Non-Root)
 (GPL-3.0). The APK download and split-merge logic in `src/build/utils.sh` is substantially
 theirs. Everything under `src/etc/`, the target model in `src/targets.json`, the gates and the
-generated docs are this repo's own work, also GPL-3.0.
+generated docs are this repo's own work, also GPL-3.0. Reviewed 23 September 2026 at
+upstream commit `733e91b6fe90dace2295ac6a27ca66481c945e7d`; its large PR168/churn, mutable
+release tag, public signing material and broad CI permissions were reviewed as warnings, not
+as code or APKs to copy.
 
 ## Patch providers, per app
 
@@ -52,8 +55,14 @@ it will be removed the same day.
 | [CloudflareBypassForScraping](https://github.com/sarperavci/CloudflareBypassForScraping) | MIT | second bypass path when FlareSolverr fails |
 | [ncipollo/release-action](https://github.com/ncipollo/release-action) | MIT | publishes each release |
 | [Obtainium](https://github.com/ImranR98/Obtainium) | GPL-3.0 | how the phones track these releases |
+| [AuroraStore](https://gitlab.com/AuroraOSS/AuroraStore) | GPL-3.0 | reference for the rewritten anonymous Google Play helper; no client app vendored |
+| [tdl](https://github.com/iyear/tdl) | AGPL-3.0 | optional Telegram source helper retained from the upstream workflow; review before enabling |
+| [markdown-badges](https://github.com/Ileriayo/markdown-badges) | MIT | badge style referenced by the upstream README; no badge assets vendored |
 
 ## Licence
 
 GPL-3.0, inherited from the template. See `LICENSE`. Patch bundles and the apps themselves are
-not covered by it and belong to their respective owners.
+not covered by it and belong to their respective owners. Morphe-derived builds also carry the
+upstream [Morphe NOTICE](https://github.com/MorpheApp/morphe-patches/blob/main/NOTICE); preserve
+that notice and mark modified versions. Link third-party text/assets instead of copying them
+unless a specific file and license have been reviewed.
