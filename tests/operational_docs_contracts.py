@@ -94,6 +94,16 @@ class OperationalDocs(unittest.TestCase):
         self.assertIn('not verified on a device',text)
         self.assertIn('no current release, license, package, signer or device behavior was',text)
 
+    def test_credits_preserve_upstream_notice_and_no_copy_boundary(self):
+        text=self.text('CREDITS.md')
+        for phrase in ('FiorenMas/Revanced-And-Revanced-Extended-Non-Root',
+                       '733e91b6fe90dace2295ac6a27ca66481c945e7d',
+                       'PR168/churn','public signing material','broad CI permissions',
+                       'Morphe NOTICE','Link third-party text/assets instead of copying them',
+                       'AuroraStore','AGPL-3.0','markdown-badges'):
+            self.assertIn(phrase,text)
+        self.assertNotIn('totally safe',text.lower())
+
     def test_guide_matches_live_companion_controls(self):
         from html.parser import HTMLParser
         class Controls(HTMLParser):

@@ -81,6 +81,11 @@ claim about the current branch.
    current inspection, not automatic closure.
 8. **Remaining UI request:** official app logos need provenance/usage review.
    Font/navigation icons are shipped; neither equals official app artwork.
+9. **Upstream attribution/provenance:** FiorenMas upstream was reviewed at
+   commit `733e91b6fe90dace2295ac6a27ca66481c945e7d` on 23 September 2026.
+   Its PR168 churn, mutable release tag, public signing material and broad CI
+   permissions are warnings, not components to copy. Morphe NOTICE handling
+   and per-provider pinned license/source records still need periodic review.
 
 ## Owner decisions to preserve
 
