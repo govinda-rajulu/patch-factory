@@ -1,24 +1,26 @@
 # Open work
 
-## Verified checkpoint: 19 September 2026
+## Verified checkpoint: 23 September 2026
 
-[PR67](https://github.com/govinda-rajulu/patch-factory/pull/67) merged as
-`d2777e30d4e06c8f28a1e4cfe600d1309344b865`, tree
-`efb2797ba0f29983596fd48b5b68edfda1166441`.
-[Main validation](https://github.com/govinda-rajulu/patch-factory/actions/runs/35456210369)
-and [Pages](https://github.com/govinda-rajulu/patch-factory/actions/runs/35456209682)
-passed on that commit. This is a dated evidence checkpoint, not a permanent
+[PR75](https://github.com/govinda-rajulu/patch-factory/pull/75) merged as
+`e1711ebc936f44a6f227106818df47256ff4c5cc`, tree
+`d21c35964ca7df2a2da883bdb42702498d53fd65`; main validation
+[35696640034](https://github.com/govinda-rajulu/patch-factory/actions/runs/35696640034)
+passed. Scheduled Daily
+[35758471077](https://github.com/govinda-rajulu/patch-factory/actions/runs/35758471077)
+later succeeded on the same commit, with 14 shadow dependency observations and
+real Reddit, YouTube, Prime Video, Hotstar and AdGuard publications. New APK
+bodies were not independently downloaded, and this does not prove the earlier
+Reddit failure cause. This is a dated evidence checkpoint, not a permanent
 claim about the current branch.
 
 ## Before a fresh all-target publication
 
-- **Reddit exact-version source:** the
-  [page-only probe](https://github.com/govinda-rajulu/patch-factory/actions/runs/35456286555)
-  observed HTTP 200 for both requests. The 2026.38.0 request had no download
-  anchor and resolved outside the expected package path; the current-download
-  page had one anchor and retained the package path. No APK was transferred.
-  This does not prove historical cause or recovery. Verify the exact supported
-  version's source/identity before changing a downloader or choosing a fallback.
+- **Reddit later recovered by schedule:** Daily35758471077 published Reddit
+  2026.38.0 with the finished-identity, handoff and release stages successful.
+  Earlier run35637130545 remains a historical failed attempt; the exact root
+  cause is unproven. Publication receipts and host digests exist, but their new
+  bodies were not downloaded in this review and device behavior is untested.
 - **Six resource-reduction selections excluded:** APK Junk Cleanup, Remove Duplicate
   Graphics and Remove Languages in each of `esfile-ftl` and `mxplayer-ftl`.
   Following the owner's delegated reliability review, they are removed from
@@ -75,10 +77,12 @@ claim about the current branch.
    alternative-source pilot, narrower fetch/patch/sign boundaries, container
    update review, fresh restore-tested repository/assets backup, signing restore
    and phone validation. Do not make an unrelated MX verifier retry a prerequisite.
-7. **Reconciliation:** targeted agent guidance/skills and issue evidence still
-   need review. Historical issue corrections are not posted or closed merely
-   because repository documentation changes. PR53 disposition needs its own
-   current inspection, not automatic closure.
+7. **Reconciliation and cleanup:** targeted agent guidance/skills and issue
+   evidence still need review. The old 39-release/43-asset cleanup preview is
+   stale after the 86-release inventory and has no APK-byte recovery backup.
+   Historical issue corrections are not posted or closed merely because
+   repository documentation changes. PR53 disposition needs its own current
+   inspection, not automatic closure.
 8. **Remaining UI request:** official app logos need provenance/usage review.
    Font/navigation icons are shipped; neither equals official app artwork.
 

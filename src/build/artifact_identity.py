@@ -14,6 +14,7 @@ import zipfile
 from verify_output import verify as verify_structure
 from native_payloads import verify_native_payloads
 import input_recipe
+from sdk_metadata import InvalidSdkMetadata, parse_badging_sdk, parse_manifest_sdk
 
 SCHEMA = 1
 ANDROID = '{http://schemas.android.com/apk/res/android}'
@@ -151,17 +152,18 @@ def capture_inputs(root, ident, winner, env):
 
 def parse_badging(text):
     pkg = re.search(r"^package: name='([^']+)' versionCode='([0-9]+)' versionName='([^']*)'", text, re.M)
-    sdk = re.search(r"^sdkVersion:'([0-9]+)'", text, re.M)
+    sdk = parse_badging_sdk(text)
     require(pkg is not None and sdk is not None, 'incomplete aapt2 metadata')
-    return {'package': pkg[1], 'version_code': pkg[2], 'version_name': pkg[3], 'min_sdk': int(sdk[1])}
+    return {'package': pkg[1], 'version_code': pkg[2], 'version_name': pkg[3], 'min_sdk': sdk}
 
 
 def parse_manifest(text):
     top = ET.fromstring(text)
-    sdk = top.find('uses-sdk')
-    require(top.tag == 'manifest' and sdk is not None, 'incomplete manifest XML')
+    sdk = top.findall('uses-sdk')
+    require(top.tag == 'manifest' and sdk, 'incomplete manifest XML')
+    sdk_value = parse_manifest_sdk(sdk)
     result = {'package': top.attrib['package'], 'version_code': top.attrib[ANDROID + 'versionCode'],
-              'version_name': top.attrib[ANDROID + 'versionName'], 'min_sdk': int(sdk.attrib[ANDROID + 'minSdkVersion'])}
+              'version_name': top.attrib[ANDROID + 'versionName'], 'min_sdk': sdk_value}
     require(result['version_code'].isdigit(), 'non-numeric version code')
     return result
 
@@ -172,6 +174,9 @@ def metadata(root, apk, env):
             result = parse_badging(command([tool, 'dump', 'badging', str(apk)], root).decode())
             result['reader'] = tool
             return result
+        except InvalidSdkMetadata:
+            # A conflicting declaration must not be hidden by a fallback reader.
+            raise
         except (ValueError, UnicodeError, subprocess.TimeoutExpired):
             continue
     for tool in sdk_tools('apkanalyzer', env):

@@ -19,7 +19,7 @@ DOMAIN = "patch-factory/local-input-recipe/v1"
 SHARED = (
     "src/build/build.sh", "src/build/resolve.sh", "src/build/patch_target.py",
     "src/build/selections.sh", "src/build/utils.sh", "src/build/check_sdk.sh",
-    "src/build/artifact_identity.py", "src/build/verify_output.py",
+    "src/build/artifact_identity.py", "src/build/sdk_metadata.py", "src/build/verify_output.py",
     "src/build/native_payloads.py", "src/build/release_contract.py",
     "src/build/build_identity.py", "src/build/github_bundle.py",
     "src/build/github_patcher.py", "src/build/extra_bundle.py",

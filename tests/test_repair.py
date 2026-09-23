@@ -699,6 +699,119 @@ transfer(){
     def test_sdk_excessive(self):
         self.assertNotEqual(self.sdk(30).returncode, 0)
 
+    def sdk_readers(self, badging='', xmltree='', analyzer=None, badging_rc=0,
+                    xmltree_rc=0, analyzer_rc=0, ceiling='29',
+                    py_min=None, py_rc=0, apk='fixture.apk'):
+        self.stub('pip', 'exit 1')
+        # Block network/install fallback while leaving the actual strict reader intact.
+        self.stub('python3', 'if [ "$1" = "-c" ]; then exit 1; fi\nexec ' +
+                  shlex.quote(sys.executable) + ' "$@"')
+        if py_min is not None:
+            self.stub('python3', 'exec ' + shlex.quote(sys.executable) + ' "$@"')
+            self.put('pyaxmlparser.py',
+                     "from pathlib import Path\nclass APK:\n"
+                     " def __init__(self, path): Path('received-apk.txt').write_text(path)\n"
+                     " def get_min_sdk_version(self):\n" +
+                     ("  print(" + repr(py_min) + "); raise SystemExit(" + str(py_rc) + ")\n"
+                      if py_rc else "  return " + repr(py_min) + "\n"))
+        p = self.r / 'sdk/build-tools/35.0.0/aapt2'
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text('#!/bin/bash\ncase "$2" in\nbadging) printf %s ' +
+                     shlex.quote(badging) + '; exit ' + str(badging_rc) +
+                     ';;\nxmltree) printf %s ' + shlex.quote(xmltree) +
+                     '; exit ' + str(xmltree_rc) + ';;\nesac\nexit 99\n')
+        p.chmod(0o755)
+        if analyzer is not None:
+            a = self.r / 'sdk/tools/bin/apkanalyzer'
+            a.parent.mkdir(parents=True, exist_ok=True)
+            a.write_text('#!/bin/bash\nprintf %s ' + shlex.quote(analyzer) +
+                         '\nexit ' + str(analyzer_rc) + '\n')
+            a.chmod(0o755)
+        return self.run_cmd(['bash', 'src/build/check_sdk.sh', apk, ceiling],
+                            {**self.env(), 'ANDROID_HOME': str(self.r / 'sdk')})
+
+    def test_sdk_google35_observed_label(self):
+        # Captured aapt2 35.0.0 output for PotHelper 1.1.1, not a guessed label.
+        text = ("package: name='app.morphe.pot.helper' versionCode='100100199' "
+                "versionName='1.1.1' platformBuildVersionName='15' "
+                "platformBuildVersionCode='35' compileSdkVersion='35' "
+                "compileSdkVersionCodename='15'\nminSdkVersion:'26'\n"
+                "targetSdkVersion:'35'\napplication-label:'PotHelper'\n")
+        result = self.sdk_readers(text)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('minSdkVersion=26 ceiling=29', result.stdout)
+
+    def test_sdk_modern_excessive_and_invalid_ceiling(self):
+        for ceiling in ('29', 'invalid', '0', '-1', '29x', '29\n30'):
+            with self.subTest(ceiling=ceiling):
+                result = self.sdk_readers("minSdkVersion:'30'\n", ceiling=ceiling)
+                self.assertNotEqual(result.returncode, 0)
+
+    def test_sdk_duplicate_conflict_or_malformed_never_uses_fallback(self):
+        for text in ("sdkVersion:'26'\nsdkVersion:'26'\n",
+                     "sdkVersion:'26'\nminSdkVersion:'26'\n",
+                     "sdkVersion:'26'\nminSdkVersion:'35'\n",
+                     "minSdkVersion:'26junk'\n", "minSdkVersion:'0'\n",
+                     "minSdkVersion:'Preview'\n", "sdkVersion:'26' trailing\n",
+                     "sdkVersion:'26'\nminSdkVersion:bad\n"):
+            with self.subTest(text=text):
+                result = self.sdk_readers(text, analyzer='26\n')
+                self.assertNotEqual(result.returncode, 0)
+                self.assertNotIn('read via apkanalyzer', result.stdout)
+
+    def test_sdk_target_compile_only_are_not_minimum(self):
+        result = self.sdk_readers("targetSdkVersion:'26'\ncompileSdkVersion:'26'\n")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('all four readers failed', result.stdout)
+
+    def test_sdk_nonzero_badging_stdout_is_not_accepted(self):
+        result = self.sdk_readers("sdkVersion:'26'\n", badging_rc=7)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('stdout ignored', result.stdout)
+
+    def test_sdk_xmltree_fallback_and_nonzero_rejection(self):
+        text = "    A: android:minSdkVersion(0x0101020c)=(type 0x10)0x1a\n"
+        result = self.sdk_readers('', xmltree=text)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('read via xmltree', result.stdout)
+        self.assertNotEqual(self.sdk_readers('', xmltree=text, xmltree_rc=8).returncode, 0)
+        self.assertNotEqual(self.sdk_readers('', xmltree=text + text, analyzer='26').returncode, 0)
+        excessive = text.replace('0x1a', '0x23')
+        self.assertNotEqual(self.sdk_readers('', xmltree=excessive).returncode, 0)
+
+    def test_sdk_apkanalyzer_fallback_and_strict_output(self):
+        result = self.sdk_readers('', analyzer='26\n')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('read via apkanalyzer', result.stdout)
+        for text in ('26junk', '26\n26\n', '0', '35'):
+            self.assertNotEqual(self.sdk_readers('', analyzer=text).returncode, 0)
+        self.assertNotEqual(self.sdk_readers('', analyzer='26', analyzer_rc=9).returncode, 0)
+
+    def test_sdk_failed_badging_can_use_successful_independent_reader(self):
+        result = self.sdk_readers("sdkVersion:'26'\n", badging_rc=7, analyzer='30')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('minSdkVersion=30 ceiling=29', result.stdout)
+
+    def test_sdk_python_fallback_and_literal_apk_path(self):
+        apk = "a quote' and spaces.apk"
+        result = self.sdk_readers(py_min='26', apk=apk)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('read via pyaxmlparser', result.stdout)
+        self.assertEqual((self.r/'received-apk.txt').read_text(), apk)
+
+    def test_sdk_python_fallback_rejects_invalid_and_nonzero(self):
+        for value in ('26junk', '26\n26\n', '0', '35', ''):
+            with self.subTest(value=value):
+                self.assertNotEqual(self.sdk_readers(py_min=value).returncode, 0)
+        self.assertNotEqual(self.sdk_readers(py_min='26', py_rc=7).returncode, 0)
+
+    def test_sdk_xmltree_invalid_zero_rejects_without_apkanalyzer_fallback(self):
+        p = self.r / 'sdk/build-tools/1/aapt2';p.parent.mkdir(parents=True)
+        p.write_text('#!/bin/bash\nif [ "$2" = badging ];then exit 1;fi\necho "  A: android:minSdkVersion(0x01010272)=(type 0x10)0x0"\n');p.chmod(0o755)
+        x = self.run_cmd(['bash', 'src/build/check_sdk.sh', 'fixture.apk', '29'], {'ANDROID_HOME': str(self.r / 'sdk')})
+        self.assertNotEqual(x.returncode, 0, x.stdout)
+        self.assertNotIn('read via apkanalyzer', x.stdout)
+
     def test_poll_unknown_provider(self):
         self.stub('curl', 'echo \'{"message":"API rate limit exceeded"}\'')
         x = self.run_cmd(['bash', 'src/etc/poll.sh', 'youtube'], {**self.env(), 'repository': 'fixture/repo', 'GITHUB_OUTPUT': str(self.r / 'out')})
