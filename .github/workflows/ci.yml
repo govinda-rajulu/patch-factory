@@ -89,6 +89,25 @@ jobs:
           path: resolved-inputs/
           if-no-files-found: error
           retention-days: 2
+      - name: Prepare existing store download services without signing
+        id: source_services
+        continue-on-error: true
+        uses: ./.github/actions/preparing
+      - name: Resolve exact patcher-input APK (shadow only)
+        id: source_resolve
+        if: steps.source_services.outcome == 'success'
+        continue-on-error: true
+        env:
+          TARGET: ${{ matrix.target }}
+        run: python3 src/build/source_inputs.py prepare "$TARGET"
+      - name: Preserve prepared APK only for the unchanged legacy build matrix
+        if: steps.source_resolve.outcome == 'success' && contains(fromJSON(needs.plan.outputs.matrix).target, matrix.target)
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-inputs-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-inputs/
+          if-no-files-found: error
+          retention-days: 2
       - name: Compare prepared dependencies with qualified publication (shadow only)
         if: always() && !cancelled()
         continue-on-error: true
@@ -96,7 +115,22 @@ jobs:
         env:
           TARGET: ${{ matrix.target }}
         run: python3 src/build/dependency_observation.py observe "$TARGET"
+      - name: Compare exact prepared APK with qualified publication (shadow only)
+        if: always() && !cancelled()
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          TARGET: ${{ matrix.target }}
+        run: python3 src/build/source_inputs.py observe "$TARGET"
       - name: Preserve every resolution observation or explicit unknown
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: source-observation-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-observation/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Preserve every dependency resolution observation or explicit unknown
         if: always()
         uses: actions/upload-artifact@v7
         with:

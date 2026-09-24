@@ -146,6 +146,12 @@ def capture_inputs(root, ident, winner, env):
         else:
             data['resolution'] = {'status': 'UNAVAILABLE',
                                   'reason': 'PREPARED_DEPENDENCIES_UNAVAILABLE_OR_INVALID'}
+    if env.get('PF_SOURCE_REQUESTED') == 'true':
+        if env.get('PF_SOURCE_READY') == 'true':
+            import source_inputs
+            data['source_resolution'] = source_inputs.consumed(root, ident, data, env)
+        else:
+            data['source_resolution'] = {'status': 'UNAVAILABLE'}
     atomic_json(root / '.build-inputs.json', data)
     print('INPUTS RECORDED: commit, tracked bytes, patcher/tool/bundle hashes and exact patcher-input APK')
 

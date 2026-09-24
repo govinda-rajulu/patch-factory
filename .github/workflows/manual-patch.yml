@@ -69,6 +69,8 @@ jobs:
       PF_SHADOW_PLAN_KEY: ${{ inputs.shadow_plan_key || '' }}
       PF_SHADOW_PLAN_REQUIRED: ${{ inputs.shadow_plan_required || false }}
       PF_RESOLVED_REQUESTED: ${{ inputs.resolved_requested || false }}
+      PF_SOURCE_REQUESTED: ${{ inputs.resolved_requested || false }}
+      PF_EXECUTION_OBSERVATION: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -97,6 +99,25 @@ jobs:
         if: inputs.resolved_requested && steps.resolved_verify.outcome != 'success'
         run: |
           echo "::warning::Prepared dependencies unavailable or invalid. Legacy build continues; shadow baseline remains UNKNOWN."
+      - name: Download this attempt's prepared source APK
+        id: source_download
+        if: inputs.resolved_requested && steps.resolved_verify.outcome == 'success'
+        continue-on-error: true
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: source-inputs-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: source-inputs/
+          digest-mismatch: error
+      - name: Verify source APK before signing secrets
+        id: source_verify
+        if: steps.source_download.outcome == 'success'
+        continue-on-error: true
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/build/source_inputs.py verify "$TARGET"
+      - name: Report missing prepared APK explicitly
+        if: inputs.resolved_requested && steps.source_verify.outcome != 'success'
+        run: echo "::warning::Prepared APK unavailable or invalid. Legacy store fetch remains active; full shadow comparison is UNKNOWN."
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > src/ks.keystore
@@ -123,6 +144,7 @@ jobs:
         env:
           TARGET: ${{ inputs.target }}
           PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' }}
+          PF_SOURCE_READY: ${{ steps.source_verify.outcome == 'success' }}
         run: bash src/build/build.sh "$TARGET"
       - name: Verify finished APK identity
         env:
@@ -146,6 +168,7 @@ jobs:
         env:
           TARGET: ${{ inputs.target }}
           PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' }}
+          PF_SOURCE_READY: ${{ steps.source_verify.outcome == 'success' }}
         run: python3 src/build/shadow_inputs.py observe "$TARGET"
       - name: Preserve shadow consumed-input comparison
         if: always()
@@ -171,6 +194,7 @@ jobs:
         uses: ./.github/actions/release
         env:
           PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' }}
+          PF_SOURCE_READY: ${{ steps.source_verify.outcome == 'success' }}
         with:
           target: ${{ inputs.target }}
       - name: Nonpublishing smoke result

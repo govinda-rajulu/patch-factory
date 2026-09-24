@@ -171,6 +171,20 @@ def realized(root, captured, env):
         "continue_on_error": bool(env.get("COE")),
     }
     need(hash_ok(material["certificate_sha256"]), "invalid certificate identity")
+    source_resolution = captured.get("source_resolution", {"status": "NOT_REQUESTED"})
+    if source_resolution.get("status") == "MATCH":
+        import source_inputs
+        need(source_inputs.consumed(root, ident, captured, env) == source_resolution,
+             "source preparation binding changed")
+    elif env.get("PF_SOURCE_REQUESTED") == "true":
+        source_resolution = {"status": "UNAVAILABLE"}
+    if env.get("PF_EXECUTION_OBSERVATION") == "true":
+        import execution_inputs
+        try:
+            execution = execution_inputs.verify(root, ident, winner, env)
+        except (ValueError, OSError, KeyError, TypeError):
+            execution = {"status": "UNKNOWN"}
+        material["execution"] = execution.get("material", {"status": "UNKNOWN"})
     resolution = captured.get("resolution", {"status": "NOT_REQUESTED"})
     need(isinstance(resolution, dict) and resolution.get("status") in
          ("MATCH", "UNAVAILABLE", "NOT_REQUESTED"), "invalid resolution state")
@@ -185,6 +199,7 @@ def realized(root, captured, env):
                  "declaration_sha256": declared["sha256"], "plan_sha256": expected or None,
                  "binding": binding, "material": material, "effective_sha256": sha(material),
                  "resolution": resolution,
+                 "source_resolution": source_resolution,
                  "limits": ["shadow only; same-run evidence, not independent attestation",
                             "runtime/OS/container transitive identities are incomplete",
                             "source APK publisher authenticity not established"]})
@@ -406,6 +421,10 @@ def compare(consumed, baseline, reason):
         return {"state": "UNKNOWN", "reason": "PREPARED_DEPENDENCIES_UNAVAILABLE_OR_INVALID", "authority": "shadow-only"}
     if baseline is None:
         return {"state": "UNKNOWN", "reason": reason, "authority": "shadow-only"}
+    if consumed.get("source_resolution", {}).get("status") == "UNAVAILABLE":
+        return {"state": "UNKNOWN", "reason": "PREPARED_SOURCE_UNAVAILABLE", "authority": "shadow-only"}
+    if consumed["material"].get("execution") == {"status": "UNKNOWN"}:
+        return {"state": "UNKNOWN", "reason": "EXECUTION_INPUTS_UNAVAILABLE", "authority": "shadow-only"}
     need(baseline["target"] == consumed["target"], "comparison target mismatch")
     return {"state": "UNCHANGED" if baseline["effective_sha256"] == consumed["effective_sha256"] else "BUILD",
             "reason": "VERIFIED_CONSUMED_KEY_COMPARISON", "authority": "shadow-only"}
@@ -474,6 +493,9 @@ def publish_receipt(root, ident, env, api=None, upload=None):
     need(doc["binding"] in ("MATCH", "NO_PLAN"), "missing or drifting plan cannot advance baseline")
     need(doc.get("resolution", {}).get("status") != "UNAVAILABLE",
          "unavailable prepared inputs cannot advance baseline")
+    need(doc.get("source_resolution", {}).get("status") != "UNAVAILABLE" and
+         doc["material"].get("execution") != {"status": "UNKNOWN"},
+         "unavailable source/runtime evidence cannot advance baseline")
     # Recheck the actual consumed files, not just the identity report assertions.
     from artifact_identity import verify_records
     verify_records(Path(root), captured["tools"] + captured["bundles"] +
@@ -498,6 +520,9 @@ def publish_receipt(root, ident, env, api=None, upload=None):
     if doc.get("resolution", {}).get("status") == "MATCH":
         import dependency_observation
         body["prepared_dependencies"] = dependency_observation.snapshot(root, ident, env, captured)
+    if doc.get("source_resolution", {}).get("status") == "MATCH":
+        import source_inputs
+        body["prepared_source"] = source_inputs.snapshot(root, ident, env)
     confirmed_apk(api, r, body)
     receipt = seal(body)
     name = receipt_name(ident)

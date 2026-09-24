@@ -148,6 +148,10 @@ green_log "[+] primary bundle: $(ls ./*.mpp)"
 green_log "[+] extra -p flags:$EXTRA_P"
 
 # --- 4. apk ----------------------------------------------------------------
+if [ "${PF_SOURCE_READY:-false}" = "true" ]; then
+version=$(python3 src/build/source_inputs.py install "$ID") || { red_log "[-] checked source APK refused"; exit 1; }
+green_log "[+] using exact prepared source APK; no second store download"
+else
 version="$RVER"
 if [ "$ANYVER" = "true" ]; then version=""; lock_version=1; yellow_log "[!] any_version on, taking the store latest"; fi
 if [ "$SRC" = "apkpure" ]; then
@@ -157,6 +161,7 @@ near_version=1
 set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 fi
 [ "$GA" -eq 0 ] || { red_log "[-] get_apk failed for $PKG"; exit 1; }
+fi
 [ -f "./download/$APK_NAME.apk" ] || { red_log "[-] ./download/$APK_NAME.apk missing"; exit 1; }
 SZ=$(wc -c < "./download/$APK_NAME.apk")
 green_log "[+] downloaded $SZ bytes"
