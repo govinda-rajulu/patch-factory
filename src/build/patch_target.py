@@ -54,6 +54,19 @@ def command(root, target_id, winner, env):
 if __name__ == '__main__':
     try:
         args = command(pathlib.Path('.'), sys.argv[1], sys.argv[2], os.environ)
+        if os.environ.get('PF_SOURCE_READY') == 'true':
+            # Mandatory byte check at the actual subprocess boundary.
+            import artifact_identity
+            import source_inputs
+            root = pathlib.Path('.').resolve()
+            target = artifact_identity.target(root, sys.argv[1])
+            source_inputs.consumed(root, sys.argv[1], {
+                'target': sys.argv[1],
+                'patcher_input_apk': artifact_identity.record(
+                    root, 'download/' + target['apk_name'] + '.apk')}, os.environ)
+        if os.environ.get('PF_EXECUTION_OBSERVATION') == 'true':
+            import execution_inputs
+            execution_inputs.capture(pathlib.Path('.'), sys.argv[1], sys.argv[2], os.environ)
         # Never print argv: it carries signing passwords.
         sys.exit(subprocess.run(args, check=False).returncode)
     except (ValueError, KeyError, OSError, StopIteration, IndexError) as e:
