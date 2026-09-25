@@ -335,4 +335,143 @@ class ConnectedObservationContracts(unittest.TestCase):
         self.assertFalse(any('/actions/runs/' in path for path in q.api.calls))
 
 
+class SourceReportContracts(unittest.TestCase):
+    def setUp(self):
+        import source_report
+        self.report = source_report
+        self.s = SourceContracts()
+        self.s.setUp()
+        self.addCleanup(self.s.doCleanups)
+        self.root, self.env = self.s.r, self.s.env
+        self.prepared = self.s.prepare()
+        self.identity = resolved.identity(self.root, self.env)
+        self.current = source.snapshot(self.root, 'keymapper', self.env)
+        self.doc = shadow.seal({
+            'domain': source_report.DOMAIN, 'schema': 1, 'target': 'keymapper',
+            'run': self.identity, 'current': self.current, 'baseline_tag': None,
+            'decision': {'state': 'UNKNOWN', 'reason': 'LATEST_PUBLICATION_HAS_NO_SOURCE_SUBSET'},
+            'limits': source.LIMITS})
+        self.folder = self.root / 'source-observations' / (
+            'source-observation-keymapper-' + self.identity['GITHUB_RUN_ID'] + '-' +
+            self.identity['GITHUB_RUN_ATTEMPT'])
+        self.folder.mkdir(parents=True)
+        self.store(self.prepared, self.doc)
+
+    def store(self, prepared, doc):
+        (self.folder / 'keymapper.json').write_text(json.dumps(prepared))
+        (self.folder / 'keymapper-comparison.json').write_text(json.dumps(doc))
+
+    def aggregate(self, expected=None):
+        with patch.object(self.report.dependency, 'expected_targets',
+                          return_value=expected if expected is not None else ['keymapper']):
+            return self.report.aggregate(self.root, self.env)
+
+    def seal(self, doc):
+        return shadow.seal({k:v for k,v in doc.items() if k != 'sha256'})
+
+    def test_prepared_is_not_unchanged_and_cli_writes_bounded_summary(self):
+        summary = self.root / 'report-summary.md'
+        env = dict(self.env, GITHUB_STEP_SUMMARY=str(summary))
+        with patch.object(self.report.dependency, 'expected_targets', return_value=['keymapper']), \
+                patch.object(self.report.Path, 'cwd', return_value=self.root), \
+                patch.object(self.report.os, 'environ', env), \
+                patch.object(self.report.sys, 'argv', ['source_report.py']):
+            self.assertEqual(self.report.main(), 0)
+        result = json.loads((self.root / 'source-report/report.json').read_text())
+        self.assertEqual(result['coverage'], 'complete')
+        self.assertEqual(result['prepared_targets'], 1)
+        self.assertEqual(result['counts']['UNKNOWN'], 1)
+        self.assertIn('UNKNOWN is not unchanged', summary.read_text())
+        self.assertIn('never selects or skips', result['authority'])
+
+    def test_failure_marker_not_hidden_by_complete_observation_coverage(self):
+        failed = {'target':'keymapper', 'status':'UNKNOWN', 'reason':'SOURCE_PREPARATION_FAILED',
+                  'limits':source.LIMITS}
+        doc = self.seal(dict(self.doc, current=None, decision={
+            'state':'UNKNOWN', 'reason':'SOURCE_OR_BASELINE_UNAVAILABLE'}))
+        self.store(failed, doc)
+        result = self.aggregate()
+        self.assertEqual(result['coverage'], 'complete')
+        self.assertEqual(result['preparation_coverage'], 'incomplete')
+        self.assertEqual(result['prepared_targets'], 0)
+        self.assertEqual(result['targets'][0]['reason'], 'SOURCE_PREPARATION_FAILED')
+
+    def test_missing_expected_target_remains_explicit_unknown(self):
+        result = self.aggregate(['keymapper', 'youtube'])
+        self.assertEqual(result['expected_targets'], 2)
+        self.assertEqual(result['validated_observations'], 1)
+        self.assertEqual(result['coverage'], 'incomplete')
+        self.assertEqual(result['targets'][1]['state'], 'UNKNOWN')
+
+    def test_zero_targets_is_not_complete(self):
+        shutil.rmtree(self.root / 'source-observations')
+        result = self.aggregate([])
+        self.assertEqual(result['coverage'], 'incomplete')
+        self.assertEqual(result['preparation_coverage'], 'incomplete')
+
+    def test_wrong_target_run_attempt_and_tampered_digest_refused(self):
+        for key, value in [('target','youtube'), ('run',dict(self.identity,GITHUB_RUN_ATTEMPT=str(int(self.identity['GITHUB_RUN_ATTEMPT'])+1))),
+                           ('limits',[]), ('sha256','a'*64)]:
+            with self.subTest(key=key):
+                doc = dict(self.doc, **{key:value})
+                if key != 'sha256':
+                    doc = self.seal(doc)
+                self.store(self.prepared, doc)
+                result = self.aggregate()
+                self.assertEqual(result['validated_observations'], 0)
+                self.assertEqual(result['prepared_targets'], 0)
+
+    def test_source_byte_and_manifest_mismatch_refused(self):
+        for field, value in [('apk',dict(self.prepared['apk'],sha256='a'*64)),
+                             ('metadata',dict(self.prepared['metadata'],package='wrong.package'))]:
+            self.store(self.seal(dict(self.prepared, **{field:value})), self.doc)
+            self.assertEqual(self.aggregate()['validated_observations'], 0)
+
+    def test_unexpected_folder_file_and_symlink_refused(self):
+        extra = self.folder / 'unexpected.json'
+        extra.write_text('{}')
+        self.assertEqual(self.aggregate()['validated_observations'], 0)
+        extra.unlink()
+        alien = self.folder.parent / 'source-observation-disabled-1-1'
+        alien.mkdir()
+        self.assertEqual(self.aggregate()['inventory_issues'], ['UNEXPECTED_OR_UNSAFE_ARTIFACT'])
+        alien.rmdir()
+        marker = self.folder / 'keymapper.json'
+        marker.unlink()
+        marker.symlink_to(self.root / source.LOCK)
+        self.assertEqual(self.aggregate()['validated_observations'], 0)
+
+    def test_valid_match_and_change_are_subset_only(self):
+        for state in ('MATCHED_SOURCE_SUBSET', 'CHANGED_SOURCE_SUBSET'):
+            doc = self.seal(dict(self.doc, baseline_tag='key-mapper-v4.2.1-b'+'1'*34,
+                                decision={'state':state,'reason':'VERIFIED_SOURCE_BYTES_COMPARISON'}))
+            self.store(self.prepared, doc)
+            result = self.aggregate()
+            self.assertEqual(result['counts'][state], 1)
+            self.assertIn('shadow-only', result['authority'])
+            doc = self.seal(dict(doc, baseline_tag=None))
+            self.store(self.prepared, doc)
+            self.assertEqual(self.aggregate()['validated_observations'], 0)
+
+    def test_root_symlink_and_inconsistent_failure_cannot_look_healthy(self):
+        failed = {'target':'keymapper', 'status':'UNKNOWN', 'reason':'SOURCE_PREPARATION_FAILED',
+                  'limits':source.LIMITS}
+        self.store(failed, self.doc)
+        self.assertEqual(self.aggregate()['validated_observations'], 0)
+        original = self.root / 'source-observations'
+        saved = self.root / 'saved-source-observations'
+        original.rename(saved)
+        original.symlink_to(saved, target_is_directory=True)
+        result = self.aggregate()
+        self.assertEqual(result['prepared_targets'], 0)
+        self.assertEqual(result['inventory_issues'], ['UNSAFE_ARTIFACT_ROOT'])
+
+    def test_workflow_wiring_preserves_legacy_matrix(self):
+        text = (Path(__file__).resolve().parents[1] / '.github/workflows/ci.yml').read_text()
+        self.assertEqual(text.count('run: python3 src/build/source_report.py'), 1)
+        self.assertIn('pattern: source-observation-*-${{ github.run_id }}-${{ github.run_attempt }}', text)
+        self.assertIn('matrix: ${{ fromJson(needs.plan.outputs.matrix) }}', text)
+        self.assertIn('name: source-report-${{ github.run_id }}-${{ github.run_attempt }}', text)
+
+
 if __name__=='__main__':unittest.main()
