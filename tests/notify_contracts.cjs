@@ -145,12 +145,37 @@ async function main(){
   const jobs=Array.from({length:400},(_,i)=>job(i));for(const j of jobs)j.name='x'.repeat(200);
   await refuses({jobs});
  });
- await test('workflow hooks include Batch and serialize each attempt without checkout',async()=>{
+ await test('workflow hooks include all three watches and Batch without privileged checkout',async()=>{
   assert.ok(source.includes('"9. Batch Patch"'));assert.ok(source.includes('run_attempt'));
   assert.ok(source.includes('cancel-in-progress: false'));
   assert.ok(source.includes('issues: write'));assert.ok(source.includes('actions: read'));
   for(const forbidden of ['actions/checkout','download-artifact','/logs','createComment','issues.update','bad.slice','secrets: inherit','pull_request_target:'])
    assert.ok(!source.includes(forbidden),forbidden);
+  const watches=[
+   ['agent-watch.yml','6. Provider watch'],
+   ['watch.yml','7. Nightly watch'],
+   ['community-watch.yml','8. Community watch']
+  ];
+  const hook=source.match(/workflows: (\[[^\n]+\])/);
+  assert.ok(hook);
+  const names=JSON.parse(hook[1]);
+  assert.equal(names.length,8);assert.equal(new Set(names).size,8);
+  for(const [file,name] of watches){
+   assert.ok(names.includes(name));
+   assert.ok(fs.readFileSync(path.join(ROOT,'.github/workflows',file),'utf8').startsWith('name: '+name+'\n'));
+   for(const event of ['schedule','workflow_dispatch']){
+    const f=fixture({setup:({trigger,run,current})=>{
+     for(const r of [trigger,run,current])Object.assign(r,{name,path:'.github/workflows/'+file,event});
+    }});
+    await f.run();assert.equal(f.state.created.length,1);
+    assert.ok(f.state.created[0].body.includes(name));
+    assert.ok(f.state.created[0].body.includes('5/5'));
+   }
+   await refuses({setup:({trigger})=>Object.assign(trigger,{name,path:'.github/workflows/batch-patch.yml'})});
+   await refuses({setup:({trigger,run,current})=>{
+    for(const r of [trigger,run,current])Object.assign(r,{name,path:'.github/workflows/'+file,event:'pull_request'});
+   }});
+  }
  });
  console.log('NOTIFY_CONTRACTS_PASS='+count);
 }

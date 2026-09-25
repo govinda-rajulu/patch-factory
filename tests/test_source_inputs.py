@@ -474,4 +474,10 @@ class SourceReportContracts(unittest.TestCase):
         self.assertIn('name: source-report-${{ github.run_id }}-${{ github.run_attempt }}', text)
 
 
+def load_tests(loader, tests, pattern):
+    import community_watch_contracts
+    tests.addTests(loader.loadTestsFromModule(community_watch_contracts))
+    return tests
+
+
 if __name__=='__main__':unittest.main()
