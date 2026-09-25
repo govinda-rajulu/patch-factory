@@ -1150,6 +1150,7 @@ class PageAssetVersionTests(unittest.TestCase):
         self.assertEqual(self.check(root, '--check').returncode, 1)
 
 def load_tests(loader, tests, pattern):
+    import provider_watch_contracts
     import nightly_contracts
     import daily_plan_contracts
     import reddit_probe_contracts
@@ -1158,6 +1159,7 @@ def load_tests(loader, tests, pattern):
     tests.addTests(loader.loadTestsFromTestCase(daily_plan_contracts.DailyPlanTests))
     tests.addTests(loader.loadTestsFromTestCase(reddit_probe_contracts.RedditProbe))
     tests.addTests(loader.loadTestsFromTestCase(operational_docs_contracts.OperationalDocs))
+    tests.addTests(loader.loadTestsFromTestCase(provider_watch_contracts.ProviderWatch))
     return tests
 
 
