@@ -1,0 +1,15 @@
+{
+  "attempt": "1",
+  "baseline_sha256": "5905151c59c73a3155783047151a9ef72dda2f160af0a6ebe47afdd3c202d0cb",
+  "head": "67f4a165f6303401dd2112e757c0a7749c68f497",
+  "index_sha256": "4818648ecd780562694df2a575fe5b9fd731a03c4514e56e2b2e7bf941a1c8cc",
+  "issue": 82,
+  "issue_url": "https://github.com/govinda-rajulu/patch-factory/issues/82",
+  "parts": 3,
+  "report_key": "2f73bb1aa8f670218e7984029a084264ff9451b36aafdce08912d2512aaa86fd",
+  "report_sha256": "297d0d7a6248e8b8a11dd8ab26343da56b10a2d7501c269298c196323be3cc84",
+  "repository": "govinda-rajulu/patch-factory",
+  "run_id": "36173399118",
+  "run_url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/36173399118/attempts/1",
+  "state": "READBACK_VERIFIED"
+}
