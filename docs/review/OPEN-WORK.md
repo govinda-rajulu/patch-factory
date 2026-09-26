@@ -1,5 +1,12 @@
 # Open work
 
+## Latest checkpoint: 26 September 2026
+
+Start with the [26 September handover](HANDOVER-2026-09-26.md): current main after
+PR86-PR88, the five exact-version source fallbacks (Photos with its exact signer
+rotation pair), workflow schedules in IST, the release and branch cleanup record
+and the next entry point. Dated sections below are history, not current state.
+
 ## Verified checkpoint: 23 September 2026
 
 [PR75](https://github.com/govinda-rajulu/patch-factory/pull/75) merged as

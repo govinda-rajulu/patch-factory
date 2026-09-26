@@ -11,6 +11,12 @@ OPEN='<!-- STATE:GENERATED - edit src/targets.json, not this block -->'
 CLOSE='<!-- /STATE:GENERATED -->'
 def sh(c):
     return subprocess.run(c,shell=True,capture_output=True,text=True,stdin=subprocess.DEVNULL).stdout.strip()
+def ist(cron):
+    """UTC cron 'M H ...' as IST (UTC+5:30) HH:MM, or 'unknown'."""
+    m=re.match(r'^([0-9]{1,2}) ([0-9]{1,2}) ',cron)
+    if not m or int(m[1])>59 or int(m[2])>23: return 'unknown'
+    t=(int(m[2])*60+int(m[1])+330)%1440
+    return '%02d:%02d'%divmod(t,60)
 def build():
     T=json.load(io.open('src/targets.json',encoding='utf-8'))
     en=[t for t in T if t.get('enabled')]
@@ -32,7 +38,7 @@ def build():
        'Generated from `src/targets.json` by `src/etc/readmegen.py`. **3. Validate** fails a push',
        'that leaves this block stale, so it cannot drift.',
        '',
-       '- **%d apps**, all enabled, %d polled by the scheduled build (`%s` UTC).'%(len(en),len(poll),cron),
+       '- **%d apps**, all enabled, %d polled by the scheduled build (`%s` UTC = %s IST; GitHub can start scheduled runs late).'%(len(en),len(poll),cron,ist(cron)),
        '- Patch-age warning: %s days. Age is advisory; requested/applied checks and build verification decide.'%(', '.join(str(c) for c in caps)),
        '- %s build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.'%tools,
        '- %s patch(es) quarantined in `src/patches/QUARANTINE`, held out of every include list by CI.'%q.strip(),

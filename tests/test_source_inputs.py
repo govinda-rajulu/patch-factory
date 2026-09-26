@@ -211,7 +211,7 @@ class SourceContracts(unittest.TestCase):
     def test_workflow_selection_publication_and_qualification_reader_preserved(self):
         ci=(self.r/'.github/workflows/ci.yml').read_text();manual=(self.r/'.github/workflows/manual-patch.yml').read_text()
         self.assertIn('matrix: ${{ fromJson(needs.plan.outputs.matrix) }}',ci)
-        self.assertIn('cron: "30 12 * * *"',ci)
+        self.assertIn('cron: "23 12 * * *"',ci)
         block=ci.split('\n  resolve:\n')[1].split('\n  dependency_report:\n')[0]
         self.assertNotIn('secrets.',block);self.assertIn('contents: read',block)
         self.assertLess(manual.index('Verify source APK before signing secrets'),manual.index('Decode keystore'))

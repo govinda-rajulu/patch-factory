@@ -5,7 +5,7 @@ permissions:
 
 on:
   schedule:
-    - cron: "30 12 * * *"
+    - cron: "23 12 * * *"  # 17:53 IST daily; GitHub may start scheduled runs late
   workflow_dispatch:
 
 jobs:
