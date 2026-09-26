@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 import zipfile
+from unittest.mock import patch
 
 import source_fallback_contracts as fixtures
 
@@ -184,8 +185,16 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
                                  fixtures.CERT + '\\n"\nexit ' + str(signer_exit) + '\n'
                 }.items():
                     p=bin/name;p.write_text(text);p.chmod(0o755)
+                # sdk_tools deliberately prefers SDK directories over PATH. CI has
+                # a real SDK, which must never parse or verify synthetic APK bytes.
+                sdk = r/'fixture-sdk'
+                tools = sdk/'build-tools/1.0.0'
+                tools.mkdir(parents=True)
+                for name in ('aapt2', 'apksigner'):
+                    shutil.copy2(bin/name, tools/name)
                 p = subprocess.run([sys.executable, 'src/build/source_fallback.py', 'fixture', '2026.38.0'],
-                                   cwd=r, env=dict(os.environ, PATH=str(bin)+':'+os.environ['PATH']),
+                                   cwd=r, env=dict(os.environ, PATH=str(bin)+':'+os.environ['PATH'],
+                                                   ANDROID_HOME=str(sdk), ANDROID_SDK_ROOT=str(sdk)),
                                    capture_output=True, text=True, timeout=25)
                 self.assertNotIn('FAKE_SECRET', p.stdout+p.stderr)
                 self.assertEqual(p.returncode, 0 if signer_exit == 0 else 1, p.stdout+p.stderr)
@@ -197,6 +206,28 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
                                      (r/'standalone.fixture').read_bytes())
                 else:
                     self.assertFalse((r/fb.RECEIPT).exists())
+
+    def test_full_fallback_fixture_ignores_inherited_android_sdks(self):
+        with tempfile.TemporaryDirectory(prefix='pf-host-sdk-') as tmp:
+            root = Path(tmp)
+            calls = root/'host-tool.calls'
+            sdks = {}
+            for variable in ('ANDROID_HOME', 'ANDROID_SDK_ROOT'):
+                sdk = root/variable
+                tools = sdk/'build-tools/99.0.0'
+                tools.mkdir(parents=True)
+                for name in ('aapt2', 'apksigner'):
+                    tool = tools/name
+                    tool.write_text('#!' + sys.executable + '\nfrom pathlib import Path\n'
+                                    'Path(' + repr(str(calls)) + ').write_text("host tool selected")\n'
+                                    'raise SystemExit(47)\n')
+                    tool.chmod(0o755)
+                sdks[variable] = str(sdk)
+            for inherited in (sdks, {'ANDROID_HOME': '', 'ANDROID_SDK_ROOT': sdks['ANDROID_SDK_ROOT']}):
+                with self.subTest(inherited=inherited), patch.dict(os.environ, inherited):
+                    # Exercise both positive shapes AND signature rejection.
+                    self.test_full_fallback_cli_with_process_boundary_tool_fixtures()
+                    self.assertFalse(calls.exists(), 'fixture invoked an inherited Android tool')
 
 
 if __name__=='__main__':unittest.main()
