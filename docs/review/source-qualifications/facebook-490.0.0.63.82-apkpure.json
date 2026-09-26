@@ -1,0 +1,23 @@
+{
+ "certificate_sha256": "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1",
+ "container": {
+  "bytes": 63922261,
+  "sha256": "6f0b901f03af5c511d92338b1179a8411542e06cf4e6b9e151b90be4f3e29371"
+ },
+ "package": "com.facebook.katana",
+ "publisher_anchor_reviewed": true,
+ "schema": 1,
+ "source": "apkpure",
+ "target": "facebook",
+ "variant": {
+  "abis": [
+   "arm64-v8a"
+  ],
+  "apkmirror_url": null,
+  "kind": "apk",
+  "min_sdk": 28
+ },
+ "variant_compatibility_reviewed": true,
+ "version_code": "457215604",
+ "version_name": "490.0.0.63.82"
+}

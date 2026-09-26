@@ -2,6 +2,9 @@
 
 ## Status: PREPARED CANDIDATE, NOT ACTIVATION-READY
 
+> Superseded in part, 26 Sep 2026: 4 exact-version admissions are recorded in [APK-SOURCE-ADMISSIONS-2026-09-26.md](APK-SOURCE-ADMISSIONS-2026-09-26.md).
+> The zero-admission statement below is historical.
+
 Owner scope: prepare and test fallbacks across all 14 enabled apps; no merge or publishing.
 Baseline: main `b5ab2b3fcc171c14c90bd75956f3366d3f8aec52`, tree
 `c084702d95941ea6adf2962dd7dbc6653ef14661`, rechecked through the public GitHub API.

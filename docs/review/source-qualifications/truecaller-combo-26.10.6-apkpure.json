@@ -1,0 +1,23 @@
+{
+ "certificate_sha256": "7712b5f255f2c85b8b164519116ac4381bb9a3582dcdd2b73ac06ee7464913ae",
+ "container": {
+  "bytes": 110330489,
+  "sha256": "b453dc1d4517f6c7bb8a049b7f155cc52ec452d8d8558076058bbd0e22f3f6e5"
+ },
+ "package": "com.truecaller",
+ "publisher_anchor_reviewed": true,
+ "schema": 1,
+ "source": "apkpure",
+ "target": "truecaller-combo",
+ "variant": {
+  "abis": [
+   "arm64-v8a"
+  ],
+  "apkmirror_url": null,
+  "kind": "bundle",
+  "min_sdk": 26
+ },
+ "variant_compatibility_reviewed": true,
+ "version_code": "2610006",
+ "version_name": "26.10.6"
+}

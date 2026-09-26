@@ -1,0 +1,26 @@
+{
+ "certificate_sha256": "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1",
+ "container": {
+  "bytes": 125179933,
+  "sha256": "f88359ba39e1b3c44d6f86f3e2a435109c456715a8996d8388fccbbbbc7362f8"
+ },
+ "package": "org.telegram.messenger",
+ "publisher_anchor_reviewed": true,
+ "schema": 1,
+ "source": "apkpure",
+ "target": "telegram",
+ "variant": {
+  "abis": [
+   "arm64-v8a",
+   "armeabi-v7a",
+   "x86",
+   "x86_64"
+  ],
+  "apkmirror_url": null,
+  "kind": "apk",
+  "min_sdk": 23
+ },
+ "variant_compatibility_reviewed": true,
+ "version_code": "70382",
+ "version_name": "12.10.1"
+}

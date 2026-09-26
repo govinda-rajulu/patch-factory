@@ -23,9 +23,9 @@ def inspect(root, raw, scratch, env):
     t = fallback.target(root, row['target'])
     fallback.need(t['id'] == 'reddit' and t['package'] == row['package'], 'pilot target differs')
     policy_before = (root / fallback.POLICY).read_bytes()
-    doc = fallback.policy(root)
-    fallback.need(all(not x['admissions'] for x in doc['targets'].values()),
-                  'pilot requires dormant all-target policy')
+    # Validate the policy file, but never consult or require its admissions: the pilot
+    # binds only its own reviewed evidence (reviewed admissions may exist since 26 Sep 2026).
+    fallback.policy(root)
     a = {k: row[k] for k in ('source', 'version_name', 'version_code', 'container',
                             'certificate_sha256', 'mapping', 'variant')}
     fallback.mapping_ok(a['source'], a['mapping'], t['package'])

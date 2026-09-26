@@ -214,15 +214,21 @@ def inspect_original(root, raw, t, a, env, scratch):
              (meta["version_name"] == a["version_name"] or
               (split is not None and meta["version_name"] == "")) and
              meta["version_code"] == a["version_code"], "original package/version mismatch")
-        need(type(meta["min_sdk"]) is int and
-             0 < meta["min_sdk"] <= t["min_sdk_ceiling"], "original SDK ceiling exceeded")
-        need(meta["min_sdk"] == a["variant"]["min_sdk"], "original SDK differs from reviewed variant")
+        if meta["min_sdk"] is None:
+            # Only a named configuration split may inherit; the base check below stays strict.
+            need(original_apk.is_config_split(split), "original minimum SDK missing")
+        else:
+            need(type(meta["min_sdk"]) is int and
+                 0 < meta["min_sdk"] <= t["min_sdk_ceiling"], "original SDK ceiling exceeded")
+            need(meta["min_sdk"] == a["variant"]["min_sdk"], "original SDK differs from reviewed variant")
         need(apk_certificate(root, apk, env) == a["certificate_sha256"], "original signer differs")
         need(file_record(apk) == prior, "original changed during verification")
         records.append(prior)
         manifests.append(meta)
     names = [m.get("split") for m in manifests]
     need(names.count(None) == 1, "exactly one original base required")
+    need(all(m["min_sdk"] == a["variant"]["min_sdk"] for m in manifests if m.get("split") is None),
+         "original base minimum SDK missing")
     need(len(names) == len(set(names)), "duplicate original split names")
     need(sorted(abis) == a["variant"]["abis"], "original ABI inventory differs")
     need(file_record(raw) == before, "container changed during verification")

@@ -1,0 +1,23 @@
+{
+ "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+ "container": {
+  "bytes": 68282446,
+  "sha256": "3ab0a58a4ce8425d3e9bd40574f3952d1c1eda6f3394a4cd07ee1c2dde79995c"
+ },
+ "package": "com.reddit.frontpage",
+ "publisher_anchor_reviewed": true,
+ "schema": 1,
+ "source": "apkmirror",
+ "target": "reddit",
+ "variant": {
+  "abis": [
+   "arm64-v8a"
+  ],
+  "apkmirror_url": "https://www.apkmirror.com/apk/redditinc/reddit/reddit-2026-38-0-release/reddit-2026-38-0-2-android-apk-download/",
+  "kind": "bundle",
+  "min_sdk": 29
+ },
+ "variant_compatibility_reviewed": true,
+ "version_code": "2638001",
+ "version_name": "2026.38.0"
+}

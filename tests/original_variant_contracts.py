@@ -141,10 +141,14 @@ class OriginalVariantContracts(unittest.TestCase):
         (f.root / 'scratch').rename(f.root / 'old-scratch')
         with self.assertRaisesRegex(ValueError, 'SDK differs'): f.inspect()
 
-    def test_dormant_14_target_policy_still_has_no_admissions(self):
+    def test_policy_admits_only_reviewed_exact_versions(self):
         doc = fb.policy(ROOT)
         self.assertEqual(len(doc['targets']), 14)
-        self.assertTrue(all(row['admissions'] == [] for row in doc['targets'].values()))
+        reviewed = {'reddit', 'telegram', 'facebook', 'truecaller-combo'}
+        self.assertTrue(all(row['admissions'] == [] for ident, row in doc['targets'].items()
+                            if ident not in reviewed))
+        self.assertTrue(all(len(row['admissions']) <= 1 for row in doc['targets'].values()))
+        # The PR85 originals record itself stays a historical, non-activating observation.
         self.assertFalse(self.e['qualification']['activation'])
 
     def test_production_recipe_covers_new_metadata_and_variant_readers(self):
