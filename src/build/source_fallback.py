@@ -30,6 +30,9 @@ MAX_BYTES = 256 * 1024 * 1024
 MAX_EXPANDED = 768 * 1024 * 1024
 RECEIPT = ".source-fallback-receipt.json"
 LIMITS = ["qualification is version-specific", "not an Android device or runtime-safety test"]
+ADMISSION_FIELDS = {"source", "version_name", "version_code", "container", "certificate_sha256",
+                    "mapping", "evidence", "variant"}
+ROTATION_SDK_MAX = 2147483647
 
 
 def need(ok, why):
@@ -83,6 +86,22 @@ def mapping_ok(source, mapping, package):
         raise ValueError("source fallback: unsupported alternate")
 
 
+def rotation_ok(rotation, certificate):
+    """Exact reviewed v3.0 -> v3.1 key rotation: both signers pinned with their SDK ranges."""
+    need(isinstance(rotation, list) and len(rotation) == 2, "rotation must pin exactly two signers")
+    for row in rotation:
+        need(isinstance(row, dict) and set(row) == {"min_sdk", "max_sdk", "certificate_sha256"} and
+             type(row["min_sdk"]) is int and type(row["max_sdk"]) is int and
+             isinstance(row["certificate_sha256"], str) and
+             re.fullmatch("[0-9a-f]{64}", row["certificate_sha256"]), "invalid rotation signer")
+    old, new = rotation
+    need(0 < old["min_sdk"] <= old["max_sdk"] and new["min_sdk"] == old["max_sdk"] + 1 and
+         new["max_sdk"] == ROTATION_SDK_MAX, "rotation SDK ranges are not contiguous to the maximum")
+    need(old["certificate_sha256"] == certificate, "rotation must start at the pinned certificate")
+    need(new["certificate_sha256"] != certificate, "rotation certificates must differ")
+    return rotation
+
+
 def policy(root):
     doc = recipe.read_json(root, POLICY)
     need(set(doc) == {"schema", "targets"} and type(doc["schema"]) is int and
@@ -102,9 +121,8 @@ def policy(root):
              isinstance(row["admissions"], list), "missing policy state")
         seen = set()
         for a in row["admissions"]:
-            need(isinstance(a, dict) and set(a) == {
-                "source", "version_name", "version_code", "container", "certificate_sha256",
-                "mapping", "evidence", "variant"}, "unknown admission fields")
+            need(isinstance(a, dict) and set(a) in (ADMISSION_FIELDS, ADMISSION_FIELDS | {"signer_rotation"}),
+                 "unknown admission fields")
             version_key(a["version_name"])
             need(isinstance(a["version_code"], str) and
                  re.fullmatch(r"[0-9]+", a["version_code"]), "invalid admitted version code")
@@ -117,6 +135,8 @@ def policy(root):
             need(isinstance(a["certificate_sha256"], str) and
                  re.fullmatch("[0-9a-f]{64}", a["certificate_sha256"]),
                  "original signer pin missing")
+            if "signer_rotation" in a:
+                rotation_ok(a["signer_rotation"], a["certificate_sha256"])
             c = a["container"]
             need(isinstance(c, dict) and set(c) == {"bytes", "sha256"} and
                  type(c["bytes"]) is int and 0 < c["bytes"] <= MAX_BYTES and
@@ -130,14 +150,16 @@ def policy(root):
             need(isinstance(ev, dict) and type(ev.get("schema")) is int and
                  ev.get("publisher_anchor_reviewed") is True and
                  ev.get("variant_compatibility_reviewed") is True, "qualification flags must be boolean")
-            need(ev == {"schema": 1, "target": ident, "package": t["package"],
-                        "source": a["source"], "version_name": a["version_name"],
-                        "version_code": a["version_code"], "container": a["container"],
-                        "certificate_sha256": a["certificate_sha256"],
-                        "variant": a["variant"],
-                        "publisher_anchor_reviewed": True,
-                        "variant_compatibility_reviewed": True},
-                 "qualification does not bind the admitted artifact")
+            bound = {"schema": 1, "target": ident, "package": t["package"],
+                     "source": a["source"], "version_name": a["version_name"],
+                     "version_code": a["version_code"], "container": a["container"],
+                     "certificate_sha256": a["certificate_sha256"],
+                     "variant": a["variant"],
+                     "publisher_anchor_reviewed": True,
+                     "variant_compatibility_reviewed": True}
+            if "signer_rotation" in a:
+                bound["signer_rotation"] = a["signer_rotation"]
+            need(ev == bound, "qualification does not bind the admitted artifact")
     return doc
 
 
@@ -161,6 +183,13 @@ def apk_certificate(root, apk, env):
     # Never emit raw verifier output or filenames to the public build log.
     with contextlib.redirect_stdout(io.StringIO()):
         return identity.apk_signer(root, apk, env)["certificate_sha256"]
+
+
+def apk_signing_identity(root, apk, env):
+    # Rotation-aware reader for admissions that pin a reviewed v3.0 -> v3.1 rotation.
+    with contextlib.redirect_stdout(io.StringIO()):
+        signer = identity.original_signer(root, apk, env)
+    return signer["certificate_sha256"], signer["rotation"]
 
 
 def inspect_original(root, raw, t, a, env, scratch):
@@ -221,7 +250,11 @@ def inspect_original(root, raw, t, a, env, scratch):
             need(type(meta["min_sdk"]) is int and
                  0 < meta["min_sdk"] <= t["min_sdk_ceiling"], "original SDK ceiling exceeded")
             need(meta["min_sdk"] == a["variant"]["min_sdk"], "original SDK differs from reviewed variant")
-        need(apk_certificate(root, apk, env) == a["certificate_sha256"], "original signer differs")
+        if a.get("signer_rotation") is None:
+            need(apk_certificate(root, apk, env) == a["certificate_sha256"], "original signer differs")
+        else:
+            need(apk_signing_identity(root, apk, env) == (a["certificate_sha256"], a["signer_rotation"]),
+                 "original signer rotation differs")
         need(file_record(apk) == prior, "original changed during verification")
         records.append(prior)
         manifests.append(meta)

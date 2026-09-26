@@ -236,7 +236,50 @@ def parse_signers(text):
     return fingerprint
 
 
-def apk_signer(root, apk, env):
+ROTATION_SDK_MAX = 2147483647
+ROTATION_LINE = re.compile(r'^V3[.]([01]) Signer: [(]minSdkVersion=([0-9]+), maxSdkVersion=([0-9]+)[)] '
+                           r'certificate SHA-256 digest:[ \t]*([0-9a-fA-F:]+)[ \t]*$', re.M)
+
+
+def parse_original_signers(text):
+    """Publisher-original signer identity: (certificate_sha256, rotation).
+
+    Without a V3.1 signer this is exactly parse_signers and rotation is None.
+    With one (Google Photos 7.92.0.977185651, SDK37 output, 26 Sep 2026) it returns the
+    V3.0 signer as the certificate and exactly two SDK-ranged entries: V3.0 from its
+    minimum to N, V3.1 from N+1 to the platform maximum, with distinct certificates.
+    Any other shape (more ranges, gaps, V3.2, extra or unlabelled identities) refuses.
+    Originals only: finished APKs keep parse_signers and one CI certificate.
+    """
+    if not re.search(r'^V3[.]1 Signer:', text, re.M):
+        return parse_signers(text), None
+    counts = re.findall(r'^Number of signers:[ \t]*([0-9]+)[ \t]*$', text, re.M)
+    require(counts == ['1'], 'expected exactly one APK signer')
+    for label in ('v3', 'v3.1'):
+        require(re.search(r'^Verified using ' + re.escape(label) + r' scheme [(]APK Signature Scheme ' +
+                          re.escape(label) + r'[)]: true$', text, re.M), 'rotation scheme not verified: ' + label)
+    ranged = ROTATION_LINE.findall(text)
+    stamps = re.findall(r'^Source Stamp Signer: certificate SHA-256 digest:[ \t]*([0-9a-fA-F:]+)[ \t]*$', text, re.M)
+    require(len(stamps) <= 1 and all(re.fullmatch('[0-9a-f]{64}', s.replace(':', '').lower())
+                                   for s in stamps), 'invalid or ambiguous source stamp')
+    certificate_lines = [line for line in text.splitlines() if 'certificate SHA-256 digest:' in line]
+    require(len(certificate_lines) == len(ranged) + len(stamps),
+            'unrecognized certificate identity in verifier output')
+    require(len(ranged) == 2 and sorted(r[0] for r in ranged) == ['0', '1'],
+            'rotation must be exactly one V3.0 and one V3.1 signer')
+    rows = []
+    for scheme, low, high, raw in sorted(ranged, key=lambda r: r[0]):
+        fingerprint = raw.replace(':', '').lower()
+        require(re.fullmatch('[0-9a-f]{64}', fingerprint), 'invalid signer fingerprint')
+        rows.append({'min_sdk': int(low), 'max_sdk': int(high), 'certificate_sha256': fingerprint})
+    old, new = rows
+    require(0 < old['min_sdk'] <= old['max_sdk'] and new['min_sdk'] == old['max_sdk'] + 1 and
+            new['max_sdk'] == ROTATION_SDK_MAX, 'rotation SDK ranges are not contiguous to the maximum')
+    require(old['certificate_sha256'] != new['certificate_sha256'], 'rotation certificates must differ')
+    return old['certificate_sha256'], rows
+
+
+def verifier_output(root, apk, env):
     tools = sdk_tools('apksigner', env)
     require(tools, 'apksigner unavailable; final signature is unverified')
     # A verification failure must not be silently retried with an older verifier.
@@ -252,8 +295,19 @@ def apk_signer(root, apk, env):
     }, sort_keys=True), flush=True)
     require(result.returncode == 0,
             'apksigner failed (exit ' + str(result.returncode) + ')')
-    text = result.stdout.decode()
-    return {'certificate_sha256': parse_signers(text), 'verifier': tools[0], 'cryptographic_verification': 'passed'}
+    return tools[0], result.stdout.decode()
+
+
+def apk_signer(root, apk, env):
+    tool, text = verifier_output(root, apk, env)
+    return {'certificate_sha256': parse_signers(text), 'verifier': tool, 'cryptographic_verification': 'passed'}
+
+
+def original_signer(root, apk, env):
+    tool, text = verifier_output(root, apk, env)
+    certificate, rotation = parse_original_signers(text)
+    return {'certificate_sha256': certificate, 'rotation': rotation, 'verifier': tool,
+            'cryptographic_verification': 'passed'}
 
 
 def validate_identity(meta, architecture, signer, captured, version):
