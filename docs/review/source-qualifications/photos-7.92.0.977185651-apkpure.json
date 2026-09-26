@@ -1,0 +1,38 @@
+{
+ "certificate_sha256": "3d7a1223019aa39d9ea0e3436ab7c0896bfb4fb679f4de5fe7c23f326c8f994a",
+ "container": {
+  "bytes": 230966267,
+  "sha256": "20047c44376edaac9380d01632eabd6db1087ecaca0252aad80cc5b8b3b42624"
+ },
+ "package": "com.google.android.apps.photos",
+ "publisher_anchor_reviewed": true,
+ "schema": 1,
+ "signer_rotation": [
+  {
+   "certificate_sha256": "3d7a1223019aa39d9ea0e3436ab7c0896bfb4fb679f4de5fe7c23f326c8f994a",
+   "max_sdk": 32,
+   "min_sdk": 24
+  },
+  {
+   "certificate_sha256": "5aad2bee6db95d17e05a08d7d1e64c10a1511879154483916b6ae6c7fd9cb0c6",
+   "max_sdk": 2147483647,
+   "min_sdk": 33
+  }
+ ],
+ "source": "apkpure",
+ "target": "photos",
+ "variant": {
+  "abis": [
+   "arm64-v8a",
+   "armeabi-v7a",
+   "x86",
+   "x86_64"
+  ],
+  "apkmirror_url": null,
+  "kind": "apk",
+  "min_sdk": 24
+ },
+ "variant_compatibility_reviewed": true,
+ "version_code": "52372370",
+ "version_name": "7.92.0.977185651"
+}

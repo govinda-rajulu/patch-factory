@@ -16,8 +16,10 @@ claim about the current branch.
 
 ## Before a fresh all-target publication
 
-- **Exact-version source fallbacks (26 Sep 2026):** 4 admissions (reddit, telegram, facebook, truecaller-combo) act only after the primary download fails for that exact version. Photos stays blocked on signer rotation. See the
-  [admission record](APK-SOURCE-ADMISSIONS-2026-09-26.md).
+- **Exact-version source fallbacks (26 Sep 2026):** 4 admissions (reddit, telegram, facebook, truecaller-combo) act only after the primary download fails for that exact version. Photos 7.92.0.977185651 is
+  admitted separately with an exact v3.0->v3.1 signer rotation pin. See the
+  [admission record](APK-SOURCE-ADMISSIONS-2026-09-26.md) and the
+  [Photos rotation record](APK-SOURCE-ADMISSION-PHOTOS-2026-09-26.md).
 - **Reddit later recovered by schedule:** Daily35758471077 published Reddit
   2026.38.0 with the finished-identity, handoff and release stages successful.
   Earlier run35637130545 remains a historical failed attempt; the exact root
