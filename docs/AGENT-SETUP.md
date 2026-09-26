@@ -5,7 +5,7 @@
 ## Do this first, before any agent exists
 
 The **6. Provider watch** workflow already does the part that does not need intelligence: every
-Monday it re-reads all fourteen providers' patch lists with `-x -u` and opens one issue if any
+Monday it re-reads all 19 provider entries (15 primary candidates and 4 extra bundles across 14 targets) with `-x -u` and opens one issue if any
 patch name appeared or disappeared. No API key, no quota, no model.
 
 Run it once by hand today so it has a baseline:

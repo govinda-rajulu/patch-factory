@@ -2,7 +2,7 @@
 
 ## Start with the download
 
-The [app shelf](https://govinda-rajulu.github.io/patch-factory/) shows the newest eligible published APK for each app, its publication time, and release notes inline. “Recent upload” means recently published bytes, not necessarily a newer app version. The release archive is history, not one global “latest app.”
+The [app shelf](https://govinda-rajulu.github.io/patch-factory/) shows the newest eligible published APK for each app, its publication time, and a concise change summary; the full original release notes stay on the linked GitHub release page. “Recent upload” means recently published bytes, not necessarily a newer app version. The release archive is history, not one global “latest app.”
 
 Patched apps are built here. Morphe MicroG RE is an optional upstream companion from MorpheApp, not patched or re-signed here. Its channel offers stable only or stable plus dev prereleases. Universal is the default; the import panel also offers Auto architecture, ARM64 and ARMv7. Exact architecture choices refuse a different CPU file; if upstream has no matching asset, the selection can be unavailable. No no-icon variant is silently substituted.
 

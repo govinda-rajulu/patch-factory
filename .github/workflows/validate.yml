@@ -29,6 +29,12 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'test_identity.py' -v
       - name: Exact bundle transport contracts
         run: python3 -m unittest discover -s tests -p 'test_transport.py' -v
+      - name: Workflow and watcher contracts
+        run: python3 -m unittest discover -s tests -p '*_contracts.py' -v
+      - name: Page and notifier contracts
+        run: |
+          node tests/portal_contracts.cjs
+          node tests/notify_contracts.cjs
       - name: targets.json integrity
         run: |
           jq -e . src/targets.json > /dev/null || { echo "::error::targets.json is not valid JSON"; exit 1; }
@@ -58,11 +64,11 @@ jobs:
       - name: New-field integrity
         run: |
           FAIL=0
-          while IFS=$'\t' read -r id host pid; do
-            if [ "$host" = "gitlab" ] && { [ "$pid" = "-" ] || [ "$pid" = "null" ]; }; then
-              echo "::error::$id: gitlab candidate needs project_id"; FAIL=1
+          while IFS=$'\t' read -r id host; do
+            if [ "$host" != "github" ]; then
+              echo "::error::$id: primary candidates must be host=github; GitLab is supported only as an extra bundle"; FAIL=1
             fi
-          done < <(jq -r '.[] | .id as $i | .candidates[] | [$i, (.host // "github"), (.project_id // "-")] | @tsv' src/targets.json)
+          done < <(jq -r '.[] | .id as $i | .candidates[] | [$i, (.host // "github")] | @tsv' src/targets.json)
           while IFS=$'\t' read -r id nm host pid owner repo; do
             [ -n "$nm" ] && [ "$nm" != "null" ] || { echo "::error::$id: extra_bundles entry has no name"; FAIL=1; }
             case "$host" in

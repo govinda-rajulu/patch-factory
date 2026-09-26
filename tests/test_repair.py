@@ -80,6 +80,30 @@ class Repair(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             preflight.check(self.r)
 
+    def test_preflight_refuses_gitlab_primary_candidate(self):
+        path = self.r / 'src/targets.json'
+        targets = json.loads(path.read_text())
+        targets[0]['candidates'] = [{'name': 'paresh', 'host': 'gitlab', 'project_id': 82031658,
+                                     'channel': 'prerelease', 'patch_dir': targets[0]['candidates'][0]['patch_dir'],
+                                     'options': targets[0]['candidates'][0].get('options', 'x')}]
+        path.write_text(json.dumps(targets, indent=2) + '\n')
+        with self.assertRaisesRegex(ValueError, 'extra-bundle only'):
+            preflight.check(self.r)
+
+    def test_preflight_refuses_primary_without_owner_repo(self):
+        path = self.r / 'src/targets.json'
+        targets = json.loads(path.read_text())
+        targets[0]['candidates'][0].pop('owner', None)
+        targets[0]['candidates'][0].pop('repo', None)
+        path.write_text(json.dumps(targets, indent=2) + '\n')
+        with self.assertRaisesRegex(ValueError, 'primary candidate missing safe'):
+            preflight.check(self.r)
+
+    def test_add_target_rejects_gitlab_primary_before_write(self):
+        source = (self.r / '.github/workflows/add-target.yml').read_text()
+        self.assertIn('GitLab is supported only as an extra bundle, not as a primary candidate', source)
+        self.assertLess(source.index('GitLab is supported only as an extra bundle'), source.index('mkdir -p "$D"'))
+
     def test_public_import_generator_roundtrip_and_retired_exports_absent(self):
         path = self.r/'docs/obtainium.json'
         before = path.read_bytes()
@@ -118,7 +142,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=23', result.stdout)
+        self.assertIn('PORTAL_CONTRACTS_PASS=27', result.stdout)
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'

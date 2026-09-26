@@ -57,6 +57,31 @@ class Transport(unittest.TestCase):
   r=json.loads(json.dumps(self.release));r['assets'][0]['digest']='sha256:'+'0'*64
   with patch.object(bundle,'choose_release',return_value=r),patch.object(bundle.subprocess,'run',side_effect=self.download):
    with self.assertRaises(ValueError):bundle.fetch('owner','repo','latest',self.root,{})
+ def fetch_refused(self,expected):
+  self.release['assets'][0]['size']=len(self.payload)
+  with patch.object(bundle,'choose_release',return_value=self.release),patch.object(bundle.subprocess,'run',side_effect=self.download):
+   with self.assertRaisesRegex(ValueError,expected):bundle.fetch('owner','repo','latest',self.root,{})
+  self.assertFalse(list(self.root.glob('*.mpp')))
+ def test_fetch_rejects_traversal_zip(self):
+  b=io.BytesIO()
+  with zipfile.ZipFile(b,'w') as z:z.writestr('../outside',b'x'*11000)
+  self.payload=b.getvalue();self.fetch_refused('unsafe')
+ def test_fetch_rejects_symlink_zip(self):
+  b=io.BytesIO()
+  with zipfile.ZipFile(b,'w') as z:
+   i=zipfile.ZipInfo('link');i.external_attr=0o120777<<16;z.writestr(i,b'x'*11000)
+  self.payload=b.getvalue();self.fetch_refused('symlink')
+ def test_fetch_rejects_duplicate_zip(self):
+  import warnings
+  b=io.BytesIO()
+  with warnings.catch_warnings():
+   warnings.simplefilter('ignore')
+   with zipfile.ZipFile(b,'w') as z:z.writestr('same',b'x'*11000);z.writestr('same',b'x')
+  self.payload=b.getvalue();self.fetch_refused('duplicate')
+ def test_fetch_rejects_expansion_bomb(self):
+  with patch.object(bundle,'MAX_EXPANDED',10):self.fetch_refused('expansion')
+ def test_fetch_rejects_bad_crc(self):
+  self.payload=self.payload.replace(b'x'*32,b'y'*32,1);self.fetch_refused('CRC')
  def test_resolver_process_failure_rejects_ceiling_fallback(self):
   (self.root/'src').mkdir();(self.root/'morphe-desktop-fixture.jar').write_text('fixture')
   (self.root/'src/targets.json').write_text(json.dumps([{'id':'facebook','package':'com.facebook.katana','max_app_version':'490','candidates':[{'name':'p','owner':'owner','repo':'repo','channel':'prerelease'}]}]))

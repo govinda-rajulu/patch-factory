@@ -227,6 +227,40 @@ class ProviderWatch(unittest.TestCase):
              patch.object(watch.sys, "argv", ["provider_watch.py", "enforce"]):
             self.assertEqual(watch.main(), 1)
 
+    def test_audit_record_covers_fixed_findings_without_live_claims(self):
+        text = (ROOT / "docs/review/AUDIT-2026-09-26.md").read_text()
+        for marker in ("PF-BUILD-001", "PF-WIRE-002", "PF-EXPLORE-003", "PF-CI-004",
+                       "PORTAL-001", "36173375425", "36173399118"):
+            self.assertIn(marker, text)
+        self.assertIn("observation-only", text)
+        self.assertNotIn("all-clear", text.lower())
+        self.assertIn("ICON-PROVENANCE.md", text)
+        self.assertIn("#26", text)
+
+    def test_icon_provenance_keeps_unlicensed_marks_generic(self):
+        text = (ROOT / "docs/review/ICON-PROVENANCE.md").read_text()
+        for marker in ("Owner approval", "Blocked", "docs/assets/NOTICE.txt", "monogram"):
+            self.assertIn(marker, text)
+        self.assertIn("that estimate is not evidence", text)
+        setup = (ROOT / "docs/AGENT-SETUP.md").read_text()
+        self.assertIn("19 provider entries", setup)
+        self.assertNotIn("all fourteen providers", setup)
+
+    def test_explore_executes_only_verified_patcher(self):
+        source = (ROOT / ".github/workflows/explore.yml").read_text()
+        self.assertIn("persist-credentials: false", source)
+        self.assertIn("python3 src/build/github_patcher.py .", source)
+        self.assertNotIn("curl -sSL", source)
+        self.assertNotIn("gh api repos/MorpheApp/morphe-desktop", source)
+        self.assertNotIn("morphe-desktop.jar list-patches", source)
+        self.assertIn('java -jar "${{ steps.patcher.outputs.jar }}"', source)
+        self.assertLess(source.index("github_patcher.py"), source.index("java -jar"))
+
+    def test_validate_rejects_gitlab_primary_candidates(self):
+        source = (ROOT / ".github/workflows/validate.yml").read_text()
+        self.assertIn("primary candidates must be host=github", source)
+        self.assertNotIn("gitlab candidate needs project_id", source)
+
     def test_workflow_preserves_reports_before_enforcement(self):
         source = (ROOT / ".github/workflows/agent-watch.yml").read_text()
         self.assertLess(source.index("provider_watch.py collect"), source.index("provider_watch.py issue"))

@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,jobRole,jobSummary};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,jobRole,jobSummary,reportIdentity,reportBinding,checkCompleteness};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
 check('MicroG architecture selections stay single-file and refuse variant fallbacks',()=>{
@@ -137,5 +137,40 @@ check('MicroG direct control and toolbar share explicit page-only state',()=>{
  assert.ok(!source.includes("'Change MicroG channel'"));
  assert.ok(source.includes('tracked apps are unchanged'));
  assert.ok(source.includes('can show the same version when stable is newest'));
+});
+
+check('provider report identity binds exact run and attempt only',()=>{
+ const issue={title:'provider watch: CHANGED run 36173375425/1',body:'# Provider watch: CHANGED\nhttps://github.com/govinda-rajulu/patch-factory/actions/runs/36173375425/attempts/1\nmore'};
+ const id=c.reportIdentity('agent-watch.yml',issue);assert.deepEqual(JSON.parse(JSON.stringify(id)),{run_id:'36173375425',attempt:'1'});
+ assert.equal(c.reportIdentity('agent-watch.yml',{title:'provider watch: CHANGED run 36173375425/1',body:'https://github.com/govinda-rajulu/patch-factory/actions/runs/999/attempts/1'}),null);
+ assert.equal(c.reportBinding('agent-watch.yml',{id:36173375425,run_attempt:1},issue,null).state,'joined');
+ assert.equal(c.reportBinding('agent-watch.yml',{id:36173375425,run_attempt:2},issue,null).state,'different-run');
+ assert.equal(c.reportBinding('agent-watch.yml',null,{title:'provider watch: CHANGED',body:''},null).state,'unidentified');
+});
+check('community report identity binds through acknowledged receipt',()=>{
+ const key='a'.repeat(64),issue={number:82,title:'community: index changed for apps you build',body:'<!-- pf-community:'+key+' -->\n# Community observation report'};
+ assert.deepEqual(JSON.parse(JSON.stringify(c.reportIdentity('community-watch.yml',issue))),{report_key:key});
+ const run={id:36173399118,run_attempt:1};
+ assert.equal(c.reportBinding('community-watch.yml',run,issue,{report_key:key,issue:82,run_id:'36173399118',attempt:'1'}).state,'joined');
+ assert.equal(c.reportBinding('community-watch.yml',run,issue,{report_key:'b'.repeat(64),issue:82,run_id:'36173399118',attempt:'1'}).state,'stale-receipt');
+ assert.equal(c.reportBinding('community-watch.yml',run,issue,{report_key:key,issue:99,run_id:'36173399118',attempt:'1'}).state,'issue-mismatch');
+ assert.equal(c.reportBinding('community-watch.yml',{id:1,run_attempt:1},issue,{report_key:key,issue:82,run_id:'36173399118',attempt:'1'}).state,'different-run');
+});
+check('multipart completeness requires every bot-authored unedited part',()=>{
+ const key='c'.repeat(64),body='<!-- pf-community:'+key+' --> Expected report: 3 numbered comment(s).';
+ const part=n=>({body:'<!-- pf-community:'+key+':'+n+' --> x',user:{login:'github-actions[bot]',type:'Bot'},created_at:'2026-09-25T18:00:0'+n+'Z',updated_at:'2026-09-25T18:00:0'+n+'Z'});
+ assert.deepEqual(JSON.parse(JSON.stringify(c.checkCompleteness(body,[part(1),part(2),part(3)]))),{known:true,expected:3,complete:true,missing:[]});
+ assert.deepEqual(JSON.parse(JSON.stringify(c.checkCompleteness(body,[part(1),part(3)]))),{known:true,expected:3,complete:false,missing:[2]});
+ const edited=part(2);edited.updated_at='2026-09-25T19:00:00Z';
+ assert.deepEqual(Array.from(c.checkCompleteness(body,[part(1),edited,part(3)]).missing),[2]);
+ const human=part(2);human.user={login:'someone',type:'User'};
+ assert.deepEqual(Array.from(c.checkCompleteness(body,[part(1),human,part(3)]).missing),[2]);
+ assert.equal(c.checkCompleteness('no markers',[]).known,false);
+});
+check('watch panel reports cannot silently truncate at producer capacity',()=>{
+ assert.ok(source.includes('markdown(c.body,{chars:49152,lines:2000})'));
+ assert.ok(source.includes('markdown(report.body,{chars:49152,lines:2000})'));
+ assert.ok(source.includes('Report completeness verified: '));
+ assert.ok(source.includes('Report incomplete: part(s) '));
 });
 console.log('PORTAL_CONTRACTS_PASS='+count);

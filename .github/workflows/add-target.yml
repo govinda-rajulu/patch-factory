@@ -79,6 +79,10 @@ jobs:
           PI: ${{ inputs.provider_ident }}
           AT: ${{ inputs.apk_type }}
         run: |
+          if [ "$PH" = "gitlab" ]; then
+            echo "::error::GitLab is supported only as an extra bundle, not as a primary candidate. The build resolver and provider watch resolve primaries through GitHub owner/repo, so a GitLab primary would be unbuildable and unwatched. Pick provider_host=github."
+            exit 1
+          fi
           D="src/patches/$ID-$PN"
           mkdir -p "$D"; : > "$D/include-patches"; : > "$D/exclude-patches"
           [ -f "src/options/$PN.json" ] || echo '[]' > "src/options/$PN.json"
