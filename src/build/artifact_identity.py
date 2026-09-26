@@ -139,6 +139,11 @@ def capture_inputs(root, ident, winner, env):
             'limitations': ['Patcher input may be a merged/repacked store download; original publisher signature is not verified.',
                             'Runtime/OS/container transitive dependencies are not fully pinned or attested.',
                             'This is evidence collected in the same runner, not isolation against a malicious patcher.']}
+    import source_fallback
+    data['source_fallback'] = source_fallback.read_receipt(root, ident, patcher_input)
+    if data['source_fallback'] is not None:
+        data['limitations'][0] = ('Qualified alternate: original container/splits verified against reviewed '
+                                 'version-specific bytes and signer before merging; not independent attestation.')
     if env.get('PF_RESOLVED_REQUESTED', 'false').lower() == 'true':
         if env.get('PF_RESOLVED_READY', 'false').lower() == 'true':
             import resolved_inputs
@@ -206,8 +211,13 @@ def parse_signers(text):
     # SDK 37.0.0 output captured from run 34453111340. Only this observed
     # scheme-labelled format is added; ambiguous/multiple identities still fail.
     scheme = re.findall(r'^V3[.]0 Signer: certificate SHA-256 digest:[ \t]*([0-9a-fA-F:]+)[ \t]*$', text, re.M)
+    # SDK37 Reddit originals (26 Sep 2026) include a Google Source Stamp.
+    # It is not an APK signing identity and must never supply the app pin.
+    stamps = re.findall(r'^Source Stamp Signer: certificate SHA-256 digest:[ \t]*([0-9a-fA-F:]+)[ \t]*$', text, re.M)
+    require(len(stamps) <= 1 and all(re.fullmatch('[0-9a-f]{64}', s.replace(':', '').lower())
+                                   for s in stamps), 'invalid or ambiguous source stamp')
     certificate_lines = [line for line in text.splitlines() if 'certificate SHA-256 digest:' in line]
-    require(len(certificate_lines) == len(legacy) + len(scheme),
+    require(len(certificate_lines) == len(legacy) + len(scheme) + len(stamps),
             'unrecognized certificate identity in verifier output')
     if scheme:
         require(counts == ['1'] and not legacy and len(scheme) == 1,
@@ -228,7 +238,7 @@ def apk_signer(root, apk, env):
     # A verification failure must not be silently retried with an older verifier.
     result = subprocess.run(
         [tools[0], 'verify', '--print-certs', '--verbose', str(apk)],
-        cwd=root, capture_output=True, timeout=120)
+        cwd=root, env=env, capture_output=True, timeout=120)
     # Public verification output only: this invocation receives no key/password.
     # JSON escaping preserves formatting and prevents output becoming CI commands.
     print('APKSIGNER_DIAGNOSTIC ' + json.dumps({
@@ -263,6 +273,9 @@ def verify_final(root, ident, env):
     verify_records(root, captured['repository_files'] + captured['tools'] + captured['bundles']
                    + [captured['patcher_input_apk'], captured['requested_ledger']])
     input_recipe.verify(root, ident, captured['winner'], captured['local_input_recipe'], env)
+    import source_fallback
+    require(source_fallback.read_receipt(root, ident, captured['patcher_input_apk']) ==
+            captured.get('source_fallback'), 'fallback provenance changed during patching')
     if captured.get('resolution', {}).get('status') == 'MATCH':
         import resolved_inputs
         require(resolved_inputs.verify_consumed(root, ident, captured, env) == captured['resolution'],

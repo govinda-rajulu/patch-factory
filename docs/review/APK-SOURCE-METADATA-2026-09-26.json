@@ -1,0 +1,377 @@
+{
+  "scope": {
+    "repository": "govinda-rajulu/patch-factory",
+    "targets": 14,
+    "enabled_targets": 14,
+    "missing_cross_store_mappings": [
+      "youtube",
+      "adguard",
+      "photos",
+      "truecaller-combo",
+      "instagram",
+      "reddit",
+      "edge",
+      "keymapper"
+    ],
+    "read_only": true,
+    "artifact_limit": "No APK/XAPK bytes were downloaded or inspected in this research run; no signer comparison was performed. Listing metadata is not artifact evidence."
+  },
+  "decision_rule": "A public listing with an explicit package match is enough to mark a metadata mapping candidate, but not enough to enable a production source fallback. Enablement remains NO until the selected version's downloaded artifact is checked for package, version, SDK/ABI suitability, and signer/hash evidence against an accepted source.",
+  "targets": [
+    {
+      "id": "youtube",
+      "package": "com.google.android.youtube",
+      "apk_type": "apk",
+      "configured_source": "apkmirror",
+      "mapping_state": "MISSING_APKPURE_CONFIG",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.google.android.youtube",
+        "evidence": "Google Play page title YouTube, developer Google LLC; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=youtube",
+        "evidence": "src/build/helper/apps.json; APKMirror page is YouTube by Google LLC."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": "https://apkpure.com/youtube-app/com.google.android.youtube",
+        "package_evidence": "APKPure page explicitly reports Package Name: com.google.android.youtube; version 21.31.525 in fetched page.",
+        "metadata_mapping_candidate": "YES"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "No artifact bytes/signer comparison; listing identity alone cannot establish a safe fallback."
+    },
+    {
+      "id": "adguard",
+      "package": "com.adguard.android",
+      "apk_type": "apk",
+      "configured_source": "apkmirror",
+      "mapping_state": "MISSING_APKPURE_CONFIG",
+      "official": {
+        "url": "https://adguard.com/en/adguard-android/overview.html",
+        "release_url": "https://adguard.com/en/versions/android/release.html",
+        "evidence": "AdGuard says full AdGuard for Android is installed via APK and cannot be published on Google Play; this is not the Play Content Blocker package."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=adguard",
+        "evidence": "src/build/helper/apps.json; exact package evidence from APKMirror release below."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": null,
+        "package_evidence": "No exact APKPure listing was verified. A guessed URL was not accepted as evidence.",
+        "metadata_mapping_candidate": "NO"
+      },
+      "verified_alternate": {
+        "store": "apkmirror",
+        "url": "https://www.apkmirror.com/apk/adguard-software-limited/adguard/adguard-for-android-4-13-1-release/adguard-for-android-4-13-1-android-apk-download/",
+        "package_evidence": "APKMirror exact release reports Package: com.adguard.android; version 4.13.1; min Android 9/API 28; universal ABI listing."
+      },
+      "enable_fallback_now": "NO",
+      "gap": "Official AdGuard APK is a distinct potential source; no reviewed adapter or verified APKPure mapping. Original artifact/signature evidence is missing."
+    },
+    {
+      "id": "photos",
+      "package": "com.google.android.apps.photos",
+      "apk_type": "apk",
+      "configured_source": "apkmirror",
+      "mapping_state": "MISSING_APKPURE_CONFIG",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.google.android.apps.photos",
+        "evidence": "Google Play page title Google Photos, developer Google LLC; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=photos",
+        "evidence": "src/build/helper/apps.json; APKMirror Google Photos page and exact releases report package."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": "https://apkpure.com/google-photos/com.google.android.apps.photos",
+        "package_evidence": "APKPure fetched page explicitly reports Package Name: com.google.android.apps.photos; version 7.82.0.937646388.",
+        "metadata_mapping_candidate": "YES"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "No artifact bytes/signer comparison; APKPure listing is metadata only."
+    },
+    {
+      "id": "truecaller-combo",
+      "package": "com.truecaller",
+      "apk_type": "bundle",
+      "configured_source": "apkmirror",
+      "mapping_state": "MISSING_APKPURE_CONFIG",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.truecaller",
+        "evidence": "Google Play page title Truecaller: Spam Call Blocker, developer True Software Scandinavia AB; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=truecaller-caller-id-block",
+        "evidence": "src/build/helper/apps.json; APKMirror exact releases report package."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": "https://apkpure.com/truecaller-caller-id-block-for-android-2024/com.truecaller",
+        "package_evidence": "APKPure exact page path and download result explicitly report Package Name: com.truecaller; version 26.19.7 XAPK in search evidence.",
+        "metadata_mapping_candidate": "YES"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "Bundle split set, version, and signer still need artifact-level checks."
+    },
+    {
+      "id": "primevideo",
+      "package": "com.amazon.avod.thirdpartyclient",
+      "apk_type": "bundle",
+      "configured_source": "apkmirror",
+      "mapping_state": "CONFIGURED_APKPURE_ALTERNATE",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.amazon.avod.thirdpartyclient",
+        "evidence": "Google Play page title Prime Video, developer Amazon Mobile LLC; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=amazon-prime-video",
+        "evidence": "src/build/helper/apps.json; exact APKMirror release search evidence reports Package: com.amazon.avod.thirdpartyclient."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": "https://apkpure.com/x/com.amazon.avod.thirdpartyclient/download",
+        "package_evidence": "URL is configured in src/build/helper/apps.json, but this download endpoint was not fetched and no independent package-body evidence was obtained.",
+        "metadata_mapping_candidate": "CONFIG_ONLY"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "Configured APKPure endpoint is not independently verified here; no artifact bytes/signers."
+    },
+    {
+      "id": "esfile",
+      "package": "com.estrongs.android.pop",
+      "apk_type": "bundle",
+      "configured_source": "apkmirror",
+      "mapping_state": "CONFIGURED_APKPURE_ALTERNATE",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.estrongs.android.pop",
+        "evidence": "Current Play fetch failed; historical package reference and APKMirror exact package evidence exist. Treat official Play availability as unverified/currently unavailable, not as a live listing."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=es-file-explorer",
+        "evidence": "src/build/helper/apps.json."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": "https://apkpure.com/x/com.estrongs.android.pop/download",
+        "package_evidence": "URL is configured in src/build/helper/apps.json, but endpoint was not fetched and no independent APKPure body evidence was obtained.",
+        "metadata_mapping_candidate": "CONFIG_ONLY"
+      },
+      "verified_alternate": {
+        "store": "apkmirror",
+        "url": "https://www.apkmirror.com/apk/es-global/es-file-explorer/es-file-explorer-file-manager-4-4-3-7-release/es-file-explorer-file-manager-4-4-3-7-android-apk-download/",
+        "package_evidence": "APKMirror exact release reports Package: com.estrongs.android.pop; version 4.4.3.7; min Android 4.4/API 19."
+      },
+      "enable_fallback_now": "NO",
+      "gap": "Current official-store availability unclear; APKPure endpoint unverified; no artifact bytes/signers."
+    },
+    {
+      "id": "facebook",
+      "package": "com.facebook.katana",
+      "apk_type": "bundle",
+      "configured_source": "apkmirror",
+      "mapping_state": "CONFIGURED_APKPURE_ALTERNATE",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.facebook.katana",
+        "evidence": "Google Play page title Facebook, developer Meta Platforms, Inc.; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=facebook",
+        "evidence": "src/build/helper/apps.json; APKMirror exact page/search evidence reports Package: com.facebook.katana."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": "https://apkpure.com/x/com.facebook.katana/download",
+        "package_evidence": "APKPure version search result explicitly reports Package Name: com.facebook.katana; configured endpoint is in apps.json.",
+        "metadata_mapping_candidate": "YES"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "No artifact bytes/signer comparison; target max version 490.0.0.63.82 must be enforced separately."
+    },
+    {
+      "id": "instagram",
+      "package": "com.instagram.android",
+      "apk_type": "bundle",
+      "configured_source": "apkpure",
+      "mapping_state": "MISSING_APKMIRROR_CONFIG",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.instagram.android",
+        "evidence": "Google Play page title Instagram, developer Meta Platforms, Inc.; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://apkpure.com/x/com.instagram.android/download",
+        "evidence": "src/build/helper/apps.json; configured APKPure endpoint."
+      },
+      "alternate_candidate": {
+        "store": "apkmirror",
+        "url": "https://www.apkmirror.com/apk/instagram/instagram-instagram/",
+        "package_evidence": "APKMirror exact release search result reports Package: com.instagram.android (example version 387.1.0.34.85; bundle); broad page is Instagram by Instagram.",
+        "metadata_mapping_candidate": "YES"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "APKMirror listing identity is verified, but no selected-version artifact/signature comparison."
+    },
+    {
+      "id": "reddit",
+      "package": "com.reddit.frontpage",
+      "apk_type": "bundle",
+      "configured_source": "apkpure",
+      "mapping_state": "MISSING_APKMIRROR_CONFIG",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.reddit.frontpage",
+        "evidence": "Google Play page title Reddit, developer reddit Inc.; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://apkpure.com/x/com.reddit.frontpage/download",
+        "evidence": "src/build/helper/apps.json; configured APKPure endpoint."
+      },
+      "alternate_candidate": {
+        "store": "apkmirror",
+        "url": "https://www.apkmirror.com/apk/redditinc/reddit/",
+        "package_evidence": "APKMirror exact release search result reports Package: com.reddit.frontpage; broad page is Reddit by reddit Inc.",
+        "metadata_mapping_candidate": "YES"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "No artifact bytes/signer comparison; APKMirror split variants need selection validation."
+    },
+    {
+      "id": "hotstar",
+      "package": "in.startv.hotstar",
+      "apk_type": "bundle",
+      "configured_source": "apkmirror",
+      "mapping_state": "CONFIGURED_APKPURE_ALTERNATE",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=in.startv.hotstar",
+        "evidence": "Google Play page title JioHotstar, developer JIOSTAR INDIA PRIVATE LIMITED; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=jiohotstar-4",
+        "evidence": "src/build/helper/apps.json; current configured APKMirror listing metadata."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": "https://apkpure.com/x/in.startv.hotstar/download",
+        "package_evidence": "URL is configured in src/build/helper/apps.json; endpoint was not fetched and independent package-body evidence was not obtained.",
+        "metadata_mapping_candidate": "CONFIG_ONLY"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "APKPure endpoint not independently verified; no artifact bytes/signers."
+    },
+    {
+      "id": "edge",
+      "package": "com.microsoft.emmx",
+      "apk_type": "bundle",
+      "configured_source": "apkpure",
+      "mapping_state": "MISSING_APKMIRROR_CONFIG",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.microsoft.emmx",
+        "evidence": "Google Play page title Microsoft Edge, developer Microsoft Corporation; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://apkpure.com/x/com.microsoft.emmx/download",
+        "evidence": "src/build/helper/apps.json; configured APKPure endpoint."
+      },
+      "alternate_candidate": {
+        "store": "apkmirror",
+        "url": "https://www.apkmirror.com/apk/microsoft-corporation/microsoft-edge/",
+        "package_evidence": "APKMirror exact release search result reports Package: com.microsoft.emmx; version 141.0.3537.72, min Android 10/API 29, signatures shown on page.",
+        "metadata_mapping_candidate": "YES"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "Observed APKMirror signature labels are listing metadata, not a local artifact signer verification; no bytes available."
+    },
+    {
+      "id": "mxplayer",
+      "package": "com.mxtech.videoplayer.pro",
+      "apk_type": "bundle",
+      "configured_source": "apkmirror",
+      "mapping_state": "CONFIGURED_APKPURE_ALTERNATE",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=com.mxtech.videoplayer.pro",
+        "evidence": "Google Play page title MX Player Pro, developer MX Media & Entertainment Pte Ltd; page states $5.99 Buy and 1M+ downloads."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=mx-player-pro",
+        "evidence": "src/build/helper/apps.json; exact APKMirror release reports Package: com.mxtech.videoplayer.pro and says source was mx.j2inter.com/download."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": "https://apkpure.com/x/com.mxtech.videoplayer.pro/download",
+        "package_evidence": "URL is configured in src/build/helper/apps.json, but no exact APKPure Pro page was verified; search found only free MX Player package com.mxtech.videoplayer.ad.",
+        "metadata_mapping_candidate": "NO"
+      },
+      "paid_restriction": "Official Play is paid ($5.99). Do not treat a third-party 'Pro/unlocked' listing or a free MX Player listing as equivalent. APKMirror FAQ says it has a no-piracy policy and does not host paid apps; its Pro page says the APK came from mx.j2inter.com/download, but artifact provenance still needs checking.",
+      "enable_fallback_now": "NO",
+      "gap": "No legitimate APKPure Pro mapping established; paid-license/provenance and artifact signer checks remain unresolved."
+    },
+    {
+      "id": "telegram",
+      "package": "org.telegram.messenger",
+      "apk_type": "bundle",
+      "configured_source": "apkmirror",
+      "mapping_state": "CONFIGURED_APKPURE_ALTERNATE",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=org.telegram.messenger",
+        "evidence": "Google Play page title Telegram, developer Telegram FZ-LLC; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://www.apkmirror.com/uploads/?appcategory=telegram",
+        "evidence": "src/build/helper/apps.json; APKMirror Telegram page by Telegram FZ-LLC."
+      },
+      "alternate_candidate": {
+        "store": "apkpure",
+        "url": "https://apkpure.com/x/org.telegram.messenger/download",
+        "package_evidence": "URL is configured in src/build/helper/apps.json; endpoint was not fetched and independent package-body evidence was not obtained.",
+        "metadata_mapping_candidate": "CONFIG_ONLY"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "APKPure endpoint not independently verified; no artifact bytes/signers."
+    },
+    {
+      "id": "keymapper",
+      "package": "io.github.sds100.keymapper",
+      "apk_type": "bundle",
+      "configured_source": "apkpure",
+      "mapping_state": "MISSING_APKMIRROR_CONFIG",
+      "official": {
+        "url": "https://play.google.com/store/apps/details?id=io.github.sds100.keymapper",
+        "evidence": "Google Play page title Key Mapper & Floating Buttons, developer sds100; target package is in URL."
+      },
+      "configured_listing": {
+        "url": "https://apkpure.com/x/io.github.sds100.keymapper/download",
+        "evidence": "src/build/helper/apps.json; configured APKPure endpoint."
+      },
+      "alternate_candidate": {
+        "store": "apkmirror",
+        "url": "https://www.apkmirror.com/apk/keymapperorg/key-mapper-github-version/",
+        "package_evidence": "APKMirror exact release search result reports Package: io.github.sds100.keymapper; version 4.0.5-foss and universal APK.",
+        "metadata_mapping_candidate": "DIFFERENT_DISTRIBUTION_REQUIRES_REVIEW"
+      },
+      "enable_fallback_now": "NO",
+      "gap": "FOSS/GitHub variant is identified, but no selected-version artifact/signature comparison; do not equate it with a Play build without verification."
+    }
+  ],
+  "global_findings": [
+    "The eight missing cross-store mappings are exactly YouTube, AdGuard, Google Photos, Truecaller, Instagram, Reddit, Edge, and Key Mapper when comparing targets.json source choices with apps.json store keys.",
+    "Seven of those eight have a public alternate listing whose page/search evidence explicitly names the target package: YouTube, Photos, Truecaller on APKPure; Instagram, Reddit, Edge, Key Mapper on APKMirror. AdGuard has no verified APKPure page; its official APK page and APKMirror exact package are available.",
+    "No target can be marked enable-now from listing metadata alone in this run. Source_download.sh ultimately produces an APK/XAPK that still needs artifact_identity and SDK/ABI checks; this research did not obtain bytes or signers.",
+    "APKMirror pages sometimes publish min SDK/ABI and abbreviated signature fingerprints, but those are page claims about a remote artifact and are not a substitute for local bytes/signature verification.",
+    "MX Player Pro is a paid Play app. Search results for APKPure identified free MX Player (com.mxtech.videoplayer.ad), not the Pro package; that is not a valid fallback for com.mxtech.videoplayer.pro."
+  ],
+  "policy_sources": [
+    {
+      "url": "https://www.apkmirror.com/faq/",
+      "claim": "APKMirror says uploads are verified prior to publishing, signatures are checked, split APKs are supported, and it has a no-piracy policy that does not host paid apps."
+    },
+    {
+      "url": "https://adguard.com/en/versions/android/release.html",
+      "claim": "AdGuard says full AdGuard for Android cannot be published on Google Play and directs users to APK installation."
+    },
+    {
+      "url": "https://play.google.com/store/apps/details?id=com.mxtech.videoplayer.pro",
+      "claim": "MX Player Pro is a paid app; page shows $5.99 Buy."
+    }
+  ]
+}

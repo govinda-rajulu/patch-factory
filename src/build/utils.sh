@@ -313,7 +313,10 @@ get_apk() {
 
 	local version_href=""
 
-	if [[ -n "$example_url" && -n "$version" ]]; then
+	if [[ "${PF_APK_RAW_ONLY:-0}" == "1" && -n "${PF_APK_VARIANT_URL:-}" ]]; then
+		version_href="${PF_APK_VARIANT_URL#$base_url}"
+		version_href="${version_href%/*/}/"
+	elif [[ -n "$example_url" && -n "$version" ]]; then
 		version_href="${example_url#$base_url}"
 		local slug_ver
 		slug_ver=$(echo "$version_href" | grep -oP '\d+(-\d+)+' | tail -1)
@@ -402,6 +405,13 @@ get_apk() {
 	[[ "$pkg_type" == "bundle" || "$pkg_type" == "bundle_extract" ]] && type_badge="BUNDLE"
 
 	local vtable_html rows variant_href=""
+	# Qualified alternates select a reviewed page, not the first matching row.
+	# Successful primary behavior is unchanged; this lever requires raw-only mode.
+	if [[ "${PF_APK_RAW_ONLY:-0}" == "1" && -n "${PF_APK_VARIANT_URL:-}" ]]; then
+		variant_href="${PF_APK_VARIANT_URL#$base_url}"
+		local matched_type="$type_badge"
+		local variant_page_loaded=false
+	else
 	vtable_html=$(echo "$html" | $pup 'div.variants-table')
 	rows=$(echo "$vtable_html" | tr '\n' ' ' | sed 's/<div class="table-row/\n<div class="table-row/g')
 
@@ -453,6 +463,7 @@ get_apk() {
 			red_log "[-] Could not find variant (type=$type_badge arch=${arch:-any} dpi=$dpi)"
 			return 1
 		fi
+	fi
 	fi
 	if [[ "$variant_page_loaded" == false ]]; then
 		variant_href=$(echo "$variant_href" | sed 's/&amp;/\&/g')
@@ -524,6 +535,8 @@ get_apk() {
 		return 1
 	fi
 
+	# The qualified alternate consumer verifies original bytes/signatures before merging.
+	if [[ "${PF_APK_RAW_ONLY:-0}" == "1" ]]; then return 0; fi
 	if [[ "$matched_type" == "BUNDLE" ]]; then
 		if [[ "$pkg_type" == "bundle_extract" && "$type_badge" == "BUNDLE" ]]; then
 			unzip "./download/$base_apk" -d "./download/$(basename "$base_apk" .apkm)" > /dev/null 2>&1
@@ -613,6 +626,8 @@ get_apkpure() {
 		red_log "[-] Failed to download $apk_name"
 		return 1
 	fi
+	# Preserve the original signed container for qualified alternate verification.
+	if [[ "${PF_APK_RAW_ONLY:-0}" == "1" ]]; then return 0; fi
 	if [[ "$pkg_type" == "bundle" ]]; then
 		if unzip -l "./download/$base_apk" 2>/dev/null | grep -q '\.apk$'; then
 			green_log "[+] Merge splits apk to standalone apk"

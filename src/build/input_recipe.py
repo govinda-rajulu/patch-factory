@@ -27,6 +27,9 @@ SHARED = (
     "src/build/TOOLING.sha256", "src/build/input_recipe.py",
     "src/build/transfer_diagnostic.py",
     "src/build/source_inputs.py", "src/build/source_download.sh",
+    "src/build/source_fallback.py", "src/build/source_alternate.sh",
+    "src/build/original_apk.py", "src/build/source_variant.py",
+    "src/build/helper/source-fallbacks.json",
     "src/build/execution_inputs.py",
     "src/etc/preflight.py", "src/etc/bancheck.sh", "src/etc/quarantine.sh",
     "src/patches/BANNED", "src/patches/CONFIRM",
@@ -188,6 +191,9 @@ def create(root, ident, winner, env=None):
     need(store in stores and t["package"] in stores[store], "missing selected store mapping")
     parts.append(component(root,"src/build/helper/apps.json","store-map",
                            {store:{t["package"]:stores[store][t["package"]]}}))
+    fallback_policy = read_json(root, "src/build/helper/source-fallbacks.json")
+    for admitted in fallback_policy["targets"][ident]["admissions"]:
+        parts.append(component(root, admitted["evidence"], "json"))
     unique = {}
     for item in parts:
         key = (item["path"],item["encoding"])
