@@ -210,7 +210,7 @@ _fs_get() {
 		local response request
 		# Encode the request safely without requiring a persistent browser session.
 		request=$(jq -cn --arg url "$url" \
-			'{cmd:"request.get",url:$url,maxTimeout:15000}') || return 1
+			'{cmd:"request.get",url:$url,maxTimeout:60000}') || return 1
 		response=$(curl -s -X POST 'http://localhost:8191/v1' \
 			-H 'Content-Type: application/json' \
 			-d "$request")

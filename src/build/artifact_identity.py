@@ -211,6 +211,10 @@ def parse_signers(text):
     # SDK 37.0.0 output captured from run 34453111340. Only this observed
     # scheme-labelled format is added; ambiguous/multiple identities still fail.
     scheme = re.findall(r'^V3[.]0 Signer: certificate SHA-256 digest:[ \t]*([0-9a-fA-F:]+)[ \t]*$', text, re.M)
+    # SDK37 prints only the highest verified scheme. A v2-only original (Facebook
+    # 490.0.0.63.82, 26 Sep 2026) is labelled V2. Still exactly one identity in total;
+    # V3.1/rotation lines stay unrecognized and refuse.
+    scheme += re.findall(r'^V2 Signer: certificate SHA-256 digest:[ \t]*([0-9a-fA-F:]+)[ \t]*$', text, re.M)
     # SDK37 Reddit originals (26 Sep 2026) include a Google Source Stamp.
     # It is not an APK signing identity and must never supply the app pin.
     stamps = re.findall(r'^Source Stamp Signer: certificate SHA-256 digest:[ \t]*([0-9a-fA-F:]+)[ \t]*$', text, re.M)

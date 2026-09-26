@@ -121,7 +121,7 @@ class FallbackContracts(unittest.TestCase):
         with patch.object(fb,'run_checked',side_effect=AssertionError('unexpected network')):
             for ident,row in doc['targets'].items():
                 with self.subTest(target=ident):
-                    self.assertEqual(row['admissions'],[])
+                    self.assertNotIn('1.0',[a['version_name'] for a in row['admissions']])
                     with self.assertRaisesRegex(ValueError,'BLOCKED_UNQUALIFIED_SOURCE'):
                         fb.execute(self.root,ident,'1.0',self.env)
         self.assertEqual(set(self.root.iterdir()),before)

@@ -3,12 +3,21 @@
 
 An empty versionName is allowed only on a named split. Package, versionCode,
 nonempty versionName, SDK and the unique base are checked against the admission.
-No expected value is substituted for missing observed metadata.
+No expected value is substituted for missing observed metadata. A configuration
+split (config.X or FEATURE.config.X) may omit the SDK because Android applies the
+base/feature manifest; it is returned as None, never guessed.
 """
 import re
 
 import artifact_identity as identity
 from sdk_metadata import parse_badging_sdk
+
+
+CONFIG_SPLIT = r'(?:[A-Za-z0-9_]+[.])?config[.][A-Za-z0-9_]+'
+
+
+def is_config_split(split):
+    return isinstance(split, str) and re.fullmatch(CONFIG_SPLIT, split) is not None
 
 
 def parse(text):
@@ -32,7 +41,8 @@ def parse(text):
                      (re.fullmatch(r'[0-9]+(?:[.][0-9]+)*', version) or (split is not None and version == '')),
                      'invalid original versionName')
     sdk = parse_badging_sdk(text)
-    identity.require(type(sdk) is int and sdk > 0, 'original minimum SDK missing')
+    identity.require((type(sdk) is int and sdk > 0) or (sdk is None and is_config_split(split)),
+                     'original minimum SDK missing')
     return {'package': package, 'version_code': code, 'version_name': version,
             'min_sdk': sdk, 'split': split}
 
