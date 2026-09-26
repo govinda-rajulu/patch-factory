@@ -4,10 +4,11 @@ permissions:
   issues: write
 on:
   schedule:
-    - cron: "0 3 * * 1"
+    - cron: "13 3 * * 1"  # 08:43 IST Monday
   workflow_dispatch:
 concurrency:
-  group: community-watch-main
+  # Shared with keepalive: both push to main, so they queue instead of racing.
+  group: main-writer
   cancel-in-progress: false
 jobs:
   watch:

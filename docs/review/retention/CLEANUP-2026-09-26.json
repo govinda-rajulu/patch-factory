@@ -1,0 +1,1001 @@
+{
+ "base_main": "aa74a474a057af2714783d4fd3a7b94a7b6b5d7c",
+ "date": "2026-09-26",
+ "deleted_branches": [
+  {
+   "name": "apk-fallback-qualified-originals-20260926",
+   "reason": null,
+   "sha": "30b7ed706257889e22bbedc552292d773a9d6ba9"
+  },
+  {
+   "name": "audit-fix-batch-2026-09-26",
+   "reason": null,
+   "sha": "73b2bb7aea84213bf9cf4cc0b8e99e8285c0a0f7"
+  },
+  {
+   "name": "build/release-readiness-sdk-2026-09-23",
+   "reason": null,
+   "sha": "a36dd45f3256ddccddcfb7734350fa86c3b1d64f"
+  },
+  {
+   "name": "build/source-inputs-1733d99d413b",
+   "reason": null,
+   "sha": "4e498c8e57af69c2daef7ddde5d56d062a374ae6"
+  },
+  {
+   "name": "ci-hygiene-20260926",
+   "reason": null,
+   "sha": "ad5d3deb27a966c9285894debf7fee70736217e7"
+  },
+  {
+   "name": "design/grouped-catalog-137d7469",
+   "reason": null,
+   "sha": "4dc7c8304f4b1a24b76a9e673bcc4a3c81dcd771"
+  },
+  {
+   "name": "docs/morphe-companion-guide-2026-09-22",
+   "reason": null,
+   "sha": "91d89880a82b97e8787ee946840fd99975472cc0"
+  },
+  {
+   "name": "docs/upstream-attribution-2026-09-23",
+   "reason": null,
+   "sha": "5e34fae8e0e085225b9df36e8cc710fd1940b32e"
+  },
+  {
+   "name": "enhance/reader-release-notes-20260919",
+   "reason": null,
+   "sha": "20fa941e8115021db30810d6819b847b46fa645d"
+  },
+  {
+   "name": "feat/prepared-dependency-comparison-20260919",
+   "reason": null,
+   "sha": "23b9e01444ee59cd1efe0c408f493a687a53a3bb"
+  },
+  {
+   "name": "fix/operations-and-evidence-retention-20260919",
+   "reason": null,
+   "sha": "520e4bb88a2b943f7a988b037bc86900834767a3"
+  },
+  {
+   "name": "fix/preserve-es-mx-resources-20260919",
+   "reason": null,
+   "sha": "3a50f7d801bcebe756c228611ddd01d7cf1226e5"
+  },
+  {
+   "name": "fix/store-download-evidence-20260919",
+   "reason": null,
+   "sha": "7f0ad9f93c74a01277b843b80adf6e7241da4d87"
+  },
+  {
+   "name": "fix/visible-channels-and-reddit-page-probe-20260919",
+   "reason": null,
+   "sha": "2a098cccf154ec1ce89363231ae7801719a49590"
+  },
+  {
+   "name": "photos-rotation-20260926",
+   "reason": null,
+   "sha": "5638dd75446a0634c1254b7cfab1f9a108af2017"
+  },
+  {
+   "name": "repair/companion-and-community-watch-2026-09-22",
+   "reason": null,
+   "sha": "0958d780a8c2d8af23d0825f26490166a25429ae"
+  },
+  {
+   "name": "repair/exact-attempt-failure-reports-20260918",
+   "reason": null,
+   "sha": "354fb9a779a5b08e77e2e19917ef5c3dbdc862c5"
+  },
+  {
+   "name": "repair/microg-portal-20260919",
+   "reason": null,
+   "sha": "43b580675057996ba7b046a00c0474c9f1c8bf45"
+  },
+  {
+   "name": "repair/portal-cache-polish-20260916",
+   "reason": null,
+   "sha": "7829b5f01522b7e7168114002bb96a52c4fc535b"
+  },
+  {
+   "name": "repair/reddit-probe-reasons-2026-09-22",
+   "reason": null,
+   "sha": "31bf10cda7498fcbbf26a09b0d53f8aa8ee00513"
+  },
+  {
+   "name": "repair/resolved-shadow-baselines-20260919",
+   "reason": null,
+   "sha": "35ca3e79fcd4c744bdf3c28b10fa7b8debcd978c"
+  },
+  {
+   "name": "repair/shadow-input-publication-20260918",
+   "reason": null,
+   "sha": "c39e1a239912ba8f174f463f76ddf979950418ff"
+  },
+  {
+   "name": "repair/typed-daily-plan-20260918",
+   "reason": null,
+   "sha": "4abc984a98d2d8324e0bf781c14fdd4833204616"
+  },
+  {
+   "name": "report/source-coverage-768433a0",
+   "reason": null,
+   "sha": "5b7938647a4442fbf8e82afc443c17826b5c9f26"
+  },
+  {
+   "name": "source-admissions-20260926",
+   "reason": null,
+   "sha": "9d74add1d9ea1e96b7b1f87be4e11f17ae45bb28"
+  },
+  {
+   "name": "watch/community-delivery-00cb77a4",
+   "reason": null,
+   "sha": "155848f3f247004dd39cf4479d031ca7a3c96110"
+  },
+  {
+   "name": "watch/provider-observations-8fff8af1",
+   "reason": null,
+   "sha": "7477d592039e4dab481fdeb75f49e2179ef867db"
+  }
+ ],
+ "deleted_releases": [
+  {
+   "assets": [
+    {
+     "digest": "sha256:d22228572f2b2c3451b2f3c99e312bb1bcf6272cd0ad9b03e09aac7ff3d25b18",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b20260907/adguard-v4.14.68-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): rushiranpise\nApp version 4.14.68 \u00b7 arm64-v8a\n\n**Applied patches**\n- Unlock Lifetime Premium \nPatch bundle 1.21.4, built -b20260907\n\n`adguard-v4.14.68-arm64-v8a.apk` \u00b7 35.1 MB\nSHA-256 `d22228572f2b2c3451b2f3c99e312bb1bcf6272cd0ad9b03e09aac7ff3d25b18`\n\nVerify before installing: `sha256sum adguard-v4.14.68-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384246632,
+   "name": "adguard-v4.14.68-b20260907",
+   "published_at": "2026-09-07T17:50:25Z",
+   "tag": "adguard-v4.14.68-b20260907",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:b2cd8476b5bbd7a7ddc1e89c1030cf3d8e6564ab34aaab4ec0ed26ea9cea4b22",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b20260908/adguard-v4.14.68-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): rushiranpise\nApp version 4.14.68 \u00b7 arm64-v8a\n\n**Applied patches**\n- Unlock Lifetime Premium \nPatch bundle 1.21.5, built -b20260908\n\n`adguard-v4.14.68-arm64-v8a.apk` \u00b7 35.1 MB\nSHA-256 `b2cd8476b5bbd7a7ddc1e89c1030cf3d8e6564ab34aaab4ec0ed26ea9cea4b22`\n\nVerify before installing: `sha256sum adguard-v4.14.68-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384907297,
+   "name": "adguard-v4.14.68-b20260908",
+   "published_at": "2026-09-08T16:48:55Z",
+   "tag": "adguard-v4.14.68-b20260908",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:21c5800e28770fb8191f53de95b636b91a8d31c2630f17e5ca2572f81ef486ab",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026091600000000035126469829000001/adguard-v4.14.68-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): rushiranpise\nApp version 4.14.68 \u00b7 arm64-v8a\n\n**Applied patches**\n- Unlock Lifetime Premium\nPatch bundle 1.22.0, built -b2026091600000000035126469829000001\n\n`adguard-v4.14.68-arm64-v8a.apk` \u00b7 35.1 MB\nSHA-256 `21c5800e28770fb8191f53de95b636b91a8d31c2630f17e5ca2572f81ef486ab`\n\nVerify before installing: `sha256sum adguard-v4.14.68-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 390120510,
+   "name": "adguard-v4.14.68-b2026091600000000035126469829000001",
+   "published_at": "2026-09-16T17:14:04Z",
+   "tag": "adguard-v4.14.68-b2026091600000000035126469829000001",
+   "tag_commit": "446184cd7859e012417d8b945df1a14382240c0d"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:1b8e24a46922040512194e1a59fada5ec12bd9b71b138475e594e0fe5e14e08b",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026091700000000035251071573000001/adguard-v4.14.68-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): rushiranpise\nApp version 4.14.68 \u00b7 arm64-v8a\n\n**Applied patches**\n- Unlock Lifetime Premium\nPatch bundle 1.22.0, built -b2026091700000000035251071573000001\n\n`adguard-v4.14.68-arm64-v8a.apk` \u00b7 35.1 MB\nSHA-256 `1b8e24a46922040512194e1a59fada5ec12bd9b71b138475e594e0fe5e14e08b`\n\nVerify before installing: `sha256sum adguard-v4.14.68-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 390910453,
+   "name": "adguard-v4.14.68-b2026091700000000035251071573000001",
+   "published_at": "2026-09-17T17:12:39Z",
+   "tag": "adguard-v4.14.68-b2026091700000000035251071573000001",
+   "tag_commit": "35bace4e948f908ef3043f96a93109ce62760ef8"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:30903e8ff74ce2039c59448aab5c3602fcb1ca4244eed77e7ccf7bb7ed7c737b",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026091800000000035369326453000001/adguard-v4.14.68-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:57da36caab6d97a6cdbdaa810bee23136796500be6aaf9893f7e97b38206b1bd",
+     "name": "pf-publication-v1-adguard.json",
+     "size": 1047,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026091800000000035369326453000001/pf-publication-v1-adguard.json"
+    }
+   ],
+   "body": "Patch provider(s): rushiranpise\nApp version 4.14.68 \u00b7 arm64-v8a\n\n**Applied patches**\n- Unlock Lifetime Premium\nPatch bundle 1.22.0, built -b2026091800000000035369326453000001\n\n`adguard-v4.14.68-arm64-v8a.apk` \u00b7 35.1 MB\nSHA-256 `30903e8ff74ce2039c59448aab5c3602fcb1ca4244eed77e7ccf7bb7ed7c737b`\n\nVerify before installing: `sha256sum adguard-v4.14.68-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 391627686,
+   "name": "adguard-v4.14.68-b2026091800000000035369326453000001",
+   "published_at": "2026-09-18T16:37:26Z",
+   "tag": "adguard-v4.14.68-b2026091800000000035369326453000001",
+   "tag_commit": "3a855e5bb93ca6cc2580c7e9db4006b68f7b96f0"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:3f555359f0f65046c5ee585a338b3fed08de32418a498fa29722f8db93bb90ce",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092000000000035522352827000001/adguard-v4.14.68-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:877eae4910f66009d5e146472e491c0e7a82f346efa71f4338004d0683dfc4bd",
+     "name": "pf-publication-v1-adguard.json",
+     "size": 2628,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092000000000035522352827000001/pf-publication-v1-adguard.json"
+    }
+   ],
+   "body": "## What changed\n- App version unchanged at 4.14.68; this is another build.\n- Patch changes were not recorded in a comparable format in the previous release.\n\nPrevious release lacks comparable structured patch metadata.\n\n## This download\n\n| Detail | Value |\n| --- | --- |\n| App | AdGuard |\n| App version | 4.14.68 |\n| Android package | com.adguard.android |\n| Minimum Android API | 28 |\n| Native code | arm64-v8a |\n| Size | 35.1 MB |\n| Patch providers | rushiranpise |\n| Primary bundle | 1.23.0 |\n| Applied patch names | 1 |\n\n## Applied patches\n- Unlock Lifetime Premium\n\n## Checks and limitations\n- CI checked APK identity, declared minimum Android API, native payloads, applied patch names and its configured signing certificate.\n- Not phone-tested by this pipeline; not proof of original-publisher authenticity or installed-app compatibility.\n- Same-version patch-only update delivery in Obtainium remains limited. New build does not necessarily mean a new app version.\n\n## Download evidence\nFile: `adguard-v4.14.68-arm64-v8a.apk`\nSHA-256: `3f555359f0f65046c5ee585a338b3fed08de32418a498fa29722f8db93bb90ce`\nCI signing certificate SHA-256: `08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050`\n[Build source](https://github.com/govinda-rajulu/patch-factory/tree/60c59eade6d1aea936586a316e927bfa47aa5a70)\n[Exact build run](https://github.com/govinda-rajulu/patch-factory/actions/runs/35522352827/attempts/1)\n[Previous app release](https://github.com/govinda-rajulu/patch-factory/releases/tag/adguard-v4.14.68-b2026091800000000035369326453000001)\n\n## Help and stable information\n[Install, updates, source types and status meanings](https://github.com/govinda-rajulu/patch-factory/blob/60c59eade6d1aea936586a316e927bfa47aa5a70/docs/guide.md)\nNo automatic uninstall, import migration or device-protection bypass is required or recommended.\n\n[pf-release-v1]: # \"eyJhcGsiOiJhZGd1YXJkLXY0LjE0LjY4LWFybTY0LXY4YS5hcGsiLCJhcmNoIjoiYXJtNjQtdjhhIiwiYnVuZGxlIjoiMS4yMy4wIiwiYnl0ZXMiOjM2NzcxMTY3LCJsYWJlbCI6IkFkR3VhcmQiLCJtaW5fc2RrIjoyOCwicGFja2FnZSI6ImNvbS5hZGd1YXJkLmFuZHJvaWQiLCJwYXRjaGVzIjpbIlVubG9jayBMaWZldGltZSBQcmVtaXVtIl0sInByb3ZpZGVyIjoicnVzaGlyYW5waXNlIiwic2NoZW1hIjoxLCJzaGEyNTYiOiIzZjU1NTM1OWYwZjY1MDQ2YzVlZTU4NWEzMzhiM2ZlZDA4ZGUzMjQxOGE0OThmYTI5NzIyZjhkYjkzYmI5MGNlIiwic2lnbmVyIjoiMDg0ODBmNjY0OWEyYmUzM2ZmM2NjY2FjY2UwNzQ1NDc2MWQ1ZmI5YWJlNjVmMWUyY2FlZWI3ODJlMzgyZDA1MCIsInNvdXJjZSI6IjYwYzU5ZWFkZTZkMWFlYTkzNjU4NmEzMTZlOTI3YmZhNDdhYTVhNzAiLCJ0YWciOiJhZGd1YXJkLXY0LjE0LjY4LWIyMDI2MDkyMDAwMDAwMDAwMDM1NTIyMzUyODI3MDAwMDAxIiwidGFyZ2V0IjoiYWRndWFyZCIsInZlcnNpb24iOiI0LjE0LjY4In0=\"",
+   "id": 392494104,
+   "name": "adguard-v4.14.68-b2026092000000000035522352827000001",
+   "published_at": "2026-09-20T16:23:53Z",
+   "tag": "adguard-v4.14.68-b2026092000000000035522352827000001",
+   "tag_commit": "60c59eade6d1aea936586a316e927bfa47aa5a70"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:198b8aa6557fd8e3191257bca10346df11c9764787bebea5e6e447cbdf252021",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 50230122,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b20260907/es-file-v4.4.3.7-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): ftl\nApp version 4.4.3.7 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup \n- ES File Explorer Ui Cleanup \n- Remove Ads \n- Remove Analytics \n- Remove Analytics New \n- Remove Duplicate Graphics \n- Remove Languages \nPatch bundle 1.44.0, built -b20260907\n\n`es-file-v4.4.3.7-arm64-v8a.apk` \u00b7 47.9 MB\nSHA-256 `198b8aa6557fd8e3191257bca10346df11c9764787bebea5e6e447cbdf252021`\n\nVerify before installing: `sha256sum es-file-v4.4.3.7-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384246577,
+   "name": "es-file-v4.4.3.7-b20260907",
+   "published_at": "2026-09-07T17:50:14Z",
+   "tag": "es-file-v4.4.3.7-b20260907",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:191bbcd91b8198bdf279aca9c1916acb95db4c6f1c75b468b3975ceaee1d22e8",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 50230122,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b20260908/es-file-v4.4.3.7-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): ftl\nApp version 4.4.3.7 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup \n- ES File Explorer Ui Cleanup \n- Remove Ads \n- Remove Analytics \n- Remove Analytics New \n- Remove Duplicate Graphics \n- Remove Languages \nPatch bundle 1.44.0, built -b20260908\n\n`es-file-v4.4.3.7-arm64-v8a.apk` \u00b7 47.9 MB\nSHA-256 `191bbcd91b8198bdf279aca9c1916acb95db4c6f1c75b468b3975ceaee1d22e8`\n\nVerify before installing: `sha256sum es-file-v4.4.3.7-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384907363,
+   "name": "es-file-v4.4.3.7-b20260908",
+   "published_at": "2026-09-08T16:49:02Z",
+   "tag": "es-file-v4.4.3.7-b20260908",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:179156aa66eb7e0fb676806f6d1e0ae41012026b73da5e65cd92dd59a0520ed7",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 50234047,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026091000000000034502842756000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): ftl\nApp version 4.4.3.7 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup\n- ES File Explorer Ui Cleanup\n- Remove Ads\n- Remove Analytics\n- Remove Analytics New\n- Remove Duplicate Graphics\n- Remove Languages\nPatch bundle 1.44.0, built -b2026091000000000034502842756000001\n\n`es-file-v4.4.3.7-arm64-v8a.apk` \u00b7 47.9 MB\nSHA-256 `179156aa66eb7e0fb676806f6d1e0ae41012026b73da5e65cd92dd59a0520ed7`\n\nVerify before installing: `sha256sum es-file-v4.4.3.7-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 386454543,
+   "name": "es-file-v4.4.3.7-b2026091000000000034502842756000001",
+   "published_at": "2026-09-10T16:37:00Z",
+   "tag": "es-file-v4.4.3.7-b2026091000000000034502842756000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:bd5fd1ccc7357269f8ffd217e7a9229be1fa80ea6b75beea5a7a5231b364ef24",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 50012635,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026091100000000034623121744000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): ftl\nApp version 4.4.3.7 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup\n- ES File Explorer Ui Cleanup\n- Remove Ads\n- Remove Analytics\n- Remove Analytics New\n- Remove Duplicate Graphics\n- Remove Languages\nPatch bundle 1.44.0, built -b2026091100000000034623121744000001\n\n`es-file-v4.4.3.7-arm64-v8a.apk` \u00b7 47.7 MB\nSHA-256 `bd5fd1ccc7357269f8ffd217e7a9229be1fa80ea6b75beea5a7a5231b364ef24`\n\nVerify before installing: `sha256sum es-file-v4.4.3.7-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387193417,
+   "name": "es-file-v4.4.3.7-b2026091100000000034623121744000001",
+   "published_at": "2026-09-11T16:41:45Z",
+   "tag": "es-file-v4.4.3.7-b2026091100000000034623121744000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:b415689c083dfe03841033c3bb6b0c6d704f6d716925be7ef6004d3cc0a48d0e",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 50012635,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026091200000000034702912009000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): ftl\nApp version 4.4.3.7 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup\n- ES File Explorer Ui Cleanup\n- Remove Ads\n- Remove Analytics\n- Remove Analytics New\n- Remove Duplicate Graphics\n- Remove Languages\nPatch bundle 1.44.0, built -b2026091200000000034702912009000001\n\n`es-file-v4.4.3.7-arm64-v8a.apk` \u00b7 47.7 MB\nSHA-256 `b415689c083dfe03841033c3bb6b0c6d704f6d716925be7ef6004d3cc0a48d0e`\n\nVerify before installing: `sha256sum es-file-v4.4.3.7-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387618095,
+   "name": "es-file-v4.4.3.7-b2026091200000000034702912009000001",
+   "published_at": "2026-09-12T15:43:10Z",
+   "tag": "es-file-v4.4.3.7-b2026091200000000034702912009000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:25a0539a686b5bbd6126c4865b67d4a4ee41d832efbb67112469b3d1bdd009a8",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 50012635,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026091300000000034768808230000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): ftl\nApp version 4.4.3.7 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup\n- ES File Explorer Ui Cleanup\n- Remove Ads\n- Remove Analytics\n- Remove Analytics New\n- Remove Duplicate Graphics\n- Remove Languages\nPatch bundle 1.44.0, built -b2026091300000000034768808230000001\n\n`es-file-v4.4.3.7-arm64-v8a.apk` \u00b7 47.7 MB\nSHA-256 `25a0539a686b5bbd6126c4865b67d4a4ee41d832efbb67112469b3d1bdd009a8`\n\nVerify before installing: `sha256sum es-file-v4.4.3.7-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387961339,
+   "name": "es-file-v4.4.3.7-b2026091300000000034768808230000001",
+   "published_at": "2026-09-13T16:33:42Z",
+   "tag": "es-file-v4.4.3.7-b2026091300000000034768808230000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:4e80b3fcd4a42a558246cd477854ba034ac913a838a7d8898b6e06d3a9bfc5b4",
+     "name": "facebook-v490.0.0.63.82-arm64-v8a.apk",
+     "size": 162834617,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/facebook-v490.0.0.63.82-b2026091100000000034623121744000001/facebook-v490.0.0.63.82-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): derevanced\nApp version 490.0.0.63.82 \u00b7 arm64-v8a\n\n**Applied patches**\n- Hide 'Sponsored Stories'\n- Hide story ads\nPatch bundle 1.3.4, built -b2026091100000000034623121744000001\n\n`facebook-v490.0.0.63.82-arm64-v8a.apk` \u00b7 155.3 MB\nSHA-256 `4e80b3fcd4a42a558246cd477854ba034ac913a838a7d8898b6e06d3a9bfc5b4`\n\nVerify before installing: `sha256sum facebook-v490.0.0.63.82-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387193705,
+   "name": "facebook-v490.0.0.63.82-b2026091100000000034623121744000001",
+   "published_at": "2026-09-11T16:42:19Z",
+   "tag": "facebook-v490.0.0.63.82-b2026091100000000034623121744000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:4569f62b1e31d4edcf7f6a8a3a67f2422f7cc378fba3d28a402e08a32444da63",
+     "name": "facebook-v490.0.0.63.82-arm64-v8a.apk",
+     "size": 162834617,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/facebook-v490.0.0.63.82-b2026091200000000034702912009000001/facebook-v490.0.0.63.82-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): derevanced\nApp version 490.0.0.63.82 \u00b7 arm64-v8a\n\n**Applied patches**\n- Hide 'Sponsored Stories'\n- Hide story ads\nPatch bundle 1.4.0, built -b2026091200000000034702912009000001\n\n`facebook-v490.0.0.63.82-arm64-v8a.apk` \u00b7 155.3 MB\nSHA-256 `4569f62b1e31d4edcf7f6a8a3a67f2422f7cc378fba3d28a402e08a32444da63`\n\nVerify before installing: `sha256sum facebook-v490.0.0.63.82-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387618106,
+   "name": "facebook-v490.0.0.63.82-b2026091200000000034702912009000001",
+   "published_at": "2026-09-12T15:43:14Z",
+   "tag": "facebook-v490.0.0.63.82-b2026091200000000034702912009000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:26955ca987291f4fad0e6c8b9c56be122def6fe96700b80d674936ecf8ef4ee8",
+     "name": "facebook-v490.0.0.63.82-arm64-v8a.apk",
+     "size": 162834617,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/facebook-v490.0.0.63.82-b2026091300000000034768808230000001/facebook-v490.0.0.63.82-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): derevanced\nApp version 490.0.0.63.82 \u00b7 arm64-v8a\n\n**Applied patches**\n- Hide 'Sponsored Stories'\n- Hide story ads\nPatch bundle 1.4.1, built -b2026091300000000034768808230000001\n\n`facebook-v490.0.0.63.82-arm64-v8a.apk` \u00b7 155.3 MB\nSHA-256 `26955ca987291f4fad0e6c8b9c56be122def6fe96700b80d674936ecf8ef4ee8`\n\nVerify before installing: `sha256sum facebook-v490.0.0.63.82-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387961551,
+   "name": "facebook-v490.0.0.63.82-b2026091300000000034768808230000001",
+   "published_at": "2026-09-13T16:34:25Z",
+   "tag": "facebook-v490.0.0.63.82-b2026091300000000034768808230000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:c7057ab88bf823ab92e43a69e9da41e3946f6332fa0e31b13384210bc064c116",
+     "name": "facebook-v490.0.0.63.82-arm64-v8a.apk",
+     "size": 162834617,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/facebook-v490.0.0.63.82-b2026091500000000034999527353000001/facebook-v490.0.0.63.82-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): derevanced\nApp version 490.0.0.63.82 \u00b7 arm64-v8a\n\n**Applied patches**\n- Hide 'Sponsored Stories'\n- Hide story ads\nPatch bundle 1.4.2, built -b2026091500000000034999527353000001\n\n`facebook-v490.0.0.63.82-arm64-v8a.apk` \u00b7 155.3 MB\nSHA-256 `c7057ab88bf823ab92e43a69e9da41e3946f6332fa0e31b13384210bc064c116`\n\nVerify before installing: `sha256sum facebook-v490.0.0.63.82-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 389332848,
+   "name": "facebook-v490.0.0.63.82-b2026091500000000034999527353000001",
+   "published_at": "2026-09-15T17:14:03Z",
+   "tag": "facebook-v490.0.0.63.82-b2026091500000000034999527353000001",
+   "tag_commit": "8fca13c85c17153e692a547cea992c1a663e54c1"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:4eca8297782ca0bb1c4442cc0e74052cabbefbb553143af77355d09485e3a954",
+     "name": "facebook-v490.0.0.63.82-arm64-v8a.apk",
+     "size": 162834617,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/facebook-v490.0.0.63.82-b2026091800000000035369326453000001/facebook-v490.0.0.63.82-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:2dba87b448ff3cf17117d8192e4feccb74cc1db5994eefcc0517d60f0ab4b884",
+     "name": "pf-publication-v1-facebook.json",
+     "size": 1063,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/facebook-v490.0.0.63.82-b2026091800000000035369326453000001/pf-publication-v1-facebook.json"
+    }
+   ],
+   "body": "Patch provider(s): derevanced\nApp version 490.0.0.63.82 \u00b7 arm64-v8a\n\n**Applied patches**\n- Hide 'Sponsored Stories'\n- Hide story ads\nPatch bundle 1.4.3, built -b2026091800000000035369326453000001\n\n`facebook-v490.0.0.63.82-arm64-v8a.apk` \u00b7 155.3 MB\nSHA-256 `4eca8297782ca0bb1c4442cc0e74052cabbefbb553143af77355d09485e3a954`\n\nVerify before installing: `sha256sum facebook-v490.0.0.63.82-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 391628762,
+   "name": "facebook-v490.0.0.63.82-b2026091800000000035369326453000001",
+   "published_at": "2026-09-18T16:39:15Z",
+   "tag": "facebook-v490.0.0.63.82-b2026091800000000035369326453000001",
+   "tag_commit": "3a855e5bb93ca6cc2580c7e9db4006b68f7b96f0"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:76ee401e196d5db426ff283badf957141757cdad5f06688a46c48b20edd471a8",
+     "name": "gg-photos-v7.90.0.971743778-arm64-v8a.apk",
+     "size": 130732488,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/gg-photos-v7.90.0.971743778-b20260908/gg-photos-v7.90.0.971743778-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): rushiranpise\nApp version 7.90.0.971743778 \u00b7 arm64-v8a\n\n**Applied patches**\n- Change package name \n- Enable DCIM folders backup control \n- Fix DCIM folder classification \n- GmsCore support \n- GmsCore support (MicroG) \n- Spoof features \nPatch bundle 1.21.5, built -b20260908\n\n`gg-photos-v7.90.0.971743778-arm64-v8a.apk` \u00b7 124.7 MB\nSHA-256 `76ee401e196d5db426ff283badf957141757cdad5f06688a46c48b20edd471a8`\n\nVerify before installing: `sha256sum gg-photos-v7.90.0.971743778-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384907704,
+   "name": "gg-photos-v7.90.0.971743778-b20260908",
+   "published_at": "2026-09-08T16:49:36Z",
+   "tag": "gg-photos-v7.90.0.971743778-b20260908",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:53b639615825d9f616bfd45c225b57e5a582a3c6795383873050a873b948139e",
+     "name": "gg-photos-v7.92.0.977185651-arm64-v8a.apk",
+     "size": 130628715,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/gg-photos-v7.92.0.977185651-b2026091600000000035126469829000001/gg-photos-v7.92.0.977185651-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): rushiranpise\nApp version 7.92.0.977185651 \u00b7 arm64-v8a\n\n**Applied patches**\n- Change package name\n- Enable DCIM folders backup control\n- Fix DCIM folder classification\n- GmsCore support\n- GmsCore support (MicroG)\n- Spoof features\nPatch bundle 1.22.0, built -b2026091600000000035126469829000001\n\n`gg-photos-v7.92.0.977185651-arm64-v8a.apk` \u00b7 124.6 MB\nSHA-256 `53b639615825d9f616bfd45c225b57e5a582a3c6795383873050a873b948139e`\n\nVerify before installing: `sha256sum gg-photos-v7.92.0.977185651-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 390120842,
+   "name": "gg-photos-v7.92.0.977185651-b2026091600000000035126469829000001",
+   "published_at": "2026-09-16T17:14:36Z",
+   "tag": "gg-photos-v7.92.0.977185651-b2026091600000000035126469829000001",
+   "tag_commit": "446184cd7859e012417d8b945df1a14382240c0d"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:2dec72d47e3728ec80fd1ec69e08157110f7cb64f765dfb210d7b2b992d6a22c",
+     "name": "hotstar-v26.06.08.2-arm64-v8a.apk",
+     "size": 72733176,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/hotstar-v26.06.08.2-b20260909/hotstar-v26.06.08.2-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): chiggi\nApp version 26.06.08.2 \u00b7 arm64-v8a\n\n**Applied patches**\n- Disable analytics \n- Enable screen mirroring \n- Enable screenshots \n- Force HDR10 \n- Remove AD_ID permission \n- Remove ads \nPatch bundle 1.21.2, built -b20260909\n\n`hotstar-v26.06.08.2-arm64-v8a.apk` \u00b7 69.4 MB\nSHA-256 `2dec72d47e3728ec80fd1ec69e08157110f7cb64f765dfb210d7b2b992d6a22c`\n\nVerify before installing: `sha256sum hotstar-v26.06.08.2-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 385695427,
+   "name": "hotstar-v26.06.08.2-b20260909",
+   "published_at": "2026-09-09T16:52:56Z",
+   "tag": "hotstar-v26.06.08.2-b20260909",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:677a76cacd06560d841c995aa771266536b206949dfd0e87048875881b65d1e4",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 25344101,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b20260907/mx-player-v1.93.4-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): paresh + ftl\nApp version 1.93.4 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup \n- Hide File Transfer, Video Playlist, Private Folder tiles \n- Hide Settings Page UseLess Buttons \n- MX Player Pro License \n- Remove Ads \n- Remove Ads Lite (Adobo) \n- Remove Analytics \n- Remove Analytics New \n- Remove Duplicate Graphics \n- Remove Languages \nPatch bundle 1.44.0, built -b20260907\n\n`mx-player-v1.93.4-arm64-v8a.apk` \u00b7 24.2 MB\nSHA-256 `677a76cacd06560d841c995aa771266536b206949dfd0e87048875881b65d1e4`\n\nVerify before installing: `sha256sum mx-player-v1.93.4-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384246532,
+   "name": "mx-player-v1.93.4-b20260907",
+   "published_at": "2026-09-07T17:50:06Z",
+   "tag": "mx-player-v1.93.4-b20260907",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:d18d00fd44b65135af81d9b939a2c53010ccdb944cff23797ef26414f23dfe9a",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 25344101,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b20260908/mx-player-v1.93.4-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): paresh + ftl\nApp version 1.93.4 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup \n- Hide File Transfer, Video Playlist, Private Folder tiles \n- Hide Settings Page UseLess Buttons \n- MX Player Pro License \n- Remove Ads \n- Remove Ads Lite (Adobo) \n- Remove Analytics \n- Remove Analytics New \n- Remove Duplicate Graphics \n- Remove Languages \nPatch bundle 1.44.0, built -b20260908\n\n`mx-player-v1.93.4-arm64-v8a.apk` \u00b7 24.2 MB\nSHA-256 `d18d00fd44b65135af81d9b939a2c53010ccdb944cff23797ef26414f23dfe9a`\n\nVerify before installing: `sha256sum mx-player-v1.93.4-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384906750,
+   "name": "mx-player-v1.93.4-b20260908",
+   "published_at": "2026-09-08T16:47:57Z",
+   "tag": "mx-player-v1.93.4-b20260908",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:551cdaa3ba6e732cccd4fac2c730ff6b0d4972eb5a30008664a0b40669f8c344",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 24536796,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026091000000000034502842756000001/mx-player-v1.93.4-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): paresh + ftl\nApp version 1.93.4 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup\n- Hide File Transfer, Video Playlist, Private Folder tiles\n- Hide Settings Page UseLess Buttons\n- MX Player Pro License\n- Remove Ads\n- Remove Ads Lite (Adobo)\n- Remove Analytics\n- Remove Analytics New\n- Remove Duplicate Graphics\n- Remove Languages\nPatch bundle 1.44.0, built -b2026091000000000034502842756000001\n\n`mx-player-v1.93.4-arm64-v8a.apk` \u00b7 23.4 MB\nSHA-256 `551cdaa3ba6e732cccd4fac2c730ff6b0d4972eb5a30008664a0b40669f8c344`\n\nVerify before installing: `sha256sum mx-player-v1.93.4-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 386454465,
+   "name": "mx-player-v1.93.4-b2026091000000000034502842756000001",
+   "published_at": "2026-09-10T16:36:51Z",
+   "tag": "mx-player-v1.93.4-b2026091000000000034502842756000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:af0d1688faad02ecd8f1f63f79f2bd2ec55145d63e5a840efeed288ce54e7489",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 24569656,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026091200000000034702912009000001/mx-player-v1.93.4-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): paresh + ftl\nApp version 1.93.4 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup\n- Hide File Transfer, Video Playlist, Private Folder tiles\n- Hide Settings Page UseLess Buttons\n- MX Player Pro License\n- Remove Ads\n- Remove Ads Lite (Adobo)\n- Remove Analytics\n- Remove Analytics New\n- Remove Duplicate Graphics\n- Remove Languages\nPatch bundle 1.44.0, built -b2026091200000000034702912009000001\n\n`mx-player-v1.93.4-arm64-v8a.apk` \u00b7 23.4 MB\nSHA-256 `af0d1688faad02ecd8f1f63f79f2bd2ec55145d63e5a840efeed288ce54e7489`\n\nVerify before installing: `sha256sum mx-player-v1.93.4-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387618063,
+   "name": "mx-player-v1.93.4-b2026091200000000034702912009000001",
+   "published_at": "2026-09-12T15:43:07Z",
+   "tag": "mx-player-v1.93.4-b2026091200000000034702912009000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:19c7f121e18a0ff49d38f1670c4825ac5f507530a6c2de07e661f3a952670c12",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 23991940,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026091300000000034768808230000001/mx-player-v1.93.4-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): paresh + ftl\nApp version 1.93.4 \u00b7 arm64-v8a\n\n**Applied patches**\n- APK Junk Cleanup\n- Hide File Transfer, Video Playlist, Private Folder tiles\n- Hide Settings Page UseLess Buttons\n- MX Player Pro License\n- Remove Ads\n- Remove Ads Lite (Adobo)\n- Remove Analytics\n- Remove Analytics New\n- Remove Duplicate Graphics\n- Remove Languages\nPatch bundle 1.44.0, built -b2026091300000000034768808230000001\n\n`mx-player-v1.93.4-arm64-v8a.apk` \u00b7 22.9 MB\nSHA-256 `19c7f121e18a0ff49d38f1670c4825ac5f507530a6c2de07e661f3a952670c12`\n\nVerify before installing: `sha256sum mx-player-v1.93.4-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387961360,
+   "name": "mx-player-v1.93.4-b2026091300000000034768808230000001",
+   "published_at": "2026-09-13T16:33:46Z",
+   "tag": "mx-player-v1.93.4-b2026091300000000034768808230000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:c1371bc6047173969d0310f7e6a92f80ef7e31fb47506df36ee6a63ccd487c46",
+     "name": "prime-video-v3.0.452-arm64-v8a.apk",
+     "size": 107905862,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452-b20260907/prime-video-v3.0.452-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): hoo-dles\nApp version 3.0.452 \u00b7 arm64-v8a\n\n**Applied patches**\n- Enable speed control \n- Rename shared permissions \n- Skip ads \nPatch bundle 1.44.0, built -b20260907\n\n`prime-video-v3.0.452-arm64-v8a.apk` \u00b7 102.9 MB\nSHA-256 `c1371bc6047173969d0310f7e6a92f80ef7e31fb47506df36ee6a63ccd487c46`\n\nVerify before installing: `sha256sum prime-video-v3.0.452-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384247008,
+   "name": "prime-video-v3.0.452-b20260907",
+   "published_at": "2026-09-07T17:51:27Z",
+   "tag": "prime-video-v3.0.452-b20260907",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:3d3fc1b723f84835648c47e83ce6fcf567c9eda7ce9e938bcc6db96d29897d7b",
+     "name": "prime-video-v3.0.452.257-arm64-v8a.apk",
+     "size": 107914054,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452.257-b2026091700000000035251071573000001/prime-video-v3.0.452.257-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): hoo-dles\nApp version 3.0.452.257 \u00b7 arm64-v8a\n\n**Applied patches**\n- Enable speed control\n- Rename shared permissions\n- Skip ads\nPatch bundle 1.44.1, built -b2026091700000000035251071573000001\n\n`prime-video-v3.0.452.257-arm64-v8a.apk` \u00b7 102.9 MB\nSHA-256 `3d3fc1b723f84835648c47e83ce6fcf567c9eda7ce9e938bcc6db96d29897d7b`\n\nVerify before installing: `sha256sum prime-video-v3.0.452.257-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 390911450,
+   "name": "prime-video-v3.0.452.257-b2026091700000000035251071573000001",
+   "published_at": "2026-09-17T17:14:12Z",
+   "tag": "prime-video-v3.0.452.257-b2026091700000000035251071573000001",
+   "tag_commit": "35bace4e948f908ef3043f96a93109ce62760ef8"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:9c768ed72f5534a10a3c7a1ae181aace24c9ba7965b268fae9bb4355c2675beb",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 1067,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452.257-b2026091800000000035369326453000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:22d4ebff81c26c5092238440997d5c1b5905b1a6e2a696a181195274c26cc06f",
+     "name": "prime-video-v3.0.452.257-arm64-v8a.apk",
+     "size": 107914054,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452.257-b2026091800000000035369326453000001/prime-video-v3.0.452.257-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): hoo-dles\nApp version 3.0.452.257 \u00b7 arm64-v8a\n\n**Applied patches**\n- Enable speed control\n- Rename shared permissions\n- Skip ads\nPatch bundle 1.44.2, built -b2026091800000000035369326453000001\n\n`prime-video-v3.0.452.257-arm64-v8a.apk` \u00b7 102.9 MB\nSHA-256 `22d4ebff81c26c5092238440997d5c1b5905b1a6e2a696a181195274c26cc06f`\n\nVerify before installing: `sha256sum prime-video-v3.0.452.257-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 391628441,
+   "name": "prime-video-v3.0.452.257-b2026091800000000035369326453000001",
+   "published_at": "2026-09-18T16:38:42Z",
+   "tag": "prime-video-v3.0.452.257-b2026091800000000035369326453000001",
+   "tag_commit": "3a855e5bb93ca6cc2580c7e9db4006b68f7b96f0"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:b1f90ffd762a3b5a04bfd22e5eda017d0705b501e547759b1a2f88d080ecce29",
+     "name": "telegram-v12.10.0-arm64-v8a.apk",
+     "size": 57690452,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/telegram-v12.10.0-b20260908/telegram-v12.10.0-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): rushiranpise\nApp version 12.10.0 \u00b7 arm64-v8a\n\n**Applied patches**\n- Anti-delete messages \n- Anti-disappearing media \n- Anti-screenshot notification \n- Bypass channel restrictions \n- Bypass content restrictions \n- Disable auto-update \n- Disable channel switching \n- Download speed boost \n- Hide typing indicator \n- Remove ads \n- Unlock Premium \n- Use normal paste \n- Voice to music \nPatch bundle 1.21.5, built -b20260908\n\n`telegram-v12.10.0-arm64-v8a.apk` \u00b7 55.0 MB\nSHA-256 `b1f90ffd762a3b5a04bfd22e5eda017d0705b501e547759b1a2f88d080ecce29`\n\nVerify before installing: `sha256sum telegram-v12.10.0-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384907357,
+   "name": "telegram-v12.10.0-b20260908",
+   "published_at": "2026-09-08T16:49:01Z",
+   "tag": "telegram-v12.10.0-b20260908",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:c2696b5da688791675f73be12d995139bcecd12476e0e0aaf47b0ad597d6d0e3",
+     "name": "telegram-v12.10.1-arm64-v8a.apk",
+     "size": 60302840,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/telegram-v12.10.1-b2026091600000000035126469829000001/telegram-v12.10.1-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): rushiranpise\nApp version 12.10.1 \u00b7 arm64-v8a\n\n**Applied patches**\n- Anti-delete messages\n- Anti-disappearing media\n- Anti-screenshot notification\n- Bypass channel restrictions\n- Bypass content restrictions\n- Disable auto-update\n- Disable channel switching\n- Download speed boost\n- Hide typing indicator\n- Remove ads\n- Unlock Premium\n- Use normal paste\n- Voice to music\nPatch bundle 1.22.0, built -b2026091600000000035126469829000001\n\n`telegram-v12.10.1-arm64-v8a.apk` \u00b7 57.5 MB\nSHA-256 `c2696b5da688791675f73be12d995139bcecd12476e0e0aaf47b0ad597d6d0e3`\n\nVerify before installing: `sha256sum telegram-v12.10.1-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 390119685,
+   "name": "telegram-v12.10.1-b2026091600000000035126469829000001",
+   "published_at": "2026-09-16T17:12:40Z",
+   "tag": "telegram-v12.10.1-b2026091600000000035126469829000001",
+   "tag_commit": "446184cd7859e012417d8b945df1a14382240c0d"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:3899b4cfbde789c0132675b22d81b495e9bff70e0fe2a3ed21046359d1b13212",
+     "name": "youtube-v21.36.45-arm64-v8a.apk",
+     "size": 109904242,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.36.45-b20260908/youtube-v21.36.45-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.36.45 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate \n- Change start page \n- Copy video link \n- Disable DRC audio \n- Disable Shorts resuming on startup \n- Disable double tap actions \n- Disable fullscreen gestures \n- Disable haptic feedback \n- Disable layout updates \n- Disable player popup panels \n- Disable playlist autoplay \n- Disable rolling number animations \n- Disable scrolling speed limit \n- Disable sign in to TV popup \n- Double tap to seek \n- Downloads \n- Exit fullscreen mode \n- Force original audio \n- Fullscreen video scale \n- GmsCore support \n- Hide Shorts components \n- Hide ads \n- Hide autoplay preview \n- Hide end screen cards \n- Hide end screen suggested video \n- Hide info cards \n- Hide layout components \n- Hide player flyout menu components \n- Hide player overlay buttons \n- Hide related video overlay \n- Hide related videos \n- Hide timestamp \n- Hide video action buttons \n- Loop video \n- Media notification controls \n- Miniplayer \n- Mute button \n- Navigation bar \n- Open Shorts in regular player \n- Open channel of live avatar \n- Open links externally \n- Open videos fullscreen \n- Override YouTube Music buttons \n- Play all \n- Playback in feeds \n- Playback speed \n- PoToken provider \n- Reload video \n- Remember livestream playback position \n- Remove background playback restrictions \n- Remove viewer discretion dialog \n- Return YouTube Dislike \n- Sanitize sharing links \n- Save to Watch later \n- Seekbar \n- Settings menu filter \n- Shorts autoplay \n- SponsorBlock \n- Spoof video streams \n- Swipe controls \n- Theme \n- Video quality \n- Wide search bar \nPatch bundle 1.42.0, built -b20260908\n\n`youtube-v21.36.45-arm64-v8a.apk` \u00b7 104.8 MB\nSHA-256 `3899b4cfbde789c0132675b22d81b495e9bff70e0fe2a3ed21046359d1b13212`\n\nVerify before installing: `sha256sum youtube-v21.36.45-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 384907649,
+   "name": "youtube-morphe-v21.36.45-b20260908",
+   "published_at": "2026-09-08T16:49:30Z",
+   "tag": "youtube-morphe-v21.36.45-b20260908",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:53730224ff68b259e65f57b0fd428ccbc9ec30729e6be8a1519e6a1abbef3ffd",
+     "name": "youtube-v21.36.45-arm64-v8a.apk",
+     "size": 109904242,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.36.45-b20260909/youtube-v21.36.45-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.36.45 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate \n- Change start page \n- Copy video link \n- Disable DRC audio \n- Disable Shorts resuming on startup \n- Disable double tap actions \n- Disable fullscreen gestures \n- Disable haptic feedback \n- Disable layout updates \n- Disable player popup panels \n- Disable playlist autoplay \n- Disable rolling number animations \n- Disable scrolling speed limit \n- Disable sign in to TV popup \n- Double tap to seek \n- Downloads \n- Exit fullscreen mode \n- Force original audio \n- Fullscreen video scale \n- GmsCore support \n- Hide Shorts components \n- Hide ads \n- Hide autoplay preview \n- Hide end screen cards \n- Hide end screen suggested video \n- Hide info cards \n- Hide layout components \n- Hide player flyout menu components \n- Hide player overlay buttons \n- Hide related video overlay \n- Hide related videos \n- Hide timestamp \n- Hide video action buttons \n- Loop video \n- Media notification controls \n- Miniplayer \n- Mute button \n- Navigation bar \n- Open Shorts in regular player \n- Open channel of live avatar \n- Open links externally \n- Open videos fullscreen \n- Override YouTube Music buttons \n- Play all \n- Playback in feeds \n- Playback speed \n- PoToken provider \n- Reload video \n- Remember livestream playback position \n- Remove background playback restrictions \n- Remove viewer discretion dialog \n- Return YouTube Dislike \n- Sanitize sharing links \n- Save to Watch later \n- Seekbar \n- Settings menu filter \n- Shorts autoplay \n- SponsorBlock \n- Spoof video streams \n- Swipe controls \n- Theme \n- Video quality \n- Wide search bar \nPatch bundle 1.42.0, built -b20260909\n\n`youtube-v21.36.45-arm64-v8a.apk` \u00b7 104.8 MB\nSHA-256 `53730224ff68b259e65f57b0fd428ccbc9ec30729e6be8a1519e6a1abbef3ffd`\n\nVerify before installing: `sha256sum youtube-v21.36.45-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 385694840,
+   "name": "youtube-morphe-v21.36.45-b20260909",
+   "published_at": "2026-09-09T16:51:56Z",
+   "tag": "youtube-morphe-v21.36.45-b20260909",
+   "tag_commit": "af7f0f209c6cf816a2a51485ff9e5056a0fb7a9f"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:a5976325febeba98341be5b18b9e15b50a808dadcf435a516a003c5b0e6db7b0",
+     "name": "youtube-v21.36.45-arm64-v8a.apk",
+     "size": 110039410,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.36.45-b2026091000000000034502842756000001/youtube-v21.36.45-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.36.45 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate\n- Change start page\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\nPatch bundle 1.42.0, built -b2026091000000000034502842756000001\n\n`youtube-v21.36.45-arm64-v8a.apk` \u00b7 104.9 MB\nSHA-256 `a5976325febeba98341be5b18b9e15b50a808dadcf435a516a003c5b0e6db7b0`\n\nVerify before installing: `sha256sum youtube-v21.36.45-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 386455001,
+   "name": "youtube-morphe-v21.36.45-b2026091000000000034502842756000001",
+   "published_at": "2026-09-10T16:37:50Z",
+   "tag": "youtube-morphe-v21.36.45-b2026091000000000034502842756000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:09f5878c0c7e43b84100f6d7dd2299aaa50ef17c534b9df5cf26c2831c7b4155",
+     "name": "youtube-v21.36.45-arm64-v8a.apk",
+     "size": 110039410,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.36.45-b2026091100000000034623121744000001/youtube-v21.36.45-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.36.45 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate\n- Change start page\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\nPatch bundle 1.42.1, built -b2026091100000000034623121744000001\n\n`youtube-v21.36.45-arm64-v8a.apk` \u00b7 104.9 MB\nSHA-256 `09f5878c0c7e43b84100f6d7dd2299aaa50ef17c534b9df5cf26c2831c7b4155`\n\nVerify before installing: `sha256sum youtube-v21.36.45-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387193428,
+   "name": "youtube-morphe-v21.36.45-b2026091100000000034623121744000001",
+   "published_at": "2026-09-11T16:41:46Z",
+   "tag": "youtube-morphe-v21.36.45-b2026091100000000034623121744000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:0be25283fb408a812deb89ddd391a395a6b19f83e217d0fba59642e1017a70f1",
+     "name": "youtube-v21.36.45-arm64-v8a.apk",
+     "size": 110063986,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.36.45-b2026091200000000034702912009000001/youtube-v21.36.45-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.36.45 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate\n- Change start page\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\nPatch bundle 1.43.0, built -b2026091200000000034702912009000001\n\n`youtube-v21.36.45-arm64-v8a.apk` \u00b7 105.0 MB\nSHA-256 `0be25283fb408a812deb89ddd391a395a6b19f83e217d0fba59642e1017a70f1`\n\nVerify before installing: `sha256sum youtube-v21.36.45-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387618134,
+   "name": "youtube-morphe-v21.36.45-b2026091200000000034702912009000001",
+   "published_at": "2026-09-12T15:43:21Z",
+   "tag": "youtube-morphe-v21.36.45-b2026091200000000034702912009000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:8d4637232f015fdf0d7cc8bdc54d60c0001f0b5e6cf5026a59c8788d3d154ae3",
+     "name": "youtube-v21.36.45-arm64-v8a.apk",
+     "size": 110047602,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.36.45-b2026091300000000034768808230000001/youtube-v21.36.45-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.36.45 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate\n- Change start page\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\nPatch bundle 1.43.0, built -b2026091300000000034768808230000001\n\n`youtube-v21.36.45-arm64-v8a.apk` \u00b7 104.9 MB\nSHA-256 `8d4637232f015fdf0d7cc8bdc54d60c0001f0b5e6cf5026a59c8788d3d154ae3`\n\nVerify before installing: `sha256sum youtube-v21.36.45-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 387961775,
+   "name": "youtube-morphe-v21.36.45-b2026091300000000034768808230000001",
+   "published_at": "2026-09-13T16:35:13Z",
+   "tag": "youtube-morphe-v21.36.45-b2026091300000000034768808230000001",
+   "tag_commit": "4bec910fef80c46c5affff2799ed5beec6245cf9"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:f05d8e1def098ac2dad866d044ce85e57bf8b51348e55a17da2ad663dde598f8",
+     "name": "youtube-v21.36.45-arm64-v8a.apk",
+     "size": 110059890,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.36.45-b2026091400000000034878852938000001/youtube-v21.36.45-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.36.45 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate\n- Change start page\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\nPatch bundle 1.43.0, built -b2026091400000000034878852938000001\n\n`youtube-v21.36.45-arm64-v8a.apk` \u00b7 105.0 MB\nSHA-256 `f05d8e1def098ac2dad866d044ce85e57bf8b51348e55a17da2ad663dde598f8`\n\nVerify before installing: `sha256sum youtube-v21.36.45-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 388609621,
+   "name": "youtube-morphe-v21.36.45-b2026091400000000034878852938000001",
+   "published_at": "2026-09-14T18:11:21Z",
+   "tag": "youtube-morphe-v21.36.45-b2026091400000000034878852938000001",
+   "tag_commit": "8fca13c85c17153e692a547cea992c1a663e54c1"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:1f27ed000d7797ea6ed81fa16152a188efb4d1fe3f430f9183db8b8549f30ce5",
+     "name": "youtube-v21.37.42-arm64-v8a.apk",
+     "size": 109921696,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.37.42-b2026091500000000034999527353000001/youtube-v21.37.42-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.37.42 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate\n- Change start page\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\nPatch bundle 1.43.1, built -b2026091500000000034999527353000001\n\n`youtube-v21.37.42-arm64-v8a.apk` \u00b7 104.8 MB\nSHA-256 `1f27ed000d7797ea6ed81fa16152a188efb4d1fe3f430f9183db8b8549f30ce5`\n\nVerify before installing: `sha256sum youtube-v21.37.42-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 389332432,
+   "name": "youtube-morphe-v21.37.42-b2026091500000000034999527353000001",
+   "published_at": "2026-09-15T17:13:20Z",
+   "tag": "youtube-morphe-v21.37.42-b2026091500000000034999527353000001",
+   "tag_commit": "8fca13c85c17153e692a547cea992c1a663e54c1"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:576bae998d83f6e663aef437573fcb32a304635570e13ded40a705846930cad1",
+     "name": "youtube-v21.37.42-arm64-v8a.apk",
+     "size": 110007712,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.37.42-b2026091600000000035126469829000001/youtube-v21.37.42-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.37.42 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate\n- Change start page\n- Channel search\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\nPatch bundle 1.44.0, built -b2026091600000000035126469829000001\n\n`youtube-v21.37.42-arm64-v8a.apk` \u00b7 104.9 MB\nSHA-256 `576bae998d83f6e663aef437573fcb32a304635570e13ded40a705846930cad1`\n\nVerify before installing: `sha256sum youtube-v21.37.42-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 390122551,
+   "name": "youtube-morphe-v21.37.42-b2026091600000000035126469829000001",
+   "published_at": "2026-09-16T17:17:19Z",
+   "tag": "youtube-morphe-v21.37.42-b2026091600000000035126469829000001",
+   "tag_commit": "446184cd7859e012417d8b945df1a14382240c0d"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:9db1049b08e67d81af0e68d12e0dd7cf5e9de876e3c56db8c956db0ec0fbaa37",
+     "name": "youtube-v21.37.42-arm64-v8a.apk",
+     "size": 110024096,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.37.42-b2026091700000000035251071573000001/youtube-v21.37.42-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.37.42 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate\n- Change start page\n- Channel search\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\nPatch bundle 1.44.0, built -b2026091700000000035251071573000001\n\n`youtube-v21.37.42-arm64-v8a.apk` \u00b7 104.9 MB\nSHA-256 `9db1049b08e67d81af0e68d12e0dd7cf5e9de876e3c56db8c956db0ec0fbaa37`\n\nVerify before installing: `sha256sum youtube-v21.37.42-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 390911974,
+   "name": "youtube-morphe-v21.37.42-b2026091700000000035251071573000001",
+   "published_at": "2026-09-17T17:15:05Z",
+   "tag": "youtube-morphe-v21.37.42-b2026091700000000035251071573000001",
+   "tag_commit": "35bace4e948f908ef3043f96a93109ce62760ef8"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:7b4ee78ac06a1df5fa6de79baaccbc65dbac769c20d794711bc583e8a97d7d50",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 1057,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.37.42-b2026091800000000035369326453000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:69c69908046ae9ca02cb3e6595849ec433032d114d5b2452ed850d8291377857",
+     "name": "youtube-v21.37.42-arm64-v8a.apk",
+     "size": 110052768,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.37.42-b2026091800000000035369326453000001/youtube-v21.37.42-arm64-v8a.apk"
+    }
+   ],
+   "body": "Patch provider(s): morphe\nApp version 21.37.42 \u00b7 arm64-v8a\n\n**Applied patches**\n- App refresh rate\n- Change start page\n- Channel search\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force fullscreen landscape\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\nPatch bundle 1.44.0, built -b2026091800000000035369326453000001\n\n`youtube-v21.37.42-arm64-v8a.apk` \u00b7 105.0 MB\nSHA-256 `69c69908046ae9ca02cb3e6595849ec433032d114d5b2452ed850d8291377857`\n\nVerify before installing: `sha256sum youtube-v21.37.42-arm64-v8a.apk`\nBuilt in public CI with [morphe-desktop](https://github.com/MorpheApp/morphe-desktop).",
+   "id": 391628866,
+   "name": "youtube-morphe-v21.37.42-b2026091800000000035369326453000001",
+   "published_at": "2026-09-18T16:39:28Z",
+   "tag": "youtube-morphe-v21.37.42-b2026091800000000035369326453000001",
+   "tag_commit": "3a855e5bb93ca6cc2580c7e9db4006b68f7b96f0"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:3edc0f2b2918c7ffdc3b0b41df11987996f8f0b87cffd82ae352c16cc5da4168",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 1059,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026091900000000035453446825000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:2c674905492216df3c27fa0672c28e73f9f4c75239b371346d8c252d65e4c7b1",
+     "name": "youtube-v21.38.123-arm64-v8a.apk",
+     "size": 110264418,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026091900000000035453446825000001/youtube-v21.38.123-arm64-v8a.apk"
+    }
+   ],
+   "body": "## What changed\n- App version: 21.37.42 -&gt; 21.38.123.\n- Patch changes were not recorded in a comparable format in the previous release.\n\nPrevious release lacks comparable structured patch metadata.\n\n## This download\n\n| Detail | Value |\n| --- | --- |\n| App | YouTube |\n| App version | 21.38.123 |\n| Android package | app.morphe.android.youtube |\n| Minimum Android API | 29 |\n| Native code | arm64-v8a |\n| Size | 105.2 MB |\n| Patch providers | morphe |\n| Primary bundle | 1.44.0 |\n| Applied patch names | 64 |\n\n## Applied patches\n- App refresh rate\n- Change start page\n- Channel search\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force fullscreen landscape\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\n\n## Checks and limitations\n- CI checked APK identity, declared minimum Android API, native payloads, applied patch names and its configured signing certificate.\n- Not phone-tested by this pipeline; not proof of original-publisher authenticity or installed-app compatibility.\n- Same-version patch-only update delivery in Obtainium remains limited. New build does not necessarily mean a new app version.\n\n## Download evidence\nFile: `youtube-v21.38.123-arm64-v8a.apk`\nSHA-256: `2c674905492216df3c27fa0672c28e73f9f4c75239b371346d8c252d65e4c7b1`\nCI signing certificate SHA-256: `08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050`\n[Build source](https://github.com/govinda-rajulu/patch-factory/tree/6bda7117e9e41bd2e9c7a91973f6a77859ff5dcf)\n[Exact build run](https://github.com/govinda-rajulu/patch-factory/actions/runs/35453446825/attempts/1)\n[Previous app release](https://github.com/govinda-rajulu/patch-factory/releases/tag/youtube-morphe-v21.37.42-b2026091800000000035369326453000001)\n\n## Help and stable information\n[Install, updates, source types and status meanings](https://github.com/govinda-rajulu/patch-factory/blob/6bda7117e9e41bd2e9c7a91973f6a77859ff5dcf/docs/guide.md)\nNo automatic uninstall, import migration or device-protection bypass is required or recommended.\n\n[pf-release-v1]: # \"eyJhcGsiOiJ5b3V0dWJlLXYyMS4zOC4xMjMtYXJtNjQtdjhhLmFwayIsImFyY2giOiJhcm02NC12OGEiLCJidW5kbGUiOiIxLjQ0LjAiLCJieXRlcyI6MTEwMjY0NDE4LCJsYWJlbCI6IllvdVR1YmUiLCJtaW5fc2RrIjoyOSwicGFja2FnZSI6ImFwcC5tb3JwaGUuYW5kcm9pZC55b3V0dWJlIiwicGF0Y2hlcyI6WyJBcHAgcmVmcmVzaCByYXRlIiwiQ2hhbmdlIHN0YXJ0IHBhZ2UiLCJDaGFubmVsIHNlYXJjaCIsIkNvcHkgdmlkZW8gbGluayIsIkRpc2FibGUgRFJDIGF1ZGlvIiwiRGlzYWJsZSBTaG9ydHMgcmVzdW1pbmcgb24gc3RhcnR1cCIsIkRpc2FibGUgZG91YmxlIHRhcCBhY3Rpb25zIiwiRGlzYWJsZSBmdWxsc2NyZWVuIGdlc3R1cmVzIiwiRGlzYWJsZSBoYXB0aWMgZmVlZGJhY2siLCJEaXNhYmxlIGxheW91dCB1cGRhdGVzIiwiRGlzYWJsZSBwbGF5ZXIgcG9wdXAgcGFuZWxzIiwiRGlzYWJsZSBwbGF5bGlzdCBhdXRvcGxheSIsIkRpc2FibGUgcm9sbGluZyBudW1iZXIgYW5pbWF0aW9ucyIsIkRpc2FibGUgc2Nyb2xsaW5nIHNwZWVkIGxpbWl0IiwiRGlzYWJsZSBzaWduIGluIHRvIFRWIHBvcHVwIiwiRG91YmxlIHRhcCB0byBzZWVrIiwiRG93bmxvYWRzIiwiRXhpdCBmdWxsc2NyZWVuIG1vZGUiLCJGb3JjZSBmdWxsc2NyZWVuIGxhbmRzY2FwZSIsIkZvcmNlIG9yaWdpbmFsIGF1ZGlvIiwiRnVsbHNjcmVlbiB2aWRlbyBzY2FsZSIsIkdtc0NvcmUgc3VwcG9ydCIsIkhpZGUgU2hvcnRzIGNvbXBvbmVudHMiLCJIaWRlIGFkcyIsIkhpZGUgYXV0b3BsYXkgcHJldmlldyIsIkhpZGUgZW5kIHNjcmVlbiBjYXJkcyIsIkhpZGUgZW5kIHNjcmVlbiBzdWdnZXN0ZWQgdmlkZW8iLCJIaWRlIGluZm8gY2FyZHMiLCJIaWRlIGxheW91dCBjb21wb25lbnRzIiwiSGlkZSBwbGF5ZXIgZmx5b3V0IG1lbnUgY29tcG9uZW50cyIsIkhpZGUgcGxheWVyIG92ZXJsYXkgYnV0dG9ucyIsIkhpZGUgcmVsYXRlZCB2aWRlbyBvdmVybGF5IiwiSGlkZSByZWxhdGVkIHZpZGVvcyIsIkhpZGUgdGltZXN0YW1wIiwiSGlkZSB2aWRlbyBhY3Rpb24gYnV0dG9ucyIsIkxvb3AgdmlkZW8iLCJNZWRpYSBub3RpZmljYXRpb24gY29udHJvbHMiLCJNaW5pcGxheWVyIiwiTXV0ZSBidXR0b24iLCJOYXZpZ2F0aW9uIGJhciIsIk9wZW4gU2hvcnRzIGluIHJlZ3VsYXIgcGxheWVyIiwiT3BlbiBjaGFubmVsIG9mIGxpdmUgYXZhdGFyIiwiT3BlbiBsaW5rcyBleHRlcm5hbGx5IiwiT3BlbiB2aWRlb3MgZnVsbHNjcmVlbiIsIk92ZXJyaWRlIFlvdVR1YmUgTXVzaWMgYnV0dG9ucyIsIlBsYXkgYWxsIiwiUGxheWJhY2sgaW4gZmVlZHMiLCJQbGF5YmFjayBzcGVlZCIsIlBvVG9rZW4gcHJvdmlkZXIiLCJSZWxvYWQgdmlkZW8iLCJSZW1vdmUgYmFja2dyb3VuZCBwbGF5YmFjayByZXN0cmljdGlvbnMiLCJSZW1vdmUgdmlld2VyIGRpc2NyZXRpb24gZGlhbG9nIiwiUmV0dXJuIFlvdVR1YmUgRGlzbGlrZSIsIlNhbml0aXplIHNoYXJpbmcgbGlua3MiLCJTYXZlIHRvIFdhdGNoIGxhdGVyIiwiU2Vla2JhciIsIlNldHRpbmdzIG1lbnUgZmlsdGVyIiwiU2hvcnRzIGF1dG9wbGF5IiwiU3BvbnNvckJsb2NrIiwiU3Bvb2YgdmlkZW8gc3RyZWFtcyIsIlN3aXBlIGNvbnRyb2xzIiwiVGhlbWUiLCJWaWRlbyBxdWFsaXR5IiwiV2lkZSBzZWFyY2ggYmFyIl0sInByb3ZpZGVyIjoibW9ycGhlIiwic2NoZW1hIjoxLCJzaGEyNTYiOiIyYzY3NDkwNTQ5MjIxNmRmM2MyN2ZhMDY3MmMyOGU3M2Y5ZjRjNzUyMzliMzcxMzQ2ZDhjMjUyZDY1ZTRjN2IxIiwic2lnbmVyIjoiMDg0ODBmNjY0OWEyYmUzM2ZmM2NjY2FjY2UwNzQ1NDc2MWQ1ZmI5YWJlNjVmMWUyY2FlZWI3ODJlMzgyZDA1MCIsInNvdXJjZSI6IjZiZGE3MTE3ZTllNDFiZDJlOWM3YTkxOTczZjZhNzc4NTlmZjVkY2YiLCJ0YWciOiJ5b3V0dWJlLW1vcnBoZS12MjEuMzguMTIzLWIyMDI2MDkxOTAwMDAwMDAwMDM1NDUzNDQ2ODI1MDAwMDAxIiwidGFyZ2V0IjoieW91dHViZSIsInZlcnNpb24iOiIyMS4zOC4xMjMifQ==\"",
+   "id": 392128689,
+   "name": "youtube-morphe-v21.38.123-b2026091900000000035453446825000001",
+   "published_at": "2026-09-19T16:03:48Z",
+   "tag": "youtube-morphe-v21.38.123-b2026091900000000035453446825000001",
+   "tag_commit": "6bda7117e9e41bd2e9c7a91973f6a77859ff5dcf"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:07139505626b8b585bfe44af609657fa109a0d5a7dee602c16047bfdad8d3168",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 1059,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092100000000035571131023000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:a35eae4e57ca529e48644fb62beec298cea8f531943ea7f42916c6d4c70212cc",
+     "name": "pf-qualified-v1-youtube.json",
+     "size": 2683,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092100000000035571131023000001/pf-qualified-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:f2b8c61cd90a42d944ee6b0bc74cb3ffcb7eb062dcaf24e7bdd0aa678a8792cf",
+     "name": "youtube-v21.38.123-arm64-v8a.apk",
+     "size": 110280802,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092100000000035571131023000001/youtube-v21.38.123-arm64-v8a.apk"
+    }
+   ],
+   "body": "## What changed\n- App version unchanged at 21.38.123; this is another build.\n- Applied patch names unchanged; this does not prove unchanged patch code or defaults.\n- Repository source changed; see the exact source comparison below.\n- APK bytes differ from the previous release.\n\nCompared with the immediate previous app release; previous metadata is publisher-reported.\n\n## This download\n\n| Detail | Value |\n| --- | --- |\n| App | YouTube |\n| App version | 21.38.123 |\n| Android package | app.morphe.android.youtube |\n| Minimum Android API | 29 |\n| Native code | arm64-v8a |\n| Size | 105.2 MB |\n| Patch providers | morphe |\n| Primary bundle | 1.44.0 |\n| Applied patch names | 64 |\n\n## Applied patches\n- App refresh rate\n- Change start page\n- Channel search\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force fullscreen landscape\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\n\n## Checks and limitations\n- CI checked APK identity, declared minimum Android API, native payloads, applied patch names and its configured signing certificate.\n- Not phone-tested by this pipeline; not proof of original-publisher authenticity or installed-app compatibility.\n- Same-version patch-only update delivery in Obtainium remains limited. New build does not necessarily mean a new app version.\n\n## Download evidence\nFile: `youtube-v21.38.123-arm64-v8a.apk`\nSHA-256: `f2b8c61cd90a42d944ee6b0bc74cb3ffcb7eb062dcaf24e7bdd0aa678a8792cf`\nCI signing certificate SHA-256: `08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050`\n[Build source](https://github.com/govinda-rajulu/patch-factory/tree/90b7717a417e4c420f6d717d4ee3563d0c8e56dd)\n[Exact build run](https://github.com/govinda-rajulu/patch-factory/actions/runs/35571131023/attempts/1)\n[Previous app release](https://github.com/govinda-rajulu/patch-factory/releases/tag/youtube-morphe-v21.38.123-b2026091900000000035453446825000001)\n[Source comparison](https://github.com/govinda-rajulu/patch-factory/compare/6bda7117e9e41bd2e9c7a91973f6a77859ff5dcf...90b7717a417e4c420f6d717d4ee3563d0c8e56dd)\n\n## Help and stable information\n[Install, updates, source types and status meanings](https://github.com/govinda-rajulu/patch-factory/blob/90b7717a417e4c420f6d717d4ee3563d0c8e56dd/docs/guide.md)\nNo automatic uninstall, import migration or device-protection bypass is required or recommended.\n\n[pf-release-v1]: # \"eyJhcGsiOiJ5b3V0dWJlLXYyMS4zOC4xMjMtYXJtNjQtdjhhLmFwayIsImFyY2giOiJhcm02NC12OGEiLCJidW5kbGUiOiIxLjQ0LjAiLCJieXRlcyI6MTEwMjgwODAyLCJsYWJlbCI6IllvdVR1YmUiLCJtaW5fc2RrIjoyOSwicGFja2FnZSI6ImFwcC5tb3JwaGUuYW5kcm9pZC55b3V0dWJlIiwicGF0Y2hlcyI6WyJBcHAgcmVmcmVzaCByYXRlIiwiQ2hhbmdlIHN0YXJ0IHBhZ2UiLCJDaGFubmVsIHNlYXJjaCIsIkNvcHkgdmlkZW8gbGluayIsIkRpc2FibGUgRFJDIGF1ZGlvIiwiRGlzYWJsZSBTaG9ydHMgcmVzdW1pbmcgb24gc3RhcnR1cCIsIkRpc2FibGUgZG91YmxlIHRhcCBhY3Rpb25zIiwiRGlzYWJsZSBmdWxsc2NyZWVuIGdlc3R1cmVzIiwiRGlzYWJsZSBoYXB0aWMgZmVlZGJhY2siLCJEaXNhYmxlIGxheW91dCB1cGRhdGVzIiwiRGlzYWJsZSBwbGF5ZXIgcG9wdXAgcGFuZWxzIiwiRGlzYWJsZSBwbGF5bGlzdCBhdXRvcGxheSIsIkRpc2FibGUgcm9sbGluZyBudW1iZXIgYW5pbWF0aW9ucyIsIkRpc2FibGUgc2Nyb2xsaW5nIHNwZWVkIGxpbWl0IiwiRGlzYWJsZSBzaWduIGluIHRvIFRWIHBvcHVwIiwiRG91YmxlIHRhcCB0byBzZWVrIiwiRG93bmxvYWRzIiwiRXhpdCBmdWxsc2NyZWVuIG1vZGUiLCJGb3JjZSBmdWxsc2NyZWVuIGxhbmRzY2FwZSIsIkZvcmNlIG9yaWdpbmFsIGF1ZGlvIiwiRnVsbHNjcmVlbiB2aWRlbyBzY2FsZSIsIkdtc0NvcmUgc3VwcG9ydCIsIkhpZGUgU2hvcnRzIGNvbXBvbmVudHMiLCJIaWRlIGFkcyIsIkhpZGUgYXV0b3BsYXkgcHJldmlldyIsIkhpZGUgZW5kIHNjcmVlbiBjYXJkcyIsIkhpZGUgZW5kIHNjcmVlbiBzdWdnZXN0ZWQgdmlkZW8iLCJIaWRlIGluZm8gY2FyZHMiLCJIaWRlIGxheW91dCBjb21wb25lbnRzIiwiSGlkZSBwbGF5ZXIgZmx5b3V0IG1lbnUgY29tcG9uZW50cyIsIkhpZGUgcGxheWVyIG92ZXJsYXkgYnV0dG9ucyIsIkhpZGUgcmVsYXRlZCB2aWRlbyBvdmVybGF5IiwiSGlkZSByZWxhdGVkIHZpZGVvcyIsIkhpZGUgdGltZXN0YW1wIiwiSGlkZSB2aWRlbyBhY3Rpb24gYnV0dG9ucyIsIkxvb3AgdmlkZW8iLCJNZWRpYSBub3RpZmljYXRpb24gY29udHJvbHMiLCJNaW5pcGxheWVyIiwiTXV0ZSBidXR0b24iLCJOYXZpZ2F0aW9uIGJhciIsIk9wZW4gU2hvcnRzIGluIHJlZ3VsYXIgcGxheWVyIiwiT3BlbiBjaGFubmVsIG9mIGxpdmUgYXZhdGFyIiwiT3BlbiBsaW5rcyBleHRlcm5hbGx5IiwiT3BlbiB2aWRlb3MgZnVsbHNjcmVlbiIsIk92ZXJyaWRlIFlvdVR1YmUgTXVzaWMgYnV0dG9ucyIsIlBsYXkgYWxsIiwiUGxheWJhY2sgaW4gZmVlZHMiLCJQbGF5YmFjayBzcGVlZCIsIlBvVG9rZW4gcHJvdmlkZXIiLCJSZWxvYWQgdmlkZW8iLCJSZW1vdmUgYmFja2dyb3VuZCBwbGF5YmFjayByZXN0cmljdGlvbnMiLCJSZW1vdmUgdmlld2VyIGRpc2NyZXRpb24gZGlhbG9nIiwiUmV0dXJuIFlvdVR1YmUgRGlzbGlrZSIsIlNhbml0aXplIHNoYXJpbmcgbGlua3MiLCJTYXZlIHRvIFdhdGNoIGxhdGVyIiwiU2Vla2JhciIsIlNldHRpbmdzIG1lbnUgZmlsdGVyIiwiU2hvcnRzIGF1dG9wbGF5IiwiU3BvbnNvckJsb2NrIiwiU3Bvb2YgdmlkZW8gc3RyZWFtcyIsIlN3aXBlIGNvbnRyb2xzIiwiVGhlbWUiLCJWaWRlbyBxdWFsaXR5IiwiV2lkZSBzZWFyY2ggYmFyIl0sInByb3ZpZGVyIjoibW9ycGhlIiwic2NoZW1hIjoxLCJzaGEyNTYiOiJmMmI4YzYxY2Q5MGE0MmQ5NDRlZTZiMGJjNzRjYjNmZmNiN2ViMDYyZGNhZjI0ZTdiZGQwYWE2NzhhODc5MmNmIiwic2lnbmVyIjoiMDg0ODBmNjY0OWEyYmUzM2ZmM2NjY2FjY2UwNzQ1NDc2MWQ1ZmI5YWJlNjVmMWUyY2FlZWI3ODJlMzgyZDA1MCIsInNvdXJjZSI6IjkwYjc3MTdhNDE3ZTRjNDIwZjZkNzE3ZDRlZTM1NjNkMGM4ZTU2ZGQiLCJ0YWciOiJ5b3V0dWJlLW1vcnBoZS12MjEuMzguMTIzLWIyMDI2MDkyMTAwMDAwMDAwMDM1NTcxMTMxMDIzMDAwMDAxIiwidGFyZ2V0IjoieW91dHViZSIsInZlcnNpb24iOiIyMS4zOC4xMjMifQ==\"",
+   "id": 392752347,
+   "name": "youtube-morphe-v21.38.123-b2026092100000000035571131023000001",
+   "published_at": "2026-09-21T07:07:26Z",
+   "tag": "youtube-morphe-v21.38.123-b2026092100000000035571131023000001",
+   "tag_commit": "90b7717a417e4c420f6d717d4ee3563d0c8e56dd"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:6b28418fee7defec64fb92719fe6e3e094b31a3ed5077cef5a621084d7afba19",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 2630,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092100000000035637130545000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:06c1be315c7772b8e8c7ee745f769946b607c80540523cd002d5d96cc295875d",
+     "name": "youtube-v21.38.123-arm64-v8a.apk",
+     "size": 110276706,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092100000000035637130545000001/youtube-v21.38.123-arm64-v8a.apk"
+    }
+   ],
+   "body": "## What changed\n- App version unchanged at 21.38.123; this is another build.\n- Applied patch names unchanged; this does not prove unchanged patch code or defaults.\n- Repository source changed; see the exact source comparison below.\n- APK bytes differ from the previous release.\n\nCompared with the immediate previous app release; previous metadata is publisher-reported.\n\n## This download\n\n| Detail | Value |\n| --- | --- |\n| App | YouTube |\n| App version | 21.38.123 |\n| Android package | app.morphe.android.youtube |\n| Minimum Android API | 29 |\n| Native code | arm64-v8a |\n| Size | 105.2 MB |\n| Patch providers | morphe |\n| Primary bundle | 1.44.0 |\n| Applied patch names | 64 |\n\n## Applied patches\n- App refresh rate\n- Change start page\n- Channel search\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force fullscreen landscape\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\n\n## Checks and limitations\n- CI checked APK identity, declared minimum Android API, native payloads, applied patch names and its configured signing certificate.\n- Not phone-tested by this pipeline; not proof of original-publisher authenticity or installed-app compatibility.\n- Same-version patch-only update delivery in Obtainium remains limited. New build does not necessarily mean a new app version.\n\n## Download evidence\nFile: `youtube-v21.38.123-arm64-v8a.apk`\nSHA-256: `06c1be315c7772b8e8c7ee745f769946b607c80540523cd002d5d96cc295875d`\nCI signing certificate SHA-256: `08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050`\n[Build source](https://github.com/govinda-rajulu/patch-factory/tree/635b9ac69a6f04907366a6935b7b4a788b46f801)\n[Exact build run](https://github.com/govinda-rajulu/patch-factory/actions/runs/35637130545/attempts/1)\n[Previous app release](https://github.com/govinda-rajulu/patch-factory/releases/tag/youtube-morphe-v21.38.123-b2026092100000000035571131023000001)\n[Source comparison](https://github.com/govinda-rajulu/patch-factory/compare/90b7717a417e4c420f6d717d4ee3563d0c8e56dd...635b9ac69a6f04907366a6935b7b4a788b46f801)\n\n## Help and stable information\n[Install, updates, source types and status meanings](https://github.com/govinda-rajulu/patch-factory/blob/635b9ac69a6f04907366a6935b7b4a788b46f801/docs/guide.md)\nNo automatic uninstall, import migration or device-protection bypass is required or recommended.\n\n[pf-release-v1]: # \"eyJhcGsiOiJ5b3V0dWJlLXYyMS4zOC4xMjMtYXJtNjQtdjhhLmFwayIsImFyY2giOiJhcm02NC12OGEiLCJidW5kbGUiOiIxLjQ0LjAiLCJieXRlcyI6MTEwMjc2NzA2LCJsYWJlbCI6IllvdVR1YmUiLCJtaW5fc2RrIjoyOSwicGFja2FnZSI6ImFwcC5tb3JwaGUuYW5kcm9pZC55b3V0dWJlIiwicGF0Y2hlcyI6WyJBcHAgcmVmcmVzaCByYXRlIiwiQ2hhbmdlIHN0YXJ0IHBhZ2UiLCJDaGFubmVsIHNlYXJjaCIsIkNvcHkgdmlkZW8gbGluayIsIkRpc2FibGUgRFJDIGF1ZGlvIiwiRGlzYWJsZSBTaG9ydHMgcmVzdW1pbmcgb24gc3RhcnR1cCIsIkRpc2FibGUgZG91YmxlIHRhcCBhY3Rpb25zIiwiRGlzYWJsZSBmdWxsc2NyZWVuIGdlc3R1cmVzIiwiRGlzYWJsZSBoYXB0aWMgZmVlZGJhY2siLCJEaXNhYmxlIGxheW91dCB1cGRhdGVzIiwiRGlzYWJsZSBwbGF5ZXIgcG9wdXAgcGFuZWxzIiwiRGlzYWJsZSBwbGF5bGlzdCBhdXRvcGxheSIsIkRpc2FibGUgcm9sbGluZyBudW1iZXIgYW5pbWF0aW9ucyIsIkRpc2FibGUgc2Nyb2xsaW5nIHNwZWVkIGxpbWl0IiwiRGlzYWJsZSBzaWduIGluIHRvIFRWIHBvcHVwIiwiRG91YmxlIHRhcCB0byBzZWVrIiwiRG93bmxvYWRzIiwiRXhpdCBmdWxsc2NyZWVuIG1vZGUiLCJGb3JjZSBmdWxsc2NyZWVuIGxhbmRzY2FwZSIsIkZvcmNlIG9yaWdpbmFsIGF1ZGlvIiwiRnVsbHNjcmVlbiB2aWRlbyBzY2FsZSIsIkdtc0NvcmUgc3VwcG9ydCIsIkhpZGUgU2hvcnRzIGNvbXBvbmVudHMiLCJIaWRlIGFkcyIsIkhpZGUgYXV0b3BsYXkgcHJldmlldyIsIkhpZGUgZW5kIHNjcmVlbiBjYXJkcyIsIkhpZGUgZW5kIHNjcmVlbiBzdWdnZXN0ZWQgdmlkZW8iLCJIaWRlIGluZm8gY2FyZHMiLCJIaWRlIGxheW91dCBjb21wb25lbnRzIiwiSGlkZSBwbGF5ZXIgZmx5b3V0IG1lbnUgY29tcG9uZW50cyIsIkhpZGUgcGxheWVyIG92ZXJsYXkgYnV0dG9ucyIsIkhpZGUgcmVsYXRlZCB2aWRlbyBvdmVybGF5IiwiSGlkZSByZWxhdGVkIHZpZGVvcyIsIkhpZGUgdGltZXN0YW1wIiwiSGlkZSB2aWRlbyBhY3Rpb24gYnV0dG9ucyIsIkxvb3AgdmlkZW8iLCJNZWRpYSBub3RpZmljYXRpb24gY29udHJvbHMiLCJNaW5pcGxheWVyIiwiTXV0ZSBidXR0b24iLCJOYXZpZ2F0aW9uIGJhciIsIk9wZW4gU2hvcnRzIGluIHJlZ3VsYXIgcGxheWVyIiwiT3BlbiBjaGFubmVsIG9mIGxpdmUgYXZhdGFyIiwiT3BlbiBsaW5rcyBleHRlcm5hbGx5IiwiT3BlbiB2aWRlb3MgZnVsbHNjcmVlbiIsIk92ZXJyaWRlIFlvdVR1YmUgTXVzaWMgYnV0dG9ucyIsIlBsYXkgYWxsIiwiUGxheWJhY2sgaW4gZmVlZHMiLCJQbGF5YmFjayBzcGVlZCIsIlBvVG9rZW4gcHJvdmlkZXIiLCJSZWxvYWQgdmlkZW8iLCJSZW1vdmUgYmFja2dyb3VuZCBwbGF5YmFjayByZXN0cmljdGlvbnMiLCJSZW1vdmUgdmlld2VyIGRpc2NyZXRpb24gZGlhbG9nIiwiUmV0dXJuIFlvdVR1YmUgRGlzbGlrZSIsIlNhbml0aXplIHNoYXJpbmcgbGlua3MiLCJTYXZlIHRvIFdhdGNoIGxhdGVyIiwiU2Vla2JhciIsIlNldHRpbmdzIG1lbnUgZmlsdGVyIiwiU2hvcnRzIGF1dG9wbGF5IiwiU3BvbnNvckJsb2NrIiwiU3Bvb2YgdmlkZW8gc3RyZWFtcyIsIlN3aXBlIGNvbnRyb2xzIiwiVGhlbWUiLCJWaWRlbyBxdWFsaXR5IiwiV2lkZSBzZWFyY2ggYmFyIl0sInByb3ZpZGVyIjoibW9ycGhlIiwic2NoZW1hIjoxLCJzaGEyNTYiOiIwNmMxYmUzMTVjNzc3MmI4ZThjN2VlNzQ1Zjc2OTk0NmI2MDdjODA1NDA1MjNjZDAwMmQ1ZDk2Y2MyOTU4NzVkIiwic2lnbmVyIjoiMDg0ODBmNjY0OWEyYmUzM2ZmM2NjY2FjY2UwNzQ1NDc2MWQ1ZmI5YWJlNjVmMWUyY2FlZWI3ODJlMzgyZDA1MCIsInNvdXJjZSI6IjYzNWI5YWM2OWE2ZjA0OTA3MzY2YTY5MzViN2I0YTc4OGI0NmY4MDEiLCJ0YWciOiJ5b3V0dWJlLW1vcnBoZS12MjEuMzguMTIzLWIyMDI2MDkyMTAwMDAwMDAwMDM1NjM3MTMwNTQ1MDAwMDAxIiwidGFyZ2V0IjoieW91dHViZSIsInZlcnNpb24iOiIyMS4zOC4xMjMifQ==\"",
+   "id": 393191736,
+   "name": "youtube-morphe-v21.38.123-b2026092100000000035637130545000001",
+   "published_at": "2026-09-21T18:19:50Z",
+   "tag": "youtube-morphe-v21.38.123-b2026092100000000035637130545000001",
+   "tag_commit": "635b9ac69a6f04907366a6935b7b4a788b46f801"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:830b661b971aa600257d2e618566a4e882749162d76c821f144ffec7346f7df6",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 2630,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092200000000035758471077000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:9e14e469d3c9238f6f23bba3c3ab8a7aa6afdb9f3f564dc947ff7bf588d798fb",
+     "name": "pf-qualified-v1-youtube.json",
+     "size": 4325,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092200000000035758471077000001/pf-qualified-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:073f0cdc010a417249ea53bbb2d50e2f248d53f52a2521370a1959d312204805",
+     "name": "youtube-v21.38.123-arm64-v8a.apk",
+     "size": 110276706,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092200000000035758471077000001/youtube-v21.38.123-arm64-v8a.apk"
+    }
+   ],
+   "body": "## What changed\n- App version unchanged at 21.38.123; this is another build.\n- Primary patch bundle changed: 1.44.0 -&gt; 1.45.0.\n- Applied patch names unchanged; this does not prove unchanged patch code or defaults.\n- Repository source changed; see the exact source comparison below.\n- APK bytes differ from the previous release.\n\nCompared with the immediate previous app release; previous metadata is publisher-reported.\n\n## This download\n\n| Detail | Value |\n| --- | --- |\n| App | YouTube |\n| App version | 21.38.123 |\n| Android package | app.morphe.android.youtube |\n| Minimum Android API | 29 |\n| Native code | arm64-v8a |\n| Size | 105.2 MB |\n| Patch providers | morphe |\n| Primary bundle | 1.45.0 |\n| Applied patch names | 64 |\n\n## Applied patches\n- App refresh rate\n- Change start page\n- Channel search\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force fullscreen landscape\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\n\n## Checks and limitations\n- CI checked APK identity, declared minimum Android API, native payloads, applied patch names and its configured signing certificate.\n- Not phone-tested by this pipeline; not proof of original-publisher authenticity or installed-app compatibility.\n- Same-version patch-only update delivery in Obtainium remains limited. New build does not necessarily mean a new app version.\n\n## Download evidence\nFile: `youtube-v21.38.123-arm64-v8a.apk`\nSHA-256: `073f0cdc010a417249ea53bbb2d50e2f248d53f52a2521370a1959d312204805`\nCI signing certificate SHA-256: `08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050`\n[Build source](https://github.com/govinda-rajulu/patch-factory/tree/e1711ebc936f44a6f227106818df47256ff4c5cc)\n[Exact build run](https://github.com/govinda-rajulu/patch-factory/actions/runs/35758471077/attempts/1)\n[Previous app release](https://github.com/govinda-rajulu/patch-factory/releases/tag/youtube-morphe-v21.38.123-b2026092100000000035637130545000001)\n[Source comparison](https://github.com/govinda-rajulu/patch-factory/compare/635b9ac69a6f04907366a6935b7b4a788b46f801...e1711ebc936f44a6f227106818df47256ff4c5cc)\n\n## Help and stable information\n[Install, updates, source types and status meanings](https://github.com/govinda-rajulu/patch-factory/blob/e1711ebc936f44a6f227106818df47256ff4c5cc/docs/guide.md)\nNo automatic uninstall, import migration or device-protection bypass is required or recommended.\n\n[pf-release-v1]: # \"eyJhcGsiOiJ5b3V0dWJlLXYyMS4zOC4xMjMtYXJtNjQtdjhhLmFwayIsImFyY2giOiJhcm02NC12OGEiLCJidW5kbGUiOiIxLjQ1LjAiLCJieXRlcyI6MTEwMjc2NzA2LCJsYWJlbCI6IllvdVR1YmUiLCJtaW5fc2RrIjoyOSwicGFja2FnZSI6ImFwcC5tb3JwaGUuYW5kcm9pZC55b3V0dWJlIiwicGF0Y2hlcyI6WyJBcHAgcmVmcmVzaCByYXRlIiwiQ2hhbmdlIHN0YXJ0IHBhZ2UiLCJDaGFubmVsIHNlYXJjaCIsIkNvcHkgdmlkZW8gbGluayIsIkRpc2FibGUgRFJDIGF1ZGlvIiwiRGlzYWJsZSBTaG9ydHMgcmVzdW1pbmcgb24gc3RhcnR1cCIsIkRpc2FibGUgZG91YmxlIHRhcCBhY3Rpb25zIiwiRGlzYWJsZSBmdWxsc2NyZWVuIGdlc3R1cmVzIiwiRGlzYWJsZSBoYXB0aWMgZmVlZGJhY2siLCJEaXNhYmxlIGxheW91dCB1cGRhdGVzIiwiRGlzYWJsZSBwbGF5ZXIgcG9wdXAgcGFuZWxzIiwiRGlzYWJsZSBwbGF5bGlzdCBhdXRvcGxheSIsIkRpc2FibGUgcm9sbGluZyBudW1iZXIgYW5pbWF0aW9ucyIsIkRpc2FibGUgc2Nyb2xsaW5nIHNwZWVkIGxpbWl0IiwiRGlzYWJsZSBzaWduIGluIHRvIFRWIHBvcHVwIiwiRG91YmxlIHRhcCB0byBzZWVrIiwiRG93bmxvYWRzIiwiRXhpdCBmdWxsc2NyZWVuIG1vZGUiLCJGb3JjZSBmdWxsc2NyZWVuIGxhbmRzY2FwZSIsIkZvcmNlIG9yaWdpbmFsIGF1ZGlvIiwiRnVsbHNjcmVlbiB2aWRlbyBzY2FsZSIsIkdtc0NvcmUgc3VwcG9ydCIsIkhpZGUgU2hvcnRzIGNvbXBvbmVudHMiLCJIaWRlIGFkcyIsIkhpZGUgYXV0b3BsYXkgcHJldmlldyIsIkhpZGUgZW5kIHNjcmVlbiBjYXJkcyIsIkhpZGUgZW5kIHNjcmVlbiBzdWdnZXN0ZWQgdmlkZW8iLCJIaWRlIGluZm8gY2FyZHMiLCJIaWRlIGxheW91dCBjb21wb25lbnRzIiwiSGlkZSBwbGF5ZXIgZmx5b3V0IG1lbnUgY29tcG9uZW50cyIsIkhpZGUgcGxheWVyIG92ZXJsYXkgYnV0dG9ucyIsIkhpZGUgcmVsYXRlZCB2aWRlbyBvdmVybGF5IiwiSGlkZSByZWxhdGVkIHZpZGVvcyIsIkhpZGUgdGltZXN0YW1wIiwiSGlkZSB2aWRlbyBhY3Rpb24gYnV0dG9ucyIsIkxvb3AgdmlkZW8iLCJNZWRpYSBub3RpZmljYXRpb24gY29udHJvbHMiLCJNaW5pcGxheWVyIiwiTXV0ZSBidXR0b24iLCJOYXZpZ2F0aW9uIGJhciIsIk9wZW4gU2hvcnRzIGluIHJlZ3VsYXIgcGxheWVyIiwiT3BlbiBjaGFubmVsIG9mIGxpdmUgYXZhdGFyIiwiT3BlbiBsaW5rcyBleHRlcm5hbGx5IiwiT3BlbiB2aWRlb3MgZnVsbHNjcmVlbiIsIk92ZXJyaWRlIFlvdVR1YmUgTXVzaWMgYnV0dG9ucyIsIlBsYXkgYWxsIiwiUGxheWJhY2sgaW4gZmVlZHMiLCJQbGF5YmFjayBzcGVlZCIsIlBvVG9rZW4gcHJvdmlkZXIiLCJSZWxvYWQgdmlkZW8iLCJSZW1vdmUgYmFja2dyb3VuZCBwbGF5YmFjayByZXN0cmljdGlvbnMiLCJSZW1vdmUgdmlld2VyIGRpc2NyZXRpb24gZGlhbG9nIiwiUmV0dXJuIFlvdVR1YmUgRGlzbGlrZSIsIlNhbml0aXplIHNoYXJpbmcgbGlua3MiLCJTYXZlIHRvIFdhdGNoIGxhdGVyIiwiU2Vla2JhciIsIlNldHRpbmdzIG1lbnUgZmlsdGVyIiwiU2hvcnRzIGF1dG9wbGF5IiwiU3BvbnNvckJsb2NrIiwiU3Bvb2YgdmlkZW8gc3RyZWFtcyIsIlN3aXBlIGNvbnRyb2xzIiwiVGhlbWUiLCJWaWRlbyBxdWFsaXR5IiwiV2lkZSBzZWFyY2ggYmFyIl0sInByb3ZpZGVyIjoibW9ycGhlIiwic2NoZW1hIjoxLCJzaGEyNTYiOiIwNzNmMGNkYzAxMGE0MTcyNDllYTUzYmJiMmQ1MGUyZjI0OGQ1M2Y1MmEyNTIxMzcwYTE5NTlkMzEyMjA0ODA1Iiwic2lnbmVyIjoiMDg0ODBmNjY0OWEyYmUzM2ZmM2NjY2FjY2UwNzQ1NDc2MWQ1ZmI5YWJlNjVmMWUyY2FlZWI3ODJlMzgyZDA1MCIsInNvdXJjZSI6ImUxNzExZWJjOTM2ZjQ0YTZmMjI3MTA2ODE4ZGY0NzI1NmZmNGM1Y2MiLCJ0YWciOiJ5b3V0dWJlLW1vcnBoZS12MjEuMzguMTIzLWIyMDI2MDkyMjAwMDAwMDAwMDM1NzU4NDcxMDc3MDAwMDAxIiwidGFyZ2V0IjoieW91dHViZSIsInZlcnNpb24iOiIyMS4zOC4xMjMifQ==\"",
+   "id": 393962935,
+   "name": "youtube-morphe-v21.38.123-b2026092200000000035758471077000001",
+   "published_at": "2026-09-22T17:12:05Z",
+   "tag": "youtube-morphe-v21.38.123-b2026092200000000035758471077000001",
+   "tag_commit": "e1711ebc936f44a6f227106818df47256ff4c5cc"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:dbfddc0474dd568fefadd3c0debed8890604253331288122ad59b6339a955ade",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 2630,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092300000000035894752162000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:eb7a017c93cc2976477dc07664b9601ab9bb60c32019788b8293f403638452b6",
+     "name": "pf-qualified-v1-youtube.json",
+     "size": 4325,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092300000000035894752162000001/pf-qualified-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:5832223fc584d91c4192d3e1e38196d6b87f0676de617b72350e45347b28338d",
+     "name": "youtube-v21.38.123-arm64-v8a.apk",
+     "size": 110280802,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092300000000035894752162000001/youtube-v21.38.123-arm64-v8a.apk"
+    }
+   ],
+   "body": "## What changed\n- App version unchanged at 21.38.123; this is another build.\n- Applied patch names unchanged; this does not prove unchanged patch code or defaults.\n- Repository source changed; see the exact source comparison below.\n- APK bytes differ from the previous release.\n\nCompared with the immediate previous app release; previous metadata is publisher-reported.\n\n## Release summary\n\n| Detail | Value |\n| --- | --- |\n| App | YouTube |\n| App version | 21.38.123 |\n| Android package | app.morphe.android.youtube |\n| Minimum Android API | 29 |\n| Native code | arm64-v8a |\n| Size | 105.2 MB |\n| Patch providers | morphe |\n| Primary bundle | 1.45.0 |\n| Applied patch names | 64 |\n\n## Applied patches (64)\n<details>\n<summary>All applied patch names</summary>\n\n- App refresh rate\n- Change start page\n- Channel search\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force fullscreen landscape\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\n\n</details>\n\n## Checks and limitations\n- CI checked APK identity, declared minimum Android API, native payloads, applied patch names and its configured signing certificate.\n- Not phone-tested by this pipeline; not proof of original-publisher authenticity or installed-app compatibility.\n- Same-version patch-only update delivery in Obtainium remains limited. New build does not necessarily mean a new app version.\n\n## Download evidence\nFile: `youtube-v21.38.123-arm64-v8a.apk`\nSHA-256: `5832223fc584d91c4192d3e1e38196d6b87f0676de617b72350e45347b28338d`\nCI signing certificate SHA-256: `08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050`\n[Build source](https://github.com/govinda-rajulu/patch-factory/tree/e60d46eabb4be52380b6c7fae927177f9c8a0398)\n[Exact build run](https://github.com/govinda-rajulu/patch-factory/actions/runs/35894752162/attempts/1)\n[Previous app release](https://github.com/govinda-rajulu/patch-factory/releases/tag/youtube-morphe-v21.38.123-b2026092200000000035758471077000001)\n[Source comparison](https://github.com/govinda-rajulu/patch-factory/compare/e1711ebc936f44a6f227106818df47256ff4c5cc...e60d46eabb4be52380b6c7fae927177f9c8a0398)\n\n## Help and stable information\n[Install, updates, source types and status meanings](https://github.com/govinda-rajulu/patch-factory/blob/e60d46eabb4be52380b6c7fae927177f9c8a0398/docs/guide.md)\nNo automatic uninstall, import migration or device-protection bypass is required or recommended.\n\n[pf-release-v1]: # \"eyJhcGsiOiJ5b3V0dWJlLXYyMS4zOC4xMjMtYXJtNjQtdjhhLmFwayIsImFyY2giOiJhcm02NC12OGEiLCJidW5kbGUiOiIxLjQ1LjAiLCJieXRlcyI6MTEwMjgwODAyLCJsYWJlbCI6IllvdVR1YmUiLCJtaW5fc2RrIjoyOSwicGFja2FnZSI6ImFwcC5tb3JwaGUuYW5kcm9pZC55b3V0dWJlIiwicGF0Y2hlcyI6WyJBcHAgcmVmcmVzaCByYXRlIiwiQ2hhbmdlIHN0YXJ0IHBhZ2UiLCJDaGFubmVsIHNlYXJjaCIsIkNvcHkgdmlkZW8gbGluayIsIkRpc2FibGUgRFJDIGF1ZGlvIiwiRGlzYWJsZSBTaG9ydHMgcmVzdW1pbmcgb24gc3RhcnR1cCIsIkRpc2FibGUgZG91YmxlIHRhcCBhY3Rpb25zIiwiRGlzYWJsZSBmdWxsc2NyZWVuIGdlc3R1cmVzIiwiRGlzYWJsZSBoYXB0aWMgZmVlZGJhY2siLCJEaXNhYmxlIGxheW91dCB1cGRhdGVzIiwiRGlzYWJsZSBwbGF5ZXIgcG9wdXAgcGFuZWxzIiwiRGlzYWJsZSBwbGF5bGlzdCBhdXRvcGxheSIsIkRpc2FibGUgcm9sbGluZyBudW1iZXIgYW5pbWF0aW9ucyIsIkRpc2FibGUgc2Nyb2xsaW5nIHNwZWVkIGxpbWl0IiwiRGlzYWJsZSBzaWduIGluIHRvIFRWIHBvcHVwIiwiRG91YmxlIHRhcCB0byBzZWVrIiwiRG93bmxvYWRzIiwiRXhpdCBmdWxsc2NyZWVuIG1vZGUiLCJGb3JjZSBmdWxsc2NyZWVuIGxhbmRzY2FwZSIsIkZvcmNlIG9yaWdpbmFsIGF1ZGlvIiwiRnVsbHNjcmVlbiB2aWRlbyBzY2FsZSIsIkdtc0NvcmUgc3VwcG9ydCIsIkhpZGUgU2hvcnRzIGNvbXBvbmVudHMiLCJIaWRlIGFkcyIsIkhpZGUgYXV0b3BsYXkgcHJldmlldyIsIkhpZGUgZW5kIHNjcmVlbiBjYXJkcyIsIkhpZGUgZW5kIHNjcmVlbiBzdWdnZXN0ZWQgdmlkZW8iLCJIaWRlIGluZm8gY2FyZHMiLCJIaWRlIGxheW91dCBjb21wb25lbnRzIiwiSGlkZSBwbGF5ZXIgZmx5b3V0IG1lbnUgY29tcG9uZW50cyIsIkhpZGUgcGxheWVyIG92ZXJsYXkgYnV0dG9ucyIsIkhpZGUgcmVsYXRlZCB2aWRlbyBvdmVybGF5IiwiSGlkZSByZWxhdGVkIHZpZGVvcyIsIkhpZGUgdGltZXN0YW1wIiwiSGlkZSB2aWRlbyBhY3Rpb24gYnV0dG9ucyIsIkxvb3AgdmlkZW8iLCJNZWRpYSBub3RpZmljYXRpb24gY29udHJvbHMiLCJNaW5pcGxheWVyIiwiTXV0ZSBidXR0b24iLCJOYXZpZ2F0aW9uIGJhciIsIk9wZW4gU2hvcnRzIGluIHJlZ3VsYXIgcGxheWVyIiwiT3BlbiBjaGFubmVsIG9mIGxpdmUgYXZhdGFyIiwiT3BlbiBsaW5rcyBleHRlcm5hbGx5IiwiT3BlbiB2aWRlb3MgZnVsbHNjcmVlbiIsIk92ZXJyaWRlIFlvdVR1YmUgTXVzaWMgYnV0dG9ucyIsIlBsYXkgYWxsIiwiUGxheWJhY2sgaW4gZmVlZHMiLCJQbGF5YmFjayBzcGVlZCIsIlBvVG9rZW4gcHJvdmlkZXIiLCJSZWxvYWQgdmlkZW8iLCJSZW1vdmUgYmFja2dyb3VuZCBwbGF5YmFjayByZXN0cmljdGlvbnMiLCJSZW1vdmUgdmlld2VyIGRpc2NyZXRpb24gZGlhbG9nIiwiUmV0dXJuIFlvdVR1YmUgRGlzbGlrZSIsIlNhbml0aXplIHNoYXJpbmcgbGlua3MiLCJTYXZlIHRvIFdhdGNoIGxhdGVyIiwiU2Vla2JhciIsIlNldHRpbmdzIG1lbnUgZmlsdGVyIiwiU2hvcnRzIGF1dG9wbGF5IiwiU3BvbnNvckJsb2NrIiwiU3Bvb2YgdmlkZW8gc3RyZWFtcyIsIlN3aXBlIGNvbnRyb2xzIiwiVGhlbWUiLCJWaWRlbyBxdWFsaXR5IiwiV2lkZSBzZWFyY2ggYmFyIl0sInByb3ZpZGVyIjoibW9ycGhlIiwic2NoZW1hIjoxLCJzaGEyNTYiOiI1ODMyMjIzZmM1ODRkOTFjNDE5MmQzZTFlMzgxOTZkNmI4N2YwNjc2ZGU2MTdiNzIzNTBlNDUzNDdiMjgzMzhkIiwic2lnbmVyIjoiMDg0ODBmNjY0OWEyYmUzM2ZmM2NjY2FjY2UwNzQ1NDc2MWQ1ZmI5YWJlNjVmMWUyY2FlZWI3ODJlMzgyZDA1MCIsInNvdXJjZSI6ImU2MGQ0NmVhYmI0YmU1MjM4MGI2YzdmYWU5MjcxNzdmOWM4YTAzOTgiLCJ0YWciOiJ5b3V0dWJlLW1vcnBoZS12MjEuMzguMTIzLWIyMDI2MDkyMzAwMDAwMDAwMDM1ODk0NzUyMTYyMDAwMDAxIiwidGFyZ2V0IjoieW91dHViZSIsInZlcnNpb24iOiIyMS4zOC4xMjMifQ==\"",
+   "id": 394896215,
+   "name": "youtube-morphe-v21.38.123-b2026092300000000035894752162000001",
+   "published_at": "2026-09-23T17:24:34Z",
+   "tag": "youtube-morphe-v21.38.123-b2026092300000000035894752162000001",
+   "tag_commit": "e60d46eabb4be52380b6c7fae927177f9c8a0398"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:d6c12869b23cc513f9bdbbc5a29d801752273422ab2ebb73e881635a8afb6db0",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3452,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092400000000036034040131000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:4947b475d365988f709db34bd3afb74de34339bab84f7d81c77e0b28f678c6e6",
+     "name": "pf-qualified-v1-youtube.json",
+     "size": 5191,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092400000000036034040131000001/pf-qualified-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:24a984b47e69f12adcdccf6706e433f0a3f035bb4c88735ab0c379925379262d",
+     "name": "youtube-v21.38.123-arm64-v8a.apk",
+     "size": 110288994,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092400000000036034040131000001/youtube-v21.38.123-arm64-v8a.apk"
+    }
+   ],
+   "body": "## What changed\n- App version unchanged at 21.38.123; this is another build.\n- Applied patch names unchanged; this does not prove unchanged patch code or defaults.\n- Repository source changed; see the exact source comparison below.\n- APK bytes differ from the previous release.\n\nCompared with the immediate previous app release; previous metadata is publisher-reported.\n\n## Release summary\n\n| Detail | Value |\n| --- | --- |\n| App | YouTube |\n| App version | 21.38.123 |\n| Android package | app.morphe.android.youtube |\n| Minimum Android API | 29 |\n| Native code | arm64-v8a |\n| Size | 105.2 MB |\n| Patch providers | morphe |\n| Primary bundle | 1.45.0 |\n| Applied patch names | 64 |\n\n## Applied patches (64)\n<details>\n<summary>All applied patch names</summary>\n\n- App refresh rate\n- Change start page\n- Channel search\n- Copy video link\n- Disable DRC audio\n- Disable Shorts resuming on startup\n- Disable double tap actions\n- Disable fullscreen gestures\n- Disable haptic feedback\n- Disable layout updates\n- Disable player popup panels\n- Disable playlist autoplay\n- Disable rolling number animations\n- Disable scrolling speed limit\n- Disable sign in to TV popup\n- Double tap to seek\n- Downloads\n- Exit fullscreen mode\n- Force fullscreen landscape\n- Force original audio\n- Fullscreen video scale\n- GmsCore support\n- Hide Shorts components\n- Hide ads\n- Hide autoplay preview\n- Hide end screen cards\n- Hide end screen suggested video\n- Hide info cards\n- Hide layout components\n- Hide player flyout menu components\n- Hide player overlay buttons\n- Hide related video overlay\n- Hide related videos\n- Hide timestamp\n- Hide video action buttons\n- Loop video\n- Media notification controls\n- Miniplayer\n- Mute button\n- Navigation bar\n- Open Shorts in regular player\n- Open channel of live avatar\n- Open links externally\n- Open videos fullscreen\n- Override YouTube Music buttons\n- Play all\n- Playback in feeds\n- Playback speed\n- PoToken provider\n- Reload video\n- Remove background playback restrictions\n- Remove viewer discretion dialog\n- Return YouTube Dislike\n- Sanitize sharing links\n- Save to Watch later\n- Seekbar\n- Settings menu filter\n- Shorts autoplay\n- SponsorBlock\n- Spoof video streams\n- Swipe controls\n- Theme\n- Video quality\n- Wide search bar\n\n</details>\n\n## Checks and limitations\n- CI checked APK identity, declared minimum Android API, native payloads, applied patch names and its configured signing certificate.\n- Not phone-tested by this pipeline; not proof of original-publisher authenticity or installed-app compatibility.\n- Same-version patch-only update delivery in Obtainium remains limited. New build does not necessarily mean a new app version.\n\n## Download evidence\nFile: `youtube-v21.38.123-arm64-v8a.apk`\nSHA-256: `24a984b47e69f12adcdccf6706e433f0a3f035bb4c88735ab0c379925379262d`\nCI signing certificate SHA-256: `08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050`\n[Build source](https://github.com/govinda-rajulu/patch-factory/tree/ef1d7112c7cd76b51f3ed0f4b4548b227334f974)\n[Exact build run](https://github.com/govinda-rajulu/patch-factory/actions/runs/36034040131/attempts/1)\n[Previous app release](https://github.com/govinda-rajulu/patch-factory/releases/tag/youtube-morphe-v21.38.123-b2026092300000000035894752162000001)\n[Source comparison](https://github.com/govinda-rajulu/patch-factory/compare/e60d46eabb4be52380b6c7fae927177f9c8a0398...ef1d7112c7cd76b51f3ed0f4b4548b227334f974)\n\n## Help and stable information\n[Install, updates, source types and status meanings](https://github.com/govinda-rajulu/patch-factory/blob/ef1d7112c7cd76b51f3ed0f4b4548b227334f974/docs/guide.md)\nNo automatic uninstall, import migration or device-protection bypass is required or recommended.\n\n[pf-release-v1]: # \"eyJhcGsiOiJ5b3V0dWJlLXYyMS4zOC4xMjMtYXJtNjQtdjhhLmFwayIsImFyY2giOiJhcm02NC12OGEiLCJidW5kbGUiOiIxLjQ1LjAiLCJieXRlcyI6MTEwMjg4OTk0LCJsYWJlbCI6IllvdVR1YmUiLCJtaW5fc2RrIjoyOSwicGFja2FnZSI6ImFwcC5tb3JwaGUuYW5kcm9pZC55b3V0dWJlIiwicGF0Y2hlcyI6WyJBcHAgcmVmcmVzaCByYXRlIiwiQ2hhbmdlIHN0YXJ0IHBhZ2UiLCJDaGFubmVsIHNlYXJjaCIsIkNvcHkgdmlkZW8gbGluayIsIkRpc2FibGUgRFJDIGF1ZGlvIiwiRGlzYWJsZSBTaG9ydHMgcmVzdW1pbmcgb24gc3RhcnR1cCIsIkRpc2FibGUgZG91YmxlIHRhcCBhY3Rpb25zIiwiRGlzYWJsZSBmdWxsc2NyZWVuIGdlc3R1cmVzIiwiRGlzYWJsZSBoYXB0aWMgZmVlZGJhY2siLCJEaXNhYmxlIGxheW91dCB1cGRhdGVzIiwiRGlzYWJsZSBwbGF5ZXIgcG9wdXAgcGFuZWxzIiwiRGlzYWJsZSBwbGF5bGlzdCBhdXRvcGxheSIsIkRpc2FibGUgcm9sbGluZyBudW1iZXIgYW5pbWF0aW9ucyIsIkRpc2FibGUgc2Nyb2xsaW5nIHNwZWVkIGxpbWl0IiwiRGlzYWJsZSBzaWduIGluIHRvIFRWIHBvcHVwIiwiRG91YmxlIHRhcCB0byBzZWVrIiwiRG93bmxvYWRzIiwiRXhpdCBmdWxsc2NyZWVuIG1vZGUiLCJGb3JjZSBmdWxsc2NyZWVuIGxhbmRzY2FwZSIsIkZvcmNlIG9yaWdpbmFsIGF1ZGlvIiwiRnVsbHNjcmVlbiB2aWRlbyBzY2FsZSIsIkdtc0NvcmUgc3VwcG9ydCIsIkhpZGUgU2hvcnRzIGNvbXBvbmVudHMiLCJIaWRlIGFkcyIsIkhpZGUgYXV0b3BsYXkgcHJldmlldyIsIkhpZGUgZW5kIHNjcmVlbiBjYXJkcyIsIkhpZGUgZW5kIHNjcmVlbiBzdWdnZXN0ZWQgdmlkZW8iLCJIaWRlIGluZm8gY2FyZHMiLCJIaWRlIGxheW91dCBjb21wb25lbnRzIiwiSGlkZSBwbGF5ZXIgZmx5b3V0IG1lbnUgY29tcG9uZW50cyIsIkhpZGUgcGxheWVyIG92ZXJsYXkgYnV0dG9ucyIsIkhpZGUgcmVsYXRlZCB2aWRlbyBvdmVybGF5IiwiSGlkZSByZWxhdGVkIHZpZGVvcyIsIkhpZGUgdGltZXN0YW1wIiwiSGlkZSB2aWRlbyBhY3Rpb24gYnV0dG9ucyIsIkxvb3AgdmlkZW8iLCJNZWRpYSBub3RpZmljYXRpb24gY29udHJvbHMiLCJNaW5pcGxheWVyIiwiTXV0ZSBidXR0b24iLCJOYXZpZ2F0aW9uIGJhciIsIk9wZW4gU2hvcnRzIGluIHJlZ3VsYXIgcGxheWVyIiwiT3BlbiBjaGFubmVsIG9mIGxpdmUgYXZhdGFyIiwiT3BlbiBsaW5rcyBleHRlcm5hbGx5IiwiT3BlbiB2aWRlb3MgZnVsbHNjcmVlbiIsIk92ZXJyaWRlIFlvdVR1YmUgTXVzaWMgYnV0dG9ucyIsIlBsYXkgYWxsIiwiUGxheWJhY2sgaW4gZmVlZHMiLCJQbGF5YmFjayBzcGVlZCIsIlBvVG9rZW4gcHJvdmlkZXIiLCJSZWxvYWQgdmlkZW8iLCJSZW1vdmUgYmFja2dyb3VuZCBwbGF5YmFjayByZXN0cmljdGlvbnMiLCJSZW1vdmUgdmlld2VyIGRpc2NyZXRpb24gZGlhbG9nIiwiUmV0dXJuIFlvdVR1YmUgRGlzbGlrZSIsIlNhbml0aXplIHNoYXJpbmcgbGlua3MiLCJTYXZlIHRvIFdhdGNoIGxhdGVyIiwiU2Vla2JhciIsIlNldHRpbmdzIG1lbnUgZmlsdGVyIiwiU2hvcnRzIGF1dG9wbGF5IiwiU3BvbnNvckJsb2NrIiwiU3Bvb2YgdmlkZW8gc3RyZWFtcyIsIlN3aXBlIGNvbnRyb2xzIiwiVGhlbWUiLCJWaWRlbyBxdWFsaXR5IiwiV2lkZSBzZWFyY2ggYmFyIl0sInByb3ZpZGVyIjoibW9ycGhlIiwic2NoZW1hIjoxLCJzaGEyNTYiOiIyNGE5ODRiNDdlNjlmMTJhZGNkY2NmNjcwNmU0MzNmMGEzZjAzNWJiNGM4ODczNWFiMGMzNzk5MjUzNzkyNjJkIiwic2lnbmVyIjoiMDg0ODBmNjY0OWEyYmUzM2ZmM2NjY2FjY2UwNzQ1NDc2MWQ1ZmI5YWJlNjVmMWUyY2FlZWI3ODJlMzgyZDA1MCIsInNvdXJjZSI6ImVmMWQ3MTEyYzdjZDc2YjUxZjNlZDBmNGI0NTQ4YjIyNzMzNGY5NzQiLCJ0YWciOiJ5b3V0dWJlLW1vcnBoZS12MjEuMzguMTIzLWIyMDI2MDkyNDAwMDAwMDAwMDM2MDM0MDQwMTMxMDAwMDAxIiwidGFyZ2V0IjoieW91dHViZSIsInZlcnNpb24iOiIyMS4zOC4xMjMifQ==\"",
+   "id": 395917821,
+   "name": "youtube-morphe-v21.38.123-b2026092400000000036034040131000001",
+   "published_at": "2026-09-24T17:33:50Z",
+   "tag": "youtube-morphe-v21.38.123-b2026092400000000036034040131000001",
+   "tag_commit": "ef1d7112c7cd76b51f3ed0f4b4548b227334f974"
+  }
+ ],
+ "extra_kept": [],
+ "inventory_count": 91,
+ "inventory_fingerprint": "6313bf94ac8815c960754533987af79d281cf56c75adcbd7d0e534e647875b84",
+ "kept_branches": [
+  {
+   "name": "main",
+   "reason": "default/pages/protected",
+   "sha": "aa74a474a057af2714783d4fd3a7b94a7b6b5d7c"
+  }
+ ],
+ "limits": "Release metadata only; old APK bytes of deleted releases are not preserved. Tags remain, so each release can be recreated at its commit but not with identical APK bytes.",
+ "owner_choice": "ALL 47 27",
+ "protected_count": 44,
+ "retention_preview_fingerprint": "73fb283aedaf2f95225b0074a52c81593325112e71ed6870f0a058ba5e1322d2",
+ "schema": 1,
+ "tags_kept": true
+}

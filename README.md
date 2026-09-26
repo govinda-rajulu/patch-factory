@@ -122,7 +122,7 @@ branches and local folders are distinct scopes.
 Generated from `src/targets.json` by `src/etc/readmegen.py`. **3. Validate** fails a push
 that leaves this block stale, so it cannot drift.
 
-- **14 apps**, all enabled, 14 polled by the scheduled build (`30 12 * * *` UTC).
+- **14 apps**, all enabled, 14 polled by the scheduled build (`23 12 * * *` UTC = 17:53 IST; GitHub can start scheduled runs late).
 - Patch-age warning: 60, 120 days. Age is advisory; requested/applied checks and build verification decide.
 - 2 build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.
 - 2 patch(es) quarantined in `src/patches/QUARANTINE`, held out of every include list by CI.
