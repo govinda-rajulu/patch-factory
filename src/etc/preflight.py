@@ -34,6 +34,12 @@ def check(root=pathlib.Path('.'), target_id=None):
             for field in ('name', 'patch_dir'):
                 if not re.fullmatch(r'[a-zA-Z0-9_-]+', b.get(field, '')):
                     raise ValueError('unsafe or missing bundle ' + field)
+        for b in t['candidates']:
+            if b.get('host', 'github') != 'github':
+                raise ValueError('primary candidates must be GitHub; GitLab is extra-bundle only: ' + t['id'])
+            for field in ('owner', 'repo'):
+                if not re.fullmatch(r'[A-Za-z0-9_.-]+', b.get(field, '')):
+                    raise ValueError('primary candidate missing safe ' + field + ': ' + t['id'])
             d = root / 'src/patches' / b['patch_dir']
             inc = (d / 'include-patches').read_text().splitlines()
             exc = (d / 'exclude-patches').read_text().splitlines()

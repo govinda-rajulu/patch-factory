@@ -20,7 +20,7 @@ jobs:
       actions: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Shared preflight
         run: python3 src/etc/preflight.py
       - name: Local regression contracts
@@ -29,6 +29,12 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'test_identity.py' -v
       - name: Exact bundle transport contracts
         run: python3 -m unittest discover -s tests -p 'test_transport.py' -v
+      - name: Workflow and watcher contracts
+        run: python3 -m unittest discover -s tests -p '*_contracts.py' -v
+      - name: Page and notifier contracts
+        run: |
+          node tests/portal_contracts.cjs
+          node tests/notify_contracts.cjs
       - name: targets.json integrity
         run: |
           jq -e . src/targets.json > /dev/null || { echo "::error::targets.json is not valid JSON"; exit 1; }
@@ -58,11 +64,11 @@ jobs:
       - name: New-field integrity
         run: |
           FAIL=0
-          while IFS=$'\t' read -r id host pid; do
-            if [ "$host" = "gitlab" ] && { [ "$pid" = "-" ] || [ "$pid" = "null" ]; }; then
-              echo "::error::$id: gitlab candidate needs project_id"; FAIL=1
+          while IFS=$'\t' read -r id host; do
+            if [ "$host" != "github" ]; then
+              echo "::error::$id: primary candidates must be host=github; GitLab is supported only as an extra bundle"; FAIL=1
             fi
-          done < <(jq -r '.[] | .id as $i | .candidates[] | [$i, (.host // "github"), (.project_id // "-")] | @tsv' src/targets.json)
+          done < <(jq -r '.[] | .id as $i | .candidates[] | [$i, (.host // "github")] | @tsv' src/targets.json)
           while IFS=$'\t' read -r id nm host pid owner repo; do
             [ -n "$nm" ] && [ "$nm" != "null" ] || { echo "::error::$id: extra_bundles entry has no name"; FAIL=1; }
             case "$host" in
@@ -175,14 +181,14 @@ jobs:
       # Small synthetic files only. No APK, signing secrets, dispatch or API writes.
       # These steps are part of the existing mandatory Validate check, not advisory.
       - name: Exercise setup-java v6 with Temurin
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6
         with:
           distribution: temurin
           java-version: '21'
       - name: Verify Temurin Java major
         run: java -XshowSettings:properties -version 2>&1 | grep -Eq 'java.specification.version = 21$'
       - name: Exercise setup-java v6 with Zulu
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6
         with:
           distribution: zulu
           java-version: '21'
@@ -196,7 +202,7 @@ jobs:
           cd action-smoke-source
           sha256sum nested/value.txt > SHA256SUMS
       - name: Save isolated synthetic cache using v6
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: action-smoke-cache
           key: pf-action-smoke-${{ github.run_id }}-${{ github.run_attempt }}
@@ -204,7 +210,7 @@ jobs:
         run: printf 'must be replaced by the cache restore\n' > action-smoke-cache/value.txt
       - name: Restore and exercise cache v6
         id: smoke_cache
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: action-smoke-cache
           key: pf-action-smoke-${{ github.run_id }}-${{ github.run_attempt }}
@@ -216,7 +222,7 @@ jobs:
           test "$CACHE_HIT" = true
           cmp action-smoke-source/nested/value.txt action-smoke-cache/value.txt
       - name: Upload synthetic artifact with v7
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: pf-action-smoke-${{ github.run_id }}-${{ github.run_attempt }}
           path: action-smoke-source/
@@ -236,7 +242,7 @@ jobs:
           cmp action-smoke-cache/value.txt action-smoke-download/nested/value.txt
           test ! -e action-smoke-download/.hidden-probe
       - name: Exercise github-script v9 with read-only current-run metadata
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             const result = await github.rest.actions.getWorkflowRun({

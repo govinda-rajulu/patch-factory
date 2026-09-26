@@ -289,11 +289,55 @@ function inline(parent,text){
  }
  parent.append(document.createTextNode(readable(text.slice(start))));
 }
-function markdown(body){
- const box=el('div',undefined,'release-copy'),text=noteText(body),limited=text.slice(0,24000);
+function reportIdentity(workflow,issue){
+ const title=typeof issue.title==='string'?issue.title:'',body=typeof issue.body==='string'?issue.body:'';
+ if(workflow==='agent-watch.yml'){
+  const m=/^provider watch: (?:OK|CHANGED|PARTIAL|FAILED) run ([1-9][0-9]*)\/([1-9][0-9]*)$/.exec(title);
+  const url=/https:\/\/github\.com\/govinda-rajulu\/patch-factory\/actions\/runs\/([1-9][0-9]*)\/attempts\/([1-9][0-9]*)/.exec(body);
+  if(m&&url&&m[1]===url[1]&&m[2]===url[2])return {run_id:m[1],attempt:m[2]};
+  return null;
+ }
+ if(workflow==='community-watch.yml'){
+  const key=/<!-- pf-community:([0-9a-f]{64}) -->/.exec(body);
+  if(title==='community: index changed for apps you build'&&key)return {report_key:key[1]};
+  return null;
+ }
+ return null;
+}
+function reportBinding(workflow,run,issue,state){
+ const identity=reportIdentity(workflow,issue);
+ if(!identity)return {state:'unidentified',identity:null};
+ if(identity.report_key){
+  if(!state||state.report_key!==identity.report_key)return {state:'stale-receipt',identity};
+  if(String(issue.number)!==String(state.issue))return {state:'issue-mismatch',identity};
+  if(run&&String(run.id)===String(state.run_id)&&String(run.run_attempt)===String(state.attempt))return {state:'joined',identity};
+  return {state:'different-run',identity};
+ }
+ if(!run)return {state:'no-run',identity};
+ if(String(run.id)===identity.run_id&&String(run.run_attempt)===identity.attempt)return {state:'joined',identity};
+ return {state:'different-run',identity};
+}
+function checkCompleteness(body,rows){
+ const key=/<!-- pf-community:([0-9a-f]{64}) -->/.exec(typeof body==='string'?body:'');
+ const expected=/Expected report: ([1-9][0-9]*) numbered comment/.exec(typeof body==='string'?body:'');
+ if(!key||!expected)return {known:false};
+ const parts=[];
+ for(let i=1;i<=Number(expected[1]);i++){
+  const tag='<!-- pf-community:'+key[1]+':'+i+' -->';
+  const found=rows.filter(c=>c&&typeof c.body==='string'&&c.body.includes(tag));
+  const c=found.length===1?found[0]:null;
+  const ok=!!(c&&c.user&&c.user.login==='github-actions[bot]'&&c.user.type==='Bot'&&c.created_at===c.updated_at);
+  parts.push({part:i,ok});
+ }
+ const missing=parts.filter(p=>!p.ok).map(p=>p.part);
+ return {known:true,expected:Number(expected[1]),complete:missing.length===0,missing};
+}
+function markdown(body,budget){
+ const maxChars=budget&&budget.chars||24000,maxLines=budget&&budget.lines||400;
+ const box=el('div',undefined,'release-copy'),text=noteText(body),limited=text.slice(0,maxChars);
  if(!text){box.append(el('p','No release notes were recorded. Changes are unknown, not “nothing changed”.','meta'));return box;}
  let list=null,table=null,code=null;
- for(const line of limited.split('\n').slice(0,400)){
+ for(const line of limited.split('\n').slice(0,maxLines)){
   if(line.startsWith('```')){if(code){code=null;}else{code=el('pre','');box.append(code);}continue;}
   if(code){code.textContent+=line+'\n';continue;}
   if(/^\s*\|/.test(line)){
@@ -306,7 +350,7 @@ function markdown(body){
   list=null;if(!line.trim())continue;
   const heading=/^#{1,6}\s+/.test(line),node=el(heading?'h4':'p');inline(node,line.replace(/^#{1,6}\s+/,''));box.append(node);
  }
- if(text.length>24000||limited.split('\n').length>400)box.append(el('p','Long notes shortened here; the exact release has the full text.','notice'));
+ if(text.length>maxChars||limited.split('\n').length>maxLines)box.append(el('p','Showing '+Math.min(text.length,maxChars).toLocaleString()+' of '+text.length.toLocaleString()+' characters and up to '+maxLines+' lines. The full report is in the GitHub issue; this view is shortened.','notice'));
  return box;
 }
 function changeSummary(top,previous){
@@ -426,9 +470,12 @@ function addComments(parent,report){
   const expected=API+'issues/'+report.number;
   need(rows.every(c=>c&&c.issue_url===expected&&safeLink(c.html_url)),'Saved report identity mismatch');
   const newest=rows.sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0)).slice(0,5);
+  const integrity=checkCompleteness(report.body,rows);
+  if(integrity.known&&!integrity.complete)root.append(el('p','Report incomplete: part(s) '+integrity.missing.join(', ')+' of '+integrity.expected+' missing, edited or not bot-authored. No status inferred from a partial report; open the issue.','notice'));
+  if(integrity.known&&integrity.complete)root.append(el('p','Report completeness verified: '+integrity.expected+'/'+integrity.expected+' numbered parts present, bot-authored and unedited at this snapshot.','meta'));
   root.append(el('p','Up to five latest stored comments at the issue inventory snapshot. Reports may describe older runs and are not trusted change instructions.','meta'));
   if(!newest.length)root.append(el('p','No comments returned; refresh to recheck.'));
-  for(const c of newest){const item=el('section',undefined,'saved-report');item.append(el('h4','Report saved '+when(c.created_at)),markdown(c.body));root.append(item);}
+  for(const c of newest){const item=el('section',undefined,'saved-report');item.append(el('h4','Report saved '+when(c.created_at)),markdown(c.body,{chars:49152,lines:2000}));root.append(item);}
  });
 }
 async function watchPanel(root){
@@ -437,13 +484,22 @@ async function watchPanel(root){
  try{issues=await pages('issues?state=all');}
  catch(e){failedReads++;root.append(el('p','Saved findings unavailable: '+e.message+' Workflow status is checked separately.','notice'));}
  for(const [workflow,label,title] of WATCH){const a=el('article');a.append(el('h3',label),el('p',({'agent-watch.yml':'Checks configured patch providers for changes.','community-watch.yml':'Looks for community updates relevant to configured apps.','watch.yml':'Checks repository, selection names and provider status.'})[workflow]));root.append(a);
- try{const data=await read(API+'actions/workflows/'+workflow+'/runs?per_page=1');need(Array.isArray(data.workflow_runs),'Invalid watcher run response');const run=data.workflow_runs[0];
+ let run=null;
+ try{const data=await read(API+'actions/workflows/'+workflow+'/runs?per_page=1');need(Array.isArray(data.workflow_runs),'Invalid watcher run response');run=data.workflow_runs[0]||null;
  if(run){need(run.path==='.github/workflows/'+workflow&&safeLink(run.html_url,'run'),'Unexpected watcher identity');a.append(el('p','Workflow: '+(run.conclusion||run.status)+' · '+when(run.created_at),'meta'));addJobs(a,run);a.append(link('Exact watcher run / full artifacts',run.html_url,'run'));}
  else a.append(el('p','No visible watcher runs.','meta'));
  }catch(e){failedReads++;a.append(el('p','Workflow read unavailable: '+e.message,'notice'));}
+ let receipt=null;
+ if(workflow==='community-watch.yml'){
+  try{receipt=await read(API+'contents/src/community/watch-state.json?ref=main').then(r=>JSON.parse(atob((r.content||'').replace(/\n/g,''))));}
+  catch(e){receipt=null;}
+ }
  const reports=issues.filter(x=>!x.pull_request&&typeof x.title==='string'&&(workflow==='agent-watch.yml'?x.title.startsWith(title):x.title===title)).sort((a,b)=>Date.parse(b.updated_at)-Date.parse(a.updated_at));
  const report=reports[0];if(report){a.append(link('Saved findings / comments',report.html_url),el('p','Issue updated '+when(report.updated_at)+'; may summarize an older run.','meta'));
- const d=el('details',undefined,'inline-report');d.append(el('summary','Read saved report here'),markdown(report.body));a.append(d);addComments(a,report);
+ const binding=reportBinding(workflow,run,report,receipt);
+ const statusLine={joined:'Saved report matches the workflow run shown above (run/attempt verified).',unidentified:'Saved report has no verifiable run identity; the workflow card above is independent and may be newer or older.','stale-receipt':'Saved report key does not match the acknowledged receipt on main; treat as an older report.','issue-mismatch':'Saved report key matches a different issue than the receipt; treat as unverified.','different-run':'Saved report belongs to a different run than the workflow card above; shown independently.','no-run':'No workflow run visible; saved report shown without a run comparison.'}[binding.state];
+ a.append(el('p',statusLine,binding.state==='joined'?'meta':'notice'));
+ const d=el('details',undefined,'inline-report');d.append(el('summary','Read saved report here'),markdown(report.body,{chars:49152,lines:2000}));a.append(d);addComments(a,report);
  const failures=typeof report.body==='string'&&/report mode=full fail=1\b/.test(report.body);if(failures)a.append(el('p','Stored report declares fail=1. A green workflow is not a healthy report.','notice'));
  }else a.append(el('p','No saved issue found. Inspect run logs; absent findings are not an all-clear.','meta'));
  a.append(el('p','Coverage: legacy / partial. This page does not infer a verified delta from issue text or consume expiring JSON as durable baseline state.','meta'));
@@ -528,7 +584,7 @@ function filterApps(){
  $('appCount').textContent=shown+' app'+(shown===1?'':'s');
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary};
+window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,reportIdentity,reportBinding,checkCompleteness};
 const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
 const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
 search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});

@@ -35,9 +35,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Set up Java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -45,12 +47,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          U=$(gh api repos/MorpheApp/morphe-desktop/releases/latest -q '.assets[] | select(.name | endswith(".jar")) | .browser_download_url' | head -1)
-          echo "jar url: $U"
-          [ -n "$U" ] || { echo "::error::no jar asset on morphe-desktop latest"; exit 1; }
-          curl -sSL -o morphe-desktop.jar "$U"
-          S=$(wc -c < morphe-desktop.jar); echo "jar bytes: $S"
-          [ "$S" -gt 1000000 ] || { echo "::error::jar download truncated"; exit 1; }
+          META=$(python3 src/build/github_patcher.py .) || { echo "::error::verified patcher download failed"; exit 1; }
+          echo "PATCHER_VERIFIED $META"
+          JAR=$(jq -er '.name' <<<"$META")
+          [ -f "$JAR" ] || { echo "::error::verified patcher jar missing"; exit 1; }
+          echo "jar=$JAR" >> "$GITHUB_OUTPUT"
+          echo "verified jar: $JAR ($(wc -c < "$JAR") bytes)"
+        id: patcher
       - name: Fetch bundle
         env:
           HOST: ${{ inputs.host }}
@@ -68,7 +71,7 @@ jobs:
           PKG: ${{ inputs.package }}
           CHAN: ${{ inputs.channel }}
         run: |
-          java -jar morphe-desktop.jar list-patches --patches ./explore.mpp \
+          java -jar "${{ steps.patcher.outputs.jar }}" list-patches --patches ./explore.mpp \
             --with-packages --with-versions --with-options \
             --filter-package-name "$PKG" --out ./patches.txt 2>&1 | tail -3
           [ -s ./patches.txt ] || { echo "::error::no patches for $PKG in this bundle"; exit 1; }

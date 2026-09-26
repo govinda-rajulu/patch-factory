@@ -80,6 +80,30 @@ class Repair(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             preflight.check(self.r)
 
+    def test_preflight_refuses_gitlab_primary_candidate(self):
+        path = self.r / 'src/targets.json'
+        targets = json.loads(path.read_text())
+        targets[0]['candidates'] = [{'name': 'paresh', 'host': 'gitlab', 'project_id': 82031658,
+                                     'channel': 'prerelease', 'patch_dir': targets[0]['candidates'][0]['patch_dir'],
+                                     'options': targets[0]['candidates'][0].get('options', 'x')}]
+        path.write_text(json.dumps(targets, indent=2) + '\n')
+        with self.assertRaisesRegex(ValueError, 'extra-bundle only'):
+            preflight.check(self.r)
+
+    def test_preflight_refuses_primary_without_owner_repo(self):
+        path = self.r / 'src/targets.json'
+        targets = json.loads(path.read_text())
+        targets[0]['candidates'][0].pop('owner', None)
+        targets[0]['candidates'][0].pop('repo', None)
+        path.write_text(json.dumps(targets, indent=2) + '\n')
+        with self.assertRaisesRegex(ValueError, 'primary candidate missing safe'):
+            preflight.check(self.r)
+
+    def test_add_target_rejects_gitlab_primary_before_write(self):
+        source = (self.r / '.github/workflows/add-target.yml').read_text()
+        self.assertIn('GitLab is supported only as an extra bundle, not as a primary candidate', source)
+        self.assertLess(source.index('GitLab is supported only as an extra bundle'), source.index('mkdir -p "$D"'))
+
     def test_public_import_generator_roundtrip_and_retired_exports_absent(self):
         path = self.r/'docs/obtainium.json'
         before = path.read_bytes()
@@ -118,7 +142,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=23', result.stdout)
+        self.assertIn('PORTAL_CONTRACTS_PASS=27', result.stdout)
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
@@ -225,7 +249,7 @@ class Repair(unittest.TestCase):
         from action_refs import references, same_reference
         for action in ('setup-java', 'cache', 'cache/save', 'upload-artifact',
                        'github-script', 'download-artifact'):
-            references(block, 'actions/' + action, pinned=action == 'download-artifact')
+            references(block, 'actions/' + action, pinned=True)
         self.assertEqual(references(block, 'actions/cache'), references(block, 'actions/cache/save'))
         # Dependabot may update releases, but every production workflow use must
         # still be exercised by the same mandatory runtime smoke.
@@ -235,7 +259,19 @@ class Repair(unittest.TestCase):
                            'github-script', 'download-artifact'):
                 if 'uses: actions/' + action + '@' in source:
                     same_reference(source, text, 'actions/' + action,
-                                   pinned=action == 'download-artifact')
+                                   pinned=True)
+        # Composites share the coordinated pins; third-party refs must be immutable everywhere.
+        import re as re_
+        for composite in (ROOT/'.github/actions').glob('*/action.yml'):
+            source = composite.read_text()
+            if 'uses: actions/setup-java@' in source:
+                same_reference(source, text, 'actions/setup-java', pinned=True)
+            for match in re_.finditer(r'uses:\s*([^\s#]+@[^\s#]+)', source):
+                ref = match.group(1)
+                if ref.startswith('./'):
+                    continue
+                self.assertRegex(ref.split('@', 1)[1], r'^[0-9a-f]{40}$',
+                                 'mutable third-party action reference in ' + str(composite))
         for forbidden in ('secrets.', 'continue-on-error', 'overwrite: true',
                           'restore-keys:', 'include-hidden-files: true',
                           'pull_request_target', 'workflow_run:', 'release/*.apk',

@@ -16,13 +16,13 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Collect complete index comparison and website history
         id: collect
         run: python3 src/etc/community_watch.py collect
       - name: Preserve inputs and full report before delivery
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: community-watch-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/community-watch-${{ github.run_id }}-${{ github.run_attempt }}/
@@ -38,7 +38,7 @@ jobs:
         run: python3 src/etc/community_watch.py advance
       - name: Preserve delivery receipt and final phase status
         if: ${{ always() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: community-watch-delivery-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/community-watch-${{ github.run_id }}-${{ github.run_attempt }}/

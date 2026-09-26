@@ -12,6 +12,9 @@ import sys
 import unittest
 from unittest.mock import patch
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'src/build'))
+
 import dependency_observation as dep
 import resolved_inputs as resolved
 import shadow_inputs as shadow

@@ -15,11 +15,7 @@ import sys
 import tempfile
 import zipfile
 from urllib.parse import urlparse
-from github_bundle import choose_release, require
-
-MAX_BYTES = 128 * 1024 * 1024
-MAX_EXPANDED = 256 * 1024 * 1024
-MAX_ENTRIES = 10000
+from github_bundle import MAX_BYTES, MAX_EXPANDED, MAX_ENTRIES, choose_release, require, zip_inspect
 
 
 def text(value, label):
@@ -101,25 +97,7 @@ def select(host, ident, channel, env):
 
 
 def verify_zip(path):
-    size = path.stat().st_size
-    require(10000 < size <= MAX_BYTES, 'extra bundle size outside inspection limits')
-    with zipfile.ZipFile(path) as archive:
-        items = archive.infolist()
-        names = [item.filename for item in items]
-        require(0 < len(items) <= MAX_ENTRIES and len(names) == len(set(names)), 'empty/duplicate/oversized bundle ZIP inventory')
-        require(sum(i.file_size for i in items) <= MAX_EXPANDED, 'bundle ZIP expansion exceeds inspection limits')
-        for i in items:
-            require(not i.flag_bits & 1, 'encrypted bundle member')
-            require(not i.filename.startswith('/') and '\\' not in i.filename
-                    and '..' not in pathlib.PurePosixPath(i.filename).parts, 'unsafe bundle member path')
-            require((i.external_attr >> 16) & 0o170000 != 0o120000, 'bundle ZIP symlink refused')
-            require(i.file_size <= MAX_BYTES, 'bundle member exceeds inspection limits')
-        require(archive.testzip() is None, 'bundle ZIP CRC verification failed')
-    h = hashlib.sha256()
-    with path.open('rb') as stream:
-        for block in iter(lambda: stream.read(1048576), b''):
-            h.update(block)
-    return size, h.hexdigest()
+    return zip_inspect(path, MAX_BYTES, MAX_EXPANDED, MAX_ENTRIES)
 
 
 def fetch(host, ident, channel, out, env):

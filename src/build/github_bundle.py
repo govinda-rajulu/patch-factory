@@ -17,6 +17,37 @@ def require(ok, message):
         raise ValueError(message)
 
 
+MAX_BYTES = 128 * 1024 * 1024
+MAX_EXPANDED = 256 * 1024 * 1024
+MAX_ENTRIES = 10000
+
+
+def zip_inspect(path, max_bytes=MAX_BYTES, max_expanded=MAX_EXPANDED, max_entries=MAX_ENTRIES):
+    size = path.stat().st_size
+    require(10000 < size <= max_bytes, 'bundle size outside inspection limits')
+    with zipfile.ZipFile(path) as archive:
+        items = archive.infolist()
+        names = [item.filename for item in items]
+        require(0 < len(items) <= max_entries and len(names) == len(set(names)), 'empty/duplicate/oversized bundle ZIP inventory')
+        require(sum(i.file_size for i in items) <= max_expanded, 'bundle ZIP expansion exceeds inspection limits')
+        for i in items:
+            require(not i.flag_bits & 1, 'encrypted bundle member')
+            require(not i.filename.startswith('/') and '\\' not in i.filename
+                    and '..' not in pathlib.PurePosixPath(i.filename).parts, 'unsafe bundle member path')
+            require((i.external_attr >> 16) & 0o170000 != 0o120000, 'bundle ZIP symlink refused')
+            require(i.file_size <= max_bytes, 'bundle member exceeds inspection limits')
+        require(archive.testzip() is None, 'bundle ZIP CRC verification failed')
+    h = hashlib.sha256()
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(1048576), b''):
+            h.update(block)
+    return size, h.hexdigest()
+
+
+def verify_zip(path):
+    return zip_inspect(path, MAX_BYTES, MAX_EXPANDED, MAX_ENTRIES)
+
+
 def api_json(url, env, identity):
     headers = ['Accept: application/vnd.github+json']
     token = env.get('GITHUB_TOKEN') or env.get('GH_TOKEN')
@@ -85,9 +116,7 @@ def fetch(owner, repo, channel, directory, env):
         require(r.returncode == 0, 'bundle asset download failed; no cached fallback used')
         size = temporary.stat().st_size
         require(isinstance(asset.get('size'), int) and size == asset['size'] and size > 10000, 'bundle byte count differs from release asset metadata')
-        with zipfile.ZipFile(temporary) as archive:
-            require(archive.namelist() and archive.testzip() is None, 'bundle ZIP verification failed')
-        fingerprint = hashlib.sha256(temporary.read_bytes()).hexdigest()
+        _, fingerprint = verify_zip(temporary)
         upstream_digest = asset.get('digest')
         if upstream_digest:
             require(upstream_digest == 'sha256:' + fingerprint, 'GitHub asset digest mismatch')

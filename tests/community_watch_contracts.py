@@ -366,7 +366,7 @@ class Delivery(unittest.TestCase):
         self.assertIn("cancel-in-progress: false", text)
         self.assertNotIn("head -", text)
         self.assertNotIn("|| true", text)
-        self.assertEqual(text.count("uses: actions/upload-artifact@v7"), 2)
+        self.assertEqual(text.count("uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"), 2)
         self.assertLess(text.index("community_watch.py advance"), text.index("community-watch-delivery-"))
         self.assertIn("if: ${{ always() }}", text)
         self.assertEqual(text.count("GH_TOKEN: ${{ github.token }}"), 2)
