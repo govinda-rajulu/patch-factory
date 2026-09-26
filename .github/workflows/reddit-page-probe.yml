@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 6
     steps:
       - name: Checkout without persisted credentials
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Start the existing pinned resolver on loopback only
@@ -32,7 +32,7 @@ jobs:
         run: python3 src/build/reddit_page_probe.py
       - name: Preserve small redacted observations
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: reddit-page-probe-${{ github.run_id }}-${{ github.run_attempt }}
           path: page-probe/report.json

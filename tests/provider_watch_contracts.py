@@ -246,6 +246,26 @@ class ProviderWatch(unittest.TestCase):
         self.assertIn("19 provider entries", setup)
         self.assertNotIn("all fourteen providers", setup)
 
+    def test_provider_delta_packet_flags_mxplayer_and_preserves_exclusion(self):
+        text = (ROOT / "docs/review/PROVIDER-DELTAS-2026-09.md").read_text()
+        self.assertIn("Hide Settings Page UseLess Buttons", text)
+        self.assertIn("still in include-patches", text)
+        self.assertIn("Remember live stream playback position", text)
+        self.assertIn("Stays excluded", text)
+        self.assertIn("UNREVIEWED", text)
+        self.assertNotIn("apply them", text)
+
+    def test_all_third_party_actions_are_sha_pinned(self):
+        import re
+        roots = list((ROOT / ".github/workflows").glob("*.yml"))
+        roots += list((ROOT / ".github/actions").glob("*/action.yml"))
+        for path in roots:
+            for match in re.finditer(r"uses:\s*([^\s#]+)@([^\s#]+)", path.read_text()):
+                if match.group(1).startswith("."):
+                    continue
+                self.assertRegex(match.group(2), r"^[0-9a-f]{40}$",
+                                 "mutable action ref " + match.group(0) + " in " + str(path))
+
     def test_explore_executes_only_verified_patcher(self):
         source = (ROOT / ".github/workflows/explore.yml").read_text()
         self.assertIn("persist-credentials: false", source)

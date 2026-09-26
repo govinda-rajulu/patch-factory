@@ -249,7 +249,7 @@ class Repair(unittest.TestCase):
         from action_refs import references, same_reference
         for action in ('setup-java', 'cache', 'cache/save', 'upload-artifact',
                        'github-script', 'download-artifact'):
-            references(block, 'actions/' + action, pinned=action == 'download-artifact')
+            references(block, 'actions/' + action, pinned=True)
         self.assertEqual(references(block, 'actions/cache'), references(block, 'actions/cache/save'))
         # Dependabot may update releases, but every production workflow use must
         # still be exercised by the same mandatory runtime smoke.
@@ -259,7 +259,19 @@ class Repair(unittest.TestCase):
                            'github-script', 'download-artifact'):
                 if 'uses: actions/' + action + '@' in source:
                     same_reference(source, text, 'actions/' + action,
-                                   pinned=action == 'download-artifact')
+                                   pinned=True)
+        # Composites share the coordinated pins; third-party refs must be immutable everywhere.
+        import re as re_
+        for composite in (ROOT/'.github/actions').glob('*/action.yml'):
+            source = composite.read_text()
+            if 'uses: actions/setup-java@' in source:
+                same_reference(source, text, 'actions/setup-java', pinned=True)
+            for match in re_.finditer(r'uses:\s*([^\s#]+@[^\s#]+)', source):
+                ref = match.group(1)
+                if ref.startswith('./'):
+                    continue
+                self.assertRegex(ref.split('@', 1)[1], r'^[0-9a-f]{40}$',
+                                 'mutable third-party action reference in ' + str(composite))
         for forbidden in ('secrets.', 'continue-on-error', 'overwrite: true',
                           'restore-keys:', 'include-hidden-files: true',
                           'pull_request_target', 'workflow_run:', 'release/*.apk',
