@@ -1,0 +1,1131 @@
+{
+  "android_tools": {
+    "aapt2": {
+      "bytes": 6274200,
+      "sha256": "0f1c0e560f99db510a76ebc99ad5c3e68438f62e8e8617018a716ca4a589a699"
+    },
+    "aapt2_version": {
+      "exit_code": 0,
+      "stderr": "Android Asset Packaging Tool (aapt) 2.20-15087165",
+      "stdout": ""
+    },
+    "apksigner": {
+      "bytes": 1181416,
+      "sha256": "2defad215d7ff52968a409cde528cdaef7918b115e276b8e3378ca7a178e4180"
+    },
+    "apksigner_version": {
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "0.9"
+    },
+    "archive_sha256": "01af179347cbcd9c208b7f8171f7b21f6dd1d2f85bcd15e88caa51d5d7b86060",
+    "bytes": 66135704,
+    "metadata_checksum": "70954e99f4c3d9d46ee70fa32624672fe7cd6ebe",
+    "metadata_checksum_algorithm": "sha1",
+    "reused": true,
+    "trust": "Previously fetched official Google metadata checksum; extracted bytes rechecked",
+    "url": "https://dl.google.com/android/repository/build-tools_r37_linux.zip"
+  },
+  "baseline": {
+    "commit": "b5ab2b3fcc171c14c90bd75956f3366d3f8aec52",
+    "tree": "c084702d95941ea6adf2962dd7dbc6653ef14661"
+  },
+  "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+  "collector_sha256": "009947e1f996d0eba8a902e59b984e440009125c9b5fdac693e00330fa517fd2",
+  "container": {
+    "bytes": 68282446,
+    "sha256": "3ab0a58a4ce8425d3e9bd40574f3952d1c1eda6f3394a4cd07ee1c2dde79995c"
+  },
+  "limits": [
+    "Sanitized observation, not an active admission. Shared workspace attachment hashes are provenance only.",
+    "Original bytes remain in owner personal Cloud Shell; no independent binary re-verification in assistant sandbox.",
+    "Original publisher signer is not CI patched-output signer; Source Stamp is separate.",
+    "Exact 2026.38.0/code2638001/container only; not trust for later versions, other variants or 13 other apps."
+  ],
+  "mapping": {
+    "list_url": "https://www.apkmirror.com/uploads/?appcategory=reddit",
+    "name": "reddit",
+    "org": "redditinc"
+  },
+  "original_parts": [
+    {
+      "abis": [],
+      "bytes": 113273832,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": null,
+        "version_code": "2638001",
+        "version_name": "2026.38.0"
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='2026.38.0' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 0,
+      "sha256": "d82cd3d97e96541dfd1f1ef5333cd58c32fadaa686eba1bdec9fe2a0574a5aa5",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1478866,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.zh",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.zh'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 1,
+      "sha256": "69e8d3287aa5ccac8035feb6f870345a4c23a683d59fa6c4ec0f4fea95657d5a",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 4420543,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.xxhdpi",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.xxhdpi'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 2,
+      "sha256": "d51369e8249a4f6cac2caa19bff4360c5b554c6672e9d2da78597613078dc26e",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1155282,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.vi",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.vi'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 3,
+      "sha256": "e2ff371114714ab6555d6072ecf7ee31f5301751839c197e3818acd61d6cf304",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1355986,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.uk",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.uk'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 4,
+      "sha256": "c2d29887c9d4a8febcc7ad8fcb774ff599a78000d54e6d21b58cdd4ee0173c70",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1581266,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.es",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.es'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 5,
+      "sha256": "50f91b9df50f5ed8fbfae7ae2c737b48243fc66f3bc6cfb21df97390242df28c",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1097938,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.fi",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.fi'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 6,
+      "sha256": "145e49c79de4c7cdcb8f79a2921e83ede24ac0dc131b5c16e644f87028b73bd8",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 2244818,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.ar",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.ar'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 7,
+      "sha256": "d095fdea72fef98d305a9c5cc26ab01b4cce8e35833ad6a21b0695b6850de3a5",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1130706,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.fr",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.fr'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 8,
+      "sha256": "b303ce812c7970e4d75da6ac14b7c0f17707467a4b9a816545b75b4351c97046",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [
+        "arm64-v8a"
+      ],
+      "bytes": 6586857,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.arm64_v8a",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.arm64_v8a'",
+        "minSdkVersion:'29'",
+        "native-code: 'arm64-v8a'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 9,
+      "sha256": "03d776946a4019b2134c3772ed301bb68aa922121cd223a0cd07d79683e19224",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1474770,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.hi",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.hi'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 10,
+      "sha256": "c044550cf697873d1c225039ebe73e9ec7786984fd449f28af19a688ed9c0354",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1110226,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.de",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.de'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 11,
+      "sha256": "a07ef794cfe6583a191a1bcf7717f91c5d8a420c80294c0432add3fdac75a518",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1122514,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.hu",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.hu'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 12,
+      "sha256": "ff1026ac5fd81c2dd02833a0e54edc7f064547d2813f4076e1fc54373ae45150",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1360082,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.en",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.en'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 13,
+      "sha256": "711567e04edaa6d8648b2161b0605cfd9f08dde1dd614d1bfb6b2ab5b8440353",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1061074,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.in",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.in'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 14,
+      "sha256": "8a94df989906c9f79e5ef8530045ccb38e7a779ef56c2a998d43d76407a9e33e",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 6005880,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.xxxhdpi",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.xxxhdpi'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 15,
+      "sha256": "054f6a5f7fdc131062f8e8781f4f0f66d1716c0080d76bb78c17d90d30fc1494",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1093842,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.it",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.it'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 16,
+      "sha256": "39d935bcfe057361452c5f69f5f18303e943d5ab3b70fb41351986d91386be58",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1179858,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.ja",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.ja'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 17,
+      "sha256": "b6c810f085e6b0456b0518817923221644bf19c8fe5293cb6d0bbd1009248a96",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1122514,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.ko",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.ko'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 18,
+      "sha256": "54a9479f550de183414087e6ef1a779d75d53749699f7d56e5a855fa7eefc1ff",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1081554,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.ms",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.ms'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 19,
+      "sha256": "e2438eb22a405478915455a782d121a1c0f88e8927ba67168bb73a9c1ccf4f01",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1081554,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.nl",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.nl'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 20,
+      "sha256": "6bd741ec825da40a2bfd40fe601c153b01a74becbf5b34d56194f42d71022aca",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1126610,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.pl",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.pl'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 21,
+      "sha256": "f1973c1762ef7be618bfe9858630d7405deef5ccafa0528c41a3a5908697d78d",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1601746,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.pt",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.pt'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 22,
+      "sha256": "d0d38c525c6bd20196e3f8f59e9758063361be4cdb69061a22357daec2061589",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1364178,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.ru",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.ru'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 23,
+      "sha256": "3ae1c1cac6e0a80e02fc852726c3c1307b1f989ec0ca2c57ca8d051741d9af1d",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1081554,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.sv",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.sv'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 24,
+      "sha256": "ea6f765f6836ddd74c5de5953d08e46d643032a86cbaa5558d6b560eeb0cbf27",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1466578,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.th",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.th'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 25,
+      "sha256": "d98454717240767f4c9d10c3b3b8442512e36691c288a05fe208fbbed6e6a4b5",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    },
+    {
+      "abis": [],
+      "bytes": 1093842,
+      "certificate_sha256": "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+      "manifest": {
+        "min_sdk": 29,
+        "package": "com.reddit.frontpage",
+        "split": "config.tr",
+        "version_code": "2638001",
+        "version_name": ""
+      },
+      "metadata_output": [
+        "package: name='com.reddit.frontpage' versionCode='2638001' versionName='' split='config.tr'",
+        "minSdkVersion:'29'"
+      ],
+      "metadata_reader_exit": 0,
+      "metadata_stderr_bytes": 0,
+      "part": 26,
+      "sha256": "76f8d2cec940c602d88094707fe1f4dbf2fce743c5f9b3c65bf696c1589c6263",
+      "signature": "CRYPTOGRAPHICALLY_VERIFIED",
+      "signer_output": [
+        "Verified using v1 scheme (JAR signing): false",
+        "Verified using v2 scheme (APK Signature Scheme v2): false",
+        "Verified using v3 scheme (APK Signature Scheme v3): true",
+        "Verified using v3.1 scheme (APK Signature Scheme v3.1): false",
+        "Verified using v3.2 scheme (APK Signature Scheme v3.2): false",
+        "Verified using v4 scheme (APK Signature Scheme v4): false",
+        "Verified for SourceStamp: true",
+        "Number of signers: 1",
+        "V3.0 Signer: certificate SHA-256 digest: 970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f",
+        "V3.0 Signer: public key SHA-256 digest: 25dbebeebe9c4896293fe6e6a5e0a960886abb382ff4dbc94ebf1abbb1aef5cd",
+        "Source Stamp Signer: certificate SHA-256 digest: 3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+        "Source Stamp Signer: public key SHA-256 digest: 4c53c1d28f2ecceadcb1351603f0b702615b3454b6e30070de759359f241b802"
+      ],
+      "signer_stderr_bytes": 0,
+      "source_stamp_certificate_sha256": "3257d599a49d2c961a471ca9843f59d341a405884583fc087df4237b733bbd6d",
+      "verifier_exit": 0
+    }
+  ],
+  "owner_evidence_zip_sha256": "33e80d8e1988049fa4d26ab795e75e853f18acda4939c049afae5a69e558e4bd",
+  "package": "com.reddit.frontpage",
+  "publisher_domain_linkage": {
+    "limits": [
+      "HTTPS publisher-domain package/certificate association, if readable",
+      "No redirect acceptance, no account session, no certificate pin invented",
+      "Certificate rotation/history and variant qualification still require review"
+    ],
+    "observations": [
+      {
+        "body_sha256": "32ef56d652fdb0cd285ddfa6058ced8a6c83f5f2391501f2cc18b2ca84402044",
+        "certificate_sha256": [
+          "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
+        ],
+        "status": "PUBLISHED_DOMAIN_LINKAGE_OBSERVED",
+        "url": "https://www.reddit.com/.well-known/assetlinks.json"
+      },
+      {
+        "body_sha256": "32ef56d652fdb0cd285ddfa6058ced8a6c83f5f2391501f2cc18b2ca84402044",
+        "certificate_sha256": [
+          "970b91143813b4c9d5f3634f672c9fcaa5621b4efaaedafd6c235cbbb869736f"
+        ],
+        "status": "PUBLISHED_DOMAIN_LINKAGE_OBSERVED",
+        "url": "https://reddit.com/.well-known/assetlinks.json"
+      }
+    ]
+  },
+  "qualification": {
+    "activation": false,
+    "candidate_consumer": "PENDING_REAL_OWNER_RUN",
+    "device_test": "NOT_PERFORMED",
+    "nonpublishing_patch": "NOT_RUN",
+    "original_signature_checks": "owner-side Android verifier exit0 for all 27 originals; transcript reviewed",
+    "publisher_domain_linkage": "matches both Reddit HTTPS assetlinks observations",
+    "sdk_and_native_variant": "SDK29 on base and every split; native inventory ARM64 only"
+  },
+  "schema": 1,
+  "source": "apkmirror",
+  "status": "ORIGINALS_REVIEWED_NOT_ACTIVATED",
+  "target": "reddit",
+  "variant": {
+    "abis": [
+      "arm64-v8a"
+    ],
+    "apkmirror_url": "https://www.apkmirror.com/apk/redditinc/reddit/reddit-2026-38-0-release/reddit-2026-38-0-2-android-apk-download/",
+    "kind": "bundle",
+    "min_sdk": 29
+  },
+  "version_code": "2638001",
+  "version_name": "2026.38.0"
+}

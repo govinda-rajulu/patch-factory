@@ -11,13 +11,16 @@ python3 src/etc/preflight.py "$ID" || exit 1
 if [ -d release ] && [ -n "$(find release -mindepth 1 -print -quit)" ]; then
   echo "::error::release directory is not empty; use a fresh build checkout"; exit 1
 fi
+if [ -e .source-fallback-receipt.json ] || [ -L .source-fallback-receipt.json ]; then
+  echo "::error::fallback receipt already exists; use a fresh build checkout"; exit 1
+fi
 python3 src/build/artifact_identity.py capture-signer || exit 1
 
 # utils.sh is 29KB of upstream code written without `set -u`.
 # Scope strictness off around every call into it; our own logic stays strict.
 set +u; source ./src/build/utils.sh; set -u
 
-version=""; lock_version=""; prefer_version=""
+version=""; lock_version=""; prefer_version=""; PF_APK_RAW_ONLY=0
 excludePatches=""; includePatches=""
 KEYSTORE_PASS="${KEYSTORE_PASS:-}"; KEYSTORE_ALIAS="${KEYSTORE_ALIAS:-}"
 
@@ -160,7 +163,10 @@ else
 near_version=1
 set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 fi
-[ "$GA" -eq 0 ] || { red_log "[-] get_apk failed for $PKG"; exit 1; }
+if [ "$GA" -ne 0 ]; then
+  python3 src/build/source_fallback.py "$ID" "$RVER" || { red_log "[-] primary and qualified fallback unavailable for $PKG"; exit 1; }
+  version="$RVER"
+fi
 fi
 [ -f "./download/$APK_NAME.apk" ] || { red_log "[-] ./download/$APK_NAME.apk missing"; exit 1; }
 SZ=$(wc -c < "./download/$APK_NAME.apk")

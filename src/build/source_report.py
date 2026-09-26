@@ -59,14 +59,18 @@ def preparation(doc, root, ident, identity):
         # This older marker has no run seal. It can report failure only, never success.
         return None
     body = shadow.unseal(doc, source.DOMAIN)
-    need(set(body) == {"domain", "schema", "target", "run", "dependency_lock_sha256",
-                       "apk", "metadata", "limits"} and body["target"] == ident and
+    required = {"domain", "schema", "target", "run", "dependency_lock_sha256",
+                "apk", "metadata", "limits"}
+    need(set(body) in (required, required | {"fallback"}) and body["target"] == ident and
          body["run"] == identity and body["limits"] == source.LIMITS and
          shadow.hash_ok(body["dependency_lock_sha256"]), "prepared source scope differs")
     row = body["apk"]
     need(set(row) == {"path", "bytes", "sha256"} and row["path"] == "source.apk" and
          1000000 < shadow.byte_record(row)["bytes"] <= resolved.MAX_FILE, "invalid prepared APK")
     source.validate_metadata(body["metadata"], shadow.target(root, ident))
+    if body.get("fallback") is not None:
+        import source_fallback
+        source_fallback.validate_receipt(root, ident, body["fallback"], row)
     return shadow.byte_record(row)
 
 

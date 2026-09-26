@@ -60,7 +60,7 @@ def verify(root, ident, env):
     doc = recipe.read_json(root, LOCK)
     body = shadow.unseal(doc, DOMAIN)
     need(set(body) == {"domain", "schema", "target", "run", "dependency_lock_sha256",
-                       "apk", "metadata", "limits"}, "unexpected packet fields")
+                       "apk", "metadata", "fallback", "limits"}, "unexpected packet fields")
     need(body["target"] == ident and body["run"] == dep["run"] and
          body["dependency_lock_sha256"] == dep["sha256"], "dependency/run binding differs")
     need(body["limits"] == LIMITS, "overstated evidence")
@@ -69,6 +69,9 @@ def verify(root, ident, env):
          {p.name for p in directory.iterdir()} == {"lock.json", "source.apk"}, "unexpected packet files")
     need(body["apk"] == apk_record(directory, "source.apk"), "APK bytes differ")
     validate_metadata(body["metadata"], shadow.target(root, ident))
+    if body["fallback"] is not None:
+        import source_fallback
+        source_fallback.validate_receipt(root, ident, body["fallback"], body["apk"])
     return doc
 
 
@@ -78,7 +81,8 @@ def prepare(root, ident, env, run=None, metadata=None):
     t = shadow.target(root, ident)
     need(re.fullmatch(r"[A-Za-z0-9_-]+", t["apk_name"]), "unsafe APK name")
     # Fresh read-only resolution checkout; preserve all previous output/dirt.
-    for name in ("source-inputs", "download", "release", "APKEditor.jar", "pup", "pup.zip"):
+    for name in ("source-inputs", "download", "release", "APKEditor.jar", "pup", "pup.zip",
+                 ".source-fallback-receipt.json"):
         p = root / name
         need(not p.exists() and not p.is_symlink(), "existing preparation output")
     clean = clean_env(env)
@@ -93,6 +97,8 @@ def prepare(root, ident, env, run=None, metadata=None):
     validate_metadata(meta, t)
     need(before == apk_record(root, relative), "APK changed during inspection")
     need(resolved.verify(root, ident, env) == dep, "dependencies changed during fetch")
+    import source_fallback
+    fallback = source_fallback.read_receipt(root, ident, before)
     with tempfile.TemporaryDirectory(prefix="pf-source-", dir=root) as directory:
         payload = Path(directory) / "packet"
         payload.mkdir()
@@ -101,7 +107,7 @@ def prepare(root, ident, env, run=None, metadata=None):
         need(all(row[k] == before[k] for k in ("bytes", "sha256")), "copy differs")
         doc = shadow.seal({"domain": DOMAIN, "schema": 1, "target": ident, "run": dep["run"],
                            "dependency_lock_sha256": dep["sha256"], "apk": row,
-                           "metadata": meta, "limits": LIMITS})
+                           "metadata": meta, "fallback": fallback, "limits": LIMITS})
         (payload / "lock.json").write_bytes(recipe.canonical(doc) + b"\n")
         os.rename(payload, root / "source-inputs")
     verify(root, ident, env)
@@ -111,6 +117,9 @@ def prepare(root, ident, env, run=None, metadata=None):
 def install(root, ident, env):
     root = Path(root).resolve()
     doc = verify(root, ident, env)
+    import source_fallback
+    need(not (root / source_fallback.RECEIPT).exists() and
+         not (root / source_fallback.RECEIPT).is_symlink(), "existing fallback receipt")
     relative = "download/" + shadow.target(root, ident)["apk_name"] + ".apk"
     need(re.fullmatch(r"download/[A-Za-z0-9_-]+[.]apk", relative), "unsafe destination")
     directory = root / "download"
@@ -124,6 +133,11 @@ def install(root, ident, env):
     actual = apk_record(root, relative)
     need(all(actual[k] == doc["apk"][k] for k in ("bytes", "sha256")),
          "installed APK differs; preserve partial work")
+    if doc["fallback"] is not None:
+        with (root / source_fallback.RECEIPT).open("xb") as stream:
+            stream.write(recipe.canonical(doc["fallback"]) + b"\n")
+        need(source_fallback.read_receipt(root, ident, actual) == doc["fallback"],
+             "installed fallback receipt differs")
     return doc
 
 

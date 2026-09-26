@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "targets": {
+    "youtube": {"package": "com.google.android.youtube", "primary": "apkmirror", "blocked_reason": "APKPure listing found; exact original bytes and publisher anchor unqualified", "admissions": []},
+    "adguard": {"package": "com.adguard.android", "primary": "apkmirror", "blocked_reason": "No verified APKPure mapping; official AdGuard source requires a separate reviewed adapter", "admissions": []},
+    "photos": {"package": "com.google.android.apps.photos", "primary": "apkmirror", "blocked_reason": "APKPure listing found; exact original bytes and publisher anchor unqualified", "admissions": []},
+    "truecaller-combo": {"package": "com.truecaller", "primary": "apkmirror", "blocked_reason": "APKPure listing found; original split set and publisher anchor unqualified", "admissions": []},
+    "primevideo": {"package": "com.amazon.avod.thirdpartyclient", "primary": "apkmirror", "blocked_reason": "Configured APKPure endpoint is not an independently qualified artifact", "admissions": []},
+    "esfile": {"package": "com.estrongs.android.pop", "primary": "apkmirror", "blocked_reason": "Configured APKPure endpoint is unqualified; current official availability unclear", "admissions": []},
+    "facebook": {"package": "com.facebook.katana", "primary": "apkmirror", "blocked_reason": "APKPure listing found; exact version under 490.0.0.63.82 and publisher anchor unqualified", "admissions": []},
+    "instagram": {"package": "com.instagram.android", "primary": "apkpure", "blocked_reason": "APKMirror listing found; exact original bytes and publisher anchor unqualified", "admissions": []},
+    "reddit": {"package": "com.reddit.frontpage", "primary": "apkpure", "blocked_reason": "2026.38.0 code2638001 Android10 ARM64 originals reviewed; candidate-consumer and nonpublishing patch pilot pending; activation not approved", "admissions": []},
+    "hotstar": {"package": "in.startv.hotstar", "primary": "apkmirror", "blocked_reason": "Configured APKPure endpoint is not an independently qualified artifact", "admissions": []},
+    "edge": {"package": "com.microsoft.emmx", "primary": "apkpure", "blocked_reason": "APKMirror listing found; exact original bytes and publisher anchor unqualified", "admissions": []},
+    "mxplayer": {"package": "com.mxtech.videoplayer.pro", "primary": "apkmirror", "blocked_reason": "No verified Pro alternate; free MX package is not interchangeable; retain 1.93.4 ceiling", "admissions": []},
+    "telegram": {"package": "org.telegram.messenger", "primary": "apkmirror", "blocked_reason": "Configured APKPure endpoint unqualified; do not substitute a different Telegram distribution", "admissions": []},
+    "keymapper": {"package": "io.github.sds100.keymapper", "primary": "apkpure", "blocked_reason": "Located APKMirror FOSS/GitHub variant is not qualified as equivalent to the configured distribution", "admissions": []}
+  }
+}
