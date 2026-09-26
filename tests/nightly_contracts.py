@@ -1,4 +1,6 @@
+import contextlib
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
@@ -67,7 +69,10 @@ class Nightly(unittest.TestCase):
                 d=n.collect(root,ENV)
             self.assertEqual((root/'watch-evidence/nightly-report.txt').read_text(),text)
             self.assertEqual(d['report_bytes'],len(text.encode()))
-            self.assertEqual(n.enforce(root),1)
+            out=io.StringIO()
+            with contextlib.redirect_stdout(out):
+                self.assertEqual(n.enforce(root),1)
+            self.assertIn('::error::Nightly Watch FAILED',out.getvalue())
 
     def test_capture_setup_failure_never_launches_legacy_report(self):
         with tempfile.TemporaryDirectory() as td:

@@ -12,7 +12,7 @@ concurrency:
 jobs:
   open-issue:
     if: ${{ contains(fromJSON('["failure","timed_out","startup_failure","action_required"]'), github.event.workflow_run.conclusion) }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       # No checkout, artifact download, external script or raw log copying in this
       # privileged workflow_run context. Only trusted inline code and API metadata.
