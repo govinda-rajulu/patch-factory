@@ -1,12 +1,12 @@
 {
-  "note": "Advisory council seats. Each seat uses the first listed model its provider currently serves. Free tiers only; a seat with no key is skipped.",
+  "note": "Advisory council seats. Each seat tries its listed models in order and uses the first one its provider serves. Free tiers only; a seat with no key is skipped. GitHub Models retired on 30 Jul 2026.",
   "quorum": 3,
   "seats": [
-    {"id": "gpt", "provider": "github", "models": ["openai/gpt-4.1", "openai/gpt-4.1-mini"], "max_input_chars": 22000},
-    {"id": "mistral", "provider": "github", "models": ["mistral-ai/mistral-medium-2505", "meta/llama-4-maverick-17b-128e-instruct-fp8"], "max_input_chars": 22000},
+    {"id": "gpt", "provider": "nvidia", "models": ["openai/gpt-oss-120b", "openai/gpt-oss-20b"], "max_input_chars": 120000},
+    {"id": "mistral", "provider": "nvidia", "models": ["mistralai/mistral-nemotron", "mistralai/mistral-large-2-instruct"], "max_input_chars": 120000, "max_tokens": 4000},
     {"id": "gemini", "provider": "gemini", "models": ["gemini-3.6-flash", "gemini-3-flash-preview", "gemini-flash-latest"], "max_input_chars": 150000},
-    {"id": "deepseek", "provider": "nvidia", "models": ["deepseek-ai/deepseek-v4-pro", "deepseek-ai/deepseek-v4-flash"], "max_input_chars": 120000},
-    {"id": "qwen", "provider": "nvidia", "models": ["qwen/qwen3.5-397b-a17b", "z-ai/glm-5.2", "openai/gpt-oss-120b"], "max_input_chars": 120000},
+    {"id": "nemotron", "provider": "nvidia", "models": ["nvidia/nemotron-3-ultra-550b-a55b", "nvidia/nemotron-3-super-120b-a12b", "nvidia/nemotron-3-nano-30b-a3b"], "max_input_chars": 120000},
+    {"id": "minimax", "provider": "nvidia", "models": ["minimaxai/minimax-m3", "google/gemma-4-31b-it", "meta/llama-3.3-70b-instruct"], "max_input_chars": 120000, "max_tokens": 4000},
     {"id": "open", "provider": "openrouter", "models": ["cohere/north-mini-code:free", "poolside/laguna-s-2.1:free", "google/gemma-4-31b-it:free", "nvidia/nemotron-3-super-120b-a12b:free", "openrouter/free"], "max_input_chars": 100000}
   ]
 }

@@ -32,8 +32,6 @@ COUNCIL = ROOT / 'docs' / 'council'
 SENTINEL = '----- prompt below -----'
 MARKER = {'review': '<!-- pf-council:review -->', 'question': '<!-- pf-council:question -->'}
 PROVIDERS = {
-    'github': {'chat': 'https://models.github.ai/inference/chat/completions',
-               'models': 'https://models.github.ai/catalog/models', 'key': 'GITHUB_TOKEN'},
     'gemini': {'chat': 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
                'models': 'https://generativelanguage.googleapis.com/v1beta/openai/models', 'key': 'GEMINI_API_KEY'},
     'nvidia': {'chat': 'https://integrate.api.nvidia.com/v1/chat/completions',
@@ -245,18 +243,17 @@ def candidates(seat, env):
 
 def complete(seat, model, system, user, env):
     p = PROVIDERS[seat['provider']]
-    # GitHub Models free tier caps output at 4000 tokens; others leave room for reasoning.
-    body = {'model': model, 'temperature': 0.1, 'max_tokens': 3500 if seat['provider'] == 'github' else 6000,
+    # Room for reasoning models; a seat whose models cap output lower sets max_tokens.
+    body = {'model': model, 'temperature': 0.1, 'max_tokens': int(seat.get('max_tokens', 6000)),
             'messages': [{'role': 'system', 'content': system}, {'role': 'user', 'content': user}]}
     headers = {'Authorization': 'Bearer ' + env[p['key']], 'Content-Type': 'application/json',
                'Accept': 'application/json', 'User-Agent': 'pf-council'}
-    if seat['provider'] == 'github':
-        headers.update({'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'})
     for attempt in (1, 2):
         status, text = http('POST', p['chat'], headers, body)
         if status == 200:
             return reply_text(text, env)
-        if status in (400, 404, 422) and re.search(r'(?i)model', text):
+        # 410 Gone: the provider retired this model. Others only when the error names the model.
+        if status == 410 or (status in (400, 404, 422) and re.search(r'(?i)model', text)):
             raise ModelMissing('model not served (%s)' % status)
         if status not in (0, 429, 500, 502, 503, 504) or attempt == 2:
             raise Refused('provider returned %s' % status)
