@@ -15,13 +15,13 @@ list that the provider still serves, because free catalogues change without noti
 
 | Seat | Provider | Key |
 |---|---|---|
-| gpt, mistral | GitHub Models | none: the workflow's own token (`models: read`) |
+| gpt, mistral, nemotron, minimax | NVIDIA build | `NVIDIA_API_KEY` |
 | gemini | Google AI Studio | `GEMINI_API_KEY` |
-| deepseek, qwen | NVIDIA build | `NVIDIA_API_KEY` |
 | open | OpenRouter free models | `OPENROUTER_API_KEY` |
 
-A seat without its key is skipped, never an error. GitHub Models free requests are capped at
-about 8,000 input tokens, so those two seats abstain on large diffs instead of reading half.
+A seat without its key is skipped, never an error. A model the provider reports retired
+(410) or not served falls through to the next one on the seat's list. GitHub Models retired
+on 30 Jul 2026, so no seat uses it.
 
 ## Jobs
 

@@ -224,6 +224,39 @@ class Council(unittest.TestCase):
         got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
         self.assertEqual(got['status'], 'UNAVAILABLE no listed model is served (2 tried)')
 
+    def test_retired_model_410_falls_through_and_seat_caps_output(self):
+        asked = []
+
+        def http(method, url, headers, body=None, timeout=90):
+            if url.endswith('/models'):
+                return 200, json.dumps({'data': [{'id': 'm1'}]})
+            asked.append((body['model'], body['max_tokens']))
+            if body['model'] == 'm1':
+                return 410, 'Gone'
+            return 200, json.dumps({'choices': [{'message': {'content': '{"summary": "ok", "verdict": "looks_ok", "findings": []}'}}]})
+        council.http = http
+        got = council.run_seat(dict(SEAT, max_tokens=4000), 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual((got['status'], got['model'], asked), ('OK', 'm2', [('m1', 4000), ('m2', 4000)]))
+        council._model_cache.clear()
+        asked.clear()
+        council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual(asked, [('m1', 6000), ('m2', 6000)])
+
+    def test_seats_use_only_live_keyed_providers(self):
+        cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
+        seats = cfg['seats']
+        self.assertNotIn('github', council.PROVIDERS)
+        self.assertEqual(len({s['id'] for s in seats}), len(seats))
+        self.assertLessEqual(cfg['quorum'], len(seats))
+        for s in seats:
+            self.assertIn(s['provider'], council.PROVIDERS, s['id'])
+            self.assertGreaterEqual(len(s['models']), 2, s['id'])
+            self.assertEqual(len(set(s['models'])), len(s['models']), s['id'])
+            self.assertLessEqual(int(s.get('max_tokens', 6000)), 8000, s['id'])
+        wf = (ROOT / '.github/workflows/council.yml').read_text()
+        for key in sorted({council.PROVIDERS[s['provider']]['key'] for s in seats}):
+            self.assertIn(key + ': ${{ secrets.' + key + ' }}', wf)
+
     def test_replies_parse_text_parts_and_report_shape_without_secrets(self):
         parts = {'choices': [{'message': {'content': [{'type': 'text', 'text': '{"a"'}, {'type': 'text', 'text': ': 1}'}]}}]}
         self.assertEqual(council.reply_text(json.dumps(parts), self.env()), '{"a": 1}')
@@ -335,7 +368,7 @@ class Council(unittest.TestCase):
         self.assertIn("github.event.pull_request.head.repo.full_name == github.repository", wf)
         perms = re.search(r'\n    permissions:\n((?:      .+\n)+)', wf)[1]
         self.assertEqual(sorted(l.strip() for l in perms.splitlines()),
-                         ['contents: read', 'issues: write', 'models: read', 'pull-requests: write'])
+                         ['contents: read', 'issues: write', 'pull-requests: write'])
         self.assertEqual(wf.count('secrets.'), 3)
         self.assertEqual(wf.count('run:'), 1)
         self.assertIn('\n          python3 src/council/council.py\n', wf)
