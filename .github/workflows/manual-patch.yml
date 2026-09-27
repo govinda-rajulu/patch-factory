@@ -63,8 +63,6 @@ jobs:
     env:
       repository: ${{ github.repository }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
-      KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
       COE: ${{ vars.COE }}
       PF_SHADOW_PLAN_KEY: ${{ inputs.shadow_plan_key || '' }}
       PF_SHADOW_PLAN_REQUIRED: ${{ inputs.shadow_plan_required || false }}
@@ -119,8 +117,10 @@ jobs:
         if: inputs.resolved_requested && steps.source_verify.outcome != 'success'
         run: echo "::warning::Prepared APK unavailable or invalid. Legacy store fetch remains active; full shadow comparison is UNKNOWN."
       - name: Decode keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
         run: |
-          echo "${{ secrets.KEYSTORE_B64 }}" | base64 -d > src/ks.keystore
+          printf '%s' "$KEYSTORE_B64" | base64 -d > src/ks.keystore
           SZ=$(wc -c < src/ks.keystore)
           echo "keystore bytes: $SZ"
           [ "$SZ" -gt 3000 ] || { echo "::error::keystore truncated - KEYSTORE_B64 secret is incomplete"; exit 1; }
@@ -145,10 +145,16 @@ jobs:
           TARGET: ${{ inputs.target }}
           PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' }}
           PF_SOURCE_READY: ${{ steps.source_verify.outcome == 'success' }}
+          # Signing credentials only where the keystore is read (build.sh signs,
+          # artifact_identity.py exports the public certificate). Not job-wide.
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
         run: bash src/build/build.sh "$TARGET"
       - name: Verify finished APK identity
         env:
           TARGET: ${{ inputs.target }}
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
         run: python3 src/build/artifact_identity.py verify "$TARGET"
       - name: Save build evidence (JSON only)
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

@@ -14,6 +14,7 @@ Last indexed **27 September 2026** on main after PR89. Hygiene record:
 | [HANDOVER-2026-09-26.md](HANDOVER-2026-09-26.md) | Latest session handover: what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
 | [OPEN-WORK.md](OPEN-WORK.md) | Open, partial and deferred work. Newest checkpoint first. |
 | [AUDIT-5S-2026-09-27.md](AUDIT-5S-2026-09-27.md) | Repository hygiene audit: what was sorted, corrected, and left for an owner decision. |
+| [AUDIT-MICRO-2026-09-27.md](AUDIT-MICRO-2026-09-27.md) | Line-level security and logic audit: signing-secret scope, no runtime installs, silent failures; issue #27/#35/#5 decisions. |
 | [PROVIDER-DELTAS-2026-09.md](PROVIDER-DELTAS-2026-09.md) | Upstream patch-name changes waiting for owner classification. |
 
 ## Decisions and gates

@@ -6,6 +6,10 @@ on:
   schedule:
     - cron: "41 1 * * *"  # 07:11 IST daily
   workflow_dispatch:
+concurrency:
+  # Schedule and manual runs both rewrite standing issue #27; queue, never overlap.
+  group: nightly-watch
+  cancel-in-progress: false
 jobs:
   watch:
     runs-on: ubuntu-24.04
