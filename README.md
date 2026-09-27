@@ -9,6 +9,7 @@ checks the finished output, and publishes a separate signed release per build.
 | [Recovery and operations](RECOVERY.md)
 | [Security boundaries](SECURITY.md)
 | [Open work](docs/review/OPEN-WORK.md)
+| [Review desk](docs/review/README.md)
 
 The generated table below is the configured patched-app inventory. Morphe MicroG
 RE is an optional upstream companion, not another patched target. The site

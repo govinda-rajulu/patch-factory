@@ -1,0 +1,67 @@
+# Review desk
+
+Every reviewed finding, decision, audit and handover for this repository lives in
+this folder. Start at the top. Files under **History** record what was true on
+their date; they are not current instructions.
+
+Last indexed **27 September 2026** on main after PR89. Hygiene record:
+[5S audit](AUDIT-5S-2026-09-27.md).
+
+## Start here
+
+| Read | Why |
+| --- | --- |
+| [HANDOVER-2026-09-26.md](HANDOVER-2026-09-26.md) | Latest session handover: what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
+| [OPEN-WORK.md](OPEN-WORK.md) | Open, partial and deferred work. Newest checkpoint first. |
+| [AUDIT-5S-2026-09-27.md](AUDIT-5S-2026-09-27.md) | Repository hygiene audit: what was sorted, corrected, and left for an owner decision. |
+| [PROVIDER-DELTAS-2026-09.md](PROVIDER-DELTAS-2026-09.md) | Upstream patch-name changes waiting for owner classification. |
+
+## Decisions and gates
+
+| Record | What it holds | State |
+| --- | --- | --- |
+| [RESOURCE-DECISION-2026-09-19.md](RESOURCE-DECISION-2026-09-19.md) | ES File and MX Player resource-patch exclusions and the reasoning. | Current decision |
+| [DECISIONS-youtube-morphe.tsv](DECISIONS-youtube-morphe.tsv) | Per-patch YouTube review rows. | Reference; the PR47 exclusion wins over older rows |
+| [DECISIONS-reddit-morphe.tsv](DECISIONS-reddit-morphe.tsv) | Per-patch Reddit review rows. | Reference |
+| [ICON-PROVENANCE.md](ICON-PROVENANCE.md) | Which official app icons may ship, and why most do not. | Current gate |
+
+## APK source admissions
+
+| Record | What it holds | State |
+| --- | --- | --- |
+| [APK-SOURCE-FALLBACKS-2026-09-26.md](APK-SOURCE-FALLBACKS-2026-09-26.md) | Exact-version source fallbacks shipped in PR86. | Current |
+| [APK-SOURCE-ADMISSIONS-2026-09-26.md](APK-SOURCE-ADMISSIONS-2026-09-26.md) | Admission record for the PR86 fallbacks. | Current |
+| [APK-SOURCE-ADMISSION-PHOTOS-2026-09-26.md](APK-SOURCE-ADMISSION-PHOTOS-2026-09-26.md) | Photos fallback with its exact signer-rotation pair (PR88). | Current |
+| [APK-SOURCE-METADATA-2026-09-26.json](APK-SOURCE-METADATA-2026-09-26.json) | Machine-readable metadata for the admitted sources. | Current |
+| [source-qualifications/](source-qualifications/) | Per-source qualification records. | Current |
+
+## Inventories and watcher baselines
+
+| Record | What it holds | State |
+| --- | --- | --- |
+| [PATCHES.tsv](PATCHES.tsv) | Tabular patch inventory snapshot. | Snapshot |
+| [PATCHES-youtube.txt](PATCHES-youtube.txt) | YouTube bundle listing snapshot. | Snapshot |
+| [PATCHES-reddit-morphe.txt](PATCHES-reddit-morphe.txt) | Reddit bundle listing snapshot. | Snapshot |
+| [UNREVIEWED.tsv](UNREVIEWED.tsv) | Patch names not yet reviewed. | Working list |
+| [providers/](providers/) | Committed provider name baselines read by Provider watch. | Live input |
+| [retention/](retention/) | Release retention and cleanup records, including the 26 September cleanup. | Record |
+
+## History
+
+| Record | What it holds |
+| --- | --- |
+| [AUDIT-2026-09-26.md](AUDIT-2026-09-26.md) | Post-PR81 audit: archive, wiring, Explore, CI coverage and page fixes; PR53 disposition. |
+| [AUDIT-2026-09-07.md](AUDIT-2026-09-07.md) | First repository audit. |
+| [REPORT-2026-09-07.md](REPORT-2026-09-07.md) | Report from the 7 September audit. |
+| [SESSION-2026-09-06.md](SESSION-2026-09-06.md) | Session record, 6 September. |
+
+## House rules
+
+1. One dated file per audit, decision or handover, named `KIND-YYYY-MM-DD.md`.
+   Never rewrite a dated record; append a dated correction instead.
+2. List every new file or folder here in the same PR.
+   `tests/review_index_contracts.py` fails **3. Validate** when something in this
+   folder is unlisted or a link here points nowhere.
+3. No private chats, secrets, signing material or raw captures in this folder.
+4. Configured, approved, applied, published and phone-tested are different states.
+   Say which one a record proves.

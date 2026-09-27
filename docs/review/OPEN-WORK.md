@@ -1,5 +1,13 @@
 # Open work
 
+## Current checkpoint: 27 September 2026
+
+Main after PR89 (`2f3acecd`) plus the 5S hygiene packet. Start with the
+[review desk](README.md), then the [5S audit](AUDIT-5S-2026-09-27.md). Next
+engineering packet: F05/F06, covering every build input (tools, runtime, patch
+defaults) and a durable record of the last fully successful publication, still
+shadow-only. The 26 September section below is now the previous checkpoint.
+
 ## Latest checkpoint: 26 September 2026
 
 Start with the [26 September handover](HANDOVER-2026-09-26.md): current main after

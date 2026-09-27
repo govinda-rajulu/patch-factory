@@ -1,5 +1,23 @@
 # Provider delta review packet: 14-26 September 2026
 
+> **Correction, 27 September 2026.** Two statements below are superseded by live
+> evidence. The original text stays as the 26 September record.
+>
+> - **MX Player: no action needed.** `Hide Settings Page UseLess Buttons` was applied
+>   by the 21 September MX release
+>   (`mx-player-v1.93.4-b2026092100000000035571131023000001`, 7 applied names), and
+>   Provider watch run 36173375425 on 25 September reports `mxplayer/ftl` OK with no
+>   delta. The "applied-count gate will fail" warning is withdrawn. Issue #49
+>   predates both and is closed.
+> - **YouTube `Channel search` and `Force fullscreen landscape` are already live.**
+>   The 26 September YouTube release applied both (65 applied names), so they are
+>   active, not pending. The PR47 exclusion of `Remember live stream playback
+>   position` is unchanged.
+>
+> Still waiting for owner classification (issue #83): Photos `Custom branding`,
+> Instagram `Customize navigation bar`, Reddit `Hide crosspost`. See the
+> [5S audit](AUDIT-5S-2026-09-27.md).
+
 Consolidates watcher issues #50, #71 and #83 into one review surface. This file
 changes nothing: every row is UNREVIEWED until the owner classifies it, and an
 added name here is not a selection. Classification column is a mechanical
