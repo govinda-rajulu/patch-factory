@@ -17,6 +17,16 @@ def ist(cron):
     if not m or int(m[1])>59 or int(m[2])>23: return 'unknown'
     t=(int(m[2])*60+int(m[1])+330)%1440
     return '%02d:%02d'%divmod(t,60)
+def polls():
+    """Every ci.yml cron in file order; the first is the full daily run."""
+    out=sh("grep -oE 'cron: \"[^\"]+\"' .github/workflows/ci.yml | sed 's/cron: //; s/\"//g'")
+    return [c for c in out.split('\n') if c] or ['unknown']
+def later(crons):
+    """README clause for the poll-only checks after the first cron, or ''."""
+    t=[ist(c) for c in crons[1:]]
+    if not t: return ''
+    return ' plus poll-only checks at %s IST that build only when a provider has published;'%(
+        ', '.join(t[:-1])+' and '+t[-1] if len(t)>1 else t[0])
 def build():
     T=json.load(io.open('src/targets.json',encoding='utf-8'))
     en=[t for t in T if t.get('enabled')]
@@ -28,7 +38,7 @@ def build():
             t.get('label') or t['id'], t['id'], t.get('tag_prefix') or t['id'],
             t.get('source') or 'apkmirror', ' + '.join(prov),
             'yes' if t.get('poll') else 'no'))
-    cron=sh("grep -oE 'cron: \"[^\"]+\"' .github/workflows/ci.yml | head -1 | sed 's/cron: //; s/\"//g'") or 'unknown'
+    crons=polls(); cron=crons[0]
     q=sh("grep -vc '^#' src/patches/QUARANTINE 2>/dev/null") or '0'
     caps=sorted({t.get('max_patch_age_days',60) for t in T})
     tools=sh("grep -vc '^#' src/build/TOOLING.sha256 2>/dev/null") or '0'
@@ -38,7 +48,7 @@ def build():
        'Generated from `src/targets.json` by `src/etc/readmegen.py`. **3. Validate** fails a push',
        'that leaves this block stale, so it cannot drift.',
        '',
-       '- **%d apps**, all enabled, %d polled by the scheduled build (`%s` UTC = %s IST; GitHub can start scheduled runs late).'%(len(en),len(poll),cron,ist(cron)),
+       '- **%d apps**, all enabled, %d polled by the scheduled build (`%s` UTC = %s IST;%s GitHub can start scheduled runs late).'%(len(en),len(poll),cron,ist(cron),later(crons)),
        '- Patch-age warning: %s days. Age is advisory; requested/applied checks and build verification decide.'%(', '.join(str(c) for c in caps)),
        '- %s build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.'%tools,
        '- %s patch(es) quarantined in `src/patches/QUARANTINE`, held out of every include list by CI.'%q.strip(),
