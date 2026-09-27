@@ -71,6 +71,7 @@ jobs:
           PKG: ${{ inputs.package }}
           CHAN: ${{ inputs.channel }}
         run: |
+          set -o pipefail
           java -jar "${{ steps.patcher.outputs.jar }}" list-patches --patches ./explore.mpp \
             --with-packages --with-versions --with-options \
             --filter-package-name "$PKG" --out ./patches.txt 2>&1 | tail -3
@@ -93,8 +94,10 @@ jobs:
             echo "Patches: $N"
             echo ""
             echo "name | default"
-            echo ""
-            paste -d'|' <(grep '^Name: ' ./patches.txt | sed 's/^Name: //') <(grep '^Enabled: ' ./patches.txt | sed 's/^Enabled: //')
+            # Provider-supplied names go inside a code fence: no @mentions, links or markup.
+            echo '```text'
+            paste -d'|' <(grep '^Name: ' ./patches.txt | sed 's/^Name: //') <(grep '^Enabled: ' ./patches.txt | sed 's/^Enabled: //') | tr '`' "'"
+            echo '```'
           } > body.md
           wc -c body.md
           gh issue create --title "patches: $PKG via $IDENT" --body-file body.md

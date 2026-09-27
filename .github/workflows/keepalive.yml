@@ -20,5 +20,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .keepalive
-          git commit -m "chore: keepalive" || exit 0
+          # Nothing staged is the only quiet exit; a failed commit or push fails the run.
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: keepalive"
           git push

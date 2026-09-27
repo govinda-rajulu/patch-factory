@@ -66,7 +66,9 @@ fi
 
 # 4. pyaxmlparser
 if [ -z "$MIN" ]; then
-  if python3 -c 'import pyaxmlparser' 2>/dev/null || pip install -q pyaxmlparser 2>/dev/null; then
+  # Optional reader: use it only if the runner already has it. Never install
+  # packages at build time; signing material is already on disk here.
+  if python3 -c 'import pyaxmlparser' 2>/dev/null; then
     if python3 -c "
 import sys
 from pyaxmlparser import APK
@@ -77,6 +79,8 @@ print(APK(sys.argv[1]).get_min_sdk_version() or '')
     else
       echo "[i] pyaxmlparser reader exited unsuccessfully; stdout ignored"
     fi
+  else
+    echo "[i] pyaxmlparser not installed; optional reader skipped (no runtime install)"
   fi
 fi
 
