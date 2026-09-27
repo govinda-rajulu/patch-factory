@@ -23,6 +23,7 @@ import secrets
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -57,19 +58,73 @@ class Refused(Exception):
     pass
 
 
+class ModelMissing(Refused):
+    pass
+
+
+def shape(text, env):
+    """What a response looked like, without its content: JSON keys or the first bytes."""
+    try:
+        data = json.loads(text)
+        if isinstance(data, dict):
+            return 'keys=' + ','.join(sorted(data)[:8])
+        return 'json ' + type(data).__name__
+    except ValueError:
+        return 'starts ' + json.dumps(scrub(text[:60], env))
+
+
+def reply_text(text, env):
+    """Assistant text from an OpenAI-style reply; content may be a string or text parts."""
+    try:
+        data = json.loads(text)
+        msg = data['choices'][0]['message']
+    except (ValueError, KeyError, IndexError, TypeError):
+        raise Refused('malformed provider response ' + shape(text, env))
+    content = msg.get('content')
+    if isinstance(content, list):
+        content = ''.join(p.get('text', '') for p in content if isinstance(p, dict))
+    return content or msg.get('reasoning_content') or ''
+
+
 # ---------- transport (replaced by fakes in tests) ----------
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None  # surface 3xx to http(), which decides
+
+
+_OPENER = urllib.request.build_opener(_NoRedirect)
+
+
+def same_site(url, location):
+    """A redirect may keep the key only on https and the same registrable domain."""
+    a, b = urllib.parse.urlsplit(url), urllib.parse.urlsplit(location)
+    site = lambda h: '.'.join((h or '').lower().split('.')[-2:])
+    return b.scheme == 'https' and bool(b.hostname) and site(a.hostname) == site(b.hostname)
+
+
 def http(method, url, headers, body=None, timeout=90):
-    """One HTTP call. Returns (status, text). Never raises for HTTP errors."""
+    """One HTTP call. Returns (status, text). Never raises for HTTP errors.
+
+    urllib turns a redirected POST into a bodiless GET; follow one redirect by repeating
+    the same method and body instead, and only within the same site."""
     data = None if body is None else json.dumps(body).encode()
-    req = urllib.request.Request(url, data=data, method=method, headers=headers)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return r.status, r.read().decode('utf-8', 'replace')
-    except urllib.error.HTTPError as e:
-        return e.code, e.read().decode('utf-8', 'replace')[:2000]
-    except Exception as e:  # network error, timeout
-        return 0, type(e).__name__
+    for hop in (1, 2):
+        req = urllib.request.Request(url, data=data, method=method, headers=headers)
+        try:
+            with _OPENER.open(req, timeout=timeout) as r:
+                return r.status, r.read().decode('utf-8', 'replace')
+        except urllib.error.HTTPError as e:
+            location = e.headers.get('Location') if e.headers else None
+            if e.code in (301, 302, 303, 307, 308) and location and hop == 1:
+                location = urllib.parse.urljoin(url, location)
+                if same_site(url, location):
+                    url = location
+                    continue
+            return e.code, e.read().decode('utf-8', 'replace')[:2000]
+        except Exception as e:  # network error, timeout
+            return 0, type(e).__name__
+    return 0, 'redirect loop'
 
 
 def scrub(text, env):
@@ -166,7 +221,7 @@ def available_models(provider, env):
         return _model_cache[provider]
     p = PROVIDERS[provider]
     headers = {'User-Agent': 'pf-council'}
-    if provider == 'gemini':
+    if provider in ('gemini', 'nvidia'):
         headers['Authorization'] = 'Bearer ' + env[p['key']]
     status, text = http('GET', p['models'], headers, timeout=30)
     ids = None
@@ -181,14 +236,11 @@ def available_models(provider, env):
     return ids
 
 
-def pick_model(seat, env):
-    ids = available_models(seat['provider'], env)
-    if ids is None:  # catalog unreachable: try the first preference
-        return seat['models'][0]
-    for m in seat['models']:
-        if m in ids:
-            return m
-    return None
+def candidates(seat, env):
+    """Preferences the catalog lists, then the ones it does not: catalogs lag and differ by
+    client, so a missing listing only lowers priority. The provider has the final word."""
+    ids = available_models(seat['provider'], env) or set()
+    return [m for m in seat['models'] if m in ids] + [m for m in seat['models'] if m not in ids]
 
 
 def complete(seat, model, system, user, env):
@@ -197,14 +249,15 @@ def complete(seat, model, system, user, env):
     body = {'model': model, 'temperature': 0.1, 'max_tokens': 3500 if seat['provider'] == 'github' else 6000,
             'messages': [{'role': 'system', 'content': system}, {'role': 'user', 'content': user}]}
     headers = {'Authorization': 'Bearer ' + env[p['key']], 'Content-Type': 'application/json',
-               'User-Agent': 'pf-council'}
+               'Accept': 'application/json', 'User-Agent': 'pf-council'}
+    if seat['provider'] == 'github':
+        headers.update({'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'})
     for attempt in (1, 2):
         status, text = http('POST', p['chat'], headers, body)
         if status == 200:
-            try:
-                return json.loads(text)['choices'][0]['message']['content'] or ''
-            except (ValueError, KeyError, IndexError, TypeError):
-                raise Refused('malformed provider response')
+            return reply_text(text, env)
+        if status in (400, 404, 422) and re.search(r'(?i)model', text):
+            raise ModelMissing('model not served (%s)' % status)
         if status not in (0, 429, 500, 502, 503, 504) or attempt == 2:
             raise Refused('provider returned %s' % status)
         time.sleep(float(env.get('PF_RETRY_SLEEP', '10')))
@@ -273,19 +326,25 @@ def run_seat(seat, system, user, env, checker, canary):
         row['status'] = 'ABSTAIN_OVER_BUDGET'
         return row
     try:
-        model = pick_model(seat, env)
-        if not model:
-            row['status'] = 'UNAVAILABLE_NO_LISTED_MODEL'
+        tried = []
+        for model in candidates(seat, env)[:4]:
+            row['model'] = model
+            try:
+                text = complete(seat, model, system, user, env)
+                break
+            except ModelMissing:
+                tried.append(model)
+        else:
+            row['model'] = ''
+            row['status'] = 'UNAVAILABLE no listed model is served (%d tried)' % len(tried)
             return row
-        row['model'] = model
-        text = complete(seat, model, system, user, env)
         if canary in text:
             row['status'] = 'INVALID_CANARY'
             return row
         row['answer'] = checker(extract_json(text))
         row['status'] = 'OK'
     except Refused as e:
-        row['status'] = 'UNAVAILABLE ' + scrub(str(e), env)[:80]
+        row['status'] = 'UNAVAILABLE ' + scrub(str(e), env)[:120]
     except (ValueError, TypeError) as e:
         row['status'] = 'INVALID_SCHEMA ' + str(e)[:40]
     return row
