@@ -1,0 +1,78 @@
+name: Council
+# Advisory only. Free model seats review pull requests and vote on one patch or provider
+# question. The job can read the repository and write one comment; it never pushes,
+# merges, dispatches, publishes or changes settings. See docs/council/README.md.
+permissions:
+  contents: read
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'probe = check which seats answer; question = vote on one patch or provider'
+        type: choice
+        options: [probe, question]
+        default: probe
+      issue:
+        description: 'Question mode: issue number for the vote table'
+        required: false
+        default: ''
+      target:
+        description: 'Question mode: target id from src/targets.json'
+        required: false
+        default: ''
+      kind:
+        description: 'Question mode: what is being judged'
+        type: choice
+        options: [patch, provider]
+        default: patch
+      name:
+        description: 'Question mode: exact patch name or provider name'
+        required: false
+        default: ''
+      note:
+        description: 'Question mode: optional context for the seats'
+        required: false
+        default: ''
+concurrency:
+  # One review per PR at a time; a newer push replaces an older, unfinished review.
+  group: council-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+jobs:
+  council:
+    name: Advisory council (comments only)
+    # Fork PRs and bot PRs never receive the model keys.
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      models: read
+    steps:
+      - name: Checkout the reviewed base, never the pull request's code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+      - name: Convene the council
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          PF_REPO: ${{ github.repository }}
+          PF_EVENT: ${{ github.event_name }}
+          PF_PR: ${{ github.event.pull_request.number }}
+          PF_MODE: ${{ inputs.mode }}
+          PF_ISSUE: ${{ inputs.issue }}
+          PF_TARGET: ${{ inputs.target }}
+          PF_KIND: ${{ inputs.kind }}
+          PF_NAME: ${{ inputs.name }}
+          PF_NOTE: ${{ inputs.note }}
+        run: |
+          # The PR that adds the council runs this against a base without it: nothing to do.
+          if [ ! -f src/council/council.py ]; then echo "council code is not on the base commit yet"; exit 0; fi
+          python3 src/council/council.py
