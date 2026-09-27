@@ -6,7 +6,16 @@ permissions:
 on:
   schedule:
     - cron: "23 12 * * *"  # 17:53 IST daily; GitHub may start scheduled runs late
+    # Poll-only checks: they build only when a provider has published since the last release.
+    - cron: "23 18 * * *"  # 23:53 IST poll-only
+    - cron: "23 0 * * *"  # 05:53 IST poll-only
+    - cron: "23 6 * * *"  # 11:53 IST poll-only
   workflow_dispatch:
+
+concurrency:
+  # A poll must never overlap a running build (double publish); queue, never cancel.
+  group: daily-poll
+  cancel-in-progress: false
 
 jobs:
   plan:
@@ -52,7 +61,9 @@ jobs:
   resolve:
     name: Resolve shadow dependencies (${{ matrix.target }})
     needs: plan
-    if: needs.plan.outputs.resolution_matrix != ''
+    # Full observation stays once a day (first cron) and on manual runs; a poll-only
+    # schedule runs it only when something will build, because Build needs its packets.
+    if: needs.plan.outputs.resolution_matrix != '' && (github.event_name != 'schedule' || github.event.schedule == '23 12 * * *' || needs.plan.outputs.count != '0')
     # Observe every opted-in target, including those omitted by the old poller.
     # Resolver failures are UNKNOWN evidence, never authority to change its matrix.
     continue-on-error: true
@@ -142,7 +153,7 @@ jobs:
   dependency_report:
     name: Prepared dependency comparison (not build selection)
     needs: [plan, resolve]
-    if: always() && !cancelled() && needs.plan.result == 'success'
+    if: always() && !cancelled() && needs.plan.result == 'success' && needs.resolve.result != 'skipped'
     continue-on-error: true
     runs-on: ubuntu-24.04
     timeout-minutes: 8
