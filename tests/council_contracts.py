@@ -196,15 +196,52 @@ class Council(unittest.TestCase):
         self.assertEqual(council.run_seat(SEAT, 's', 'u', env, council.check_review, 'C')['status'], 'SKIPPED_NO_KEY')
         self.assertEqual(fake.calls, [])
 
-    def test_model_choice_follows_the_preference_list(self):
+    def test_catalog_orders_models_but_never_hides_them(self):
         council.http = Fake(models=['m2'])
-        self.assertEqual(council.pick_model(SEAT, self.env()), 'm2')
+        self.assertEqual(council.candidates(SEAT, self.env()), ['m2', 'm1'])
         council._model_cache.clear()
         council.http = Fake(models=['other'])
-        self.assertIsNone(council.pick_model(SEAT, self.env()))
+        self.assertEqual(council.candidates(SEAT, self.env()), ['m1', 'm2'])
         council._model_cache.clear()
         council.http = lambda *a, **k: (0, 'URLError')
-        self.assertEqual(council.pick_model(SEAT, self.env()), 'm1')
+        self.assertEqual(council.candidates(SEAT, self.env()), ['m1', 'm2'])
+
+    def test_missing_model_falls_through_to_the_next_preference(self):
+        asked = []
+
+        def http(method, url, headers, body=None, timeout=90):
+            if url.endswith('/models'):
+                return 200, json.dumps({'data': []})
+            asked.append(body['model'])
+            if body['model'] == 'm1':
+                return 404, '{"error": "model m1 not found"}'
+            return 200, json.dumps({'choices': [{'message': {'content': '{"summary": "ok", "verdict": "looks_ok", "findings": []}'}}]})
+        council.http = http
+        got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual((got['status'], got['model'], asked), ('OK', 'm2', ['m1', 'm2']))
+        council._model_cache.clear()
+        council.http = lambda m, u, h, body=None, timeout=90: (200, '{"data": []}') if u.endswith('/models') else (404, 'model gone')
+        got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual(got['status'], 'UNAVAILABLE no listed model is served (2 tried)')
+
+    def test_replies_parse_text_parts_and_report_shape_without_secrets(self):
+        parts = {'choices': [{'message': {'content': [{'type': 'text', 'text': '{"a"'}, {'type': 'text', 'text': ': 1}'}]}}]}
+        self.assertEqual(council.reply_text(json.dumps(parts), self.env()), '{"a": 1}')
+        self.assertEqual(council.reply_text(json.dumps({'choices': [{'message': {'content': None, 'reasoning_content': 'r'}}]}), self.env()), 'r')
+        with self.assertRaises(council.Refused) as e:
+            council.reply_text('<html>login nvapi-FAKE-NVIDIA-0003</html>', self.env())
+        self.assertIn('starts', str(e.exception))
+        self.assertNotIn('nvapi-FAKE', str(e.exception))
+        with self.assertRaises(council.Refused) as e:
+            council.reply_text('{"error": {"message": "x"}, "id": 1}', self.env())
+        self.assertIn('keys=error,id', str(e.exception))
+
+    def test_redirects_replay_only_within_the_same_site(self):
+        self.assertTrue(council.same_site('https://models.github.ai/inference/chat/completions',
+                                          'https://eastus.models.github.ai/inference/chat/completions'))
+        for bad in ('http://models.github.ai/x', 'https://evil.example/x', 'https://github.ai.evil.example/x', 'file:///etc/passwd'):
+            self.assertFalse(council.same_site('https://models.github.ai/x', bad), bad)
+        self.assertTrue(any(isinstance(h, council._NoRedirect) for h in council._OPENER.handlers))
 
     def test_provider_errors_never_leak_keys(self):
         council.http = Fake(status=401)
