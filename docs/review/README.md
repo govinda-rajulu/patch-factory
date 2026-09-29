@@ -30,6 +30,7 @@ Last indexed **27 September 2026** on main after PR89. Hygiene record:
 
 | Record | What it holds | State |
 | --- | --- | --- |
+| [FACEBOOK-580-2026-09-29.md](FACEBOOK-580-2026-09-29.md) | Facebook moved to 580.0.0.51.74 with four owner-chosen De-Vanced patches; what was not chosen and why. | Current |
 | [APK-SOURCE-FALLBACKS-2026-09-26.md](APK-SOURCE-FALLBACKS-2026-09-26.md) | Exact-version source fallbacks shipped in PR86. | Current |
 | [APK-SOURCE-ADMISSIONS-2026-09-26.md](APK-SOURCE-ADMISSIONS-2026-09-26.md) | Admission record for the PR86 fallbacks. | Current |
 | [APK-SOURCE-ADMISSION-PHOTOS-2026-09-26.md](APK-SOURCE-ADMISSION-PHOTOS-2026-09-26.md) | Photos fallback with its exact signer-rotation pair (PR88). | Current |
