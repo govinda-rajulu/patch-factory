@@ -2,6 +2,33 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 29 Sep 2026, 13:45 IST (end of the packet N session)
+
+- **main**: PR111 packet N merged as `5301b5c8` (tree `fd6d4d01`): session record, OPEN-WORK,
+  review desk house rules 5 to 7, lesson L036. Then PR110 merged (this `knowledge/` folder).
+- **Run 36534562050 shadow reasons**, read from the saved job log (owner copy:
+  Cloud Shell `~/work/pf-archive/run-36534562050-reasons.txt`):
+  - **Edge**: `source inputs failure: existing store fetcher refused (exit 1 after 23s,
+    source apkpure, type bundle)`. The shadow resolver was offered a bundle and refused it.
+    Open question: should the shadow path accept bundles? Real Edge builds are a separate path.
+  - **Facebook input**: 580.0.0.51.74, code 475019268, 90,549,610 bytes, the chosen version.
+    The patch-time failure (`FdsContextColor580Fingerprint` in the AMOLED theme patch, pulled
+    in by one of the four chosen patches) is still open. Nothing was published; the phone
+    stays on 490.
+  - **Prime Video input**: 3.0.470.357, code 470000357. Built; not phone-tested.
+  - **AdGuard**: 4.14.68, pinned to rushiranpise as intended.
+  - Also observed: esfile 4.4.3.7, hotstar 26.06.08.2, instagram 439.0.0.37.89, keymapper
+    4.2.1, mxplayer 1.93.4, photos 7.92.0.977185651, reddit 2026.38.0, telegram 12.10.1,
+    truecaller-combo 26.10.6, youtube 21.39.522.
+- **Next**: find which chosen Facebook patch depends on AMOLED; decide on bundle handling for
+  Edge; close #98, #101 and #104 with the Prime build as evidence (owner OK needed). Then the
+  rest of `docs/review/OPEN-WORK.md`.
+- **Council**: the PR110 review got 4 of 6 seats (mistral 404, gpt unavailable). Check seats.
+- **Cosmetic**: packet N's MAIN_MOVED message still names `93fc2b98`; fix in the next packet.
+- **Cloud Shell cleanup done**: packet L v2 and M clones removed, their controllers deleted,
+  ledger line in `~/work/pf-archive/LEDGER.txt`; the stopped L v1 folder and the ~1000 MB
+  artifact zips are kept (owner decides later).
+
 ## 29 Sep 2026, 12:30 IST
 
 - **main** `1b8e42c3` (tree `1ae504b4`): PR108 packet M merged 06:53Z (council lessons
