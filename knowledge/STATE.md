@@ -2,6 +2,26 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 29 Sep 2026, 13:50 IST
+
+- **main** `6af68340` (tree `90d7786a`): PR112 (the 13:45 checkpoint below and lessons 4 to 6
+  in `LESSONS.md`) on PR110 `f2a31fee` (this folder) on PR111 packet N `5301b5c8`, which
+  sits on PR108 packet M and PR107 packet L.
+- **Facebook variant lead, unproven**: the 580 input was version code 475019268, but
+  `docs/review/FACEBOOK-580-2026-09-29.md` records 475019344 as the ARM64 build the new
+  patches target. Same version name, different build. The `FdsContextColor580Fingerprint`
+  failure may come from the variant, not the patch selection. Check the variant before
+  changing patches.
+- **Next**: (1) Facebook: confirm the downloaded variant and which selected patch depends
+  on the AMOLED theme patch. (2) Edge: why the shadow apkpure bundle fetch refuses in 23 s
+  while real Edge builds publish. (3) With owner OK, close #98, #101, #104 on the Prime
+  build; #105 after Facebook builds; #99 after the next Nightly. Then #102, #103, F05/F06,
+  PR53.
+- **Notes**: packet O's controller prints its real base in MAIN_MOVED (the 13:45 cosmetic
+  item). Scheduled runs started about five hours late on 29 Sep; a manual dispatch (owner
+  OK) gets evidence quickly. The 29 Sep packet ledger is `~/work/pf-archive/LEDGER.txt`;
+  later scripts use `~/work/run-ledger.txt` per WORKING-AGREEMENT.md.
+
 ## 29 Sep 2026, 13:45 IST (end of the packet N session)
 
 - **main**: PR111 packet N merged as `5301b5c8` (tree `fd6d4d01`): session record, OPEN-WORK,
@@ -11,7 +31,9 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
   - **Edge**: `source inputs failure: existing store fetcher refused (exit 1 after 23s,
     source apkpure, type bundle)`. The shadow resolver was offered a bundle and refused it.
     Open question: should the shadow path accept bundles? Real Edge builds are a separate path.
-  - **Facebook input**: 580.0.0.51.74, code 475019268, 90,549,610 bytes, the chosen version.
+  - **Facebook input**: 580.0.0.51.74, code 475019268, 90,549,610 bytes. Right version name,
+    unproven build: `docs/review/FACEBOOK-580-2026-09-29.md` names code 475019344 (ARM64) as
+    the target of the new patches, so this may be a different variant (see 13:50 above).
     The patch-time failure (`FdsContextColor580Fingerprint` in the AMOLED theme patch, pulled
     in by one of the four chosen patches) is still open. Nothing was published; the phone
     stays on 490.
