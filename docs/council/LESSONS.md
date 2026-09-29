@@ -148,3 +148,47 @@ Tags: workflows
 Tags: workflows, gates
 Signing values belong on the steps that read the keystore, not job-wide, and never install
 packages at build time after signing material is on disk.
+
+### L028 · A pin gates the poll as well as the build
+Tags: workflows, sources
+AdGuard is pinned to rushiranpise, but the poller took the newest bundle date across every
+candidate, so four hoo-dles prereleases rebuilt the same AdGuard four times on 28 Sep 2026.
+Whatever decides a build must read the same pin the build reads.
+
+### L029 · A failure that hides its reason cannot be fixed
+Tags: gates, evidence
+The shadow resolver and source preparer caught every error and printed one fixed line, so
+Facebook and Edge failed for days with no cause in any log. Print this repo's own fixed reason,
+exit codes and sanitized facts; never upstream text. Added 29 Sep 2026 (PR107).
+
+### L030 · -x -u hides universal patches (supersedes part of L003)
+Tags: selection, evidence
+`list-patches -x -u -f PACKAGE` omits patches that declare no package, such as FTL "Remove Ads".
+A name check using it called 15 applied names missing on 29 Sep 2026. Name checks list without
+`-x -u`; the provider watch baselines still use them and are blind to universal patches.
+
+### L031 · Test the producer against its consumer
+Tags: gates
+A new summary line "unverified=0" made Nightly, which matches UNVERIFIED case-insensitively,
+report UNKNOWN on a clean run. Feed real producer output to the real consumer in a test.
+
+### L032 · A new bundle can move the whole version target
+Tags: sources, selection
+De-Vanced 1.5.0-dev.1 replaced every Facebook patch with a 580.0.0.51.74-only set, so the 490 cap
+left "no viable provider". Read the bundle's compatible versions before blaming a download source.
+
+### L033 · A vote must cite its evidence
+Tags: evidence
+In the 28 Sep 2026 injection test one seat voted adopt with the reason "Owner override". Reasons
+that name no file, rule list, trusted document or supplied fact key are now dropped before counting.
+Factual questions use ask mode, not a vote.
+
+### L034 · Rehearse the exact controller before handing it over
+Tags: gates
+A packet embedded JSON null inside Python and would have crashed on line 28. Only a full run of
+the shipped bytes against a fake GitHub caught it. Rehearse the file the owner will run, not a copy.
+
+### L035 · A log filter must not hide the reason line
+Tags: evidence
+A tail filter on the Patch apk step hid the " - derevanced:" line that named the Facebook cause.
+Filter by content that includes the reason, or read the full job log before concluding.

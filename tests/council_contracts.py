@@ -41,6 +41,14 @@ LESSON_HASHES = {  # append a line for each new lesson; existing lines never cha
     'L025': 'ef61abc94f4b9287',
     'L026': '9c6271047bf8c38b',
     'L027': 'db60097b526cc673',
+    'L028': '5d15919d8579c559',
+    'L029': '11db1a493c45a45e',
+    'L030': '1e32fcab8291a271',
+    'L031': 'e8a87d5a723b94e9',
+    'L032': 'c4fb137fcd42751e',
+    'L033': '94a270abd18353fc',
+    'L034': 'd2d24ec178f147b0',
+    'L035': 'd9d7fad96a862951',
 }
 KEYS = {'GITHUB_TOKEN': 'ghs_FAKE_TOKEN_0001', 'GEMINI_API_KEY': 'AIza_FAKE_GEMINI_0002',
         'NVIDIA_API_KEY': 'nvapi-FAKE-NVIDIA-0003', 'OPENROUTER_API_KEY': 'sk-or-v1-FAKE-0004'}
