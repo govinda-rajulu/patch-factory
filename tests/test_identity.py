@@ -488,9 +488,29 @@ class Identity(unittest.TestCase):
         result = identity.native_architecture(apk, source)
         self.assertEqual(result['packaged_data'][0]['format'], 'literal-text-release-452')
 
-    def test_other_release_text_still_rejected(self):
-        apk, source = self.preserved_payload(b'release=453', 'lib/arm64-v8a/libInit.so')
-        with self.assertRaises(ValueError):
+    def test_observed_release_470_text_preserved(self):
+        # 28 Sep 2026: Prime Video moved its marker to release=470 and every build failed.
+        apk, source = self.preserved_payload(b'release=470', 'lib/arm64-v8a/libInit.so')
+        result = identity.native_architecture(apk, source)
+        evidence = result['packaged_data'][0]
+        self.assertEqual(evidence['format'], 'literal-text-release-470')
+        self.assertEqual(evidence['input_sha256'], evidence['output_sha256'])
+        self.assertFalse(evidence['executable_elf'])
+
+    def test_other_release_shapes_still_rejected(self):
+        for payload in (b'release=45', b'release=4530', b'release=45a', b'Release=453',
+                        b'release=45\n', b'release:453', b' release=45', b'release=\x00\x00\x00',
+                        b'release=453' + b'\x7fELF'):
+            with self.subTest(payload=payload):
+                apk, source = self.preserved_payload(payload, 'lib/arm64-v8a/libInit.so')
+                with self.assertRaises(ValueError):
+                    identity.native_architecture(apk, source)
+
+    def test_release_marker_changed_during_patching_rejected(self):
+        apk, source = self.preserved_payload(b'release=470', 'lib/arm64-v8a/libInit.so')
+        with zipfile.ZipFile(source, 'w') as z:
+            z.writestr('lib/arm64-v8a/libInit.so', b'release=452')
+        with self.assertRaisesRegex(ValueError, 'bytes changed'):
             identity.native_architecture(apk, source)
 
     def test_all_unknown_data_members_are_reported(self):

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import pathlib
+import re
 import struct
 import tempfile
 import zipfile
@@ -199,9 +200,12 @@ def packaged_data(output, source, name):
     if header == b'1.0' and info.file_size == 3:
         # Exact data bytes observed in Prime Video, not a general text/filename bypass.
         evidence.update(format='literal-text-1.0', executable_elf=False)
-    elif header == b'release=452' and info.file_size == 11:
-        # Full 11 bytes observed in input/output, run 34456028004.
-        evidence.update(format='literal-text-release-452', executable_elf=False)
+    elif info.file_size == 11 and re.fullmatch(rb'release=[0-9]{3}', header):
+        # Prime Video's libInit.so is an 11-byte version marker: release=452 (run
+        # 34456028004), then release=470 (28 Sep 2026, runs 36382598835-36497684964).
+        # Only this exact shape, whole member, byte-identical to the patcher input.
+        evidence.update(format='literal-text-release-' + header[8:].decode('ascii'),
+                        executable_elf=False)
     elif header.startswith(b'dex\n'):
         with output.open(name) as stream:
             blob = stream.read(MAX_MEMBER_BYTES + 1)
