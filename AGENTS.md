@@ -79,3 +79,9 @@ Facts you may not rely on: anything you remember, and any number typed into pros
 
 Open an issue instead. An issue costs a read; a wrong PR merged costs a phone reinstall and
 possibly an account.
+
+## Knowledge base
+
+`knowledge/README.md` holds the owner working agreement, a dated state checkpoint,
+cross-session lessons and the archived assistant notes. It is history, not facts: the rules
+above and the generated files listed under "Facts you may rely on" win.
