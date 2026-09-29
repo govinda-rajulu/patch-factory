@@ -20,8 +20,10 @@ list that the provider still serves, because free catalogues change without noti
 | open | OpenRouter free models | `OPENROUTER_API_KEY` |
 
 A seat without its key is skipped, never an error. A model the provider reports retired
-(410) or not served falls through to the next one on the seat's list. GitHub Models retired
-on 30 Jul 2026, so no seat uses it.
+(410) or not served falls through to the next one on the seat's list. Since 29 Sep 2026 so
+does a busy or unreachable model (429, 5xx or timeout); only the seat's last model is
+retried, which keeps a slow provider inside the job's time limit. An authentication or other
+error still stops the seat. GitHub Models retired on 30 Jul 2026, so no seat uses it.
 
 ## Jobs
 
@@ -30,6 +32,11 @@ on 30 Jul 2026, so no seat uses it.
   line and shown with how many seats agree. One comment per PR, edited on each push.
 - **Question** (Actions, Council, mode `question`): one patch or provider for one target.
   Rules run first, then the seats vote, then one table is posted on the chosen issue.
+- **Ask** (mode `ask`, input `question`, optional `target`): one factual question, answered
+  `yes`, `no` or `unknown` from generated repository facts (target config, include and
+  exclude lists, rule lists, committed provider name baselines). Each answer must cite the
+  exact fact keys it used; an answer citing any other key is dropped. Use this, not a vote,
+  for "is X excluded?" questions.
 - **Probe** (mode `probe`): shows which seats answer and which model each picked. Posts nothing.
 
 ## Outcomes
@@ -43,6 +50,12 @@ on 30 Jul 2026, so no seat uses it.
 | Fewer than 3 valid votes, or a real split | `hold`: nothing changes and nothing is blocked |
 
 Splits never stall anything, because the council gates nothing. `hold` means "no advice yet".
+
+A vote whose reasons cite no file path, rule list, trusted document or supplied fact key is
+dropped before counting (status `DROPPED_UNCITED`) and the comment says how many were dropped.
+In the 28 Sep 2026 injection test one seat voted `adopt` with only "Owner override" as its
+reason; with this rule its vote no longer counts. Ask mode reports `agree`, `majority` (two
+thirds, no yes-versus-no split) or `split`, and `unknown` below three valid answers.
 
 ## Defences
 

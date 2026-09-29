@@ -208,6 +208,38 @@ class SourceContracts(unittest.TestCase):
         self.assertEqual(source.verify(self.r,self.ident,self.env)['metadata'],self.meta)
         self.assertTrue((self.r/'source-observation/keymapper.json').exists())
 
+    def test_prepare_failure_names_its_own_reason_never_fetcher_text(self):
+        # 28 Sep 2026: Edge failed every shadow preparation and printed only the fixed warning.
+        stub = 'get_apk(){ echo "<html>SECRET upstream page</html>"; return 7; }\nget_apkpure(){ return 7; }\n'
+        (self.r/'src/build/utils.sh').write_text(stub)
+        (self.r/'src/build/source_fallback.py').write_text('import sys\nprint("fallback SECRET text")\nsys.exit(5)\n')
+        self.f.prepare()
+        result=subprocess.run([sys.executable,'src/build/source_inputs.py','prepare',self.ident],
+                              cwd=self.r,env=self.env,capture_output=True,text=True,timeout=30)
+        self.assertEqual(result.returncode,1)
+        self.assertIn('source APK preparation unavailable or invalid',result.stderr)
+        self.assertRegex(result.stderr,r'source inputs failure: existing store fetcher refused [(]exit 5 after [0-9]+s, source apkpure, type bundle[)]')
+        self.assertNotIn('SECRET',result.stderr+result.stdout)
+        self.assertEqual(json.loads((self.r/'source-observation/keymapper.json').read_text())['reason'],'SOURCE_PREPARATION_FAILED')
+
+    def test_public_reason_and_observed_line_are_sanitized(self):
+        self.assertEqual(source.public_reason(ValueError('source inputs: invalid APK identity/SDK')),'invalid APK identity/SDK')
+        self.assertEqual(source.public_reason(ValueError('resolved inputs: dependency packet missing')),'resolved inputs: dependency packet missing')
+        self.assertEqual(source.public_reason(ValueError('invalid APK identity/SDK')),'ValueError')
+        self.assertEqual(source.public_reason(ValueError('Expecting value: line 1 <html>')),'ValueError')
+        self.assertEqual(source.public_reason(OSError('/home/runner/secret path')),'OSError')
+        self.assertEqual(source.public_reason(subprocess.TimeoutExpired(['x'],1200)),'TimeoutExpired')
+        line=source.observed_line(dict(package='com.microsoft.emmx',version_name='152.0.4191.65',version_code='x y',min_sdk=30),{'bytes':280000000})
+        self.assertEqual(line,'source apk observed: package=com.microsoft.emmx version=152.0.4191.65 code=? min_sdk=30 bytes=280000000')
+
+    def test_min_sdk_over_ceiling_is_reported_with_the_observed_value(self):
+        self.meta['min_sdk']=30
+        with self.assertRaises(ValueError) as caught, patch('sys.stderr') as err:
+            self.prepare()
+        self.assertEqual(source.public_reason(caught.exception),'invalid APK identity/SDK')
+        self.assertIn('min_sdk=30',''.join(c.args[0] for c in err.write.call_args_list))
+        self.assertFalse((self.r/'source-inputs').exists())
+
     def test_workflow_selection_publication_and_qualification_reader_preserved(self):
         ci=(self.r/'.github/workflows/ci.yml').read_text();manual=(self.r/'.github/workflows/manual-patch.yml').read_text()
         self.assertIn('matrix: ${{ fromJson(needs.plan.outputs.matrix) }}',ci)

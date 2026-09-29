@@ -112,9 +112,16 @@ def fingerprint(path, expected):
 
 
 class Observer:
-    def __init__(self, root, work):
-        self.root, self.work = root, work
+    # The provider watch baselines were recorded with "-x -u", which omits patches that
+    # declare no package (universal ones such as FTL "Remove Ads"). Name checks pass
+    # flags=() to see every patch the build can apply (29 Sep 2026).
+    def __init__(self, root, work, flags=("-x", "-u")):
+        self.root, self.work, self.flags = root, work, tuple(flags)
         self.patcher, self.cache = None, {}
+
+    def listing_argv(self, jar, bundle, package):
+        return (["java", "-jar", str(jar), "list-patches", "--patches=" + str(bundle)] + list(self.flags) +
+                ["--with-packages", "--with-versions", "-f", package])
 
     def __call__(self, row):
         if self.patcher is None:
@@ -136,8 +143,7 @@ class Observer:
         fingerprint(bundle, meta)
         # Provider code executes without GitHub credentials in its environment.
         env = {k: v for k, v in os.environ.items() if k in ("PATH", "JAVA_HOME", "HOME", "LANG", "LC_ALL")}
-        argv = ["java", "-jar", str(jar), "list-patches", "--patches=" + str(bundle),
-                "-x", "-u", "--with-packages", "--with-versions", "-f", row["package"]]
+        argv = self.listing_argv(jar, bundle, row["package"])
         with tempfile.TemporaryFile() as output:
             result = subprocess.run(argv, cwd=self.root, env=env, stdout=output,
                                     stderr=subprocess.DEVNULL, timeout=300)

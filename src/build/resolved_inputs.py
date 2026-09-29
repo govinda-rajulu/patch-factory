@@ -31,6 +31,37 @@ def need(ok, message):
     if not ok:
         raise ValueError("resolved inputs: " + message)
 
+# resolve.sh summary lines this script may repeat in a public log. Each is built only
+# from targets.json names, version digits and fixed words, never upstream text.
+RESOLVER_SUMMARY = tuple(re.compile(p) for p in (
+    r" - [a-z0-9-]+: skipped \(pinned to [a-z0-9-]+\)",
+    r" - [a-z0-9-]+: DISQUALIFIED \(no releases\)",
+    r" - [a-z0-9-]+: nothing <= [0-9]+(?:[.][0-9]+)*",
+    r" - [a-z0-9-]+: no max_app_version to fall back on - cannot pick a version",
+    r" - [a-z0-9-]+: could not parse a version[.] list-versions exit=[0-9]+",
+    r" - [a-z0-9-]+: app [0-9]+(?:[.][0-9]+)*, [0-9]+ patches, -?[0-9]+d ago",
+    r"::error::[a-z0-9-]+: local list-versions failed \(exit=-?[0-9]+\); refusing version fallback",
+    r"RESULT: no viable provider",
+    r"need exactly one morphe-desktop jar",
+    r"invalid exact patcher path",
+))
+REASON = re.compile(r"resolved inputs: [A-Za-z0-9 ._,:;()<=/'-]{1,600}")
+
+def resolver_summary(stdout, returncode):
+    """Allowlisted resolve.sh lines only; anything else is counted, not shown."""
+    kept, hidden = [], 0
+    for line in (stdout or "").splitlines()[:400]:
+        if any(p.fullmatch(line) for p in RESOLVER_SUMMARY):
+            kept.append(line.strip().replace("::error::", ""))
+        elif line.strip():
+            hidden += 1
+    return "; ".join(kept[:8] + ["exit=%d" % returncode, "%d other line(s) withheld" % hidden])
+
+def public_reason(error):
+    """This script's own fixed reason text, or only the exception type."""
+    text = str(error) if isinstance(error, ValueError) else ""
+    return text if REASON.fullmatch(text) else type(error).__name__
+
 
 def safe_env(env):
     # Only public tool configuration and the caller's read-only API token.
@@ -131,7 +162,8 @@ def prepare(root, ident, env, patcher_fetch=None, run=None, extra_fetch=None):
                          PF_RESOLVE_DIR=str(scratch / "candidates"))
         result = execute(["bash", "src/build/resolve.sh", ident], cwd=root, env=local_env,
                          capture_output=True, text=True, timeout=1200, check=False)
-        need(result.returncode == 0, "candidate resolution failed")
+        need(result.returncode == 0, "candidate resolution failed: " +
+         resolver_summary(result.stdout, result.returncode))
         parsed = fields(result.stdout)
         winner = next((c for c in t["candidates"] if c["name"] == parsed["WINNER"]), None)
         need(winner is not None and (not t.get("pin") or t["pin"] == parsed["WINNER"]),
@@ -292,7 +324,7 @@ def main():
         else:
             print("RESOLVED_DEPENDENCIES_VERIFIED")
         return 0
-    except (ValueError, KeyError, TypeError, OSError, subprocess.SubprocessError):
+    except (ValueError, KeyError, TypeError, OSError, subprocess.SubprocessError) as error:
         if mode == "prepare" and isinstance(ident, str) and re.fullmatch(r"[a-z0-9-]+", ident):
             try:
                 shadow_inputs.write(Path.cwd(), "resolved-observation/" + ident + ".json",
@@ -301,8 +333,10 @@ def main():
                                      "authority": "shadow-only"})
             except (ValueError, OSError):
                 pass
-        # Never print upstream output/env/signing values from a rejected packet.
+        # Never print upstream output/env/signing values from a rejected packet. Only
+        # this script's own fixed reason (or the exception type) names the failure.
         print("::warning::exact dependency lock unavailable or invalid; no unchanged claim", file=sys.stderr)
+        print("resolved inputs failure: " + public_reason(error), file=sys.stderr)
         return 1
 
 

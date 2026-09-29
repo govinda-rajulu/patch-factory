@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import zipfile
 
 import artifact_identity as identity
@@ -41,6 +42,27 @@ def apk_record(root, path):
     with zipfile.ZipFile(Path(root) / path) as z:
         need(z.namelist().count("AndroidManifest.xml") == 1, "missing or duplicate manifest")
     return row
+
+
+# This script's own need() texts plus sanitized numbers; never store, fetcher or zip text.
+# 28 Sep 2026: Edge failed every shadow preparation with only the fixed warning below.
+REASON = re.compile(r"(?:source|resolved) inputs: [a-z][A-Za-z0-9 ./()_=,-]{2,160}")
+FACT = re.compile(r"[A-Za-z0-9._]{1,64}")
+
+
+def public_reason(error):
+    text = str(error) if isinstance(error, ValueError) else ""
+    if not REASON.fullmatch(text):
+        return type(error).__name__
+    return text[len("source inputs: "):] if text.startswith("source inputs: ") else text
+
+
+def observed_line(meta, row):
+    # Manifest facts of the downloaded APK, each reduced to a safe token.
+    fact = lambda v: str(v) if FACT.fullmatch(str(v)) else "?"
+    return "source apk observed: package=%s version=%s code=%s min_sdk=%s bytes=%s" % (
+        fact(meta.get("package")), fact(meta.get("version_name")), fact(meta.get("version_code")),
+        fact(meta.get("min_sdk")), fact(row.get("bytes")))
 
 
 def validate_metadata(meta, target):
@@ -86,14 +108,17 @@ def prepare(root, ident, env, run=None, metadata=None):
         p = root / name
         need(not p.exists() and not p.is_symlink(), "existing preparation output")
     clean = clean_env(env)
+    started = time.monotonic()
     result = (run or subprocess.run)(
         ["bash", "src/build/source_download.sh", ident, dep["material"]["version"]],
         cwd=root, env=clean, capture_output=True, timeout=1200, check=False)
-    need(result.returncode == 0, "existing store fetcher refused")
+    need(result.returncode == 0, "existing store fetcher refused (exit %d after %ds, source %s, type %s)" % (
+        result.returncode, time.monotonic() - started, t.get("source", "apkmirror"), t.get("apk_type", "apk")))
     relative = "download/" + t["apk_name"] + ".apk"
     before = apk_record(root, relative)
     observed = (metadata or identity.metadata)(root, root / relative, clean)
     meta = {k: observed[k] for k in ("package", "version_name", "version_code", "min_sdk")}
+    print(observed_line(meta, before), file=sys.stderr)
     validate_metadata(meta, t)
     need(before == apk_record(root, relative), "APK changed during inspection")
     need(resolved.verify(root, ident, env) == dep, "dependencies changed during fetch")
@@ -216,7 +241,7 @@ def main():
         print(doc["metadata"]["version_name"] if mode == "install" else
               "SOURCE_OBSERVATION_RECORDED" if mode == "observe" else "SOURCE_APK_VERIFIED")
         return 0
-    except (ValueError, KeyError, TypeError, OSError, subprocess.SubprocessError, zipfile.BadZipFile):
+    except (ValueError, KeyError, TypeError, OSError, subprocess.SubprocessError, zipfile.BadZipFile) as error:
         if mode == "prepare" and re.fullmatch(r"[a-z0-9-]+", ident):
             try:
                 shadow.write(Path.cwd(), "source-observation/" + ident + ".json",
@@ -226,6 +251,7 @@ def main():
                 pass
         print("::warning::source APK preparation unavailable or invalid; no full unchanged claim",
               file=sys.stderr)
+        print("source inputs failure: " + public_reason(error), file=sys.stderr)
         return 1
 
 

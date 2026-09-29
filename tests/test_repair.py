@@ -859,6 +859,46 @@ transfer(){
         x = self.run_cmd(['bash', 'src/etc/poll.sh', 'youtube'], {**self.env(), 'repository': 'fixture/repo', 'GITHUB_OUTPUT': str(self.r / 'out')})
         self.assertEqual(x.returncode, 2, x.stdout)
 
+    def poll_pinned(self, hoo, rush):
+        mine = '[{"tag_name":"adguard-v4.14.68-b1","assets":[{"updated_at":"2026-09-28T12:00:00Z"}]}]'
+        self.stub('curl', 'case "$*" in *fixture/repo*) echo \'%s\' ;; *hoo-dles*) echo \'[{"assets":[{"name":"p.mpp","updated_at":"%s"}]}]\' ;; *rushiranpise*) echo \'[{"assets":[{"name":"p.mpp","updated_at":"%s"}]}]\' ;; *) exit 7 ;; esac' % (mine, hoo, rush))
+        out = self.r / 'out'
+        out.write_text('')
+        x = self.run_cmd(['bash', 'src/etc/poll.sh', 'adguard'], {**self.env(), 'repository': 'fixture/repo', 'GITHUB_OUTPUT': str(out)})
+        return x, out.read_text()
+
+    def test_poll_pinned_target_ignores_unpinned_candidate(self):
+        # 28 Sep 2026: hoo-dles dev releases rebuilt rushiranpise-pinned AdGuard four times.
+        x, out = self.poll_pinned('2026-09-28T21:15:10Z', '2026-09-20T12:55:19Z')
+        self.assertEqual(x.returncode, 0, x.stdout + x.stderr)
+        self.assertEqual(out, 'new_patch=0\n')
+        self.assertIn('pinned to rushiranpise', x.stdout)
+        self.assertNotIn('hoo-dles', x.stdout.split('pinned to rushiranpise', 1)[1])
+
+    def test_poll_pinned_candidate_publishing_still_builds(self):
+        x, out = self.poll_pinned('2026-09-01T00:00:00Z', '2026-09-28T21:00:00Z')
+        self.assertEqual(x.returncode, 0, x.stdout + x.stderr)
+        self.assertEqual(out, 'new_patch=1\n')
+
+    def test_poll_pin_outside_candidates_is_unknown(self):
+        path = self.r / 'src/targets.json'
+        targets = json.loads(path.read_text())
+        next(t for t in targets if t['id'] == 'adguard')['pin'] = 'nobody'
+        path.write_text(json.dumps(targets, indent=2) + '\n')
+        x, out = self.poll_pinned('2026-09-28T21:15:10Z', '2026-09-20T12:55:19Z')
+        self.assertEqual(x.returncode, 2, x.stdout)
+        self.assertNotIn('new_patch', out)
+
+    def test_poll_unpinned_target_still_counts_every_candidate(self):
+        path = self.r / 'src/targets.json'
+        targets = json.loads(path.read_text())
+        next(t for t in targets if t['id'] == 'adguard')['pin'] = None
+        path.write_text(json.dumps(targets, indent=2) + '\n')
+        x, out = self.poll_pinned('2026-09-28T21:15:10Z', '2026-09-20T12:55:19Z')
+        self.assertEqual(x.returncode, 0, x.stdout + x.stderr)
+        self.assertEqual(out, 'new_patch=1\n')
+        self.assertNotIn('pinned to', x.stdout)
+
     def test_discovery_scope(self):
         x = self.run_cmd([sys.executable, 'src/etc/community_discover.py'])
         self.assertEqual(x.returncode, 0, x.stderr)

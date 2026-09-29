@@ -11,11 +11,20 @@ PREFIX=$(jq -r '.tag_prefix // .id' <<<"$T")
 AUTH=()
 [ -n "${GITHUB_TOKEN:-}" ] && AUTH=(-H "Authorization: token $GITHUB_TOKEN")
 
-# newest source bundle date across every candidate and extra
+# newest source bundle date across every candidate the build can use, plus extras.
+# A pinned target builds only from its pin (resolve.sh skips the rest), so an unpinned
+# candidate publishing must not trigger a rebuild: on 28 Sep 2026 hoo-dles dev releases
+# rebuilt the rushiranpise-pinned AdGuard four times with identical inputs.
 NEWEST=0; NEWEST_WHO=""; UNKNOWN=0
-srcs=$(jq -r '[(.candidates[] | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name}),
+PIN=$(jq -r '.pin // ""' <<<"$T")
+[ -n "$PIN" ] && echo "$ID: pinned to $PIN; other candidates cannot trigger a build"
+srcs=$(jq -r '(.pin // "") as $pin | [(.candidates[] | select($pin == "" or .name == $pin) | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name}),
               ((.extra_bundles // [])[] | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name})]
              | .[] | [.n,.h,.p,.o,.r] | @tsv' <<<"$T")
+if [ -n "$PIN" ] && ! jq -e --arg p "$PIN" 'any(.candidates[]; .name == $p)' <<<"$T" >/dev/null; then
+  echo "::error::$ID: pin $PIN is not a configured candidate"
+  echo "poll_state=unknown" >> "$GITHUB_OUTPUT"; exit 2
+fi
 while IFS=$'\t' read -r n h p o r; do
   [ -n "$n" ] || continue
   if [ "$h" = "gitlab" ]; then
@@ -56,9 +65,9 @@ MS=$(date -d "$MINE" +%s)
 # --- CFGSTAMP: my own selection config counts as a source ------------------
 # poll.sh used to compare provider dates against my newest release only, so a change
 # to include/exclude lists or an options file never triggered a rebuild. It does now.
-CFGP=$(jq -r --arg id "$ID" '.[] | select(.id==$id)
-       | [ ((.candidates // [])[] | "src/patches/" + .patch_dir),
-           ((.candidates // [])[] | "src/options/" + .options + ".json"),
+CFGP=$(jq -r --arg id "$ID" '.[] | select(.id==$id) | (.pin // "") as $pin
+       | [ ((.candidates // [])[] | select($pin == "" or .name == $pin) | "src/patches/" + .patch_dir),
+           ((.candidates // [])[] | select($pin == "" or .name == $pin) | "src/options/" + .options + ".json"),
            ((.extra_bundles // [])[] | select(.patch_dir) | "src/patches/" + .patch_dir) ]
        | unique | .[]' src/targets.json)
 CFGD=""

@@ -1,6 +1,6 @@
 name: Council
-# Advisory only. Free model seats review pull requests and vote on one patch or provider
-# question. The job can read the repository and write one comment; it never pushes,
+# Advisory only. Free model seats review pull requests, vote on one patch or provider
+# question, or answer one factual question from cited repository facts. The job can read the repository and write one comment; it never pushes,
 # merges, dispatches, publishes or changes settings. See docs/council/README.md.
 permissions:
   contents: read
@@ -10,16 +10,16 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'probe = check which seats answer; question = vote on one patch or provider'
+        description: 'probe = check which seats answer; question = vote on one patch or provider; ask = factual answer with cited facts'
         type: choice
-        options: [probe, question]
+        options: [probe, question, ask]
         default: probe
       issue:
-        description: 'Question mode: issue number for the vote table'
+        description: 'Question or ask mode: issue number for the comment'
         required: false
         default: ''
       target:
-        description: 'Question mode: target id from src/targets.json'
+        description: 'Question mode (required) or ask mode (optional): target id from src/targets.json'
         required: false
         default: ''
       kind:
@@ -33,6 +33,10 @@ on:
         default: ''
       note:
         description: 'Question mode: optional context for the seats'
+        required: false
+        default: ''
+      question:
+        description: 'Ask mode: one factual question, 500 characters or fewer'
         required: false
         default: ''
 concurrency:
@@ -71,6 +75,7 @@ jobs:
           PF_KIND: ${{ inputs.kind }}
           PF_NAME: ${{ inputs.name }}
           PF_NOTE: ${{ inputs.note }}
+          PF_QUESTION: ${{ inputs.question }}
         run: |
           # The PR that adds the council runs this against a base without it: nothing to do.
           if [ ! -f src/council/council.py ]; then echo "council code is not on the base commit yet"; exit 0; fi

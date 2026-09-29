@@ -28,7 +28,10 @@ PY
 echo
 echo "### release coverage"
 rm -f /tmp/rp.txt
-curl -sS "https://api.github.com/repos/govinda-rajulu/patch-factory/releases?per_page=100" \
+RAUTH=()
+[ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ] && RAUTH=(-H "Authorization: Bearer ${GH_TOKEN:-${GITHUB_TOKEN:-}}")
+# Authenticated: an anonymous read on a shared runner IP is rate limited (Nightly #99).
+curl -sS "${RAUTH[@]}" "https://api.github.com/repos/govinda-rajulu/patch-factory/releases?per_page=100" \
   | jq -r '.[].tag_name' 2>/dev/null \
   | sed -n 's/-v[0-9.]*-b[0-9]*$//p' | sort -u > /tmp/rp.txt
 [ -s /tmp/rp.txt ] || echo "(release read returned nothing - throttled or offline)"
@@ -42,8 +45,8 @@ print("released:", len(have), sorted(have))
 print("never built:", miss)
 PY
 if [ "$MODE" = "full" ]; then
-  echo; echo "### namecheck"; bash src/etc/namecheck.sh || FAIL=1
-  echo; echo "### headroom";  bash src/etc/headroom.sh  || true
+  # One exact-bundle read per provider, as the build reads it (includes extras and GitLab).
+  echo; echo "### namecheck"; python3 src/etc/selection_names.py || FAIL=1
 fi
 echo; echo "report mode=$MODE fail=$FAIL"
 exit "$FAIL"
