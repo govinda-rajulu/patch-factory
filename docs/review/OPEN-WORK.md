@@ -27,9 +27,14 @@ Packet L, one PR on main `93fc2b98`. What it fixes, with the evidence in the PR 
   fixed warning because `source_inputs.py` swallowed the reason; it now prints its own reason,
   the fetcher's exit code and duration, and the observed manifest facts.
 
-Still open after this packet: the Edge shadow cause itself (the first run after merge names
-it), full F05/F06 fingerprints, provider watch #102 name review, PR53, and the
-older items below. No build, publication or phone test is claimed by this checkpoint.
+First post-merge run (36534562050, see the [session record](SESSION-2026-09-29.md)): Prime
+Video built 3.0.470.357 and AdGuard ignored the other provider, as intended. Facebook 580 failed
+at patch time on an AMOLED theme fingerprint pulled in as a dependency; nothing was published.
+
+Still open: the Facebook dependency failure, the Edge reason line in that run's log, closing
+#98/#101/#104 with the Prime evidence, #105 after Facebook builds, #99 after the next Nightly,
+full F05/F06 fingerprints, provider watch #102 (blind to universal patches), PR53, and the
+older items below. Prime Video is built, not phone-tested.
 
 ## Previous checkpoint: 27 September 2026
 

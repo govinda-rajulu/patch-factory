@@ -68,3 +68,10 @@ Last indexed **29 September 2026** on main after PR107. Hygiene record:
 3. No private chats, secrets, signing material or raw captures in this folder.
 4. Configured, approved, applied, published and phone-tested are different states.
    Say which one a record proves.
+5. Chat sessions are disposable. Before one ends, its findings, decisions and open items
+   move into this folder, and its lessons into `docs/council/LESSONS.md`, through a reviewed
+   PR. The assistant's memory keeps pointers, not copies.
+6. Knowledge that also applies to another personal repository is copied there by that
+   repository's own reviewed PR, never edited from here. Repository-specific rules stay put.
+7. Owner-run scripts clean up after a DONE result: they remove their own upload and working
+   clone and keep RESULT.json and logs. After a stop they keep everything.

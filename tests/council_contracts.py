@@ -49,6 +49,7 @@ LESSON_HASHES = {  # append a line for each new lesson; existing lines never cha
     'L033': '94a270abd18353fc',
     'L034': 'd2d24ec178f147b0',
     'L035': 'd9d7fad96a862951',
+    'L036': '7cea633a30899732',
 }
 KEYS = {'GITHUB_TOKEN': 'ghs_FAKE_TOKEN_0001', 'GEMINI_API_KEY': 'AIza_FAKE_GEMINI_0002',
         'NVIDIA_API_KEY': 'nvapi-FAKE-NVIDIA-0003', 'OPENROUTER_API_KEY': 'sk-or-v1-FAKE-0004'}
