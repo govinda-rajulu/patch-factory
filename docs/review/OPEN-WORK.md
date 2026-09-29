@@ -1,6 +1,37 @@
 # Open work
 
-## Current checkpoint: 27 September 2026
+## Current checkpoint: 29 September 2026
+
+Packet L, one PR on main `93fc2b98`. What it fixes, with the evidence in the PR body:
+
+- **Poll rebuilds:** a pinned target is triggered only by its pinned provider; hoo-dles
+  prereleases had rebuilt the rushiranpise-pinned AdGuard four times on 28 Sep with identical
+  inputs. Poll-only runs resolve only the targets Build will consume; the first cron and manual
+  runs still observe all of them, and unobserved targets stay UNKNOWN in the report.
+- **Resolver reasons:** a failed shadow resolution prints this repo's own fixed reason plus
+  allowlisted `resolve.sh` summary lines, never upstream text.
+- **Prime Video:** `lib/arm64-v8a/libInit.so` is an 11-byte `release=NNN` marker (452, now 470).
+  Exactly that whole-member shape, byte-identical to the patcher input, is accepted as data.
+- **Facebook:** moved to 580.0.0.51.74 with four owner-chosen patches; see the
+  [decision record](FACEBOOK-580-2026-09-29.md).
+- **Nightly Watch:** names are checked against the exact channel-selected bundle of every
+  candidate and extra (GitHub and GitLab) with `src/etc/selection_names.py`; the release read
+  is authenticated. Version, option and default comparison remain open. The check lists
+  universal patches too; the provider watch baselines were recorded with `-x -u`, which omits
+  them, so watch deltas (#102) are blind to universal-patch changes.
+- **Council j4:** uncited votes are dropped, busy or unreachable models fall through, and a
+  factual `ask` mode answers from cited fact keys. See [the council README](../council/README.md).
+
+- **Shadow source reasons:** Edge's shadow source preparation has failed every run since at
+  least 28 Sep while its real builds publish (last 21 Sep, 223.4 MB). The job log holds only a
+  fixed warning because `source_inputs.py` swallowed the reason; it now prints its own reason,
+  the fetcher's exit code and duration, and the observed manifest facts.
+
+Still open after this packet: the Edge shadow cause itself (the first run after merge names
+it), full F05/F06 fingerprints, provider watch #102 name review, PR53, and the
+older items below. No build, publication or phone test is claimed by this checkpoint.
+
+## Previous checkpoint: 27 September 2026
 
 Main after PR89 (`2f3acecd`) plus the 5S hygiene packet. Start with the
 [review desk](README.md), then the [5S audit](AUDIT-5S-2026-09-27.md). Next
