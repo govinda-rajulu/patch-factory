@@ -30,7 +30,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 COUNCIL = ROOT / 'docs' / 'council'
 SENTINEL = '----- prompt below -----'
-MARKER = {'review': '<!-- pf-council:review -->', 'question': '<!-- pf-council:question -->'}
+MARKER = {'review': '<!-- pf-council:review -->', 'question': '<!-- pf-council:question -->',
+          'ask': '<!-- pf-council:ask -->'}
 PROVIDERS = {
     'gemini': {'chat': 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
                'models': 'https://generativelanguage.googleapis.com/v1beta/openai/models', 'key': 'GEMINI_API_KEY'},
@@ -40,6 +41,12 @@ PROVIDERS = {
                    'models': 'https://openrouter.ai/api/v1/models', 'key': 'OPENROUTER_API_KEY'},
 }
 VOTES = ('adopt', 'reject', 'hold', 'ask_owner')
+ANSWERS = ('yes', 'no', 'unknown')
+# A reason cites evidence when it names a repository path or file, a rule list, a trusted
+# document, or one of the fact keys this run supplied. 28 Sep 2026: one seat voted adopt
+# on a fake owner override with only "Owner override" as its reason.
+CITATION = re.compile(r'[\w.-]+/[\w./-]+|\b[\w.-]+\.(?:md|json|txt|tsv|yml|py|sh)\b|'
+                      r'\b(?:BANNED|CONFIRM|QUARANTINE|OWNER|AGENTS|LESSONS)\b|\bL\d{3}\b')
 SEVERITIES = ('high', 'medium', 'low', 'nit')
 VERDICTS = ('looks_ok', 'needs_changes', 'unsure')
 MAX_DIFF = 150000
@@ -58,6 +65,18 @@ class Refused(Exception):
 
 class ModelMissing(Refused):
     pass
+
+
+class Busy(Refused):
+    """The provider was overloaded or unreachable for this model; the next one may answer."""
+
+
+class Uncited(ValueError):
+    """A well-formed answer that cites no file, rule or fact is dropped, not counted."""
+
+
+def cited(texts, keys=()):
+    return any(CITATION.search(t) or any(k and k in t for k in keys) for t in texts)
 
 
 def shape(text, env):
@@ -241,22 +260,26 @@ def candidates(seat, env):
     return [m for m in seat['models'] if m in ids] + [m for m in seat['models'] if m not in ids]
 
 
-def complete(seat, model, system, user, env):
+def complete(seat, model, system, user, env, retry=True):
     p = PROVIDERS[seat['provider']]
     # Room for reasoning models; a seat whose models cap output lower sets max_tokens.
     body = {'model': model, 'temperature': 0.1, 'max_tokens': int(seat.get('max_tokens', 6000)),
             'messages': [{'role': 'system', 'content': system}, {'role': 'user', 'content': user}]}
     headers = {'Authorization': 'Bearer ' + env[p['key']], 'Content-Type': 'application/json',
                'Accept': 'application/json', 'User-Agent': 'pf-council'}
-    for attempt in (1, 2):
+    for attempt in ((1, 2) if retry else (1,)):
         status, text = http('POST', p['chat'], headers, body)
         if status == 200:
             return reply_text(text, env)
         # 410 Gone: the provider retired this model. Others only when the error names the model.
         if status == 410 or (status in (400, 404, 422) and re.search(r'(?i)model', text)):
             raise ModelMissing('model not served (%s)' % status)
-        if status not in (0, 429, 500, 502, 503, 504) or attempt == 2:
+        if status not in (0, 429, 500, 502, 503, 504):
             raise Refused('provider returned %s' % status)
+        if attempt == 2 or not retry:
+            # Busy or unreachable (28 Sep 2026: Gemini 503 twice, minimax timeout): the seat
+            # moves on to its next model instead of failing.
+            raise Busy('provider returned %s' % status)
         time.sleep(float(env.get('PF_RETRY_SLEEP', '10')))
 
 
@@ -273,7 +296,7 @@ def short(v, n):
     return isinstance(v, str) and 0 < len(v.strip()) <= n
 
 
-def check_vote(obj, qid):
+def check_vote(obj, qid, keys=None):
     need = {'question_id', 'vote', 'confidence', 'reasons', 'risks', 'missing_evidence', 'proposed_lesson'}
     if not isinstance(obj, dict) or set(obj) != need:
         raise ValueError('keys')
@@ -287,10 +310,34 @@ def check_vote(obj, qid):
             raise ValueError(key)
     if not obj['reasons']:
         raise ValueError('no reasons')
+    if keys is not None and not cited(obj['reasons'], keys):
+        raise Uncited('no cited file, rule or fact')
     pl = obj['proposed_lesson']
     if pl is not None and not (isinstance(pl, dict) and set(pl) == {'rule', 'evidence'}
                                and short(pl['rule'], 300) and short(pl['evidence'], 200)):
         raise ValueError('lesson')
+    return obj
+
+
+def check_ask(obj, qid, keys):
+    need = {'question_id', 'answer', 'confidence', 'facts', 'caveats'}
+    if not isinstance(obj, dict) or set(obj) != need:
+        raise ValueError('keys')
+    if obj['question_id'] != qid or obj['answer'] not in ANSWERS:
+        raise ValueError('id or answer')
+    if not isinstance(obj['confidence'], (int, float)) or not 0 <= obj['confidence'] <= 1:
+        raise ValueError('confidence')
+    f, c = obj['facts'], obj['caveats']
+    if not isinstance(f, list) or not 1 <= len(f) <= 5 or not isinstance(c, list) or len(c) > 3:
+        raise ValueError('facts or caveats')
+    for x in f:
+        if not isinstance(x, dict) or set(x) != {'key', 'claim'} or not short(x['key'], 200) or not short(x['claim'], 400):
+            raise ValueError('fact fields')
+    if not all(short(x, 300) for x in c):
+        raise ValueError('caveats')
+    # Every cited key must be one this run supplied: a factual answer rests on the facts.
+    if not all(x['key'] in keys for x in f):
+        raise Uncited('fact key not supplied')
     return obj
 
 
@@ -323,17 +370,24 @@ def run_seat(seat, system, user, env, checker, canary):
         row['status'] = 'ABSTAIN_OVER_BUDGET'
         return row
     try:
-        tried = []
-        for model in candidates(seat, env)[:4]:
+        missing, busy = [], []
+        models = candidates(seat, env)[:4]
+        for index, model in enumerate(models):
             row['model'] = model
             try:
-                text = complete(seat, model, system, user, env)
+                # A busy model is retried only when it is the seat's last preference.
+                text = complete(seat, model, system, user, env, retry=index == len(models) - 1)
                 break
             except ModelMissing:
-                tried.append(model)
+                missing.append(model)
+            except Busy:
+                busy.append(model)
         else:
             row['model'] = ''
-            row['status'] = 'UNAVAILABLE no listed model is served (%d tried)' % len(tried)
+            if busy:
+                row['status'] = 'UNAVAILABLE no listed model answered (%d missing, %d busy)' % (len(missing), len(busy))
+            else:
+                row['status'] = 'UNAVAILABLE no listed model is served (%d tried)' % len(missing)
             return row
         if canary in text:
             row['status'] = 'INVALID_CANARY'
@@ -342,6 +396,8 @@ def run_seat(seat, system, user, env, checker, canary):
         row['status'] = 'OK'
     except Refused as e:
         row['status'] = 'UNAVAILABLE ' + scrub(str(e), env)[:120]
+    except Uncited:
+        row['status'] = 'DROPPED_UNCITED'
     except (ValueError, TypeError) as e:
         row['status'] = 'INVALID_SCHEMA ' + str(e)[:40]
     return row
@@ -370,6 +426,18 @@ def outcome(rows, quorum, confirm=False):
     if confirm:
         return ('confirm_rule', 'ask_owner')
     return result
+
+
+def ask_outcome(rows, quorum):
+    answers = [r['answer']['answer'] for r in rows if r['status'] == 'OK']
+    if len(answers) < quorum:
+        return ('no_quorum', 'unknown')
+    if len(set(answers)) == 1:
+        return ('agree', answers[0])
+    top = max(ANSWERS, key=answers.count)
+    if answers.count(top) * 3 >= len(answers) * 2 and not {'yes', 'no'} <= set(answers):
+        return ('majority', top)
+    return ('split', 'unknown')
 
 
 def merge_findings(rows):
@@ -451,6 +519,9 @@ def render_question(q, rows, result, rules, prompt_hash, pack_hash):
             out.append('Matches CONFIRM `%s`.' % clean(rules['CONFIRM'][0], 80))
         if rules['QUARANTINE']:
             out.append('Matches QUARANTINE `%s`.' % clean(rules['QUARANTINE'][0], 80))
+        dropped = sum(r['status'] == 'DROPPED_UNCITED' for r in rows)
+        if dropped:
+            out.append('%d vote(s) dropped: their reasons cite no file, rule or fact.' % dropped)
         out += ['', '| seat | vote | conf | reasons | missing evidence |', '|---|---|---|---|---|']
         for r in rows:
             if r['status'] == 'OK':
@@ -461,6 +532,26 @@ def render_question(q, rows, result, rules, prompt_hash, pack_hash):
         if lessons_seen:
             out += ['', 'Proposed lessons (not applied; owner approval needed):']
             out += ['- %s (%s)' % (clean(l['rule'], 300), clean(l['evidence'], 200)) for l in lessons_seen[:3]]
+    return '\n'.join(out + footer(rows, prompt_hash, pack_hash))
+
+
+def render_ask(question, target, rows, result, prompt_hash, pack_hash):
+    label = {'agree': 'All answering seats agree', 'majority': 'Supermajority, dissent shown',
+             'split': 'Seats disagree', 'no_quorum': 'Too few valid answers'}[result[0]]
+    out = [MARKER['ask'], '### Council answer (advisory, factual)', '',
+           '**Question:** %s' % clean(question, 500) + (' (target `%s`)' % clean(target, 60) if target else ''), '',
+           '**Answer: %s** (%s)' % (result[1], label)]
+    dropped = sum(r['status'] == 'DROPPED_UNCITED' for r in rows)
+    if dropped:
+        out.append('%d answer(s) dropped: they cited a fact key this run did not supply.' % dropped)
+    out += ['', '| seat | answer | conf | cited facts | caveats |', '|---|---|---|---|---|']
+    for r in rows:
+        if r['status'] == 'OK':
+            a = r['answer']
+            out.append('| %s | %s | %.2f | %s | %s |' % (r['seat'], a['answer'], a['confidence'],
+                       clean(' / '.join('%s: %s' % (x['key'], x['claim']) for x in a['facts']), 700),
+                       clean(' / '.join(a['caveats']), 300) or '-'))
+    out += ['', 'A factual answer, not a vote: it approves, changes and schedules nothing.']
     return '\n'.join(out + footer(rows, prompt_hash, pack_hash))
 
 
@@ -555,10 +646,64 @@ def mode_question(env, seats, cfg):
     user = '\n\n'.join([instructions, context, 'FACTS from the repository (trusted, generated):\n' +
                         json.dumps(facts, indent=1, sort_keys=True)[:40000], name_block, note_block,
                         'question_id: ' + qid])
-    rows = convene(seats, base_system(canary), user, env, lambda o: check_vote(o, qid), canary)
+    keys = sorted(k for k in facts if k != 'question_id') + sorted(selection)
+    rows = convene(seats, base_system(canary), user, env, lambda o: check_vote(o, qid, keys), canary)
     result = outcome(rows, cfg['quorum'], confirm=bool(rules['CONFIRM']))
     body = render_question(q, rows, result, rules, sha(instructions), sha(context + json.dumps(facts, sort_keys=True)))
     return upsert(env, number, MARKER['question'], body)
+
+
+def ask_facts(target):
+    """Deterministic repository facts, each under a key a seat must cite verbatim."""
+    targets = json.loads(read('src/targets.json'))
+    facts = {'targets:enabled': [t['id'] for t in targets if t.get('enabled')]}
+    for kind in ('BANNED', 'CONFIRM', 'QUARANTINE'):
+        p = ROOT / 'src' / 'patches' / kind
+        rows = [l.strip() for l in p.read_text(encoding='utf-8').splitlines()] if p.exists() else []
+        facts['rules:' + kind] = [r for r in rows if r and not r.startswith('#')]
+    if not target:
+        return facts
+    entry = [t for t in targets if t.get('id') == target]
+    if len(entry) != 1:
+        raise Refused('unknown target')
+    t = entry[0]
+    facts['config:' + target] = t
+    for c in t.get('candidates', []) + t.get('extra_bundles', []):
+        d = c.get('patch_dir')
+        for side in ('include', 'exclude'):
+            p = ROOT / 'src' / 'patches' / str(d) / (side + '-patches')
+            if d and p.exists():
+                facts['selection:%s/%s' % (d, side)] = [l for l in p.read_text(encoding='utf-8').splitlines() if l]
+        base = ROOT / 'docs' / 'review' / 'providers' / ('%s-%s.names' % (c.get('name'), t.get('package')))
+        if base.exists():
+            names = base.read_text(encoding='utf-8').splitlines()
+            facts['provider_names:%s' % base.name] = names[:400]
+    return facts
+
+
+def mode_ask(env, seats, cfg):
+    question, target = env.get('PF_QUESTION', '').strip(), env.get('PF_TARGET', '').strip()
+    number = int(env.get('PF_ISSUE') or 0)
+    if not question or len(question) > 500 or not number:
+        raise Refused('ask mode needs a question (500 characters or fewer) and an issue')
+    facts = ask_facts(target)
+    keys = sorted(facts)
+    qid = sha(json.dumps({'q': question, 't': target}, sort_keys=True))[:12]
+    canary = secrets.token_hex(8)
+    instructions = prompt('ASK.md')
+    question_block, _ = envelope('question', question, 500)
+    pack = json.dumps(facts, indent=1, sort_keys=True)
+    if len(pack) > 60000:
+        raise Refused('fact pack over budget')
+    context = '\n\n'.join(['REPOSITORY RULES (trusted):\n' + agents_limits(),
+                           'OWNER (trusted):\n' + read('docs/council/OWNER.md')])
+    user = '\n\n'.join([instructions, context, 'FACT KEYS: ' + json.dumps(keys),
+                        'FACTS from the repository (trusted, generated):\n' + pack, question_block,
+                        'question_id: ' + qid])
+    rows = convene(seats, base_system(canary), user, env, lambda o: check_ask(o, qid, keys), canary)
+    result = ask_outcome(rows, cfg['quorum'])
+    body = render_ask(question, target, rows, result, sha(instructions), sha(context + pack))
+    return upsert(env, number, MARKER['ask'], body)
 
 
 def mode_probe(env, seats, cfg):
@@ -592,6 +737,8 @@ def main(env=None):
             result = mode_review(env, seats, cfg)
         elif mode == 'question':
             result = mode_question(env, seats, cfg)
+        elif mode == 'ask':
+            result = mode_ask(env, seats, cfg)
         elif mode == 'probe':
             result = mode_probe(env, seats, cfg)
         else:
