@@ -64,7 +64,10 @@ jobs:
     # Full observation stays once a day (first cron) and on manual runs; a poll-only
     # schedule runs it only when something will build, because Build needs its packets.
     if: needs.plan.outputs.resolution_matrix != '' && (github.event_name != 'schedule' || github.event.schedule == '23 12 * * *' || needs.plan.outputs.count != '0')
-    # Observe every opted-in target, including those omitted by the old poller.
+    # The first cron and manual runs observe every opted-in target, including those
+    # omitted by the old poller. A poll-only schedule resolves only the targets Build
+    # will consume (28 Sep 2026: one failing target made every poll resolve all 14);
+    # the report then lists the rest as UNKNOWN, never as unchanged.
     # Resolver failures are UNKNOWN evidence, never authority to change its matrix.
     continue-on-error: true
     permissions:
@@ -72,7 +75,7 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 6
-      matrix: ${{ fromJSON(needs.plan.outputs.resolution_matrix) }}
+      matrix: ${{ fromJSON((github.event_name == 'schedule' && github.event.schedule != '23 12 * * *') && needs.plan.outputs.matrix || needs.plan.outputs.resolution_matrix) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:

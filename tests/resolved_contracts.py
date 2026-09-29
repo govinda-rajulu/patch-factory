@@ -365,6 +365,43 @@ class ResolvedContracts(unittest.TestCase):
         self.assertFalse((self.r / "resolved-inputs").exists())
         self.assertNotIn("DO_NOT_INHERIT", result.stdout + result.stderr)
 
+    def test_failed_resolution_names_allowlisted_reason_only(self):
+        # 28 Sep 2026: Facebook failed with no reason; the resolver had printed
+        # "nothing <= 490.0.0.63.82" but only a generic warning reached the log.
+        out = (" - derevanced: channel=prerelease exact bundle=v1.5.0-dev.1 sha256=" + "a" * 64 + "\n"
+               " - derevanced: nothing <= 490.0.0.63.82\nRESULT: no viable provider\n"
+               "SECRET upstream text\n - derevanced: nothing <= 1; rm -rf /\n")
+        def failed(args, **kwargs):
+            return subprocess.CompletedProcess(args, 1, out, "SECRET")
+        with self.assertRaises(ValueError) as caught:
+            resolved.prepare(self.r, self.ident, self.env, self.patcher, failed, self.extra)
+        text = str(caught.exception)
+        self.assertEqual(resolved.public_reason(caught.exception), text)
+        for wanted in ("derevanced: nothing <= 490.0.0.63.82", "RESULT: no viable provider",
+                       "exit=1", "3 other line(s) withheld"):
+            self.assertIn(wanted, text)
+        for hidden in ("SECRET", "v1.5.0-dev.1", "sha256", "rm -rf"):
+            self.assertNotIn(hidden, text)
+        self.assertFalse((self.r / "resolved-inputs").exists())
+
+    def test_public_reason_hides_foreign_exception_text(self):
+        self.assertEqual(resolved.public_reason(KeyError("SECRET")), "KeyError")
+        self.assertEqual(resolved.public_reason(ValueError("SECRET token")), "ValueError")
+        self.assertEqual(resolved.public_reason(ValueError("resolved inputs: ok\nSECRET")), "ValueError")
+        self.assertEqual(resolved.public_reason(OSError("/home/runner/SECRET")), "OSError")
+        self.assertEqual(resolved.public_reason(ValueError("resolved inputs: missing run identity")),
+                         "resolved inputs: missing run identity")
+
+    def test_real_prepare_cli_failure_prints_its_own_reason(self):
+        env = dict(self.env, GITHUB_SHA="f" * 40)
+        result = subprocess.run([sys.executable, "src/build/resolved_inputs.py", "prepare", self.ident],
+                                cwd=self.r, env=env, capture_output=True, text=True, timeout=30)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("resolved inputs failure: resolved inputs: checkout differs from source commit",
+                      result.stderr)
+        self.assertNotIn("DO_NOT_INHERIT", result.stdout + result.stderr)
+        self.assertNotIn("SECRET", result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

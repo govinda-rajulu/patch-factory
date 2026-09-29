@@ -5,7 +5,8 @@ every hour; this repo observed 4-6.5 hour delays on :00/:30 schedules in Septemb
 Quiet minutes reduce, but cannot remove, that queueing. So the daily build (2. Check
 new patch) also polls three more times a day. Its first cron is the full daily run;
 the others are poll-only: they skip the full shadow observation unless the legacy
-poll found something to build, and a concurrency queue stops any overlap.
+poll found something to build, then resolve only the targets Build will consume, and a
+concurrency queue stops any overlap.
 """
 import re
 import unittest
@@ -19,6 +20,8 @@ CRONS_PER_WORKFLOW = {'ci.yml': 4}  # every other scheduled workflow has exactly
 MAIN_WRITERS = ('keepalive.yml', 'community-watch.yml')
 RESOLVE_IF = ("    if: needs.plan.outputs.resolution_matrix != '' && (github.event_name != 'schedule'"
               " || github.event.schedule == '%s' || needs.plan.outputs.count != '0')\n")
+RESOLVE_MATRIX = ("      matrix: ${{ fromJSON((github.event_name == 'schedule' && github.event.schedule != '%s')"
+                  " && needs.plan.outputs.matrix || needs.plan.outputs.resolution_matrix) }}\n")
 REPORT_IF = ("    if: always() && !cancelled() && needs.plan.result == 'success'"
              " && needs.resolve.result != 'skipped'\n")
 BUILD_IF = ("    if: always() && !cancelled() && needs.plan.result == 'success'"
@@ -57,6 +60,9 @@ def poll_problems(text):
         out.append('first cron is not daily')
     if (RESOLVE_IF % primary) not in job(text, 'resolve'):
         out.append('resolve is not tied to the first cron')
+    resolve = job(text, 'resolve')
+    if (RESOLVE_MATRIX % primary) not in resolve or resolve.count('matrix: ') != 1:
+        out.append('poll-only resolve is not narrowed to the build matrix')
     if REPORT_IF not in job(text, 'dependency_report'):
         out.append('report runs without observations')
     build = job(text, 'build')
@@ -123,6 +129,11 @@ class Schedules(unittest.TestCase):
                                              'group: daily-poll\n  cancel-in-progress: true'),
             'build gated on schedule': text.replace(BUILD_IF, BUILD_IF.rstrip('\n') +
                                                     " && github.event.schedule == '%s'\n" % primary),
+            'poll resolves every target': text.replace(RESOLVE_MATRIX % primary,
+                                                       '      matrix: ${{ fromJSON(needs.plan.outputs.resolution_matrix) }}\n'),
+            'full run narrowed too': text.replace("github.event.schedule != '%s')" % primary,
+                                                  "github.event.schedule != '23 6 * * *')"),
+            'narrowed on manual runs': text.replace("(github.event_name == 'schedule' && ", "(true && "),
             'fifth cron': text.replace('  workflow_dispatch:\n', '    - cron: "23 9 * * *"  # 14:53 IST\n  workflow_dispatch:\n', 1),
         }
         for label, mutant in mutants.items():
