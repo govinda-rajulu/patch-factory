@@ -192,3 +192,9 @@ the shipped bytes against a fake GitHub caught it. Rehearse the file the owner w
 Tags: evidence
 A tail filter on the Patch apk step hid the " - derevanced:" line that named the Facebook cause.
 Filter by content that includes the reason, or read the full job log before concluding.
+
+### L036 · Merged and gated is not built
+Tags: evidence, gates
+Facebook 580 passed every local suite and a live name check, then failed at patch time on a
+fingerprint in a patch pulled in as a dependency. Name checks cannot prove fingerprints match;
+only a real patch run can. Report "merged" and "built" as separate states.
