@@ -14,6 +14,14 @@ This file keeps only what fits in neither.
 3. **Cloud Shell fills up.** 250 older items were moved to `~/work/pf-archive/` with a
    size and sha256 index. Scripts now self-clean on success (WORKING-AGREEMENT.md).
 
+## 29 Sep 2026, afternoon
+
+4. **Pinned controllers go first.** Packet N required main `1b8e42c3`, so it ran before the
+   unrelated knowledge PR (#110) merged. Order packets that pin main ahead of others.
+5. **"Merged" in chat is not merged.** Read `/pulls/N` for `merged: true` before acting on it.
+6. **Save the reason before the log goes.** The Edge reason survived only because the job
+   log was still in Cloud Shell `/tmp`. Copy reason lines into the archive the same day.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of
