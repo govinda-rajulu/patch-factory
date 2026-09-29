@@ -35,14 +35,11 @@ def analyze(text, rc, setup_ok, targets, env):
     if not isinstance(targets, list) or not targets or any(not isinstance(t,dict) for t in targets):
         reasons.append('target coverage inventory unavailable')
         targets = []
-    # Legacy readers do not cover all extras/default selections or use the full build resolver.
-    # Make that limitation explicit even when the subprocess exits zero.
-    gaps = ['namecheck omits extra bundles and empty/default include sets',
-            'provider readers are not yet aligned with build channel/byte resolution',
+    # Since 29 Sep 2026 the name check reads the exact channel-selected bundle of every
+    # candidate and extra (GitHub and GitLab). What it still does not cover stays explicit
+    # even when the subprocess exits zero.
+    gaps = ['name check compares patch names only; versions, options and effective defaults are not compared',
             'release reader does not paginate; historical coverage can be incomplete']
-    gitlab = sorted({t.get('id','unknown') for t in targets
-                     if any(b.get('host') == 'gitlab' for b in t.get('candidates',[]) + t.get('extra_bundles',[]) if isinstance(b,dict))})
-    if gitlab: gaps.append('GitLab provider coverage missing for: ' + ', '.join(gitlab))
     failed = rc not in (0, None) or (markers_ok and matches[0] == '1')
     if markers_ok and rc == 0 and matches[0] == '1': reasons.append('report exit/result mismatch')
     status = 'FAILED' if failed else 'UNKNOWN' if reasons else 'PARTIAL'

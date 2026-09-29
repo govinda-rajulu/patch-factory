@@ -46,7 +46,21 @@ class Nightly(unittest.TestCase):
         _,d=n.analyze('report mode=full fail=0\n',0,True,targets,ENV)
         self.assertEqual(d['status'],'PARTIAL')
         self.assertEqual(d['coverage'],'partial')
-        self.assertTrue(any('GitLab' in x for x in d['coverage_gaps']))
+        # GitLab extras and channel-exact bundles are read since 29 Sep 2026; what remains is named.
+        self.assertFalse(any('GitLab' in x for x in d['coverage_gaps']))
+        self.assertTrue(any('names only' in x for x in d['coverage_gaps']))
+        self.assertTrue(any('paginate' in x for x in d['coverage_gaps']))
+
+    def test_exact_bundle_name_check_output_is_classified(self):
+        ok = 'ok youtube/youtube-morphe (0 include names)\nchecked=19 dirs_with_missing_names=0 not_checked=0\n'
+        _,d=n.analyze(ok+'report mode=full fail=0\n',0,True,TARGETS,ENV)
+        self.assertEqual(d['status'],'PARTIAL')
+        bad = '?? edge/edge-quantavil: provider list unreadable - UNVERIFIED (LIST_COMMAND_FAILED)\n'
+        _,d=n.analyze(bad+'report mode=full fail=0\n',0,True,TARGETS,ENV)
+        self.assertEqual(d['status'],'UNKNOWN')
+        miss = '-- facebook/facebook-derevanced MISSING: Hide story ads\n'
+        _,d=n.analyze(miss+'report mode=full fail=1\n',1,True,TARGETS,ENV)
+        self.assertEqual(d['status'],'FAILED')
 
     def test_invalid_run_identity_does_not_create_a_run_link(self):
         for change in ({'GITHUB_SHA':''},{'GITHUB_REPOSITORY':'wrong/repo'},{'GITHUB_RUN_ID':'bad'}):
