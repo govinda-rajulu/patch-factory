@@ -2,6 +2,15 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 1 Oct 2026, 01:30 IST (planning only, no code)
+
+- **main** `2b58d78b` (PR113 packet O), unchanged.
+- **Scheduled runs on 30 Sep**: Facebook failed at Patch apk twice (#118, #119). YouTube
+  21.39.522 was republished by run 36716967959 with two newly applied patch names (Playback
+  buffer, Restore original titles); owner to confirm they were expected.
+- **New**: [ROADMAP.md](ROADMAP.md) and [handbook/AGENT-TOOLING.md](handbook/AGENT-TOOLING.md)
+  (1 Oct tool review). No workflow, selection or code change.
+
 ## 29 Sep 2026, 13:50 IST
 
 - **main** `6af68340` (tree `90d7786a`): PR112 (the 13:45 checkpoint below and lessons 4 to 6
