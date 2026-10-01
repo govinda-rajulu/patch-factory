@@ -1,6 +1,19 @@
 # Open work
 
-## Current checkpoint: 29 September 2026
+## Current checkpoint: 1 October 2026
+
+Packet P, on main after PR122 (roadmap docs). Facebook 580 kept failing at Patch apk because
+`De-Vanced Settings` depends on `AMOLED dark theme`, whose `FdsContextColor580Fingerprint`
+does not match the APK. Packet P drops `De-Vanced Settings`; see the 1 October update in the
+[decision record](FACEBOOK-580-2026-09-29.md). Prime Video 3.0.470.357 is built and published
+(not phone-tested), and the Nightly watch is green again (30 Sep).
+
+Still open: the first green Facebook build (then #105), the YouTube failure in #114, the Edge
+apkpure refusal, provider watch #102, F05/F06, owner confirmation of YouTube's two new patch
+names (Playback buffer, Restore original titles) and the older items below. Lanes and parked
+ideas live in [the roadmap](../../knowledge/ROADMAP.md).
+
+## Previous checkpoint: 29 September 2026
 
 Packet L, one PR on main `93fc2b98`. What it fixes, with the evidence in the PR body:
 
@@ -36,7 +49,7 @@ Still open: the Facebook dependency failure, the Edge reason line in that run's 
 full F05/F06 fingerprints, provider watch #102 (blind to universal patches), PR53, and the
 older items below. Prime Video is built, not phone-tested.
 
-## Previous checkpoint: 27 September 2026
+## Earlier checkpoint: 27 September 2026
 
 Main after PR89 (`2f3acecd`) plus the 5S hygiene packet. Start with the
 [review desk](README.md), then the [5S audit](AUDIT-5S-2026-09-27.md). Next

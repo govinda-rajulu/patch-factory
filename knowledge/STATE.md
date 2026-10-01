@@ -2,6 +2,18 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 1 Oct 2026, packet P
+
+- **main**: PR122 (roadmap docs) on `2b58d78b`, then packet P: `De-Vanced Settings` dropped
+  from Facebook's include list. Cause and limits: `docs/review/FACEBOOK-580-2026-09-29.md`.
+- **Same controller (`pf-packet-p-v1`), each step behind its own gate**: merge Dependabot #103
+  (setup-java 6.0.1, refs only); close the Facebook run records whose only failure is Patch apk
+  (#109, #115 to #121 when written) as covered by #105; close #98, #101, #104 on the published
+  Prime Video 3.0.470.357; close #106; close #99 on a green Nightly after 29 Sep. The run's
+  ledger line in `~/work/run-ledger.txt` says which steps ran.
+- **Left open**: #105 until a green Facebook build; #114 (its 29 Sep YouTube failure is
+  undiagnosed); #102; Edge apkpure refusal; F05/F06; YouTube's two new patch names.
+
 ## 1 Oct 2026, 01:30 IST (planning only, no code)
 
 - **main** `2b58d78b` (PR113 packet O), unchanged.
