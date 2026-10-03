@@ -22,6 +22,17 @@ This file keeps only what fits in neither.
 6. **Save the reason before the log goes.** The Edge reason survived only because the job
    log was still in Cloud Shell `/tmp`. Copy reason lines into the archive the same day.
 
+## 1 Oct 2026
+
+7. **Pin from main, never from a PR head.** Packet Q v1 took ci.yml's expected blob from
+   Dependabot #103's head; main had changed since #103's base, so the gate stopped it before any
+   push. v2 pinned every before and after blob from main's own tree and ran clean.
+8. **Dependabot `directory: "/"` skips composite actions.** #103 bumped five workflows and missed
+   `.github/actions/preparing/action.yml`; Validate's action-ref contract caught the mismatch.
+9. **The keepalive bot moves main on the 1st of each month.** It only rewrites `.keepalive`, but a
+   controller pinned to main before it stops with MAIN_MOVED (final-handover-v1, 3 Oct). Repin and
+   rerun; the per-file blob gates are what protect the content.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of
