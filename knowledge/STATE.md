@@ -2,6 +2,28 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 3 Oct 2026 (packets P and Q on 1 Oct, then two days of scheduled runs)
+
+- **main** `09bf31ba`: the monthly keepalive bot commit (`.keepalive` only) on `b4104369`, which is
+  PR124 packet Q (setup-java 6.0.1 in five workflows and in the `preparing` composite) on PR123
+  packet P and PR122. Dependabot #103 closed as superseded: it bumped the workflows but not the
+  composite, so Validate's action-ref contract failed.
+- **Closed 1 Oct**: #96 and #97 (council tests), #83 (superseded by #102), #82 (#100 is newer),
+  #114 (YouTube recovered on the 30 Sep release). Packet P folded the Facebook run records into #105.
+- **Facebook still fails after packet P**: scheduled runs on 2 and 3 Oct failed at Patch apk only
+  (#129 to #132; every other app built). Dropping `De-Vanced Settings` was not enough. The phone
+  stays on 490. Next is a fresh diagnosis from the newest job log, starting with variant
+  475019268 vs 475019344 and which chosen patch pulls in the AMOLED theme patch.
+- **Open**: #27 (nightly standing issue, keep open), #100, #102, #105, the Facebook run records.
+- **Next**: (1) Facebook, above; close the run records into #105 once diagnosed. (2) Edge apkpure
+  bundle refusal. (3) Owner confirms YouTube's two newly applied patches (Playback buffer, Restore
+  original titles), then #100 and #102. (4) Dependabot `directory: "/"` does not scan
+  `.github/actions/*`; `directories` would, but a reported upstream bug splits grouped PRs across
+  directories. Owner decides. (5) F05/F06, PR53.
+- **Lessons** 7 to 9 added to [LESSONS.md](LESSONS.md).
+- **Chats**: from 1 Oct the owner keeps one assistant chat per repo. A patch-factory chat starts
+  here and never carries openskip rules.
+
 ## 1 Oct 2026, packet P
 
 - **main**: PR122 (roadmap docs) on `2b58d78b`, then packet P: `De-Vanced Settings` dropped
