@@ -21,8 +21,8 @@ check('optional Obtainium self companion matches the official standard entry',()
  assert.equal(app.id,'dev.imranr.obtainium');assert.equal(settings.apkFilterRegEx,'fdroid');assert.equal(settings.invertAPKFilter,true);assert.equal(settings.autoApkFilterByArch,true);assert.equal(settings.trackOnly,false);
  const d=structuredClone(pack);d.apps[0].id='dev.imranr.obtainium.fdroid';assert.throws(()=>c.validateObtainium(d));
 });
-check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,14);assert.equal(c.validateImport(pack,targets).length,14);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
-check('import encoded URI round trip retains full and selected app settings',()=>{const apps=c.validateImport(pack,targets),uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));assert.deepEqual(JSON.parse(decodeURIComponent(uri.slice(17))),pack.apps);assert.ok(uri.length<100000);const before=JSON.stringify(apps);const chosen=c.selectApps(apps,[apps[2].id,apps[0].id]);assert.deepEqual(JSON.parse(JSON.stringify(chosen)),[pack.apps[0],pack.apps[2]]);assert.equal(JSON.stringify(apps),before);for(const ids of [[],['unknown'],[apps[0].id,apps[0].id],null])assert.throws(()=>c.selectApps(apps,ids));assert.equal(c.selectApps(apps,apps.map(a=>a.id)).length,14)});
+check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,15);assert.equal(c.validateImport(pack,targets).length,15);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
+check('import encoded URI round trip retains full and selected app settings',()=>{const apps=c.validateImport(pack,targets),uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));assert.deepEqual(JSON.parse(decodeURIComponent(uri.slice(17))),pack.apps);assert.ok(uri.length<100000);const before=JSON.stringify(apps);const chosen=c.selectApps(apps,[apps[2].id,apps[0].id]);assert.deepEqual(JSON.parse(JSON.stringify(chosen)),[pack.apps[0],pack.apps[2]]);assert.equal(JSON.stringify(apps),before);for(const ids of [[],['unknown'],[apps[0].id,apps[0].id],null])assert.throws(()=>c.selectApps(apps,ids));assert.equal(c.selectApps(apps,apps.map(a=>a.id)).length,15)});
 check('malformed imports refuse global settings, duplicates, foreign URLs and credentials',()=>{for(const mutate of [d=>d.settings={},d=>d.apps.pop(),d=>d.apps.push(d.apps[0]),d=>d.apps[0].url='https://evil.invalid',d=>d.apps[0].additionalSettings='{"token":"SECRET"}']){const d=structuredClone(pack);mutate(d);assert.throws(()=>c.validateImport(d,targets))}});
 check('version and arbitrary precision build ID remain separate',()=>{const d=c.parseTag('youtube-morphe-v21.36.45-b2026091300000000034768808230000001');assert.equal(d.version,'21.36.45');assert.equal(d.run,'34768808230');assert.equal(d.attempt,'1');assert.equal(c.parseTag('app-v1.0-b2026091399999999999999999999000001').run,'99999999999999999999')});
 check('legacy date tags accepted; malformed tags rejected',()=>{assert.equal(c.parseTag('app-v1.0-b20260913').run,null);for(const t of ['app-v1.0-b20260230','app-v1.0-b2026091300000000000000000000000000','app-v1<script>','app-v1.0-b20260913junk',null])assert.equal(c.parseTag(t),null)});
@@ -43,7 +43,7 @@ check('optional MicroG stays separate and preserves upstream package and exact f
  const d=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
  const [app]=c.validateMicroG(d),s=JSON.parse(app.additionalSettings);
  assert.equal(app.id,'app.revanced.android.gms');
- assert.equal(pack.apps.length,14);assert.ok(!pack.apps.some(x=>x.id===app.id));
+ assert.equal(pack.apps.length,15);assert.ok(!pack.apps.some(x=>x.id===app.id));
  assert.equal(new RegExp(s.apkFilterRegEx).test('microg-6.1.4.apk'),true);
  for(const name of ['microg-6.1.4-hw.apk','microg-6.1.4-arm64.apk','other.apk','microg-6.1.4.apk.sig','microg-6.1.4-no-icon.apk'])assert.equal(new RegExp(s.apkFilterRegEx).test(name),false);
  assert.equal(new RegExp(s.versionExtractionRegEx).exec('v6.1.4')[1],'6.1.4');
@@ -88,7 +88,7 @@ check('upstream downloads bind exact version, tag, universal asset and channel',
 check('unified selection permits upstream without changing fourteen build targets or IDs',()=>{
  const d=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
  const mixed=[...pack.apps,c.microgConfig(d,'prerelease')];
- assert.equal(new Set(mixed.map(a=>a.id)).size,15);
+ assert.equal(new Set(mixed.map(a=>a.id)).size,16);
  assert.equal(c.selectApps(mixed,['app.revanced.android.gms']).length,1);
  const tc=targets.find(t=>t.id==='truecaller-combo');assert.equal(tc.label,'Truecaller');assert.equal(tc.tag_prefix,'tc-combo');
  for(const marker of ['Filter source type','Filter publication date','Sort apps'])assert.ok(source.includes(marker));
@@ -172,5 +172,12 @@ check('watch panel reports cannot silently truncate at producer capacity',()=>{
  assert.ok(source.includes('markdown(report.body,{chars:49152,lines:2000})'));
  assert.ok(source.includes('Report completeness verified: '));
  assert.ok(source.includes('Report incomplete: part(s) '));
+});
+check('brand tiles are local, provenance-recorded target logos and the monogram stays the fallback',()=>{
+ const m=source.match(/const LOGOS=new Set\((\[[^\]]*\])\);/);assert.ok(m,'LOGOS set');const ids=JSON.parse(m[1].replace(/'/g,'"'));assert.ok(ids.length>0);
+ const known=new Set(targets.filter(t=>t.enabled).map(t=>t.id)),notice=fs.readFileSync(path.join(root,'docs/assets/NOTICE.txt'),'utf8'),prov=fs.readFileSync(path.join(root,'docs/review/ICON-PROVENANCE.md'),'utf8');
+ const files=fs.readdirSync(path.join(root,'docs/assets/logos')).sort();assert.deepEqual(files,ids.map(i=>i+'.png').sort());
+ for(const id of ids){assert.ok(known.has(id),id);const b=fs.readFileSync(path.join(root,'docs/assets/logos',id+'.png'));assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.ok(b.length<65536,id);assert.ok(notice.includes('logos/'+id+'.png'),id);assert.ok(prov.includes('`'+id+'`'),id);}
+ assert.ok(source.includes("logo.src='assets/logos/'+id+'.png'"));assert.ok(source.includes("monogram.classList.remove('has-logo')"));assert.ok(!/logo\.src=['"]https?:/.test(source));assert.ok(!/<img[^>]+src="https?:/i.test(html));
 });
 console.log('PORTAL_CONTRACTS_PASS='+count);

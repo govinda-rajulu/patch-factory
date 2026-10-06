@@ -25,6 +25,32 @@
     "note": "Morphe default patch set Age cap is advisory since 7 Sep 2026: resolve.sh warns past it, the applied-count gate decides."
   },
   {
+    "id": "ytmusic",
+    "enabled": true,
+    "package": "com.google.android.apps.youtube.music",
+    "apk_name": "yt-music",
+    "apk_type": "apk",
+    "max_app_version": null,
+    "max_patch_age_days": 60,
+    "min_sdk_ceiling": 29,
+    "pin": "morphe",
+    "candidates": [
+      {
+        "name": "morphe",
+        "owner": "MorpheApp",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "ytmusic-morphe",
+        "options": "morphe"
+      }
+    ],
+    "tag_prefix": "yt-music",
+    "poll": true,
+    "arch": "arm64-v8a",
+    "label": "YouTube Music",
+    "note": "Morphe default patch set minus reviewed exclusions, installs beside the stock app and needs Morphe MicroG RE. Added 6 Oct 2026; review record docs/review/YTMUSIC-2026-10-06.md."
+  },
+  {
     "id": "adguard",
     "enabled": true,
     "package": "com.adguard.android",
@@ -212,6 +238,9 @@
       }
     ],
     "tag_prefix": "facebook",
+    "arch": "arm64-v8a",
+    "dpi": "240-640dpi",
+    "version_code": "475019344",
     "poll": true,
     "source": "apkmirror",
     "any_version": false,

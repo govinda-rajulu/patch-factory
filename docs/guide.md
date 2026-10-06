@@ -16,7 +16,7 @@ Older releases remain unchanged. Their original notes are displayed; missing com
 
 ## Obtainium
 
-Expand **Track with Obtainium**, choose All apps or Select only, prepare the configuration and confirm inside Obtainium. All apps includes the fourteen patched apps; MicroG is opt-in. Select only offers patched apps and MicroG together. **Include Obtainium self-update** adds the standard GitHub Obtainium companion to either flow; in Select only, you must also select its row after preparing the list. This is for `dev.imranr.obtainium`, not the F-Droid package `dev.imranr.obtainium.fdroid`. It does not replace or migrate an F-Droid installation.
+Expand **Track with Obtainium**, choose All apps or Select only, prepare the configuration and confirm inside Obtainium. All apps includes every configured patched app; MicroG is opt-in. Select only offers patched apps and MicroG together. **Include Obtainium self-update** adds the standard GitHub Obtainium companion to either flow; in Select only, you must also select its row after preparing the list. This is for `dev.imranr.obtainium`, not the F-Droid package `dev.imranr.obtainium.fdroid`. It does not replace or migrate an F-Droid installation.
 
 Choose **MicroG architecture** and **MicroG channel** before preparing the import. Universal (recommended) avoids assuming which device will open a shared configuration. Auto architecture uses Obtainium's filename-based filter; it is not device detection by this website. ARM64 and ARMv7 require the matching published file. **Done / collapse** hides the panel without discarding choices. **Reset choices** clears the page's selection and prepared links only; it never removes tracked or installed apps.
 

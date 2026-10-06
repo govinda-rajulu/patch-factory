@@ -41,8 +41,8 @@ class InputRecipeTests(unittest.TestCase):
                     input_recipe.verify(self.r,t['id'],c['name'],d)
                     self.assertGreater(len(d['components']),len(input_recipe.SHARED))
                     counts.append(t['id'])
-        self.assertEqual(len(set(counts)),14)
-        self.assertEqual(len(counts),15)
+        self.assertEqual(len(set(counts)),15)
+        self.assertEqual(len(counts),16)
 
     def test_real_hosts_option_is_discovered(self):
         self.assertEqual(self.recipe()['resource_paths'],['src/options/hosts.txt'])

@@ -33,6 +33,21 @@ This file keeps only what fits in neither.
    controller pinned to main before it stops with MAIN_MOVED (final-handover-v1, 3 Oct). Repin and
    rerun; the per-file blob gates are what protect the content.
 
+## 6 Oct 2026
+
+10. **A store page is a table; the first matching row wins.** Facebook 580 has 14 APKMirror
+    variants and every build patched row 1 (armeabi-v7a). Filtering by arch alone still picks the
+    wrong ARM64 row. Pin the version code and refuse anything else before patching.
+11. **An upstream rename silently drops an exclusion.** `Alternative thumbnails` became `DeArrow`
+    and the old `-d` matched nothing. Provider watch "removed" names that sit in an exclude list
+    need a decision the same day.
+12. **Read failed job logs with `gh run view --job ID --log-failed`.** `gh api .../jobs/ID/logs`
+    saved nothing in the 6 Oct intake, so the Reddit reason was lost for a round.
+13. **A patcher buffers every edit and writes only after every anchor passed.** The first packet R
+    patcher wrote files before a later anchor failed (caught in the sandbox).
+14. **Adding a target is a checklist the tests already hold.** 13 test files pin the target count;
+    making them fail first found the two real gaps (portal identity map, fallback policy row).
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of

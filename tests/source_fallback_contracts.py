@@ -116,7 +116,7 @@ class FallbackContracts(unittest.TestCase):
 
     def test_all_14_block_before_network_and_any_output(self):
         doc=fb.policy(self.root)
-        self.assertEqual(len(doc['targets']),14)
+        self.assertEqual(len(doc['targets']),15)
         before=set(self.root.iterdir())
         with patch.object(fb,'run_checked',side_effect=AssertionError('unexpected network')):
             for ident,row in doc['targets'].items():
@@ -314,7 +314,7 @@ class FallbackContracts(unittest.TestCase):
 
     def test_cli_reports_coverage_and_generic_refusal_without_private_environment(self):
         p=subprocess.run([sys.executable,'src/build/source_fallback.py','coverage'],cwd=self.root,capture_output=True,text=True,env=self.env)
-        self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(len(json.loads(p.stdout)),14)
+        self.assertEqual(p.returncode,0,p.stderr);self.assertEqual(len(json.loads(p.stdout)),15)
         p=subprocess.run([sys.executable,'src/build/source_fallback.py','reddit','2026.38.0'],cwd=self.root,capture_output=True,text=True,env=self.env)
         self.assertEqual(p.returncode,1);self.assertNotIn('SECRET',p.stdout+p.stderr)
 

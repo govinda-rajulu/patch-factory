@@ -241,7 +241,7 @@ class Identity(unittest.TestCase):
         targets = json.loads((self.r/'src/targets.json').read_text())
         original = {t['id']: input_recipe.create(self.r, t['id'], t['candidates'][0]['name'])
                     for t in targets if t['enabled']}
-        self.assertEqual(len(original), 14)
+        self.assertEqual(len(original), 15)
         path = self.r/'src/build/sdk_metadata.py'
         data = path.read_bytes()
         path.write_bytes(data.replace(b'{0,8}', b'{0,7}'))
@@ -256,10 +256,22 @@ class Identity(unittest.TestCase):
         with self.assertRaises(ValueError):
             input_recipe.create(self.r, 'reddit', 'adobo')
 
+    def test_pinned_store_variant_is_enforced_before_patching(self):
+        meta={'version_code':'475019268'}
+        with self.assertRaisesRegex(ValueError,'not the pinned 475019344'):
+            identity.check_input_variant({'version_code':'475019344'},meta)
+        self.assertEqual(identity.check_input_variant({'version_code':'475019268'},meta),'MATCH 475019268')
+        self.assertEqual(identity.check_input_variant({},meta),'NOT PINNED')
+        fb=[t for t in json.loads((self.r/'src/targets.json').read_text()) if t['id']=='facebook'][0]
+        self.assertEqual((fb['arch'],fb['dpi'],fb['version_code']),('arm64-v8a','240-640dpi','475019344'))
+        build=(self.r/'src/build/build.sh').read_text()
+        self.assertIn('get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"',build)
+        self.assertIn('artifact_identity.py input-variant "$ID"',build)
+
     def test_output_package_mapping_matches_current_imports(self):
         targets=json.loads((self.r/'src/targets.json').read_text())
         for t in targets:
-            expected={'youtube':'app.morphe.android.youtube','photos':'app.morphe.android.apps.photos'}.get(t['id'],t['package'])
+            expected={'youtube':'app.morphe.android.youtube','ytmusic':'app.morphe.android.apps.youtube.music','photos':'app.morphe.android.apps.photos'}.get(t['id'],t['package'])
             self.assertEqual(identity.expected_package(self.r,t),expected)
 
     def test_ambiguous_output_package_rejected(self):

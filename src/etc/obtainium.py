@@ -21,6 +21,7 @@ for t in targets:
     pkg[p] = t["package"]
     LABELS[p] = t.get("label") or p
 pkg["gg-photos"] = "app.morphe.android.apps.photos"
+pkg["yt-music"] = "app.morphe.android.apps.youtube.music" # GmsCore support renames the package
 pkg["youtube-morphe"] = "app.morphe.android.youtube" # GmsCore support renames the package  # Change package name patch default
 ALL_APPS = sorted(LABELS)
 for p in ALL_APPS:
@@ -61,7 +62,7 @@ def write(path, wanted):
     print(path, len(ok), "apps:", " ".join(ok))
 
 write("docs/obtainium.json", ALL_APPS)
-# Upstream companion, NOT a patched target or a change to the 14-app import.
+# Upstream companion, NOT a patched target or a change to the patched-app import.
 # Release 6.1.4, commit d8df10ab687a1c1ca05221634cfa46bad262023a:
 # build.gradle basePackageName + play-services-core applicationId => this ID.
 # Default release asset: microg-6.1.4.apk. No fallback to another variant.

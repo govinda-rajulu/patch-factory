@@ -73,7 +73,7 @@ class OperationalDocs(unittest.TestCase):
             self.assertIn(phrase,text)
         import json
         targets=json.loads(self.text('src/targets.json'))
-        self.assertEqual(sum(t.get('enabled') is True for t in targets),14)
+        self.assertEqual(sum(t.get('enabled') is True for t in targets),15)
         self.assertNotIn('pothelper',{t['id'] for t in targets})
         self.assertNotIn('helper-for-morphe',{t['id'] for t in targets})
 
@@ -136,6 +136,6 @@ class OperationalDocs(unittest.TestCase):
         paths=sorted(p.name for p in (ROOT/'docs').glob('obtainium*.json'))
         self.assertEqual(paths,['obtainium-microg.json','obtainium-self.json','obtainium.json'])
         main=json.loads(self.text('docs/obtainium.json'))['apps']
-        self.assertEqual(len(main),14)
+        self.assertEqual(len(main),15)
         extra=json.loads(self.text('docs/obtainium-self.json'))['apps']
         self.assertEqual([a['id'] for a in extra],['dev.imranr.obtainium'])

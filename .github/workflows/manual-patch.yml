@@ -16,6 +16,7 @@ on:
         type: choice
         options:
           - 'youtube'
+          - 'ytmusic'
           - 'adguard'
           - 'photos'
           - 'truecaller-combo'

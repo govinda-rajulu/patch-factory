@@ -4,8 +4,8 @@
 *.apk
 *.mpp
 *.jar
-download/
-release/
-morphe-data/
-extra/
+/download/
+/release/
+/morphe-data/
+/extra/
 __pycache__/

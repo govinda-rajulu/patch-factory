@@ -153,6 +153,17 @@
    ],
    "preferredApkIndex": 0,
    "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^youtube-morphe-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"YouTube\"}"
+  },
+  {
+   "id": "app.morphe.android.apps.youtube.music",
+   "url": "https://github.com/govinda-rajulu/patch-factory",
+   "author": "govinda-rajulu",
+   "name": "YouTube Music",
+   "categories": [
+    "patch-factory"
+   ],
+   "preferredApkIndex": 0,
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^yt-music-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"YouTube Music\"}"
   }
  ]
 }

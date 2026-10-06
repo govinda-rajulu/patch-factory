@@ -107,8 +107,8 @@ class ShadowContracts(unittest.TestCase):
     def test_all_fourteen_declarations_valid(self):
         ts=json.loads((self.r/"src/targets.json").read_text())
         keys=[shadow.declaration(self.r,t["id"])["sha256"] for t in ts if t["enabled"]]
-        self.assertEqual(len(keys),14)
-        self.assertEqual(len(set(keys)),14)
+        self.assertEqual(len(keys),15)
+        self.assertEqual(len(set(keys)),15)
 
     def test_note_formatting_unrelated_doc_do_not_change_declaration(self):
         before=self.declare()
@@ -144,7 +144,7 @@ class ShadowContracts(unittest.TestCase):
         out=self.r/"out";out.write_text("matrix=preserved\n")
         env=dict(self.env,GITHUB_OUTPUT=str(out))
         keys=shadow.plan(self.r,env)
-        self.assertEqual(len(keys),14)
+        self.assertEqual(len(keys),15)
         text=out.read_text()
         self.assertTrue(text.startswith("matrix=preserved\nkeys="))
         report=json.loads((self.r/"shadow-evidence/plan.json").read_text())

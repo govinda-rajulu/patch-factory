@@ -6,6 +6,12 @@
    "org": "google-inc",
    "name": "youtube"
   },
+  "com.google.android.apps.youtube.music": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=youtube-music",
+   "example_url": "https://www.apkmirror.com/apk/google-inc/youtube-music/youtube-music-9-40-51-release/",
+   "org": "google-inc",
+   "name": "youtube-music"
+  },
   "com.google.android.apps.photos": {
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=photos",
    "example_url": "https://www.apkmirror.com/apk/google-inc/photos/google-photos-7-74-0-910345644-release/",

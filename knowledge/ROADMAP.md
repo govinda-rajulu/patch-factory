@@ -4,16 +4,10 @@ Written 1 Oct 2026. One lane in flight at a time. New ideas go to the parking lo
 Tool verdicts and agent rules: [handbook/AGENT-TOOLING.md](handbook/AGENT-TOOLING.md).
 AGENTS.md hard limits, STATE.md and `docs/review/OPEN-WORK.md` win over this file.
 
-## Now: the open build work (unchanged from STATE.md)
+## Now: the open build work
 
-- Facebook 580: still failing at the Patch apk step in scheduled runs 36716967959 (#118) and
-  36755678556 (#119), both on main `2b58d78b`. Confirm the downloaded variant (475019268 or
-  475019344) and which chosen patch pulls in the AMOLED theme patch.
-- Edge: why the shadow apkpure bundle fetch refuses in 23 s.
-- With owner OK: close #98, #101, #104 on the Prime build; #105 after Facebook; #99 after Nightly.
-- Dependabot #103 (setup-java 6.0.0 to 6.0.1).
-- Owner check: the 30 Sep YouTube 21.39.522 release from run 36716967959 lists two newly applied
-  patch names, Playback buffer and Restore original titles. Confirm they were expected.
+See the newest checkpoint in [STATE.md](STATE.md) (6 Oct 2026, packet R). The 1 Oct list that
+stood here (Facebook #118/#119, Dependabot #103, YouTube #114) is closed or superseded.
 
 ## Lane 1: settings, no code (owner, in the browser)
 

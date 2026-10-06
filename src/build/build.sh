@@ -35,6 +35,8 @@ APK_TYPE=$(jq -r '.apk_type // "apk"'   <<<"$T")
 CEIL=$(jq     -r '.min_sdk_ceiling // 29' <<<"$T")
 SRC=$(jq -r '.source // "apkmirror"' <<<"$T")
 ANYVER=$(jq -r '.any_version // false' <<<"$T")
+ARCH=$(jq -r '.arch // ""' <<<"$T")
+DPI=$(jq -r '.dpi // ""' <<<"$T")
 PREFIX=$(jq   -r '.tag_prefix // .id'   <<<"$T")
 EXCL=$(jq -r '.exclusive // false' <<<"$T")
 green_log "[+] target=$ID package=$PKG apk=$APK_NAME tagprefix=$PREFIX"
@@ -161,7 +163,7 @@ if [ "$SRC" = "apkpure" ]; then
   set +u; get_apkpure "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 else
 near_version=1
-set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
+set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"; GA=$?; set -u
 fi
 if [ "$GA" -ne 0 ]; then
   python3 src/build/source_fallback.py "$ID" "$RVER" || { red_log "[-] primary and qualified fallback unavailable for $PKG"; exit 1; }
@@ -194,6 +196,9 @@ else
   green_log "[+] package confirmed $PKG_SEEN"
 fi
 green_log "[+] apk verified"
+if [ -n "$(jq -r '.version_code // ""' <<<"$T")" ]; then
+ python3 src/build/artifact_identity.py input-variant "$ID" || { red_log "[-] wrong store variant for $ID - refusing to patch"; exit 1; }
+fi
 
 # --- 4b. version backfill: any_version clears $version, tags need it back ---
 if [ -z "$version" ]; then
@@ -217,10 +222,10 @@ for i in 0; do
   [ -n "${COE:-}" ] && excludePatches="$excludePatches --continue-on-error"
   python3 src/build/patch_target.py "$ID" "$WINNER" > /tmp/patch.log 2>&1; SA=$?
  cat /tmp/patch.log
-	 [ "$SA" -eq 0 ] || { red_log "[-] patcher exited $SA - refusing to release"; exit 1; }
+ [ "$SA" -eq 0 ] || { red_log "[-] patcher exited $SA - refusing to release"; exit 1; }
  grep -o "Applied: .*" /tmp/patch.log | sed 's/\x1b\[[0-9;]*m//g; s/^Applied: //; s/[[:space:]]*$//' | sort -u > /tmp/applied.txt
  AP=$(wc -l < /tmp/applied.txt)
-	 [ "$AP" -gt 0 ] || { red_log "[-] zero patches applied - refusing to release"; exit 1; }
+ [ "$AP" -gt 0 ] || { red_log "[-] zero patches applied - refusing to release"; exit 1; }
  green_log "[+] applied $AP patches (rc=$SA)"
  grep "Applied: " /tmp/patch.log | sed 's/.*Applied: /- /' | sort > ./release/.applied
  PKG_LOG=$(grep -oE "Filtering patches for [^ ]+" /tmp/patch.log | tail -1 | awk "{print \$NF}")
