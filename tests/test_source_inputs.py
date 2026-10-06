@@ -166,6 +166,24 @@ class SourceContracts(unittest.TestCase):
             self.assertEqual(parts[4:6],['','1'] if target.get('any_version') else ['4.2.1',''])
             if parts[0]=='mirror':self.assertEqual(parts[-1],'1')
 
+    def test_failed_store_tries_the_other_mapped_store_before_the_qualified_fallback(self):
+        (self.r/'src/build/utils.sh').write_text('get_apk(){ if [ -n "${MIRROR_FAIL:-}" ]; then return 3; fi; printf "mirror|%s|%s|%s|%s\\n" "$1" "$version" "$4" "$5"; }\nget_apkpure(){ if [ -n "${PURE_FAIL:-}" ]; then return 4; fi; printf "pure|%s|%s\\n" "$1" "$version"; }\n')
+        stub=self.r/'src/build/source_fallback.py';stub.write_text('import sys\nprint("QUALIFIED_FALLBACK")\nsys.exit(9)\n')
+        env=source.clean_env(self.env)
+        r=subprocess.run(['bash','src/build/source_download.sh','reddit','2026.40.0'],cwd=self.r,env=dict(env,PURE_FAIL='1'),capture_output=True,text=True)
+        self.assertEqual(r.returncode,0,r.stdout+r.stderr)
+        self.assertIn('mirror|com.reddit.frontpage|2026.40.0|arm64-v8a|480-640dpi',r.stdout)
+        self.assertIn('STORE_CHAIN used apkmirror',r.stdout);self.assertNotIn('QUALIFIED_FALLBACK',r.stdout)
+        r=subprocess.run(['bash','src/build/source_download.sh','telegram','12.10.1'],cwd=self.r,env=dict(env,MIRROR_FAIL='1'),capture_output=True,text=True)
+        self.assertEqual(r.returncode,0,r.stdout+r.stderr);self.assertIn('pure|org.telegram.messenger|12.10.1',r.stdout)
+        r=subprocess.run(['bash','src/build/source_download.sh','reddit','2026.40.0'],cwd=self.r,env=dict(env,PURE_FAIL='1',MIRROR_FAIL='1'),capture_output=True,text=True)
+        self.assertEqual(r.returncode,9);self.assertIn('QUALIFIED_FALLBACK',r.stdout)
+        r=subprocess.run(['bash','src/build/source_download.sh','youtube','21.40.161'],cwd=self.r,env=dict(env,MIRROR_FAIL='1'),capture_output=True,text=True)
+        self.assertEqual(r.returncode,9);self.assertIn('no apkpure mapping',r.stdout);self.assertNotIn('pure|',r.stdout)
+        build=(self.r/'src/build/build.sh').read_text()
+        self.assertLess(build.index('try_other_store "$PKG"'),build.index('python3 src/build/source_fallback.py "$ID" "$RVER"'))
+        self.assertIn('source ./src/build/store_chain.sh',build)
+
     def test_qualified_source_subset_same_changed_legacy_wrong_attempt_and_missing(self):
         self.prepare()
         snap = source.snapshot(self.r, self.ident, self.env)

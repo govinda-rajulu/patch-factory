@@ -270,6 +270,7 @@
       }
     ],
     "tag_prefix": "instagram",
+    "arch": "arm64-v8a",
     "poll": true,
     "source": "apkpure",
     "extra_bundles": [
@@ -308,6 +309,8 @@
       }
     ],
     "tag_prefix": "reddit",
+    "arch": "arm64-v8a",
+    "dpi": "480-640dpi",
     "poll": true,
     "source": "apkpure",
     "label": "Reddit",
@@ -365,6 +368,7 @@
       }
     ],
     "tag_prefix": "edge",
+    "arch": "arm64-v8a",
     "poll": true,
     "source": "apkpure",
     "label": "Microsoft Edge",

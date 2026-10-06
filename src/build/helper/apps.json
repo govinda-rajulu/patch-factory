@@ -54,6 +54,21 @@
    "org": "j2-interactive",
    "name": "mx-player-pro"
   },
+  "com.reddit.frontpage": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=reddit",
+   "org": "redditinc",
+   "name": "reddit"
+  },
+  "com.instagram.android": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=instagram-instagram",
+   "org": "instagram",
+   "name": "instagram-instagram"
+  },
+  "com.microsoft.emmx": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=microsoft-edge",
+   "org": "microsoft-corporation",
+   "name": "microsoft-edge"
+  },
   "org.telegram.messenger": {
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=telegram",
    "org": "telegram-fz-llc",

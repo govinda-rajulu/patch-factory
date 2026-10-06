@@ -1,6 +1,13 @@
 # Open work
 
-## Current checkpoint: 6 October 2026
+## Current checkpoint: 6 October 2026, evening
+
+Packet R is on main (PR #148); YouTube Music and Facebook 580 built green, Reddit did not (APKPure
+lagged one version). Packet S1 adds the second-store chain ([record](SOURCE-CHAIN-2026-10-06.md)).
+Open: Reddit green build (#146), packet S2 (publisher pins, version step-down), Edge, #102,
+F05/F06, PR53, phone tests.
+
+## Earlier checkpoint: 6 October 2026, packet R
 
 Packet R on main `7b6504e2`: YouTube Music added (see [the decision record](YTMUSIC-2026-10-06.md)),
 Facebook pinned to the exact ARM64 store variant (6 Oct section of the

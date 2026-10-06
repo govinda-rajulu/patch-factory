@@ -19,6 +19,7 @@ python3 src/build/artifact_identity.py capture-signer || exit 1
 # utils.sh is 29KB of upstream code written without `set -u`.
 # Scope strictness off around every call into it; our own logic stays strict.
 set +u; source ./src/build/utils.sh; set -u
+source ./src/build/store_chain.sh
 
 version=""; lock_version=""; prefer_version=""; PF_APK_RAW_ONLY=0
 excludePatches=""; includePatches=""
@@ -164,6 +165,9 @@ if [ "$SRC" = "apkpure" ]; then
 else
 near_version=1
 set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"; GA=$?; set -u
+fi
+if [ "$GA" -ne 0 ]; then
+  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$SRC" "$RVER" "$ANYVER" "$ARCH" "$DPI"; GA=$?
 fi
 if [ "$GA" -ne 0 ]; then
   python3 src/build/source_fallback.py "$ID" "$RVER" || { red_log "[-] primary and qualified fallback unavailable for $PKG"; exit 1; }

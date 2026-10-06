@@ -2,6 +2,19 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 6 Oct 2026, evening (packet R results, packet S1)
+
+- **Packet R** merged as PR #148 (main `eb3d3fb5`). Post-merge builds: YouTube Music run
+  37448728870 green (`yt-music-v9.40.51-b2026100600000000037448728870000001`, no excluded name in
+  the notes); Facebook run 37448742969 green on the pinned ARM64 variant, #105 closed; Reddit run
+  37448758026 failed: APKPure had no 2026.40.0 link and the qualified fallback admits only
+  2026.38.0. #125, #143, #145, #100 and #144 closed. Nothing phone-tested.
+- **Packet S1**: a failed store now tries the other mapped store with the same gates before the
+  qualified fallback; APKMirror mappings for Reddit, Instagram, Edge. Record:
+  `docs/review/SOURCE-CHAIN-2026-10-06.md`. Its controller rebuilds Reddit and closes #146 on green.
+- **Next**: (1) packet S2: publisher certificate pins on every store path, version step-down.
+  (2) Edge apkpure refusal (now also has APKMirror). (3) #102. (4) F05/F06, PR53. (5) Phone tests.
+
 ## 6 Oct 2026 (packet R)
 
 - **Base** main `7b6504e2` (community bot commit on 5 Oct). Packet R adds target 15, `ytmusic`

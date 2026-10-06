@@ -26,6 +26,7 @@ Last indexed **6 October 2026** for packet R (YouTube Music, Facebook variant pi
 | [DECISIONS-youtube-morphe.tsv](DECISIONS-youtube-morphe.tsv) | Per-patch YouTube review rows. | Reference; the PR47 exclusion wins over older rows |
 | [DECISIONS-reddit-morphe.tsv](DECISIONS-reddit-morphe.tsv) | Per-patch Reddit review rows. | Reference |
 | [ICON-PROVENANCE.md](ICON-PROVENANCE.md) | Which app icons ship as brand tiles, their sources, and which stay monograms. | Current gate |
+| [SOURCE-CHAIN-2026-10-06.md](SOURCE-CHAIN-2026-10-06.md) | Second store with the same gates (S1) and the publisher-pin and version step-down plan (S2). | Current decision |
 | [YTMUSIC-2026-10-06.md](YTMUSIC-2026-10-06.md) | YouTube Music target: patch review, exclusions with reasons, and the YouTube DeArrow decision. | Current decision |
 
 ## APK source admissions
