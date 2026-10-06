@@ -12,6 +12,7 @@ ANYVER=$(jq -r '.any_version // false' <<<"$T")
 ARCH=$(jq -r '.arch // ""' <<<"$T")
 DPI=$(jq -r '.dpi // ""' <<<"$T")
 set +u; source ./src/build/utils.sh; set -u
+source ./src/build/store_chain.sh
 version="$RVER"; lock_version=""; prefer_version=""; PF_APK_RAW_ONLY=0
 if [ "$ANYVER" = "true" ]; then version=""; lock_version=1; fi
 if [ "$SRC" = "apkpure" ]; then
@@ -19,6 +20,9 @@ if [ "$SRC" = "apkpure" ]; then
 else
   near_version=1
   set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"; RC=$?; set -u
+fi
+if [ "$RC" -ne 0 ]; then
+  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$SRC" "$RVER" "$ANYVER" "$ARCH" "$DPI"; RC=$?
 fi
 if [ "$RC" -ne 0 ]; then
   python3 src/build/source_fallback.py "$ID" "$RVER"

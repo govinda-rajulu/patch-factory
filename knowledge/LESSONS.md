@@ -48,6 +48,12 @@ This file keeps only what fits in neither.
 14. **Adding a target is a checklist the tests already hold.** 13 test files pin the target count;
     making them fail first found the two real gaps (portal identity map, fallback policy row).
 
+15. **Trust lives in the gates, not in the store name.** A second store passing the same package,
+    version, SDK and identity gates is no weaker than the first. One store lagging a version
+    stopped Reddit for a month.
+16. **Sort with `LC_ALL=C` before comparing lists.** The owner's Cloud Shell sorts
+    `NOTICE.txt` after `logos/`, the sandbox before it; packet R r2 stopped on that alone.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of
