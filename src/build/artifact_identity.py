@@ -310,6 +310,15 @@ def original_signer(root, apk, env):
             'cryptographic_verification': 'passed'}
 
 
+def check_input_variant(t, meta):
+    # A pinned version code proves the exact store variant (ABI/DPI build), not just the version name.
+    want = t.get('version_code')
+    if want is None:
+        return 'NOT PINNED'
+    require(re.fullmatch(r'[0-9]+', str(want)), 'invalid pinned version_code')
+    require(meta['version_code'] == str(want), 'input version code ' + meta['version_code'] + ' is not the pinned ' + str(want))
+    return 'MATCH ' + str(want)
+
 def validate_identity(meta, architecture, signer, captured, version):
     require(meta['package'] == captured['expected_package'], 'finished APK package differs from committed installation identity')
     require(meta['version_name'] == version, 'finished APK version differs from release metadata')
@@ -373,6 +382,10 @@ if __name__ == '__main__':
             capture_inputs(root, sys.argv[2], sys.argv[3], os.environ)
         elif mode == 'verify':
             verify_final(root, sys.argv[2], os.environ)
+        elif mode == 'input-variant':
+            t = target(root, sys.argv[2])
+            meta = metadata(root, (root / 'download' / (t['apk_name'] + '.apk')).resolve(), os.environ)
+            print('INPUT VARIANT ' + check_input_variant(t, meta) + ' (code ' + meta['version_code'] + ')')
         elif mode == 'input-version':
             t = target(root, sys.argv[2])
             value = metadata(root, (root / 'download' / (t['apk_name'] + '.apk')).resolve(), os.environ)['version_name']

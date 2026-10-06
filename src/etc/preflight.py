@@ -24,6 +24,12 @@ def check(root=pathlib.Path('.'), target_id=None):
             if not re.fullmatch(r'[a-z0-9-]+', t.get(field, '')):
                 raise ValueError('unsafe or missing target field: ' + field)
         prefixes.append(t['tag_prefix'])
+        if 'arch' in t and t['arch'] not in ('arm64-v8a',):
+            raise ValueError('arch must be arm64-v8a (the only built ABI): ' + t['id'])
+        if 'dpi' in t and not re.fullmatch(r'[0-9]+(-[0-9]+)?dpi|nodpi', str(t['dpi'])):
+            raise ValueError('unsafe dpi selector: ' + t['id'])
+        if 'version_code' in t and not (re.fullmatch(r'[0-9]+', str(t['version_code'])) and t.get('max_app_version')):
+            raise ValueError('version_code needs digits and a pinned max_app_version: ' + t['id'])
         if not t.get('label') or not t.get('candidates'):
             raise ValueError('enabled target needs label and candidates: ' + t['id'])
         bundles = t['candidates'] + t.get('extra_bundles', [])

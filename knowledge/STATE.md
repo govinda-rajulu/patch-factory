@@ -2,6 +2,25 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 6 Oct 2026 (packet R)
+
+- **Base** main `7b6504e2` (community bot commit on 5 Oct). Packet R adds target 15, `ytmusic`
+  (YouTube Music, Morphe), pins Facebook's exact store variant (arm64-v8a, 240-640dpi, code
+  475019344; the old input was the armeabi-v7a row 475019268), lets YouTube ship DeArrow (owner),
+  adds local brand tiles for 12 apps with sources in `docs/assets/NOTICE.txt`, and a 5S pass.
+  Records: `docs/review/YTMUSIC-2026-10-06.md`, the 6 Oct section of
+  `docs/review/FACEBOOK-580-2026-09-29.md`, `docs/review/ICON-PROVENANCE.md`.
+- **Build results** for ytmusic, facebook and reddit after the merge are posted as a comment on the
+  packet R pull request by its controller. Read that comment first; this file was written before.
+- **Reddit** (Patch apk failures since 5 Oct, #143/#145/#146): not diagnosed in this packet. adobo
+  `v1.6.0-dev.4` (4 Oct) supports 2026.40.0. The controller saves the failed-step log; diagnose next.
+- **Issue hygiene by the controller**: #125 into #105; #143 and #145 into #146; #100 superseded by
+  #142. #105 and #146 close only on a green build of their targets. #27, #102, #142, #144 stay.
+- **Next**: (1) read the PR comment; Reddit diagnosis from the saved log. (2) Edge apkpure refusal.
+  (3) #102 universal-patch blind spot. (4) F05/F06, PR53. YouTube Music and Facebook 580 are not
+  phone-tested.
+- **Lessons** 10 to 14 in [LESSONS.md](LESSONS.md).
+
 ## 3 Oct 2026 (packets P and Q on 1 Oct, then two days of scheduled runs)
 
 - **main** `09bf31ba`: the monthly keepalive bot commit (`.keepalive` only) on `b4104369`, which is

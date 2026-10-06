@@ -1,6 +1,18 @@
 # Open work
 
-## Current checkpoint: 1 October 2026
+## Current checkpoint: 6 October 2026
+
+Packet R on main `7b6504e2`: YouTube Music added (see [the decision record](YTMUSIC-2026-10-06.md)),
+Facebook pinned to the exact ARM64 store variant (6 Oct section of the
+[Facebook record](FACEBOOK-580-2026-09-29.md)), DeArrow ships on YouTube, brand tiles per
+[ICON-PROVENANCE.md](ICON-PROVENANCE.md), 5S fixes. Post-merge build results are a comment on the
+packet R pull request.
+
+Still open: Reddit Patch apk failures since 5 Oct (#146), a green Facebook 580 build (#105) if the
+pin is not enough, the Edge apkpure refusal, #102, F05/F06, PR53, phone tests for YouTube Music
+and Facebook 580, and the older items below.
+
+## Previous checkpoint: 1 October 2026
 
 Packet P, on main after PR122 (roadmap docs). Facebook 580 kept failing at Patch apk because
 `De-Vanced Settings` depends on `AMOLED dark theme`, whose `FdsContextColor580Fingerprint`

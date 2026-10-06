@@ -142,7 +142,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=27', result.stdout)
+        self.assertIn('PORTAL_CONTRACTS_PASS=28', result.stdout)
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
@@ -179,7 +179,7 @@ class Repair(unittest.TestCase):
     def test_batch_all_enabled_has_exact_unique_coverage(self):
         targets = json.loads((self.r/'src/targets.json').read_text())
         ids = [t['id'] for t in targets if t['enabled']]
-        self.assertEqual(len(ids), 14)
+        self.assertEqual(len(ids), 15)
         result, text = self.batch_probe(','.join(ids))
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
         lines = text.splitlines()

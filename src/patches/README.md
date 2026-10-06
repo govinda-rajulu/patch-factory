@@ -24,7 +24,7 @@ undocumented deviation is a bug.
 ## Gating
 
 `exclusive: true` plus a non-empty include list makes build.sh refuse to publish
-unless the applied count equals the list exactly. 14 of 16 targets.
+unless the applied count equals the list exactly. 13 of 15 targets (6 Oct 2026).
 
 `youtube` is the exception: it builds from provider defaults minus an exclude
 list, so gating it means enumerating all 61 patch names. Known gap, not an

@@ -46,3 +46,62 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+BRAND TILES (docs/assets/logos/, added 6 October 2026, owner-approved in chat)
+App marks are trademarks of their owners. They are shown only to identify the
+app each card builds; this page is not affiliated with or endorsed by them.
+Each tile is a PNG of at most 128 px, scaled and padded, otherwise unmodified.
+Licence as stated on the source page on 6 October 2026; trademark rights remain.
+Apps without a cleared open source (ES File Explorer, MX Player, JioHotstar,
+Morphe) keep the letter monogram.
+
+logos/youtube.png
+  source: https://commons.wikimedia.org/wiki/File:YouTube_full-color_icon_(2017).svg (File:YouTube full-color icon (2017).svg)
+  licence: Public domain, trademarked; original sha1 11493f26c5e30e5b76c2b8e04368159df590867e
+  tile: rendered locally from the SVG/PNG original; sha256 f6b5e541d90637d5f1edbb8d5e7331a036ec3bd28450d4ab53cd59d3c6c8038a
+logos/ytmusic.png
+  source: https://commons.wikimedia.org/wiki/File:Youtube_Music_icon.svg (File:Youtube Music icon.svg)
+  licence: Public domain, trademarked; original sha1 e40bba6883ea9ca9a62889d5e9e7d0cff547c75c
+  tile: rendered locally from the SVG/PNG original; sha256 38ecbb0dfb5d05c87f83396623a506bbb05c30d503d669aaaed321b8ee6f8e75
+logos/facebook.png
+  source: https://commons.wikimedia.org/wiki/File:2023_Facebook_icon.svg (File:2023 Facebook icon.svg)
+  licence: Public domain, trademarked; original sha1 9ae0a9ea1ea00e4a9188ee8931431de510cae03b
+  tile: rendered locally from the SVG/PNG original; sha256 712f31be66b068722cfa0552fcbbd02d174d488b2e5777ecbd78545c76e59884
+logos/instagram.png
+  source: https://commons.wikimedia.org/wiki/File:Instagram_logo_2016.svg (File:Instagram logo 2016.svg)
+  licence: Public domain, trademarked; original sha1 96654a8a3126a62538a14a356eb855acfe531268
+  tile: rendered locally from the SVG/PNG original; sha256 bddaf01e903769b296809bfb812c82217195cabbf9955563e9067ec3df4be813
+logos/telegram.png
+  source: https://commons.wikimedia.org/wiki/File:Telegram_logo.svg (File:Telegram logo.svg)
+  licence: Public domain, trademarked; original sha1 6b9013170b87afc220743bd14ace3bc5d5322f5e
+  tile: rendered locally from the SVG/PNG original; sha256 8412ae08781e514b0ac38ea974ce91db4c7acf7e1a50bcc1594c6d02fbddf3d7
+logos/photos.png
+  source: https://commons.wikimedia.org/wiki/File:Google_Photos_icon_(2020-2025).svg (File:Google Photos icon (2020).svg)
+  licence: Public domain, trademarked; original sha1 39e64fce4490d648d9c77ac094cf4488b5f17a4a
+  tile: rendered locally from the SVG/PNG original; sha256 82934751cea9cb87c39ba288b9c7616b0e4b443b24527383f19e160da59cb949
+logos/edge.png
+  source: https://commons.wikimedia.org/wiki/File:Microsoft_Edge_logo_(2019).svg (File:Microsoft Edge logo (2019).svg)
+  licence: MIT, trademarked; original sha1 e62225ca8f64ceb4746cf45423f5884cf7e6a1db
+  tile: rendered locally from the SVG/PNG original; sha256 4dab2209b2af5a380b9394be2162ccb1fe75edf3878949ae1b5f9ce50d274116
+logos/primevideo.png
+  source: https://commons.wikimedia.org/wiki/File:Amazon_Prime_Video_logo_(2024).svg (File:Amazon Prime Video logo (2024).svg)
+  licence: Public domain, trademarked; original sha1 10f0537fef900ab880c4fb8ef16e239c55a41d3a
+  tile: rendered locally from the SVG/PNG original; sha256 eee7d53ad91f286dd9e7b0d023df77515ddb48437b9ac7eaac0d21960dbe7946
+logos/adguard.png
+  source: https://commons.wikimedia.org/wiki/File:AdGuard_Logo.png (File:AdGuard Logo.png)
+  licence: Public domain, trademarked; original sha1 2aac9d80614c8d8dd6819a1f21e2e0063edaf9de
+  tile: rendered locally from the SVG/PNG original; sha256 a7ff209b79b1ca79862ca91f3e6ad5ce25aede74b35dd7193ff1f5d69ba44f52
+logos/keymapper.png
+  source: GitHub keymapperorg/KeyMapper, branch develop, app/src/main/ic_launcher-playstore.png
+  licence: GPL-3.0 repository; app mark; original sha256 1ad832691375d06a62f3f8827d3996879e0e1396f53d3d36a3711f4da5afb3cd
+  tile: scaled locally; sha256 c4cfe44ed409c62f02799716bdd6c6e185a073695a1ebf47134c89e66be4364d
+logos/reddit.png
+  source: https://commons.wikimedia.org/wiki/File:Snoo.svg (File:Snoo.svg), credit redditinc.com
+  licence: Public domain, trademarked; original sha1 d7a38e0fb9c4b28e4d65e876ff4ff58ae8ab68e5
+  tile: Commons 250 px PNG thumbnail, fetched by the packet controller; sha256 at the end of this file
+logos/truecaller-combo.png
+  source: https://commons.wikimedia.org/wiki/File:TrueCaller_Icon.png (File:TrueCaller Icon.png), author TrueCaller per Commons; uploaded from gioxx.org; attribution: "TrueCaller Icon" by TrueCaller, Wikimedia Commons, CC BY-SA 4.0, scaled
+  licence: CC BY-SA 4.0; original sha1 309d3decc21e79a4d1dad1e176452e61da10284c
+  tile: Commons 250 px PNG thumbnail, fetched by the packet controller; sha256 at the end of this file
+logos/reddit.png tile sha256 9da3ff155fd866b0b25ed2bf0abc74790019dc0d3fdb2a1619b2a40e9393dfb0 (Commons thumbnail fetched 20261006T101028Z)
+logos/truecaller-combo.png tile sha256 c544294026dfa8199adb4e00e33e1251fb70f7618d23742e80f24ca1e60ba22f (Commons thumbnail fetched 20261006T101028Z)

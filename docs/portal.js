@@ -13,8 +13,10 @@ let tab='apps',generation=0,importGeneration=0,pollTimer=null;
 let targets=null,importBlob=null,customApps=[];
 let appQuery='',appCategory='all',appType='all',appAge='all',appSort='name';
 let microgChannel='stable',microgArch='universal';
+// Local brand tiles only (docs/assets/logos, provenance in docs/review/ICON-PROVENANCE.md); others keep the monogram.
+const LOGOS=new Set(['adguard','edge','facebook','instagram','keymapper','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
 const GROUPS=[
- ['media','Watch & listen',['youtube','primevideo','hotstar','mxplayer']],
+ ['media','Watch & listen',['youtube','ytmusic','primevideo','hotstar','mxplayer']],
  ['social','Social & communities',['instagram','facebook','reddit','telegram']],
  ['tools','Everyday essentials',['adguard','photos','truecaller-combo','esfile','edge','keymapper']]
 ];
@@ -80,7 +82,7 @@ function validateImport(data,ts){
  for(const app of data.apps){need(app&&plain(app.id,200)&&/^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$/.test(app.id)&&!ids.has(app.id),'Invalid/duplicate app package');ids.add(app.id);
  need(app.url===WEB&&plain(app.name,200)&&!names.has(app.name),'Invalid import source/name');names.add(app.name);
  const target=enabled.find(t=>(t.label||t.id)===app.name);need(target&&!matched.has(target.id),'Import app not in enabled catalog');matched.add(target.id);
- const packageId=({youtube:'app.morphe.android.youtube',photos:'app.morphe.android.apps.photos'})[target.id]||target.package;
+ const packageId=({youtube:'app.morphe.android.youtube',ytmusic:'app.morphe.android.apps.youtube.music',photos:'app.morphe.android.apps.photos'})[target.id]||target.package;
  need(app.id===packageId,'Import package does not match this target');
  need(typeof app.additionalSettings==='string'&&app.additionalSettings.length<10000,'Invalid app filters');const settings=JSON.parse(app.additionalSettings);
  need(settings&&Object.keys(settings).every(k=>['includePrereleases','fallbackToOlderReleases','filterReleaseTitlesByRegEx','apkFilterRegEx','versionExtractionRegEx','matchGroupToUse','trackOnly','appName'].includes(k)),'Unreviewed tracking settings; use reviewed JSON import instead');
@@ -540,7 +542,9 @@ function organizePanel(root,activeTab){
   const heading=article.querySelector('.app-title');
   if(heading){
    const monogram=el('span',article.querySelector('h3')?.textContent.trim().slice(0,1)||'A','app-monogram');
-   monogram.setAttribute('aria-hidden','true');heading.prepend(monogram);
+   monogram.setAttribute('aria-hidden','true');
+   if(LOGOS.has(id)){const logo=el('img',undefined,'app-logo');logo.src='assets/logos/'+id+'.png';logo.alt='';logo.width=40;logo.height=40;logo.decoding='async';logo.addEventListener('error',()=>{logo.remove();monogram.classList.remove('has-logo');});monogram.textContent='';monogram.classList.add('has-logo');monogram.append(logo);}
+   heading.prepend(monogram);
   }
   const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta')&&!n.classList.contains('channel-status'));
   if(version)version.classList.add('app-version');

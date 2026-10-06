@@ -37,6 +37,7 @@ as code or APKs to copy.
 | Truecaller | paresh | https://gitlab.com/Paresh-Maheshwari/paresh-patches |
 | Truecaller | binarymend | https://github.com/binarymend/morphe-patches |
 | YouTube | morphe | https://github.com/MorpheApp/morphe-patches |
+| YouTube Music | morphe | https://github.com/MorpheApp/morphe-patches |
 
 Providers publish patch bundles on their own schedule and under their own licences. This repo
 **does not** vendor or modify their bundles: it downloads the release they published and passes

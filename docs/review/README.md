@@ -4,14 +4,14 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **29 September 2026** on main after PR107. Hygiene record:
+Last indexed **6 October 2026** for packet R (YouTube Music, Facebook variant pin, brand tiles). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
 
 | Read | Why |
 | --- | --- |
-| [HANDOVER-2026-09-26.md](HANDOVER-2026-09-26.md) | Latest session handover: what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
+| [HANDOVER-2026-09-26.md](HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
 | [SESSION-2026-09-29.md](SESSION-2026-09-29.md) | Packet L session: findings, what PR107 shipped, the assistant's wrong calls, and what is still open. |
 | [OPEN-WORK.md](OPEN-WORK.md) | Open, partial and deferred work. Newest checkpoint first. |
 | [AUDIT-5S-2026-09-27.md](AUDIT-5S-2026-09-27.md) | Repository hygiene audit: what was sorted, corrected, and left for an owner decision. |
@@ -25,13 +25,14 @@ Last indexed **29 September 2026** on main after PR107. Hygiene record:
 | [RESOURCE-DECISION-2026-09-19.md](RESOURCE-DECISION-2026-09-19.md) | ES File and MX Player resource-patch exclusions and the reasoning. | Current decision |
 | [DECISIONS-youtube-morphe.tsv](DECISIONS-youtube-morphe.tsv) | Per-patch YouTube review rows. | Reference; the PR47 exclusion wins over older rows |
 | [DECISIONS-reddit-morphe.tsv](DECISIONS-reddit-morphe.tsv) | Per-patch Reddit review rows. | Reference |
-| [ICON-PROVENANCE.md](ICON-PROVENANCE.md) | Which official app icons may ship, and why most do not. | Current gate |
+| [ICON-PROVENANCE.md](ICON-PROVENANCE.md) | Which app icons ship as brand tiles, their sources, and which stay monograms. | Current gate |
+| [YTMUSIC-2026-10-06.md](YTMUSIC-2026-10-06.md) | YouTube Music target: patch review, exclusions with reasons, and the YouTube DeArrow decision. | Current decision |
 
 ## APK source admissions
 
 | Record | What it holds | State |
 | --- | --- | --- |
-| [FACEBOOK-580-2026-09-29.md](FACEBOOK-580-2026-09-29.md) | Facebook moved to 580.0.0.51.74 with four owner-chosen De-Vanced patches; what was not chosen and why. | Current |
+| [FACEBOOK-580-2026-09-29.md](FACEBOOK-580-2026-09-29.md) | Facebook moved to 580.0.0.51.74; owner-chosen patches, the dropped settings patch, and the 6 Oct exact ARM64 variant pin. | Current |
 | [APK-SOURCE-FALLBACKS-2026-09-26.md](APK-SOURCE-FALLBACKS-2026-09-26.md) | Exact-version source fallbacks shipped in PR86. | Current |
 | [APK-SOURCE-ADMISSIONS-2026-09-26.md](APK-SOURCE-ADMISSIONS-2026-09-26.md) | Admission record for the PR86 fallbacks. | Current |
 | [APK-SOURCE-ADMISSION-PHOTOS-2026-09-26.md](APK-SOURCE-ADMISSION-PHOTOS-2026-09-26.md) | Photos fallback with its exact signer-rotation pair (PR88). | Current |

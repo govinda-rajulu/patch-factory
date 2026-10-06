@@ -6,7 +6,7 @@ bundle, security certification or approval to change a phone.
 The community [Morphe Workspace collection and discussion](https://www.reddit.com/r/MorpheApp/comments/1wiowwa/morphe_workspace_a_collection_of_android_apps/)
 is useful discovery material. It is a personal collection, not one official
 framework. Its MIS/MES/MAS categories are not security ratings. Links below do
-not enable anything in Patch Factory. The fourteen patched targets, patch
+not enable anything in Patch Factory. The configured patched targets, patch
 selections, APK sources, signing and existing imports remain unchanged.
 
 ## Shortest useful route

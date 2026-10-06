@@ -9,6 +9,8 @@ APK_NAME=$(jq -r '.apk_name' <<<"$T")
 APK_TYPE=$(jq -r '.apk_type // "apk"' <<<"$T")
 SRC=$(jq -r '.source // "apkmirror"' <<<"$T")
 ANYVER=$(jq -r '.any_version // false' <<<"$T")
+ARCH=$(jq -r '.arch // ""' <<<"$T")
+DPI=$(jq -r '.dpi // ""' <<<"$T")
 set +u; source ./src/build/utils.sh; set -u
 version="$RVER"; lock_version=""; prefer_version=""; PF_APK_RAW_ONLY=0
 if [ "$ANYVER" = "true" ]; then version=""; lock_version=1; fi
@@ -16,7 +18,7 @@ if [ "$SRC" = "apkpure" ]; then
   set +u; get_apkpure "$PKG" "$APK_NAME" "$APK_TYPE"; RC=$?; set -u
 else
   near_version=1
-  set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE"; RC=$?; set -u
+  set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"; RC=$?; set -u
 fi
 if [ "$RC" -ne 0 ]; then
   python3 src/build/source_fallback.py "$ID" "$RVER"
