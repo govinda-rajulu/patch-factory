@@ -8,6 +8,11 @@ permissions:
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+  schedule:
+    # Desk rotation (desk_job in council.py): one audit shard twice a day, triage on Monday
+    # mornings, all on the desk issue in seats.json. One job at a time keeps free tiers answering.
+    - cron: "17 3 * * *"  # 08:47 IST daily: one audit shard (Monday: triage)
+    - cron: "17 15 * * *"  # 20:47 IST daily: one audit shard
   workflow_dispatch:
     inputs:
       mode:

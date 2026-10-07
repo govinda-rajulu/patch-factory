@@ -13,7 +13,7 @@ repository, so free-tier prompt use for training costs nothing private.
 
 | Secret | Provider | Where to create it | Free limit (seen 6 Oct 2026) | Seats |
 |---|---|---|---|---|
-| `NVIDIA_API_KEY` | NVIDIA build | https://build.nvidia.com/settings/api-keys | about 40 requests a minute per model | gpt, nemotron, kimi |
+| `NVIDIA_API_KEY` | NVIDIA build | https://build.nvidia.com/settings/api-keys | about 40 requests a minute per model | gpt, nemotron |
 | `GEMINI_API_KEY` | Google AI Studio | https://aistudio.google.com/app/apikey | per model, shown in AI Studio; free prompts may train Google models | gemini |
 | `OPENROUTER_API_KEY` | OpenRouter `:free` models | https://openrouter.ai/keys | about 20 a minute, 50 a day | open |
 | `MISTRAL_API_KEY` | Mistral La Plateforme, free (Experiment) plan | https://console.mistral.ai/api-keys | per workspace, shown in the console; phone check at signup | codestral |
@@ -31,7 +31,8 @@ provider's own pricing or rate-limit page.
 
 ## Seats and budgets
 
-`src/council/seats.json`: eight seats on six providers. On 7 Oct 2026 the NVIDIA-hosted
+`src/council/seats.json`: seven seats on six providers. On 7 Oct 2026 the `kimi` seat was removed
+(none of its four NVIDIA models is served to this key) and, earlier that day, the NVIDIA-hosted
 `mistral` seat was dropped (its model returned 404, and the `codestral` seat reaches Mistral
 directly) and `minimax` became `kimi` (none of its models was served). `max_input_chars` is each seat's budget;
 a pack larger than the budget makes that seat abstain instead of failing. So the Groq seat (8000
@@ -51,12 +52,16 @@ whole answer budget thinking (7 Oct 2026: four seats failed that way, see LESSON
 | XL: whole repo | mode `audit` once per shard, same issue | every id in `src/council/shards.json` | one comment per shard on one issue |
 | M: issue hygiene | mode `triage` | `issue` (where the table goes) | close, keep or owner per open issue, cited |
 | health | mode `probe` | none | which seats answer, in the run summary |
+| rotation | schedule, 03:17 and 15:17 UTC | none (desk issue in seats.json) | one audit shard per run, triage on Monday mornings, on the desk |
+
+Run heavy jobs one at a time. On 7 Oct 2026 eleven audit shards dispatched together ran the free
+tiers out (most seats busy); the schedule exists so that never happens again.
 
 Audit shards (`src/council/shards.json`): workflows, council, selection, build-shell,
 build-python, etc, portal, docs, tests-build, tests, rest. Each shard is split into parts of at
 most 70000 characters, so every part fits a 100000-character seat with its trusted context.
 Records under `docs/review/`, generated files, the licence, the archive and binary files are
-never sent. A run stops starting new parts after 30 minutes (one slow part once outlived the 50-minute job) and names the parts it did not reach.
+never sent. A run stops starting new parts after 30 minutes and names the parts it did not reach.
 
 ## How results are used
 

@@ -809,6 +809,52 @@ class Council(unittest.TestCase):
         with self.assertRaises(council.Uncited):
             council.check_triage({'verdicts': [{'issue': 11, 'verdict': 'close', 'reason': 'r', 'evidence': ['trust me']}]}, [11], ['5'])
 
+    # ----- 7 Oct 2026 (packet V2): one job at a time, honest retries, no repeated rows -----
+    def test_retry_wait_uses_the_provider_hint_with_a_cap(self):
+        env = {'PF_RETRY_SLEEP': '15'}
+        self.assertEqual(council.retry_wait(env, '{"error": {"details": [{"retryDelay": "37s"}]}}'), 37.0)
+        self.assertEqual(council.retry_wait(env, 'Rate limit. Please try again in 2.5s.'), 15.0)
+        self.assertEqual(council.retry_wait(env, 'Retry-After: 300'), 60.0)
+        self.assertEqual(council.retry_wait(env, 'busy'), 15.0)
+        self.assertEqual(council.retry_wait({'PF_RETRY_SLEEP': '0'}, '"retryDelay": "37s"'), 0.0)
+
+    def test_desk_rotation_covers_every_shard_one_job_at_a_time(self):
+        import datetime as dt
+        cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
+        spec = json.loads((ROOT / 'src/council/shards.json').read_text())
+        self.assertEqual(cfg['desk'], 154)
+        monday = dt.datetime(2026, 10, 12, 3, 17, tzinfo=dt.timezone.utc)
+        self.assertEqual(council.desk_job(cfg, spec, monday), ('triage', {'PF_ISSUE': '154'}))
+        seen = set()
+        for h in range(0, 24 * 7, 12):
+            mode, extra = council.desk_job(cfg, spec, monday + dt.timedelta(hours=h + 12))
+            if mode == 'audit':
+                self.assertEqual(extra['PF_ISSUE'], '154')
+                seen.add(extra['PF_SHARD'])
+        self.assertEqual(seen, {s['id'] for s in spec['shards']})
+        with self.assertRaises(council.Refused):
+            council.desk_job({}, spec, monday)
+        wf = (ROOT / '.github/workflows/council.yml').read_text()
+        self.assertEqual(re.findall(r'cron: "([^"]+)"', wf), ['17 3 * * *', '17 15 * * *'])
+        called = []
+        real = council.desk_job
+        council.desk_job = lambda c, s, now: called.append(now.tzinfo) or ('probe', {})
+        try:
+            council.http = Fake()
+            self.assertEqual(council.main(self.env(PF_EVENT='schedule', PF_MODE='')), 0)
+        finally:
+            council.desk_job = real
+        self.assertEqual(called, [dt.timezone.utc])
+
+    def test_one_seat_repeating_one_issue_is_one_row(self):
+        f = {'severity': 'medium', 'file': 'w.sh', 'line': 1, 'quote': 'gh api x', 'issue': 'No error handling.',
+             'fix': '', 'rule': ''}
+        rows = [{'seat': 's', 'status': 'OK', 'answer': {'findings': [dict(f, line=n) for n in (7, 16, 9)]}}]
+        council.verify_quotes(rows, {'w.sh': {7: 'gh api x', 9: 'gh api x', 16: 'gh api x'}})
+        self.assertEqual(len(rows[0]['answer']['findings']), 1)
+        self.assertEqual(rows[0]['dropped'], 0)
+        self.assertEqual(council.where(council.merge_findings(rows)[0]), 'w.sh:7,9,16')
+
     def test_lessons_are_append_only_and_tagged(self):
         import hashlib
         text = (ROOT / 'docs/council/LESSONS.md').read_text()

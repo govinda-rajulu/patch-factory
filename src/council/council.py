@@ -15,6 +15,7 @@ Safety design (see docs/council/README.md):
 Standard library only: nothing is installed at run time.
 """
 import concurrent.futures
+import datetime
 import hashlib
 import json
 import os
@@ -290,6 +291,31 @@ def candidates(seat, env):
     return [m for m in seat['models'] if m in ids] + [m for m in seat['models'] if m not in ids]
 
 
+def retry_wait(env, text):
+    """Seconds before the one retry of a busy model: the provider's own hint when it gives one
+    (Gemini retryDelay, "try again in Ns", Retry-After), else the base, never over 60."""
+    base = float(env.get('PF_RETRY_SLEEP', '15'))
+    if not base:
+        return 0.0
+    m = re.search(r'(?i)"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"|try again in (\d+(?:\.\d+)?)s|retry[- ]after\W{0,3}(\d+)', text or '')
+    hint = float(next(g for g in m.groups() if g)) if m else 0.0
+    return min(60.0, max(base, hint))
+
+
+def desk_job(cfg, spec, now):
+    """Scheduled council work on the desk issue: twice a day one audit shard in rotation,
+    so every shard is re-read about every 6 days and free tiers see one job at a time;
+    Monday morning is triage instead."""
+    desk = cfg.get('desk')
+    if not (isinstance(desk, int) and desk > 0):
+        raise Refused('seats.json has no desk issue')
+    if now.weekday() == 0 and now.hour < 12:
+        return 'triage', {'PF_ISSUE': str(desk)}
+    ids = [s['id'] for s in spec['shards']]
+    slot = now.toordinal() * 2 + (now.hour >= 12)
+    return 'audit', {'PF_ISSUE': str(desk), 'PF_SHARD': ids[slot % len(ids)]}
+
+
 def remembered(kind):
     """Per-run memory (missing models, refused optional fields), kept with the catalog
     cache so one reset clears both."""
@@ -335,7 +361,7 @@ def complete(seat, model, system, user, env, retry=True, extra=()):
             # Busy or unreachable (28 Sep 2026: Gemini 503 twice, minimax timeout): the seat
             # moves on to its next model instead of failing.
             raise Busy('provider returned %s' % status)
-        time.sleep(float(env.get('PF_RETRY_SLEEP', '10')))
+        time.sleep(retry_wait(env, text))
 
 
 def strip_think(text):
@@ -549,8 +575,22 @@ def verify_quotes(rows, sources):
                 want = f['line'] if isinstance(f['line'], int) else hits[0]
                 kept.append(dict(f, line=min(hits, key=lambda n: abs(n - want))))
         r['dropped'] = len(r['answer']['findings']) - len(kept)
-        r['answer']['findings'] = kept
+        # One seat repeating one issue on several lines of a file is one row with every line.
+        first, out = {}, []
+        for f in kept:
+            key = (f['file'], norm(f['issue']).lower())
+            if key in first:
+                first[key].setdefault('also', []).append(f['line'])
+            else:
+                first[key] = f
+                out.append(f)
+        r['answer']['findings'] = out
     return rows
+
+
+def where(g):
+    lines = [g['line']] + sorted(set(g.get('also', [])) - {g['line']})
+    return clean(g['file'], 120) + ('' if g['line'] is None else ':' + ','.join(str(n) for n in lines[:8]))
 
 
 def diff_sources(diff):
@@ -672,8 +712,8 @@ def render_review(rows, pr, prompt_hash, pack_hash):
         if found:
             out += ['', '| agree | severity | where | issue | suggested fix |', '|---|---|---|---|---|']
             for g in found[:15]:
-                where = clean(g['file'], 120) + ('' if g['line'] is None else ':%d' % g['line'])
-                out.append('| %d/%d | %s | %s | %s | %s |' % (len(g['seats']), len(ok), g['severity'], where,
+                at = where(g)
+                out.append('| %d/%d | %s | %s | %s | %s |' % (len(g['seats']), len(ok), g['severity'], at,
                                                           clean(g['issue']), clean(g['fix']) or '-'))
             out += ['', 'Findings seen by one seat only are leads, not conclusions.']
         else:
@@ -975,8 +1015,8 @@ def render_audit(shard, rows, parts, skipped, unreached, prompt_hash, pack_hash)
     if found:
         out += ['', '| agree | severity | where | issue | suggested fix |', '|---|---|---|---|---|']
         for g in found[:30]:
-            where = clean(g['file'], 120) + ('' if g['line'] is None else ':%d' % g['line'])
-            out.append('| %d | %s | %s | %s | %s |' % (len(g['seats']), g['severity'], where,
+            at = where(g)
+            out.append('| %d | %s | %s | %s | %s |' % (len(g['seats']), g['severity'], at,
                                                      clean(g['issue']), clean(g['fix']) or '-'))
         out += ['', 'Leads, not conclusions: each finding is verified against the code before any change.']
     elif ok:
@@ -1163,6 +1203,15 @@ def main(env=None):
     env = dict(os.environ if env is None else env)
     cfg = json.loads(read('src/council/seats.json'))
     event, mode = env.get('PF_EVENT', ''), env.get('PF_MODE') or 'probe'
+    if event == 'schedule':
+        try:
+            mode, extra = desk_job(cfg, json.loads(read('src/council/shards.json')),
+                                   datetime.datetime.now(datetime.timezone.utc))
+        except Refused as e:
+            print('council refused: ' + str(e))
+            return 1
+        env.update(extra)
+        print('council: scheduled %s %s' % (mode, extra.get('PF_SHARD', '')))
     job = 'review' if event == 'pull_request' else mode
     seats = [s for s in cfg['seats'] if job in s.get('jobs', JOBS)]
     try:

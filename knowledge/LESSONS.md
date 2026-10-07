@@ -67,6 +67,11 @@ This file keeps only what fits in neither.
 21. **One standing issue per failing workflow.** 38 of 39 per-run failure issues were the same
     ci.yml story. Failures comment on one "Failing:" issue; the next green run closes it.
 
+22. **Free tiers are shared by every job at once.** Eleven audit shards dispatched together made
+    gemini busy on every part. Heavy jobs run one at a time, on a schedule, not in a burst.
+23. **A fetch tool can truncate; count from the API, not from a page you read.** "Three shards
+    posted nothing" was a truncated read; every run had succeeded and posted. Check counts twice.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of

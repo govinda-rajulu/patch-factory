@@ -1,6 +1,15 @@
 # Open work
 
-## Current checkpoint: 7 October 2026 (packet V1)
+## Current checkpoint: 7 October 2026, afternoon (packet V2)
+
+V1 is on main (PR #153): council desk #154, triage scored 18 of 19 calls right, 17 stale failure
+issues and #152 closed, 45 old releases deleted with tags kept (receipt PR #155). Packet V2 tunes
+the seats from that score, runs the council on a schedule one job at a time, and moves closed
+checkpoints to [history](history/README.md). Open: verify desk leads, packet S2 (publisher pins,
+version step-down), Edge, #102, F05/F06, PR53, phone tests, the agent runner pilot
+([plan](../council/RUNNERS.md)), Pages and release-notes consolidation.
+
+## Earlier checkpoint: 7 October 2026 (packet V1)
 
 Packet V1 fixes why council seats failed (JSON mode, low reasoning, 404 fall-through, one repair
 turn, quoted findings), adds the council `triage` lane, and replaces per-run failure issues with
@@ -76,7 +85,7 @@ Packet L, one PR on main `93fc2b98`. What it fixes, with the evidence in the PR 
   fixed warning because `source_inputs.py` swallowed the reason; it now prints its own reason,
   the fetcher's exit code and duration, and the observed manifest facts.
 
-First post-merge run (36534562050, see the [session record](SESSION-2026-09-29.md)): Prime
+First post-merge run (36534562050, see the [session record](history/SESSION-2026-09-29.md)): Prime
 Video built 3.0.470.357 and AdGuard ignored the other provider, as intended. Facebook 580 failed
 at patch time on an AMOLED theme fingerprint pulled in as a dependency; nothing was published.
 
@@ -95,7 +104,7 @@ shadow-only. The 26 September section below is now the previous checkpoint.
 
 ## Latest checkpoint: 26 September 2026
 
-Start with the [26 September handover](HANDOVER-2026-09-26.md): current main after
+Start with the [26 September handover](history/HANDOVER-2026-09-26.md): current main after
 PR86-PR88, the five exact-version source fallbacks (Photos with its exact signer
 rotation pair), workflow schedules in IST, the release and branch cleanup record
 and the next entry point. Dated sections below are history, not current state.

@@ -15,8 +15,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WF = ROOT / '.github/workflows'
 LINE = re.compile(r'^\s+- cron: "([0-9]{1,2}) ([0-9]{1,2}) ([^"]+)"\s+# ([0-9]{2}):([0-9]{2}) IST\b')
-SCHEDULED = {'ci.yml', 'watch.yml', 'agent-watch.yml', 'community-watch.yml', 'keepalive.yml'}
-CRONS_PER_WORKFLOW = {'ci.yml': 4}  # every other scheduled workflow has exactly one
+SCHEDULED = {'ci.yml', 'watch.yml', 'agent-watch.yml', 'community-watch.yml', 'keepalive.yml', 'council.yml'}
+CRONS_PER_WORKFLOW = {'ci.yml': 4, 'council.yml': 2}  # every other scheduled workflow has exactly one
 MAIN_WRITERS = ('keepalive.yml', 'community-watch.yml')
 RESOLVE_IF = ("    if: needs.plan.outputs.resolution_matrix != '' && (github.event_name != 'schedule'"
               " || github.event.schedule == '%s' || needs.plan.outputs.count != '0')\n")
