@@ -1,0 +1,975 @@
+{
+ "base_main": "1fe3d4a75f941ae36b248132b692e16c58497ce8",
+ "date": "2026-10-07",
+ "deleted_releases": [
+  {
+   "assets": [
+    {
+     "digest": "sha256:e138d5bd6162132da639554d1f087923b2d782a56f151e61ee64dbe37ae56930",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092100000000035571131023000001/adguard-v4.14.68-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:f6d9b1d18f77e405906805a1b13c162c326a81e1ed9a22f1e4e6b6dd3cd84292",
+     "name": "pf-publication-v1-adguard.json",
+     "size": 1047,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092100000000035571131023000001/pf-publication-v1-adguard.json"
+    },
+    {
+     "digest": "sha256:e95e6f3f4bf141ff678257b9249d2e01dcb072afb88003077c12c61e91b9d38d",
+     "name": "pf-qualified-v1-adguard.json",
+     "size": 2671,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092100000000035571131023000001/pf-qualified-v1-adguard.json"
+    }
+   ],
+   "name": "adguard-v4.14.68-b2026092100000000035571131023000001",
+   "published_at": "2026-09-21T07:06:05Z",
+   "release_id": 392751772,
+   "tag": "adguard-v4.14.68-b2026092100000000035571131023000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:6611033d2ee9ceec7cc4437f835433dc55869a12a0d5428eef4feb98a2f770c1",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092200000000035758471077000001/adguard-v4.14.68-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:b5627b94b91571519b8d4e9debc0aa4bccb8024950d287536d74bb23fe96ee45",
+     "name": "pf-publication-v1-adguard.json",
+     "size": 2628,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092200000000035758471077000001/pf-publication-v1-adguard.json"
+    },
+    {
+     "digest": "sha256:bbe9a7ad3db7fdae8ad6deacf70e2f3fb5ee4fddfddb39d790cef468f5a00b4c",
+     "name": "pf-qualified-v1-adguard.json",
+     "size": 4323,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092200000000035758471077000001/pf-qualified-v1-adguard.json"
+    }
+   ],
+   "name": "adguard-v4.14.68-b2026092200000000035758471077000001",
+   "published_at": "2026-09-22T17:10:34Z",
+   "release_id": 393961461,
+   "tag": "adguard-v4.14.68-b2026092200000000035758471077000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:b7bc21657d45f2655a9b23d72e3466bd7a72de71f320085e36210facec532d16",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092800000000036382598835000001/adguard-v4.14.68-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:877b166025e976acb9dd2205af16eb39250d88a16644052f1ccdece068778dea",
+     "name": "pf-publication-v1-adguard.json",
+     "size": 3449,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092800000000036382598835000001/pf-publication-v1-adguard.json"
+    }
+   ],
+   "name": "adguard-v4.14.68-b2026092800000000036382598835000001",
+   "published_at": "2026-09-28T05:44:30Z",
+   "release_id": 397979062,
+   "tag": "adguard-v4.14.68-b2026092800000000036382598835000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:33ab621c8df963a9874e373895140bbd479b220a436754ae634edff03e5d58c2",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092800000000036433965940000001/adguard-v4.14.68-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:fac678ea81e7dc8e0f515ca64493142727fd74663348d7feea4cee203d4dd0c5",
+     "name": "pf-publication-v1-adguard.json",
+     "size": 3449,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092800000000036433965940000001/pf-publication-v1-adguard.json"
+    }
+   ],
+   "name": "adguard-v4.14.68-b2026092800000000036433965940000001",
+   "published_at": "2026-09-28T14:19:18Z",
+   "release_id": 398321904,
+   "tag": "adguard-v4.14.68-b2026092800000000036433965940000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:0f82282e72b571ae4feda2ee8a0a4c6d88629fcf525682407e69baf25c75f474",
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "size": 36771167,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092800000000036474247913000001/adguard-v4.14.68-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:56e7c9d8037bbbb227180adda413e72cc79794cefd899f3b21c1ea4c4841efc7",
+     "name": "pf-publication-v1-adguard.json",
+     "size": 3449,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026092800000000036474247913000001/pf-publication-v1-adguard.json"
+    }
+   ],
+   "name": "adguard-v4.14.68-b2026092800000000036474247913000001",
+   "published_at": "2026-09-28T19:52:53Z",
+   "release_id": 398574549,
+   "tag": "adguard-v4.14.68-b2026092800000000036474247913000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:76a89cfd021331c47003c5e03505b4fae70e93d74f9051575dc8b50062fe6690",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 50012635,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026091600000000035126469829000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    }
+   ],
+   "name": "es-file-v4.4.3.7-b2026091600000000035126469829000001",
+   "published_at": "2026-09-16T17:12:59Z",
+   "release_id": 390119878,
+   "tag": "es-file-v4.4.3.7-b2026091600000000035126469829000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:45cd3ff2f2ed0c84b0e7862a20cec58457301111dec7c3b763f33f6dd6a9b1b3",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 58348103,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026092100000000035571131023000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:69b2e67e27a736f288d9b0f3c9cd953ac0da4e944d361f3cded5abe39704c475",
+     "name": "pf-publication-v1-esfile.json",
+     "size": 1046,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026092100000000035571131023000001/pf-publication-v1-esfile.json"
+    },
+    {
+     "digest": "sha256:a35a9c3490d8dba6e37e6f00fb5586785655f8106e28088d1b0c1f4277ad1797",
+     "name": "pf-qualified-v1-esfile.json",
+     "size": 2666,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026092100000000035571131023000001/pf-qualified-v1-esfile.json"
+    }
+   ],
+   "name": "es-file-v4.4.3.7-b2026092100000000035571131023000001",
+   "published_at": "2026-09-21T07:06:34Z",
+   "release_id": 392751990,
+   "tag": "es-file-v4.4.3.7-b2026092100000000035571131023000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:c8874ff8f67cb8683841906c2ff60ffc6bbd5a0671abf4cf7ad3b6311ece56d5",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 58348103,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026092800000000036433965940000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:502ab7aedc9157d541f0baf8527e51241dba25afd798d455998a0bc30ce5c501",
+     "name": "pf-publication-v1-esfile.json",
+     "size": 3426,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026092800000000036433965940000001/pf-publication-v1-esfile.json"
+    }
+   ],
+   "name": "es-file-v4.4.3.7-b2026092800000000036433965940000001",
+   "published_at": "2026-09-28T14:18:56Z",
+   "release_id": 398321571,
+   "tag": "es-file-v4.4.3.7-b2026092800000000036433965940000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:55fe95b6e87343b303bdc331be436b69950182c66cb3d8abb5407187cda125f4",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 58348103,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026092900000000036639359589000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:fdeb2aa04b26cb0ec955b2c9a762889cf1abc50bf4e140c49e3c542acd31618d",
+     "name": "pf-publication-v1-esfile.json",
+     "size": 3426,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026092900000000036639359589000001/pf-publication-v1-esfile.json"
+    }
+   ],
+   "name": "es-file-v4.4.3.7-b2026092900000000036639359589000001",
+   "published_at": "2026-09-29T22:29:46Z",
+   "release_id": 399574391,
+   "tag": "es-file-v4.4.3.7-b2026092900000000036639359589000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:8a7e70c300df8f2573186f98431ac916afeedbed84eaf6e92c5d024fa1e79640",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 58348103,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026100200000000036970985857000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:2c501d85f52ada14457f9d82dcc19e5b4e0db989da01428e53156b1b8beb075b",
+     "name": "pf-publication-v1-esfile.json",
+     "size": 3427,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026100200000000036970985857000001/pf-publication-v1-esfile.json"
+    }
+   ],
+   "name": "es-file-v4.4.3.7-b2026100200000000036970985857000001",
+   "published_at": "2026-10-02T05:59:00Z",
+   "release_id": 401573800,
+   "tag": "es-file-v4.4.3.7-b2026100200000000036970985857000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:f6948f63d60911eaf95c8b431c53d71bd8c9720a1f0eb513d1bb1729c1a18c90",
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "size": 58348103,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026100400000000037181683094000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:a3f6faec0446a4192715556d006f1a53f91a9e6a97144af0f7a28424cfbd7e59",
+     "name": "pf-publication-v1-esfile.json",
+     "size": 3427,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026100400000000037181683094000001/pf-publication-v1-esfile.json"
+    }
+   ],
+   "name": "es-file-v4.4.3.7-b2026100400000000037181683094000001",
+   "published_at": "2026-10-04T06:09:21Z",
+   "release_id": 402872016,
+   "tag": "es-file-v4.4.3.7-b2026100400000000037181683094000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:641e8594462b336cfdb13c26763bddf5661750d83d4d31848eb8ecfd6ac762c6",
+     "name": "facebook-v490.0.0.63.82-arm64-v8a.apk",
+     "size": 162834617,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/facebook-v490.0.0.63.82-b2026092000000000035522352827000001/facebook-v490.0.0.63.82-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:a3d53444698fff1192e15979aa1fb25c956262cb7fcb3c6b5233b9b7585c1ebc",
+     "name": "pf-publication-v1-facebook.json",
+     "size": 2647,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/facebook-v490.0.0.63.82-b2026092000000000035522352827000001/pf-publication-v1-facebook.json"
+    }
+   ],
+   "name": "facebook-v490.0.0.63.82-b2026092000000000035522352827000001",
+   "published_at": "2026-09-20T16:24:45Z",
+   "release_id": 392494354,
+   "tag": "facebook-v490.0.0.63.82-b2026092000000000035522352827000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:0f546f4518bff8b32902661d0411e7dbc19ec64ffbf32c8e0d0191d460924a7f",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 23996036,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026091600000000035126469829000001/mx-player-v1.93.4-arm64-v8a.apk"
+    }
+   ],
+   "name": "mx-player-v1.93.4-b2026091600000000035126469829000001",
+   "published_at": "2026-09-16T17:12:21Z",
+   "release_id": 390119482,
+   "tag": "mx-player-v1.93.4-b2026091600000000035126469829000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:3c2bad149132898b3ddd5b29ca07e71419488013b7c8f25a6cac1f8c1bd6a0b4",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 36736082,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026092100000000035571131023000001/mx-player-v1.93.4-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:d9cf11b9cdc8b456b2c5a283deee4119c701980db30225b2bfff90233cfa3417",
+     "name": "pf-publication-v1-mxplayer.json",
+     "size": 1050,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026092100000000035571131023000001/pf-publication-v1-mxplayer.json"
+    },
+    {
+     "digest": "sha256:450f60b11d12f5faf7f8165fe7394b4bb4d59427c425eec45ec972f6972adec8",
+     "name": "pf-qualified-v1-mxplayer.json",
+     "size": 2678,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026092100000000035571131023000001/pf-qualified-v1-mxplayer.json"
+    }
+   ],
+   "name": "mx-player-v1.93.4-b2026092100000000035571131023000001",
+   "published_at": "2026-09-21T07:10:34Z",
+   "release_id": 392753774,
+   "tag": "mx-player-v1.93.4-b2026092100000000035571131023000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:f34606646fcbe310a818cf8bfa764468c801e0619de37a6093f96164456ff02a",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 36727890,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026092800000000036433965940000001/mx-player-v1.93.4-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:0500e028fd7bd1aa4eab80882f6b46005d64180f50496fe2bd79a688a5c07462",
+     "name": "pf-publication-v1-mxplayer.json",
+     "size": 3633,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026092800000000036433965940000001/pf-publication-v1-mxplayer.json"
+    }
+   ],
+   "name": "mx-player-v1.93.4-b2026092800000000036433965940000001",
+   "published_at": "2026-09-28T14:20:03Z",
+   "release_id": 398322500,
+   "tag": "mx-player-v1.93.4-b2026092800000000036433965940000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:9922eff0562e56d636b970881741f888b430b271274db72b7982167775b46af6",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 36727890,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026092900000000036639359589000001/mx-player-v1.93.4-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:91f81b7fb7b374a63b4a157572e5e40be4b56e628c56ddc7f44c1466a2716ada",
+     "name": "pf-publication-v1-mxplayer.json",
+     "size": 3633,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026092900000000036639359589000001/pf-publication-v1-mxplayer.json"
+    }
+   ],
+   "name": "mx-player-v1.93.4-b2026092900000000036639359589000001",
+   "published_at": "2026-09-29T22:29:38Z",
+   "release_id": 399574325,
+   "tag": "mx-player-v1.93.4-b2026092900000000036639359589000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:fad5b4bd636c296460a9e0cf84b1f5b3cbe8fa98127daa279bfcd24d52427af1",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 36727890,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026100200000000036970985857000001/mx-player-v1.93.4-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:4e8e5108584490d972a05ad562703569b37f031fc45565a23435c0004d693be0",
+     "name": "pf-publication-v1-mxplayer.json",
+     "size": 3634,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026100200000000036970985857000001/pf-publication-v1-mxplayer.json"
+    }
+   ],
+   "name": "mx-player-v1.93.4-b2026100200000000036970985857000001",
+   "published_at": "2026-10-02T05:58:59Z",
+   "release_id": 401573795,
+   "tag": "mx-player-v1.93.4-b2026100200000000036970985857000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:1f6f090b952b5d0b275c1cbe9b39fc7200b7aed7e4503cb59b49b94de0f02fff",
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "size": 36727890,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026100400000000037181683094000001/mx-player-v1.93.4-arm64-v8a.apk"
+    },
+    {
+     "digest": "sha256:4557571b2a53fb4ee5ecdd82537d703e636487de3d9bb0ab76197e99ecd8c41e",
+     "name": "pf-publication-v1-mxplayer.json",
+     "size": 3634,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026100400000000037181683094000001/pf-publication-v1-mxplayer.json"
+    }
+   ],
+   "name": "mx-player-v1.93.4-b2026100400000000037181683094000001",
+   "published_at": "2026-10-04T06:09:01Z",
+   "release_id": 402871863,
+   "tag": "mx-player-v1.93.4-b2026100400000000037181683094000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:06801f2e4cd43f895d64f49abd2a989f12f0fd34eb35868d5b3481277f9983e5",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 1067,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452.257-b2026092100000000035571131023000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:6ab96f3ad395047b4f1a6a921b2b59d299c0355c2c88bd102a2e15557b079aa5",
+     "name": "pf-qualified-v1-primevideo.json",
+     "size": 2703,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452.257-b2026092100000000035571131023000001/pf-qualified-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:da54e0c9d558d4db5f3c6583fa1d7ad182651e3cb63dbb0816860eceaecf37ac",
+     "name": "prime-video-v3.0.452.257-arm64-v8a.apk",
+     "size": 107914054,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452.257-b2026092100000000035571131023000001/prime-video-v3.0.452.257-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.452.257-b2026092100000000035571131023000001",
+   "published_at": "2026-09-21T07:07:11Z",
+   "release_id": 392752228,
+   "tag": "prime-video-v3.0.452.257-b2026092100000000035571131023000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:074523ad99c172c0420d40d1f10a2d66d05ba60c5bad23e6edc7c930d0bd9fc8",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 2651,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452.257-b2026092200000000035758471077000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:b93f75767a31d56ca8c05618a100934c73930b2e79ee2cca7a4ec82db70b04dd",
+     "name": "pf-qualified-v1-primevideo.json",
+     "size": 4358,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452.257-b2026092200000000035758471077000001/pf-qualified-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:0e90be11b0f49f7ad461916ca3c65abeac35994b7abf97b14a75b6d0bc8d4671",
+     "name": "prime-video-v3.0.452.257-arm64-v8a.apk",
+     "size": 107914054,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.452.257-b2026092200000000035758471077000001/prime-video-v3.0.452.257-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.452.257-b2026092200000000035758471077000001",
+   "published_at": "2026-09-22T17:10:17Z",
+   "release_id": 393961279,
+   "tag": "prime-video-v3.0.452.257-b2026092200000000035758471077000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:631687e151f7089f62543b325c296ff828a81d6bff78c1cf884065ae7e673141",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 3476,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026092900000000036534562050000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:885f09d04043c74037670878b9cf38aa486c910429b3b48155797a4205f31ea0",
+     "name": "prime-video-v3.0.470.357-arm64-v8a.apk",
+     "size": 126468798,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026092900000000036534562050000001/prime-video-v3.0.470.357-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.470.357-b2026092900000000036534562050000001",
+   "published_at": "2026-09-29T07:13:34Z",
+   "release_id": 398899262,
+   "tag": "prime-video-v3.0.470.357-b2026092900000000036534562050000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:5f6227df2d229157bd3cdf7207ec2ed3636f19a86e9081a1fbbee97a08777bf8",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 3476,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026092900000000036572677717000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:6fde96981f87d7bc3eb317e5e3bb8c21db59d25b9b4857ffed526dd10add3fff",
+     "name": "prime-video-v3.0.470.357-arm64-v8a.apk",
+     "size": 126468798,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026092900000000036572677717000001/prime-video-v3.0.470.357-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.470.357-b2026092900000000036572677717000001",
+   "published_at": "2026-09-29T13:11:40Z",
+   "release_id": 399161437,
+   "tag": "prime-video-v3.0.470.357-b2026092900000000036572677717000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:d762a138a9e104d8d0d2014f368c9fa4ccf73f54165430ac86c0ef1d13649914",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 3476,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026092900000000036639359589000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:9d676453d61be8304d2c6f073cf14695b9bfac51ae8103ade8b5b0fff6aa57ee",
+     "name": "prime-video-v3.0.470.357-arm64-v8a.apk",
+     "size": 126468798,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026092900000000036639359589000001/prime-video-v3.0.470.357-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.470.357-b2026092900000000036639359589000001",
+   "published_at": "2026-09-29T22:28:59Z",
+   "release_id": 399574001,
+   "tag": "prime-video-v3.0.470.357-b2026092900000000036639359589000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:d6084d2d2919949ce5199c4511d71660f2f5a736304a9fcc7236399c444205d4",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 3476,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026093000000000036674761180000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:bfb8df34413ffce6567b7269a16e608b19f82175f092fa2ff127d205166b7a0a",
+     "name": "prime-video-v3.0.470.357-arm64-v8a.apk",
+     "size": 126468798,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026093000000000036674761180000001/prime-video-v3.0.470.357-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.470.357-b2026093000000000036674761180000001",
+   "published_at": "2026-09-30T05:48:57Z",
+   "release_id": 399751731,
+   "tag": "prime-video-v3.0.470.357-b2026093000000000036674761180000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:a4c9f378be5a032f01ba853bf889dde4128f4b73e737b505e34df13e0ac38e85",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 3476,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026093000000000036716967959000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:88588d75689d3d59200d44a6751442d9229ecf78eda953b54ddc8604f8fb285f",
+     "name": "prime-video-v3.0.470.357-arm64-v8a.apk",
+     "size": 126468798,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026093000000000036716967959000001/prime-video-v3.0.470.357-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.470.357-b2026093000000000036716967959000001",
+   "published_at": "2026-09-30T12:51:09Z",
+   "release_id": 400042372,
+   "tag": "prime-video-v3.0.470.357-b2026093000000000036716967959000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:59e73a14b6d2004e280e17372fb927e5f01fae677e6385e4cdbc03a3d3182acf",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 3476,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026093000000000036785240779000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:9f00e0891f23e3d2ec40e20ff2337abbbecd9a8de188ddffb2f5ee7e51742a6d",
+     "name": "prime-video-v3.0.470.357-arm64-v8a.apk",
+     "size": 126468798,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026093000000000036785240779000001/prime-video-v3.0.470.357-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.470.357-b2026093000000000036785240779000001",
+   "published_at": "2026-09-30T22:28:29Z",
+   "release_id": 400483168,
+   "tag": "prime-video-v3.0.470.357-b2026093000000000036785240779000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:c49fb585a62612112d22ebdf9495c2581eed2c5a51954d9578307ab45f7c4e5e",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 3476,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026100300000000037155199406000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:4542ae552b2a11f66859d17555e264759015baec987fc35dc22083898171d92a",
+     "name": "prime-video-v3.0.470.357-arm64-v8a.apk",
+     "size": 126468798,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026100300000000037155199406000001/prime-video-v3.0.470.357-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.470.357-b2026100300000000037155199406000001",
+   "published_at": "2026-10-03T21:33:17Z",
+   "release_id": 402700451,
+   "tag": "prime-video-v3.0.470.357-b2026100300000000037155199406000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:83dabe15d10f0e4225645f7baf6963eecbd3bd49133a112e0a7a09d382661a8d",
+     "name": "pf-publication-v1-primevideo.json",
+     "size": 3476,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026100400000000037181683094000001/pf-publication-v1-primevideo.json"
+    },
+    {
+     "digest": "sha256:e29bb335c00031e2653d673d3cd5921e7bc34b56f0662077946816a5c8277927",
+     "name": "prime-video-v3.0.470.357-arm64-v8a.apk",
+     "size": 126468798,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026100400000000037181683094000001/prime-video-v3.0.470.357-arm64-v8a.apk"
+    }
+   ],
+   "name": "prime-video-v3.0.470.357-b2026100400000000037181683094000001",
+   "published_at": "2026-10-04T06:08:47Z",
+   "release_id": 402871763,
+   "tag": "prime-video-v3.0.470.357-b2026100400000000037181683094000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:94053af0bf06ba7d4da427b60833051e81d2bce4756f01911a0741f24ea3edc0",
+     "name": "pf-publication-v1-reddit.json",
+     "size": 2614,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/reddit-v2026.38.0-b2026092200000000035758471077000001/pf-publication-v1-reddit.json"
+    },
+    {
+     "digest": "sha256:6cb4a934c9e17766aea304644007a58190357cb2a35d4357c3e2279c0f6ef25f",
+     "name": "pf-qualified-v1-reddit.json",
+     "size": 4305,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/reddit-v2026.38.0-b2026092200000000035758471077000001/pf-qualified-v1-reddit.json"
+    },
+    {
+     "digest": "sha256:f2006d70e0b62c943c930cfb7fe2796e42b7678d9a9449a44488c9ffcff9d219",
+     "name": "reddit-v2026.38.0-arm64-v8a.apk",
+     "size": 65363968,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/reddit-v2026.38.0-b2026092200000000035758471077000001/reddit-v2026.38.0-arm64-v8a.apk"
+    }
+   ],
+   "name": "reddit-v2026.38.0-b2026092200000000035758471077000001",
+   "published_at": "2026-09-22T17:11:17Z",
+   "release_id": 393961911,
+   "tag": "reddit-v2026.38.0-b2026092200000000035758471077000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:2427b44c675a0b20f1f35a3c2fd9ba41051d72eb8c4c451aa95af6f489a10981",
+     "name": "pf-publication-v1-reddit.json",
+     "size": 3434,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/reddit-v2026.38.0-b2026092600000000036255844639000001/pf-publication-v1-reddit.json"
+    },
+    {
+     "digest": "sha256:360a60df57634e29659fc4489bc6ed3ee1df8e4eab128c998f8ca0b31aecc39c",
+     "name": "pf-qualified-v1-reddit.json",
+     "size": 5169,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/reddit-v2026.38.0-b2026092600000000036255844639000001/pf-qualified-v1-reddit.json"
+    },
+    {
+     "digest": "sha256:96259b0479f4267940333382c2058f731d8caa7b02b59f95b3f5a3b64b7b967d",
+     "name": "reddit-v2026.38.0-arm64-v8a.apk",
+     "size": 83834032,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/reddit-v2026.38.0-b2026092600000000036255844639000001/reddit-v2026.38.0-arm64-v8a.apk"
+    }
+   ],
+   "name": "reddit-v2026.38.0-b2026092600000000036255844639000001",
+   "published_at": "2026-09-26T16:44:51Z",
+   "release_id": 397316572,
+   "tag": "reddit-v2026.38.0-b2026092600000000036255844639000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:de5939c027f75c3faaf63c4daca57d145407c6a28e2fa295c2d06a3a51bc4b40",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3452,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092500000000036166775605000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:6c147ac99ca898e9a6eb561388de55dec724e460c6aca60f60cc63d6649e9d6f",
+     "name": "pf-qualified-v1-youtube.json",
+     "size": 5191,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092500000000036166775605000001/pf-qualified-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:90346fb3ee0e85bf4f4cc40234bba7551015c970265537e58d667def05903d01",
+     "name": "youtube-v21.38.123-arm64-v8a.apk",
+     "size": 110329954,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.38.123-b2026092500000000036166775605000001/youtube-v21.38.123-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.38.123-b2026092500000000036166775605000001",
+   "published_at": "2026-09-25T17:32:37Z",
+   "release_id": 396802002,
+   "tag": "youtube-morphe-v21.38.123-b2026092500000000036166775605000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:26a5d51a72e6c01148be5f4ca61c429d83ad18e530e1ba53ff08dfb367379bfe",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092600000000036255844639000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:58b6e628c38fe18362d33ed714203d62f0a82fdbe7b3f973d6b96751034ec40d",
+     "name": "pf-qualified-v1-youtube.json",
+     "size": 5192,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092600000000036255844639000001/pf-qualified-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:4823bdfde3f580ca0e1108c02184b616078ac1fb2bf3a39776e8841eb5367b0c",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111698683,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092600000000036255844639000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026092600000000036255844639000001",
+   "published_at": "2026-09-26T16:42:08Z",
+   "release_id": 397315511,
+   "tag": "youtube-morphe-v21.39.522-b2026092600000000036255844639000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:d5f86b65411776bacc5688a901e9bab1d7bcba69f86e888f68b37d128236b0c2",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092700000000036335618962000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:b71f257aaffe53bbdced9d626097ee483afb28c8be09b4b87ae0ca70bd4a4419",
+     "name": "pf-qualified-v1-youtube.json",
+     "size": 5192,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092700000000036335618962000001/pf-qualified-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:b61b3197b792fa6c0fddfc84f2863c9f5a62d6087ab32fb97a6c84649b8940d0",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111727355,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092700000000036335618962000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026092700000000036335618962000001",
+   "published_at": "2026-09-27T17:17:47Z",
+   "release_id": 397739071,
+   "tag": "youtube-morphe-v21.39.522-b2026092700000000036335618962000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:d0d0c1f2a58f35dbc4a79083b4a1e9ba7ad7742ea30b9ac63d3e10eead1ccc62",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092800000000036474247913000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:7062c129209a878f7e2471cdd1317f3d59a3080d455c0d6ebc1895bdfa5d2395",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111727355,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092800000000036474247913000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026092800000000036474247913000001",
+   "published_at": "2026-09-28T19:53:03Z",
+   "release_id": 398574678,
+   "tag": "youtube-morphe-v21.39.522-b2026092800000000036474247913000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:eac43064629cb7a4e5e7cb6824a4aac4bc17339e5ab5727b25a22bf5533da8e0",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092900000000036610022674000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:222f5882e3ae95cd8d470d5646a4ee20b70d255f921826c75d0b7bc09ed6b0e7",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111739643,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026092900000000036610022674000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026092900000000036610022674000001",
+   "published_at": "2026-09-29T18:18:43Z",
+   "release_id": 399410280,
+   "tag": "youtube-morphe-v21.39.522-b2026092900000000036610022674000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:439f8e57f86df1e2de089098b141fbfac56a622b5181926cfce7950d29e4c81d",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026093000000000036716967959000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:0041c69c85dbb7ac7127d18f0f06df12a6f18049207ee242d49a0f17a86d54b8",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111788795,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026093000000000036716967959000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026093000000000036716967959000001",
+   "published_at": "2026-09-30T12:51:57Z",
+   "release_id": 400043172,
+   "tag": "youtube-morphe-v21.39.522-b2026093000000000036716967959000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:990087f0860d46995b622cdba2832fc480253be449c21c7e39e36eb5b1418d49",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100100000000036869285386000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:00fb563a8826a0ff7c0fc8531c1089da63f9bce6b47d99342e8a556206b8d12c",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111792891,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100100000000036869285386000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026100100000000036869285386000001",
+   "published_at": "2026-10-01T13:37:46Z",
+   "release_id": 401003533,
+   "tag": "youtube-morphe-v21.39.522-b2026100100000000036869285386000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:4fe2a86c97590a54aea7ef9fbbaba3960fb61de19acf2c7f4f51256a56d53166",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100100000000036907124283000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:4705a552dfb21de1eaedd06d9589a26f814798397f19176abeb45c9e4176db64",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111868822,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100100000000036907124283000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026100100000000036907124283000001",
+   "published_at": "2026-10-01T18:38:27Z",
+   "release_id": 401247630,
+   "tag": "youtube-morphe-v21.39.522-b2026100100000000036907124283000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:58e81212bd78a4894cf628e152c6ba97eac418668de8ae781ad1b93712e5134b",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100200000000037009107015000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:813a4141759a7e40115d01c0797f3e292688002ebe9cdfe35d1d78aec4f5270b",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111836054,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100200000000037009107015000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026100200000000037009107015000001",
+   "published_at": "2026-10-02T12:55:24Z",
+   "release_id": 401818299,
+   "tag": "youtube-morphe-v21.39.522-b2026100200000000037009107015000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:b61eb0956ea17371fa34670a4cae66050ec2d51d9879a4e8156d24084cfb52b1",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100300000000037120855985000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:a5a381d5fb853533ea2e35fbd8ce4de6cd1b5055eb81c323fe1c7a465bf03bf6",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111384020,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100300000000037120855985000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026100300000000037120855985000001",
+   "published_at": "2026-10-03T11:54:31Z",
+   "release_id": 402490846,
+   "tag": "youtube-morphe-v21.39.522-b2026100300000000037120855985000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:28f65cc7e8f158c2c642a857fe181caf21a44b6454fd11ffcd67fdea83337da2",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100400000000037202442313000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:27db7de46c129c59c059e00ca46c220da20d046434e0a40d44299f357b81d112",
+     "name": "youtube-v21.39.522-arm64-v8a.apk",
+     "size": 111400404,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.39.522-b2026100400000000037202442313000001/youtube-v21.39.522-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.39.522-b2026100400000000037202442313000001",
+   "published_at": "2026-10-04T12:38:15Z",
+   "release_id": 403014403,
+   "tag": "youtube-morphe-v21.39.522-b2026100400000000037202442313000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:ff77d044232289542f1112e0860080647766338b028d4c512bf9133a14d36368",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.40.161-b2026100400000000037236939220000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:5e63e56e6f462af85af61fee5b6453486ba0223519b7388c2873720c964baf39",
+     "name": "youtube-v21.40.161-arm64-v8a.apk",
+     "size": 113536051,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.40.161-b2026100400000000037236939220000001/youtube-v21.40.161-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.40.161-b2026100400000000037236939220000001",
+   "published_at": "2026-10-04T21:45:36Z",
+   "release_id": 403222741,
+   "tag": "youtube-morphe-v21.40.161-b2026100400000000037236939220000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:dfd95b748525a1fb70eb133cdaca925b384ad74fc24d102fdfea91097f319c87",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.40.161-b2026100500000000037328897708000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:e16b9d28500352a9dc09e3cc48430824e79a18954cf9221b5f62ac30f6843bbb",
+     "name": "youtube-v21.40.161-arm64-v8a.apk",
+     "size": 113519535,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.40.161-b2026100500000000037328897708000001/youtube-v21.40.161-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.40.161-b2026100500000000037328897708000001",
+   "published_at": "2026-10-05T15:03:32Z",
+   "release_id": 403843828,
+   "tag": "youtube-morphe-v21.40.161-b2026100500000000037328897708000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:a6643c5a3b85c257249a76e96e9c36cc244083a68e3a8ae8b0efc58c8b68df25",
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.40.161-b2026100600000000037392504941000001/pf-publication-v1-youtube.json"
+    },
+    {
+     "digest": "sha256:5a8bfb0be6347a8da27a513db8ab8bd7eea27b9929212d9f33dd67470f23048d",
+     "name": "youtube-v21.40.161-arm64-v8a.apk",
+     "size": 113544111,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.40.161-b2026100600000000037392504941000001/youtube-v21.40.161-arm64-v8a.apk"
+    }
+   ],
+   "name": "youtube-morphe-v21.40.161-b2026100600000000037392504941000001",
+   "published_at": "2026-10-06T00:14:37Z",
+   "release_id": 404187980,
+   "tag": "youtube-morphe-v21.40.161-b2026100600000000037392504941000001"
+  },
+  {
+   "assets": [
+    {
+     "digest": "sha256:039495e64f62869651a04b84926488118f96eb2abd0032692eac2bbd61231e09",
+     "name": "pf-publication-v1-ytmusic.json",
+     "size": 1049,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/yt-music-v9.40.51-b2026100600000000037448728870000001/pf-publication-v1-ytmusic.json"
+    },
+    {
+     "digest": "sha256:ad536f9b5659e2bed4dbf816106ff5fe81c597e3a93e59012f7825c16fafbac5",
+     "name": "pf-qualified-v1-ytmusic.json",
+     "size": 2655,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/yt-music-v9.40.51-b2026100600000000037448728870000001/pf-qualified-v1-ytmusic.json"
+    },
+    {
+     "digest": "sha256:bdc9098a1a6d6021358d2ca38b04960717b27d01174d4afdc5714f887362c593",
+     "name": "yt-music-v9.40.51-arm64-v8a.apk",
+     "size": 79361440,
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/yt-music-v9.40.51-b2026100600000000037448728870000001/yt-music-v9.40.51-arm64-v8a.apk"
+    }
+   ],
+   "name": "yt-music-v9.40.51-b2026100600000000037448728870000001",
+   "published_at": "2026-10-06T10:19:30Z",
+   "release_id": 404574387,
+   "tag": "yt-music-v9.40.51-b2026100600000000037448728870000001"
+  }
+ ],
+ "inventory_count": 97,
+ "inventory_fingerprint": "490d159d19ab0bd477e23a5765e1319bca7f58afb108b44e0442f780bad052fb",
+ "limits": "Release metadata only; old APK bytes of deleted releases are not preserved. Tags remain, so each release can be recreated at its commit but not with identical APK bytes.",
+ "owner_choice": "typed DELETE in the packet V1 controller",
+ "protected_count": 52,
+ "protected_still_present": true,
+ "retention_preview_fingerprint": "db335ce5a0b0e8de63b7e0f46d15b9731f617743f9af49f8b499c21768aff8b9",
+ "schema": 1,
+ "tags_kept": true
+}
