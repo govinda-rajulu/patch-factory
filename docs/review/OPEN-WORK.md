@@ -1,6 +1,15 @@
 # Open work
 
-## Current checkpoint: 6 October 2026, night
+## Current checkpoint: 7 October 2026 (packet V1)
+
+Packet V1 fixes why council seats failed (JSON mode, low reasoning, 404 fall-through, one repair
+turn, quoted findings), adds the council `triage` lane, and replaces per-run failure issues with
+one standing "Failing:" issue per workflow that closes on the next green run. Its controller
+closes the 17 stale per-run failure issues with evidence. Open: verify audit leads, packet S2
+(publisher pins, version step-down), Edge, #102, F05/F06, PR53, phone tests, the agent runner
+pilot ([plan](../council/RUNNERS.md)), Pages and release-notes consolidation (V2).
+
+## Earlier checkpoint: 6 October 2026, night
 
 Packet S1 is on main (PR #150) and Reddit built green through the second store; #146 is closed.
 Packet T1 adds three free council providers, the council `audit` lane over repository shards

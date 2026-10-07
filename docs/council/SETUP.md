@@ -36,7 +36,9 @@ provider's own pricing or rate-limit page.
 directly) and `minimax` became `kimi` (none of its models was served). `max_input_chars` is each seat's budget;
 a pack larger than the budget makes that seat abstain instead of failing. So the Groq seat (8000
 tokens a minute) answers probes and small asks, while the large seats take reviews and audits.
-Quorum stays 3 valid answers.
+Quorum stays 3 valid answers. A seat's optional `jobs` list limits what it is sent (Groq: probe
+and ask), and `reasoning_effort` plus `max_tokens` keep reasoning models from spending their
+whole answer budget thinking (7 Oct 2026: four seats failed that way, see LESSONS 19).
 
 ## Lanes: small to heavy
 
@@ -47,13 +49,14 @@ Quorum stays 3 valid answers.
 | M: one change | every pull request (automatic) | none | merged findings with seat agreement |
 | L: one shard | mode `audit` | `shard`, `issue` | merged findings for that shard, one comment per shard |
 | XL: whole repo | mode `audit` once per shard, same issue | every id in `src/council/shards.json` | one comment per shard on one issue |
+| M: issue hygiene | mode `triage` | `issue` (where the table goes) | close, keep or owner per open issue, cited |
 | health | mode `probe` | none | which seats answer, in the run summary |
 
 Audit shards (`src/council/shards.json`): workflows, council, selection, build-shell,
 build-python, etc, portal, docs, tests-build, tests, rest. Each shard is split into parts of at
 most 70000 characters, so every part fits a 100000-character seat with its trusted context.
 Records under `docs/review/`, generated files, the licence, the archive and binary files are
-never sent. A run stops starting new parts after 40 minutes and names the parts it did not reach.
+never sent. A run stops starting new parts after 30 minutes (one slow part once outlived the 50-minute job) and names the parts it did not reach.
 
 ## How results are used
 

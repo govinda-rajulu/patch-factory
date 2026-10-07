@@ -46,7 +46,16 @@ error still stops the seat. GitHub Models retired on 30 Jul 2026, so no seat use
   `src/council/shards.json`, read at the dispatched commit and reviewed in parts of at most
   70000 characters with [AUDIT.md](AUDIT.md). One comment per shard on the chosen issue, edited
   on a rerun. Running every shard on one issue is a whole-repository audit.
+- **Triage** (mode `triage`, input `issue`): every other open issue, 6 per call, judged `close`,
+  `keep` or `owner` with [TRIAGE.md](TRIAGE.md). A verdict must cite a run id, an issue or PR
+  number, or a repository path; uncited verdicts are dropped. One table on the chosen issue.
+  It closes nothing; the owner or a packet does.
 - **Probe** (mode `probe`): shows which seats answer and which model each picked. Posts nothing.
+
+Since 7 Oct 2026 (packet V1) every reply is asked for in JSON mode, reasoning seats run with low
+effort and room to answer, a 404 moves to the seat's next model, a refused reply gets one repair
+turn, and every review or audit finding must quote a line that really is in the cited file
+(else it is dropped and counted). Seats may list `jobs` in seats.json; Groq takes only probe and ask.
 
 ## Outcomes
 

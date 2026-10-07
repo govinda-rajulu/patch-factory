@@ -11,7 +11,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   open-issue:
-    if: ${{ contains(fromJSON('["failure","timed_out","startup_failure","action_required"]'), github.event.workflow_run.conclusion) }}
+    # Failures report into one standing issue per workflow; a success closes it.
+    if: ${{ contains(fromJSON('["failure","timed_out","startup_failure","action_required","success"]'), github.event.workflow_run.conclusion) }}
     runs-on: ubuntu-24.04
     steps:
       # No checkout, artifact download, external script or raw log copying in this
@@ -50,7 +51,7 @@ jobs:
               need(run.repository?.full_name === repo && run.head_repository?.full_name === repo,
                 "Foreign or missing repository identity");
               need(typeof run.head_sha === "string" && /^[0-9a-f]{40}$/.test(run.head_sha), "Invalid source commit");
-              need(run.status === "completed" && failures.has(run.conclusion), "Run is not a completed failure");
+              need(run.status === "completed" && (failures.has(run.conclusion) || run.conclusion === "success"), "Run is not a completed failure or success");
               need(permitted.get(run.path) === run.name, "Workflow path/name outside notification scope");
               need(["workflow_dispatch", "schedule", "push", "workflow_call"].includes(run.event),
                 "Unexpected triggering event; no privileged report");
@@ -66,6 +67,50 @@ jobs:
               run.name === trigger.name && run.conclusion === trigger.conclusion &&
               run.head_branch === trigger.head_branch && run.event === trigger.event,
               "Event and exact-attempt record disagree");
+            const runURL = `https://github.com/${repo}/actions/runs/${run.id}/attempts/${run.run_attempt}`;
+            // One standing issue per workflow (7 Oct 2026): failures add a comment to it, the next
+            // green run of the same workflow closes it. 38 of 39 per-run issues were noise.
+            const standing = `<!-- pf-failing:v3:${repo}:${run.path} -->`;
+            const marker = `<!-- pf-failure:v2:${repo}:${run.id}:${run.run_attempt}:${run.head_sha} -->`;
+            // Search all issue states before any write.
+            const rows = [];
+            let completeIssues = false;
+            const seenIssues = new Set();
+            for (let page = 1; page <= 100; page++) {
+              const data = (await github.rest.issues.listForRepo({
+                owner: O, repo: R, state: "all", sort: "created", direction: "asc", per_page: 100, page
+              })).data;
+              need(Array.isArray(data) && data.length <= 100, "Invalid issue inventory");
+              for (const issue of data) {
+                need(id(issue.id) && !seenIssues.has(issue.id), "Duplicate issue inventory row");
+                seenIssues.add(issue.id);
+                if (!issue.pull_request && typeof issue.body === "string") rows.push(issue);
+              }
+              if (data.length < 100) { completeIssues = true; break; }
+            }
+            need(completeIssues, "Issue inventory exceeded bound; no write");
+            const open = rows.filter(i => i.state === "open" && i.body.split("\n")[0] === standing);
+            need(open.length <= 1, "Two open failing issues for one workflow; no automatic edits");
+            if (open.length) need(open[0].user?.login === "github-actions[bot]", "Failing-issue identity collision with another author");
+            async function still() {
+              // Detect a later attempt starting during collection before publishing anything.
+              const current = (await github.rest.actions.getWorkflowRun({ owner: O, repo: R, run_id: run.id })).data;
+              need(current.run_attempt === run.run_attempt && current.head_sha === run.head_sha &&
+                current.status === "completed" && current.conclusion === run.conclusion &&
+                current.repository?.full_name === repo && current.head_repository?.full_name === repo,
+                "Run changed during collection; no notification");
+            }
+            if (run.conclusion === "success") {
+              if (!open.length) { core.info("Green; no open failing issue for this workflow."); return; }
+              await still();
+              const n = open[0].number;
+              need(id(n), "Invalid failing issue number");
+              await github.rest.issues.createComment({ owner: O, repo: R, issue_number: n,
+                body: `Green again: [run ${run.id}, attempt ${run.run_attempt}](${runURL}) on \`${run.head_sha.slice(0, 12)}\`. Closing.` });
+              await github.rest.issues.update({ owner: O, repo: R, issue_number: n, state: "closed", state_reason: "completed" });
+              core.info(`Closed failing issue ${n} after green run ${run.id}.`);
+              return;
+            }
             const jobs = [], seen = new Set();
             let expected = null, finished = false;
             for (let page = 1; page <= 100; page++) {
@@ -93,13 +138,9 @@ jobs:
             }
             need(finished, "Jobs exceeded complete-inventory bound");
             const failed = jobs.filter(j => failures.has(j.conclusion) || ["cancelled", "stale"].includes(j.conclusion));
-            const marker = `<!-- pf-failure:v2:${repo}:${run.id}:${run.run_attempt}:${run.head_sha} -->`;
-            const runURL = `https://github.com/${repo}/actions/runs/${run.id}/attempts/${run.run_attempt}`;
             const lines = [
               marker, `## ${label(run.name)}: ${run.conclusion}`,
-              `Run [${run.id}, attempt ${run.run_attempt}](${runURL})`,
-              `Source commit: \`${run.head_sha}\``,
-              `Branch: ${label(run.head_branch || "(none)")} | Event: ${run.event}`,
+              `[Run ${run.id}, attempt ${run.run_attempt}](${runURL}) on \`${run.head_sha}\`, ${label(run.head_branch || "(none)")}, ${run.event}.`,
               `Job inventory: ${jobs.length}/${expected}. Failed or interrupted jobs: ${failed.length}.`,
               `Skipped: ${jobs.filter(j => j.conclusion === "skipped").length}; neutral: ${jobs.filter(j => j.conclusion === "neutral").length}.`,
               ""
@@ -121,49 +162,44 @@ jobs:
               else lines.push("- No failing step recorded; inspect startup/cancellation details.");
               lines.push("");
             }
-            lines.push("Raw logs are deliberately not copied to this public issue. Review the linked exact-attempt logs privately; never post keys, tokens, signed URLs or signing arguments.",
-              "", "This record does not close, reopen or claim recovery of an older issue. A rerun is a different attempt; inspect current source before rerunning old work.");
+            lines.push("Logs stay in the linked run; none are copied here. A rerun is a different attempt.");
             const body = lines.join("\n");
             need(Buffer.byteLength(body, "utf8") <= 60000, "Report exceeds issue limit; refusing truncation or partial posting");
-            // Search all issue states; a closed report must not be reopened, and
-            // a repeated event must not create a duplicate or comment storm.
-            const matches = [];
-            let completeIssues = false;
-            const seenIssues = new Set();
-            for (let page = 1; page <= 100; page++) {
-              const rows = (await github.rest.issues.listForRepo({
-                owner: O, repo: R, state: "all", sort: "created", direction: "asc", per_page: 100, page
-              })).data;
-              need(Array.isArray(rows) && rows.length <= 100, "Invalid issue inventory");
-              for (const issue of rows) {
-                need(id(issue.id) && !seenIssues.has(issue.id), "Duplicate issue inventory row");
-                seenIssues.add(issue.id);
-                if (!issue.pull_request && typeof issue.body === "string" && issue.body.split("\n")[0] === marker)
-                  matches.push(issue);
-              }
-              if (rows.length < 100) { completeIssues = true; break; }
-            }
-            need(completeIssues, "Issue inventory exceeded bound; no write");
-            need(matches.length <= 1, "Duplicate report identity; no automatic edits");
-            if (matches.length) {
-              need(matches[0].user?.login === "github-actions[bot]", "Report identity collision with another author");
+            // Idempotent across the old per-run issues (v2) and the standing issue and its comments.
+            const legacy = rows.filter(i => i.body.split("\n")[0] === marker);
+            need(legacy.length <= 1, "Duplicate report identity; no automatic edits");
+            if (legacy.length) {
+              need(legacy[0].user?.login === "github-actions[bot]", "Report identity collision with another author");
               core.info("Exact run-attempt report already exists; no issue edits or comments.");
               return;
             }
-            // Detect a later attempt starting during collection before publishing
-            // a misleading old-attempt notification. Old logs remain linked in CI.
-            const current = (await github.rest.actions.getWorkflowRun({
-              owner: O, repo: R, run_id: run.id
-            })).data;
-            need(current.run_attempt === run.run_attempt && current.head_sha === run.head_sha &&
-              current.status === "completed" && current.conclusion === run.conclusion &&
-              current.repository?.full_name === repo && current.head_repository?.full_name === repo,
-              "Run changed during collection; no notification");
+            if (open.length) {
+              const n = open[0].number;
+              need(id(n), "Invalid failing issue number");
+              if (open[0].body.split("\n")[1] === marker) { core.info("Exact run-attempt report already exists; no issue edits or comments."); return; }
+              let completeComments = false;
+              for (let page = 1; page <= 30; page++) {
+                const data = (await github.rest.issues.listComments({ owner: O, repo: R, issue_number: n, per_page: 100, page })).data;
+                need(Array.isArray(data) && data.length <= 100, "Invalid comment inventory");
+                if (data.some(c => typeof c.body === "string" && c.body.split("\n")[0] === marker && c.user?.login === "github-actions[bot]")) {
+                  core.info("Exact run-attempt report already exists; no issue edits or comments.");
+                  return;
+                }
+                if (data.length < 100) { completeComments = true; break; }
+              }
+              need(completeComments, "Comment inventory exceeded bound; no write");
+              await still();
+              const c = await github.rest.issues.createComment({ owner: O, repo: R, issue_number: n, body });
+              need(id(c.data.id), "Comment creation not confirmed; inspect before retry");
+              core.info(`Added run ${run.id} to failing issue ${n}.`);
+              return;
+            }
+            await still();
             const result = await github.rest.issues.create({
               owner: O, repo: R,
-              title: `Workflow failure: ${run.id} / attempt ${run.run_attempt}`,
-              body
+              title: `Failing: ${label(run.name)}`,
+              body: standing + "\n" + body + "\n\nNext failures of this workflow add a comment here; its next green run closes this issue."
             });
             need(id(result.data.number), "Issue creation not confirmed; inspect before retry");
-            core.info(`Created exact-attempt failure issue ${result.data.number}.`);
+            core.info(`Created failing issue ${result.data.number}.`);
             // PF_NOTIFY_CONTRACT_END

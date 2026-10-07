@@ -30,6 +30,8 @@ runs:
       shell: bash
       run: |
         wget -q -O usque.zip https://github.com/Diniboy1123/usque/releases/download/v4.2.0/usque_4.2.0_linux_amd64.zip
+        # Pinned digest of the v4.2.0 release asset (GitHub release metadata, 6 Oct 2026). A mismatch stops the job.
+        echo "ad99583cadd06777c67b20a8a10caa09073da809553f041a17433ae67e05a4ad  usque.zip" | sha256sum -c --quiet - || { echo "::error::usque.zip checksum mismatch; not installed"; exit 1; }
         unzip -o usque.zip -d usque
         chmod +x usque/usque
         sudo mv usque/usque /usr/local/bin/usque

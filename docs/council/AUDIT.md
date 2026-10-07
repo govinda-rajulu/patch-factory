@@ -18,11 +18,14 @@ Look for, in this order:
 4. Workflow and script risks: shell injection from inputs, broad permissions, unsafe temp files.
 5. Plain bugs, dead code and stale documentation that contradicts the code; nits last.
 
-Rules: cite the file and the line number counted from its "=== FILE" line for every finding.
-Report only what these files show; do not guess about files you cannot see. Prefer no finding
-to a speculative one. Never claim tests or builds pass. At most 8 findings, most severe first.
+Rules: every finding copies one exact line of the cited file into "quote"; a finding whose
+quote is not in that file is dropped. Report only what these files show. Prefer no finding to
+a speculative one; generic advice ("add retries", "add a timeout") without a quoted line is not
+a finding. Never claim tests or builds pass. At most 8 findings, most severe first. Caveman
+style: short plain words; issue and fix at most 100 characters each.
 
-Answer with exactly one JSON object with exactly these keys:
-{"summary": "one or two sentences", "verdict": "looks_ok|needs_changes|unsure",
- "findings": [{"severity": "high|medium|low|nit", "file": "path", "line": integer or null,
- "issue": "what is wrong", "fix": "smallest safe fix, or empty string", "rule": "AGENTS.md line or lesson id, or empty string"}]}
+Answer with exactly one JSON object. verdict is looks_ok, needs_changes or unsure; severity is
+high, medium, low or nit; line counts from the file's first line; fix and rule may be "".
+{"summary": "one short sentence", "verdict": "needs_changes", "findings": [{"severity": "medium",
+ "file": "src/build/build.sh", "line": 12, "quote": "exact text of that line", "issue": "what is wrong",
+ "fix": "smallest safe fix", "rule": "AGENTS.md or lesson id"}]}

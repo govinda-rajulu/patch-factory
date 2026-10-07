@@ -2,6 +2,21 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 7 Oct 2026 (packet V1)
+
+- **Base** main `d2060b82` (PR #151, packet T1). Audit issue #152: 8 of 11 shards posted; only
+  `codestral` and `command` answered every part. Causes: unreadable or cut JSON (gpt, gemini,
+  nemotron, open), NVIDIA 404 for kimi-k2.6 that stopped the seat, Groq over budget, and three
+  shards (build-python, tests-build, tests) that posted nothing (job time limit suspected).
+- **Packet V1**: council JSON mode with per-seat reasoning effort and refusal fallback, 404 falls
+  through, one repair turn, findings must quote the cited file (`verify_quotes`), seat `jobs`, a
+  `triage` mode (`docs/council/TRIAGE.md`), audit deadline 30 minutes. `notify-failure.yml`: one
+  standing "Failing:" issue per workflow. usque zip checked against its release digest; `#` lines
+  in selection files are skipped. Agent runner research: `docs/council/RUNNERS.md`.
+- **Next**: (1) read the triage score and the re-run audit shards; packet what reproduces.
+  (2) V2: agent runner pilot, Pages and release-notes consolidation. (3) S2. (4) Edge, #102,
+  F05/F06, PR53, phone tests.
+
 ## 6 Oct 2026, night (packet T1)
 
 - **Base** main `97e7fd06` (PR #150, packet S1). Reddit run 37452203181 green through the second

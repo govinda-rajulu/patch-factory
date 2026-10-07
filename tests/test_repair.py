@@ -166,7 +166,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT / 'tests/notify_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn('NOTIFY_CONTRACTS_PASS=21', result.stdout)
+        self.assertIn('NOTIFY_CONTRACTS_PASS=26', result.stdout)
 
     def batch_probe(self, raw, targets=None):
         if targets is not None:
