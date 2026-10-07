@@ -11,8 +11,8 @@ Last indexed **6 October 2026** for packet R (YouTube Music, Facebook variant pi
 
 | Read | Why |
 | --- | --- |
-| [HANDOVER-2026-09-26.md](HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
-| [SESSION-2026-09-29.md](SESSION-2026-09-29.md) | Packet L session: findings, what PR107 shipped, the assistant's wrong calls, and what is still open. |
+| [HANDOVER-2026-09-26.md](history/HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
+| [SESSION-2026-09-29.md](history/SESSION-2026-09-29.md) | Packet L session: findings, what PR107 shipped, the assistant's wrong calls, and what is still open. |
 | [OPEN-WORK.md](OPEN-WORK.md) | Open, partial and deferred work. Newest checkpoint first. |
 | [AUDIT-5S-2026-09-27.md](AUDIT-5S-2026-09-27.md) | Repository hygiene audit: what was sorted, corrected, and left for an owner decision. |
 | [AUDIT-MICRO-2026-09-27.md](AUDIT-MICRO-2026-09-27.md) | Line-level security and logic audit: signing-secret scope, no runtime installs, silent failures; issue #27/#35/#5 decisions. |
@@ -50,15 +50,16 @@ Last indexed **6 October 2026** for packet R (YouTube Music, Facebook variant pi
 | [UNREVIEWED.tsv](UNREVIEWED.tsv) | Patch names not yet reviewed. | Working list |
 | [providers/](providers/) | Committed provider name baselines read by Provider watch. | Live input |
 | [retention/](retention/) | Release retention and cleanup records, including the 26 September cleanup. | Record |
+| [history/](history/) | Closed checkpoints moved out of the desk on 7 Oct 2026 (packet V2); its README lists them. | History |
 
 ## History
 
 | Record | What it holds |
 | --- | --- |
 | [AUDIT-2026-09-26.md](AUDIT-2026-09-26.md) | Post-PR81 audit: archive, wiring, Explore, CI coverage and page fixes; PR53 disposition. |
-| [AUDIT-2026-09-07.md](AUDIT-2026-09-07.md) | First repository audit. |
+| [AUDIT-2026-09-07.md](history/AUDIT-2026-09-07.md) | First repository audit. |
 | [REPORT-2026-09-07.md](REPORT-2026-09-07.md) | Report from the 7 September audit. |
-| [SESSION-2026-09-06.md](SESSION-2026-09-06.md) | Session record, 6 September. |
+| [SESSION-2026-09-06.md](history/SESSION-2026-09-06.md) | Session record, 6 September. |
 
 ## House rules
 

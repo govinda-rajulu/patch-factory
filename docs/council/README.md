@@ -11,13 +11,13 @@ Keys, free limits, seat budgets and the small-to-heavy lanes: [SETUP.md](SETUP.m
 
 ## Seats
 
-Eight seats on six providers, all on free tiers (since 7 Oct 2026; six seats before). Each seat
+Seven seats on six providers, all on free tiers (since 7 Oct 2026). Each seat
 uses the first model on its list that the provider still serves, because free catalogues change
 without notice.
 
 | Seat | Provider | Key |
 |---|---|---|
-| gpt, nemotron, kimi | NVIDIA build | `NVIDIA_API_KEY` |
+| gpt, nemotron | NVIDIA build | `NVIDIA_API_KEY` |
 | gemini | Google AI Studio | `GEMINI_API_KEY` |
 | open | OpenRouter free models | `OPENROUTER_API_KEY` |
 | codestral | Mistral La Plateforme (free plan) | `MISTRAL_API_KEY` |
@@ -51,6 +51,8 @@ error still stops the seat. GitHub Models retired on 30 Jul 2026, so no seat use
   number, or a repository path; uncited verdicts are dropped. One table on the chosen issue.
   It closes nothing; the owner or a packet does.
 - **Probe** (mode `probe`): shows which seats answer and which model each picked. Posts nothing.
+- **Desk rotation** (schedule): twice a day one audit shard, on Monday mornings triage, all on
+  the Council desk issue named in seats.json. Each comment is edited in place, never repeated.
 
 Since 7 Oct 2026 (packet V1) every reply is asked for in JSON mode, reasoning seats run with low
 effort and room to answer, a 404 moves to the seat's next model, a refused reply gets one repair

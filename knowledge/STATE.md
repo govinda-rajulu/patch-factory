@@ -2,12 +2,28 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 7 Oct 2026, afternoon (V1 results, packet V2)
+
+- **V1** merged as PR #153 (main `1fe3d4a7`). Probe: 6 of 8 seats ready. Council desk #154.
+  Triage vs the owner-checked list: council calls 18 right of 19, 2 split; seats nemotron 95%,
+  codestral 92%, command 81%, gemini 8/8, open 6/6, gpt 2/5. 17 stale failure issues and #152
+  closed. 45 old releases deleted by owner choice, tags kept (receipt PR #155, main `bb7a477a`).
+- **What V1 runs showed**: dispatching 11 audit shards at once ran the free tiers out (gemini
+  busy on every part, NVIDIA busy or cut). kimi's four NVIDIA models are never served to this key.
+  One seat repeated one generic issue on five lines of a file.
+- **Packet V2**: kimi seat removed (7 seats), gpt leaves triage (40%), the open seat gets room to
+  answer, busy retries wait for the provider's own hint (max 60 s), repeated rows collapse into one,
+  and council runs on a schedule: one audit shard twice a day and triage on Monday mornings, all on
+  desk #154 (`desk_job`). Closed checkpoints moved to `docs/review/history/`.
+- **Next**: (1) read the desk as shards rotate; packet what reproduces. (2) Agent runner pilot.
+  (3) S2. (4) Edge, #102, F05/F06, PR53, phone tests.
+
 ## 7 Oct 2026 (packet V1)
 
 - **Base** main `d2060b82` (PR #151, packet T1). Audit issue #152: 8 of 11 shards posted; only
   `codestral` and `command` answered every part. Causes: unreadable or cut JSON (gpt, gemini,
-  nemotron, open), NVIDIA 404 for kimi-k2.6 that stopped the seat, Groq over budget, and three
-  shards (build-python, tests-build, tests) that posted nothing (job time limit suspected).
+  nemotron, open), NVIDIA 404 for kimi-k2.6 that stopped the seat, Groq over budget. (All 11
+  shards did post; "three posted nothing" came from truncated page reads. Corrected in V2.)
 - **Packet V1**: council JSON mode with per-seat reasoning effort and refusal fallback, 404 falls
   through, one repair turn, findings must quote the cited file (`verify_quotes`), seat `jobs`, a
   `triage` mode (`docs/council/TRIAGE.md`), audit deadline 30 minutes. `notify-failure.yml`: one
@@ -160,9 +176,9 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 ## 29 Sep 2026, 12:30 IST
 
 - **main** `1b8e42c3` (tree `1ae504b4`): PR108 packet M merged 06:53Z (council lessons
-  L028 to L035 and `docs/review/SESSION-2026-09-29.md`). Its parent `90e12e57` is PR107
+  L028 to L035 and `docs/review/history/SESSION-2026-09-29.md`). Its parent `90e12e57` is PR107
   packet L (poll pin, Prime Video `release=NNN`, Facebook 580, nightly name check, council
-  j4, shadow reasons). Full detail: `docs/review/SESSION-2026-09-29.md`.
+  j4, shadow reasons). Full detail: `docs/review/history/SESSION-2026-09-29.md`.
 - **Next**: first post-merge evidence (Prime Video build, Facebook 580 build, Edge's printed
   reason, AdGuard not rebuilding on prereleases). Then close #98, #101, #104, #105 with that
   evidence and #99 after the next Nightly. Then #102 (provider watch blind to universal
@@ -184,5 +200,5 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 ## Before 29 Sep 2026
 
-See `docs/review/HANDOVER-2026-09-26.md`, `docs/review/OPEN-WORK.md` and
+See `docs/review/history/HANDOVER-2026-09-26.md`, `docs/review/OPEN-WORK.md` and
 [archive/skills/PATCH-FACTORY-BUILDS.md](archive/skills/PATCH-FACTORY-BUILDS.md).
