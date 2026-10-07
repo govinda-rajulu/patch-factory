@@ -14,7 +14,7 @@ let targets=null,importBlob=null,customApps=[];
 let appQuery='',appCategory='all',appType='all',appAge='all',appSort='name';
 let microgChannel='stable',microgArch='universal';
 // Local brand tiles only (docs/assets/logos, provenance in docs/review/ICON-PROVENANCE.md); others keep the monogram.
-const LOGOS=new Set(['adguard','edge','facebook','instagram','keymapper','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
+const LOGOS=new Set(['adguard','edge','facebook','hotstar','instagram','keymapper','mxplayer','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
 const GROUPS=[
  ['media','Watch & listen',['youtube','ytmusic','primevideo','hotstar','mxplayer']],
  ['social','Social & communities',['instagram','facebook','reddit','telegram']],

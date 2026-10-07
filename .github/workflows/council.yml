@@ -1,6 +1,7 @@
 name: Council
 # Advisory only. Free model seats review pull requests, vote on one patch or provider
-# question, or answer one factual question from cited repository facts. The job can read the repository and write one comment; it never pushes,
+# question, answer one factual question from cited repository facts, or audit one shard of
+# the repository. The job can read the repository and write one comment; it never pushes,
 # merges, dispatches, publishes or changes settings. See docs/council/README.md.
 permissions:
   contents: read
@@ -10,12 +11,12 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'probe = check which seats answer; question = vote on one patch or provider; ask = factual answer with cited facts'
+        description: 'probe = check which seats answer; question = vote on one patch or provider; ask = factual answer with cited facts; audit = review one shard of the repository'
         type: choice
-        options: [probe, question, ask]
+        options: [probe, question, ask, audit]
         default: probe
       issue:
-        description: 'Question or ask mode: issue number for the comment'
+        description: 'Question, ask or audit mode: issue number for the comment'
         required: false
         default: ''
       target:
@@ -39,6 +40,10 @@ on:
         description: 'Ask mode: one factual question, 500 characters or fewer'
         required: false
         default: ''
+      shard:
+        description: 'Audit mode: shard id from src/council/shards.json'
+        required: false
+        default: ''
 concurrency:
   # One review per PR at a time; a newer push replaces an older, unfinished review.
   group: council-${{ github.event.pull_request.number || github.run_id }}
@@ -49,7 +54,8 @@ jobs:
     # Fork PRs and bot PRs never receive the model keys.
     if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    # Audit mode stops starting new parts after 40 minutes (PF_AUDIT_SECONDS in council.py).
+    timeout-minutes: 50
     permissions:
       contents: read
       issues: write
@@ -66,6 +72,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
           PF_REPO: ${{ github.repository }}
           PF_EVENT: ${{ github.event_name }}
           PF_PR: ${{ github.event.pull_request.number }}
@@ -76,6 +85,7 @@ jobs:
           PF_NAME: ${{ inputs.name }}
           PF_NOTE: ${{ inputs.note }}
           PF_QUESTION: ${{ inputs.question }}
+          PF_SHARD: ${{ inputs.shard }}
         run: |
           # The PR that adds the council runs this against a base without it: nothing to do.
           if [ ! -f src/council/council.py ]; then echo "council code is not on the base commit yet"; exit 0; fi

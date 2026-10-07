@@ -7,17 +7,22 @@ The owner decides; the council saves the owner reading time and catches what one
 
 Code: [src/council/council.py](../../src/council/council.py) (standard library only).
 Seats: [src/council/seats.json](../../src/council/seats.json). Workflow: `.github/workflows/council.yml`.
+Keys, free limits, seat budgets and the small-to-heavy lanes: [SETUP.md](SETUP.md).
 
 ## Seats
 
-Six seats from six model families, all on free tiers. Each seat uses the first model on its
-list that the provider still serves, because free catalogues change without notice.
+Eight seats on six providers, all on free tiers (since 7 Oct 2026; six seats before). Each seat
+uses the first model on its list that the provider still serves, because free catalogues change
+without notice.
 
 | Seat | Provider | Key |
 |---|---|---|
-| gpt, mistral, nemotron, minimax | NVIDIA build | `NVIDIA_API_KEY` |
+| gpt, nemotron, kimi | NVIDIA build | `NVIDIA_API_KEY` |
 | gemini | Google AI Studio | `GEMINI_API_KEY` |
 | open | OpenRouter free models | `OPENROUTER_API_KEY` |
+| codestral | Mistral La Plateforme (free plan) | `MISTRAL_API_KEY` |
+| command | Cohere (trial key) | `COHERE_API_KEY` |
+| groq | Groq (small budget: probes and small asks) | `GROQ_API_KEY` |
 
 A seat without its key is skipped, never an error. A model the provider reports retired
 (410) or not served falls through to the next one on the seat's list. Since 29 Sep 2026 so
@@ -37,6 +42,10 @@ error still stops the seat. GitHub Models retired on 30 Jul 2026, so no seat use
   exclude lists, rule lists, committed provider name baselines). Each answer must cite the
   exact fact keys it used; an answer citing any other key is dropped. Use this, not a vote,
   for "is X excluded?" questions.
+- **Audit** (mode `audit`, inputs `shard` and `issue`): one shard of the repository from
+  `src/council/shards.json`, read at the dispatched commit and reviewed in parts of at most
+  70000 characters with [AUDIT.md](AUDIT.md). One comment per shard on the chosen issue, edited
+  on a rerun. Running every shard on one issue is a whole-repository audit.
 - **Probe** (mode `probe`): shows which seats answer and which model each picked. Posts nothing.
 
 ## Outcomes
@@ -80,7 +89,8 @@ list comments, and post or edit its own comment. Anything else is refused in cod
 - The owner approves a lesson in the issue; a reviewed packet appends it to LESSONS.md.
 - LESSONS.md is append-only. Validation pins a hash of every existing entry and fails if one
   is edited or removed; a wrong lesson is superseded by a newer dated entry.
-- PROMPT.md, REVIEW.md, OWNER.md and seats.json change only in owner-approved PRs.
+- PROMPT.md, REVIEW.md, ASK.md, AUDIT.md, OWNER.md, seats.json and shards.json change only in
+  owner-approved PRs.
 
 ## Privacy
 

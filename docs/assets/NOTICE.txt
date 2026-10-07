@@ -105,3 +105,11 @@ logos/truecaller-combo.png
   tile: Commons 250 px PNG thumbnail, fetched by the packet controller; sha256 at the end of this file
 logos/reddit.png tile sha256 9da3ff155fd866b0b25ed2bf0abc74790019dc0d3fdb2a1619b2a40e9393dfb0 (Commons thumbnail fetched 20261006T101028Z)
 logos/truecaller-combo.png tile sha256 c544294026dfa8199adb4e00e33e1251fb70f7618d23742e80f24ca1e60ba22f (Commons thumbnail fetched 20261006T101028Z)
+logos/hotstar.png
+  source: owner-supplied Google Play icon for JioHotstar (in.startv.hotstar), https://play-lh.googleusercontent.com/02xiO0ptbXjD8NR3sbS2StP1P9aytDN56dDR15zqM_i66Vwq5W_hD-98CoFxvRVoUS4uV_xMSv-iQh3nQFeDeQ=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by the packet T1 controller 20261007T065326Z; sha256 64da72afa7cdb504d3ffd8c34d787abad279da43f6f4653cd1335115d91c7dae
+logos/mxplayer.png
+  source: owner-supplied Google Play icon for MX Player, https://play-lh.googleusercontent.com/pL-FlnQwdyKetEhT_Uzre61MnGKhMgLC7wnV12KgC_wrQbU0UbSkYs4T5fQQWL_QLZZ48fl1mBmN-cNbc1wSZA=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by the packet T1 controller 20261007T065326Z; sha256 a602a7e7c900cba9a32c62c9f3128367459064d53a6cad32962ab7c51a04af11
