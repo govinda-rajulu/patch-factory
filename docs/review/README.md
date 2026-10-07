@@ -4,13 +4,14 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **6 October 2026** for packet R (YouTube Music, Facebook variant pin, brand tiles). Hygiene record:
+Last indexed **7 October 2026** for the 6-7 Oct handover (council desk, cleanup, V1 and V2). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
 
 | Read | Why |
 | --- | --- |
+| [SESSION-2026-10-07.md](SESSION-2026-10-07.md) | 6-7 Oct session: packets R to V2, council desk #154, cleanup, findings, wrong calls, coverage limits. Read first. |
 | [HANDOVER-2026-09-26.md](history/HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
 | [SESSION-2026-09-29.md](history/SESSION-2026-09-29.md) | Packet L session: findings, what PR107 shipped, the assistant's wrong calls, and what is still open. |
 | [OPEN-WORK.md](OPEN-WORK.md) | Open, partial and deferred work. Newest checkpoint first. |
@@ -28,6 +29,8 @@ Last indexed **6 October 2026** for packet R (YouTube Music, Facebook variant pi
 | [ICON-PROVENANCE.md](ICON-PROVENANCE.md) | Which app icons ship as brand tiles, their sources, and which stay monograms. | Current gate |
 | [SOURCE-CHAIN-2026-10-06.md](SOURCE-CHAIN-2026-10-06.md) | Second store with the same gates (S1) and the publisher-pin and version step-down plan (S2). | Current decision |
 | [YTMUSIC-2026-10-06.md](YTMUSIC-2026-10-06.md) | YouTube Music target: patch review, exclusions with reasons, and the YouTube DeArrow decision. | Current decision |
+| [AUDIT-COUNCIL-2026-10-06.md](AUDIT-COUNCIL-2026-10-06.md) | All 84 findings of the first council audit, each checked at `d2060b82`: 33 confirmed, 6 unclear, 45 refuted. | Leads |
+| [CLUTTER-2026-10-07.md](CLUTTER-2026-10-07.md) | Plan to consolidate Pages, release notes and this desk, with every test-pinned phrase. | Plan, not done |
 
 ## APK source admissions
 

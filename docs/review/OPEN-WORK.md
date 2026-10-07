@@ -1,6 +1,25 @@
 # Open work
 
-## Current checkpoint: 7 October 2026, afternoon (packet V2)
+## Current checkpoint: 7 October 2026, evening (handover)
+
+V2 is on main (PR #156); the council works the pinned desk #154 on a schedule. Everything the
+6-7 Oct chat found is in the [session record](SESSION-2026-10-07.md). Open, in order:
+
+1. Desk leads: verify each against the code before any packet. Confirmed but not fixed from the
+   [audit ledger](AUDIT-COUNCIL-2026-10-06.md): ci.yml resolve `continue-on-error`; poll-only
+   resolve matrix; manual-patch `shadow_plan_required` default; provider-watch `-x -u` (#102);
+   portal script integrity and 30-second read cache; watch job without a timeout; classify RISK
+   map; obtainium package overrides. New desk leads: explore.yml `$PKG`; APKPure entries for
+   Photos and Prime Video; redirect same-site check in council.py.
+2. Agent runner pilot ([plan](../council/RUNNERS.md)): OpenCode with the GitHub MCP server,
+   read-only, owner-triggered, artifact output only.
+3. Pages, release-notes and desk consolidation ([plan](CLUTTER-2026-10-07.md)). Blocked history
+   moves: REPORT-2026-09-07 (named in AGENTS.md), AUDIT-2026-09-26 (read by a test).
+4. Packet S2: publisher certificate pins on every store path, version step-down.
+5. Edge apkpure refusal, #102, F05/F06, PR53, phone tests, ES File icon (monogram), the unused
+   `TDL_BACKUP` secret (owner decides).
+
+## Earlier checkpoint: 7 October 2026, afternoon (packet V2)
 
 V1 is on main (PR #153): council desk #154, triage scored 18 of 19 calls right, 17 stale failure
 issues and #152 closed, 45 old releases deleted with tags kept (receipt PR #155). Packet V2 tunes

@@ -7,7 +7,8 @@ The owner decides; the council saves the owner reading time and catches what one
 
 Code: [src/council/council.py](../../src/council/council.py) (standard library only).
 Seats: [src/council/seats.json](../../src/council/seats.json). Workflow: `.github/workflows/council.yml`.
-Keys, free limits, seat budgets and the small-to-heavy lanes: [SETUP.md](SETUP.md).
+Keys, free limits, seat budgets and the small-to-heavy lanes: [SETUP.md](SETUP.md). What each
+provider accepts: [PROVIDERS.md](PROVIDERS.md). Agent runners and MCP plan: [RUNNERS.md](RUNNERS.md).
 
 ## Seats
 

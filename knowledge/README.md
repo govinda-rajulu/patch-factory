@@ -10,7 +10,8 @@ anything you remember, and any number typed into prose"). Generated, CI-gated fi
 2. [WORKING-AGREEMENT.md](WORKING-AGREEMENT.md): how work is handed to the owner, gates, privacy.
 3. [STATE.md](STATE.md): the latest dated checkpoint and where to start.
 4. `../docs/review/OPEN-WORK.md`: what is actually open (CI-checked phrases).
-5. The newest `../docs/review/SESSION-*.md` and `HANDOVER-*.md`: per-session records.
+5. The newest `../docs/review/SESSION-*.md`: per-session records (closed ones in
+   `../docs/review/history/`).
 6. `../docs/council/LESSONS.md`: numbered lessons the council reads by tag (hash-pinned in
    `tests/council_contracts.py`; append only, never edit an entry).
 7. [LESSONS.md](LESSONS.md): cross-session lessons that are not in the council file.
@@ -18,7 +19,7 @@ anything you remember, and any number typed into prose"). Generated, CI-gated fi
 ## Reference
 
 - [handbook/](handbook/): the owner's general engineering handbook (verification, gates,
-  repo writes, CI diagnosis, scope, handovers). Same files in openskip.
+  repo writes, CI diagnosis, scope, handovers, free LLM agents). Same files in openskip.
 - [archive/skills/](archive/skills/): the assistant skill notes this knowledge came from,
   verbatim, written between 23 and 29 Sep 2026. **Historical**; see
   [archive/README.md](archive/README.md). Their F01 to F20 findings, R01 to R18 requests,

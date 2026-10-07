@@ -198,3 +198,24 @@ Tags: evidence, gates
 Facebook 580 passed every local suite and a live name check, then failed at patch time on a
 fingerprint in a patch pulled in as a dependency. Name checks cannot prove fingerprints match;
 only a real patch run can. Report "merged" and "built" as separate states.
+
+### L037 · Fix the transport before the prompt
+Tags: evidence
+On 6 Oct six of eight seats gave no usable answer: broken or cut JSON, an NVIDIA 404 that stopped
+the seat, a budget too small. JSON mode, low reasoning effort, 404 fall-through and one repair
+turn fixed most of it. Check a seat's status column before judging its findings.
+
+### L038 · A finding must quote the file it cites
+Tags: evidence, docs
+Audit seats invented lines and gave generic advice ("add a retry step"). A finding now carries
+a quote that must be in the cited file; unfound quotes are dropped and counted in the comment.
+
+### L039 · One heavy job at a time
+Tags: workflows
+Eleven audit shards dispatched together made gemini busy on every part on 7 Oct. Audits and
+triage run on the desk schedule, one shard per run.
+
+### L040 · Score seats before trusting them
+Tags: evidence
+Triage against an owner-checked list: nemotron 19/20, codestral 12/13, gpt 2/5. A seat that
+scores low gets smaller jobs (gpt left triage in V2).
