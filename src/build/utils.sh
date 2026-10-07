@@ -147,13 +147,13 @@ get_patches_key() {
 	sed -i 's/\r$//' "$patchDir/exclude-patches"
 
 	while IFS= read -r line1 || [[ -n "$line1" ]]; do
-		[[ -z "$line1" ]] && continue
+		[[ -z "$line1" || "$line1" == "#"* ]] && continue
 		excludePatches+=" -d \"$line1\""
 		excludeLinesFound=true
 	done < "$patchDir/exclude-patches"
 
 	while IFS= read -r line2 || [[ -n "$line2" ]]; do
-		[[ -z "$line2" ]] && continue
+		[[ -z "$line2" || "$line2" == "#"* ]] && continue
 		patch_name="${line2%%|*}"
 		includePatches+=" -e \"$patch_name\""
 		includeLinesFound=true

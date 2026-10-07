@@ -31,7 +31,10 @@ stood here (Facebook #118/#119, Dependabot #103, YouTube #114) is closed or supe
 ## Lane 3: fewer owner touches, same guardrails
 
 - Morning report: one pinned issue that folds the per-run failure issues (#118 and #119 are the
-  same Facebook failure twice) into one daily line per target.
+  same Facebook failure twice) into one daily line per target. Packet V1 (7 Oct 2026) does the
+  first half: one standing "Failing:" issue per workflow, closed by the next green run.
+- Agent runner pilot (V2, plan in [docs/council/RUNNERS.md](../docs/council/RUNNERS.md)): OpenCode
+  with the official GitHub MCP server, owner-triggered, read-only token, output an artifact only.
 - Limited worker: may touch only what AGENTS.md "What you may propose" allows
   (`include-patches`, `extra_bundles`, `note`), enforced by a path guard. BANNED and CONFIRM
   still apply; CONFIRM means the owner decides. No workflows, signing or releases.

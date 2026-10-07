@@ -26,10 +26,10 @@ for M in $LIST; do
       sed -i 's/\r$//' "src/patches/$D/$side-patches"
     done
     while IFS= read -r l || [ -n "$l" ]; do
-      [ -n "$l" ] && S="$S -d \"$l\""
+      [ -n "$l" ] && [ "${l#\#}" = "$l" ] && S="$S -d \"$l\""
     done < "src/patches/$D/exclude-patches"
     while IFS= read -r l || [ -n "$l" ]; do
-      [ -n "$l" ] || continue
+      [ -n "$l" ] && [ "${l#\#}" = "$l" ] || continue
       NAME="${l%%|*}"; S="$S -e \"$NAME\""; N=$((N+1)); printf '%s\t%s\n' "$NM" "$NAME" >> ./.requested
     done < "src/patches/$D/include-patches"
   fi

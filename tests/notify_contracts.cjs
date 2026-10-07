@@ -11,9 +11,11 @@ const base={id:42,run_attempt:2,head_sha:head,status:'completed',conclusion:'fai
  repository:{full_name:repo},head_repository:{full_name:repo},head_branch:'main',
  name:'9. Batch Patch',path:'.github/workflows/batch-patch.yml',event:'workflow_dispatch'};
 const marker=`<!-- pf-failure:v2:${repo}:42:2:${head} -->`;
+const standing=`<!-- pf-failing:v3:${repo}:.github/workflows/batch-patch.yml -->`;
+const bot={login:'github-actions[bot]'};
 function job(i,conclusion='failure'){return {id:1000+i,run_id:42,run_attempt:2,head_sha:head,status:'completed',conclusion,name:'Patch target-'+i,steps:[{number:1,status:'completed',conclusion:'success',name:'Checkout'},{number:2,status:'completed',conclusion:conclusion==='failure'?'failure':conclusion,name:'Patch apk'}]};}
 function fixture(change={}){
- const state={calls:[],created:[],info:[]};
+ const state={calls:[],created:[],info:[],comments:[],updates:[]};
  const trigger=structuredClone(base),run=structuredClone(base),current=structuredClone(base);
  let jobs=Array.from({length:5},(_,i)=>job(i)),issues=[];
  if(change.setup)change.setup({trigger,run,current,jobs,issues});
@@ -32,7 +34,10 @@ function fixture(change={}){
   })
  },issues:{
   listForRepo:a=>api('issues',a,()=>{assert.equal(a.state,'all');assert.equal(a.sort,'created');return issues.slice((a.page-1)*100,a.page*100);}),
-  create:a=>api('create',a,()=>{state.created.push(a);return {number:77};})
+  create:a=>api('create',a,()=>{state.created.push(a);return {number:77};}),
+  listComments:a=>api('comments',a,()=>(change.comments||[]).slice((a.page-1)*100,a.page*100)),
+  createComment:a=>api('comment',a,()=>{state.comments.push(a);return {id:501};}),
+  update:a=>api('close',a,()=>{state.updates.push(a);return {};})
  }}};
  const context={repo:{owner:'govinda-rajulu',repo:'patch-factory'},payload:{workflow_run:trigger}};
  const core={info:s=>state.info.push(s)};
@@ -46,7 +51,8 @@ async function refuses(change){
 async function main(){
  await test('five failures all survive without first-three truncation',async()=>{
   const f=fixture();await f.run();assert.equal(f.state.created.length,1);
-  const x=f.state.created[0];assert.equal(x.title,'Workflow failure: 42 / attempt 2');
+  const x=f.state.created[0];assert.equal(x.title,'Failing: 9. Batch Patch');
+  assert.equal(x.body.split('\n')[0],standing);assert.equal(x.body.split('\n')[1],marker);
   for(let i=0;i<5;i++)assert.ok(x.body.includes('Job '+(1000+i)+':'));
   assert.ok(x.body.includes('/attempts/2'));assert.ok(x.body.includes(head));
   assert.ok(!f.state.calls.some(c=>/logs|artifact|download|comment|update/.test(c.name)));
@@ -95,7 +101,7 @@ async function main(){
    await refuses({setup:({run})=>Object.assign(run,patch)});
  });
  await test('success cancellation and invalid identities are not failed runs',async()=>{
-  for(const patch of [{conclusion:'success'},{conclusion:'cancelled'},{id:0},{id:Number.MAX_SAFE_INTEGER+1},{run_attempt:0},{head_sha:'bad'},{status:'in_progress'}])
+  for(const patch of [{conclusion:'cancelled'},{id:0},{id:Number.MAX_SAFE_INTEGER+1},{run_attempt:0},{head_sha:'bad'},{status:'in_progress'}])
    await refuses({setup:({trigger})=>Object.assign(trigger,patch)});
  });
  await test('partial repeated changed-total and wrong-attempt job inventory refuse',async()=>{
@@ -147,9 +153,10 @@ async function main(){
  });
  await test('workflow hooks include all three watches and Batch without privileged checkout',async()=>{
   assert.ok(source.includes('"9. Batch Patch"'));assert.ok(source.includes('run_attempt'));
+  assert.ok(source.includes('"action_required","success"]'));
   assert.ok(source.includes('cancel-in-progress: false'));
   assert.ok(source.includes('issues: write'));assert.ok(source.includes('actions: read'));
-  for(const forbidden of ['actions/checkout','download-artifact','/logs','createComment','issues.update','bad.slice','secrets: inherit','pull_request_target:'])
+  for(const forbidden of ['actions/checkout','download-artifact','/logs','deleteComment','issues.lock','bad.slice','secrets: inherit','pull_request_target:'])
    assert.ok(!source.includes(forbidden),forbidden);
   const watches=[
    ['agent-watch.yml','6. Provider watch'],
@@ -176,6 +183,41 @@ async function main(){
     for(const r of [trigger,run,current])Object.assign(r,{name,path:'.github/workflows/'+file,event:'pull_request'});
    }});
   }
+ });
+ await test('a repeat failure comments on the one open failing issue, once',async()=>{
+  const open={id:5,number:60,state:'open',body:standing+'\n'+'<!-- pf-failure:v2:x -->',user:bot};
+  const f=fixture({issues:[open]});await f.run();
+  assert.equal(f.state.created.length,0);assert.equal(f.state.comments.length,1);
+  assert.equal(f.state.comments[0].issue_number,60);assert.equal(f.state.comments[0].body.split('\n')[0],marker);
+  const again=fixture({issues:[open],comments:[{body:marker+'\nold',user:bot}]});await again.run();
+  assert.equal(again.state.comments.length,0);assert.ok(again.state.info[0].includes('already exists'));
+  const first=fixture({issues:[{...open,body:standing+'\n'+marker}]});await first.run();assert.equal(first.state.comments.length,0);
+ });
+ await test('a closed failing issue is history; the next failure opens a new one',async()=>{
+  const f=fixture({issues:[{id:5,number:60,state:'closed',body:standing+'\nold',user:bot}]});await f.run();
+  assert.equal(f.state.created.length,1);assert.equal(f.state.comments.length,0);
+ });
+ await test('green run closes the open failing issue with a comment, else does nothing',async()=>{
+  const green=({trigger,run,current})=>{for(const r of [trigger,run,current])r.conclusion='success';};
+  const f=fixture({setup:green,issues:[{id:5,number:60,state:'open',body:standing+'\nx',user:bot}]});await f.run();
+  assert.equal(f.state.comments.length,1);assert.ok(f.state.comments[0].body.startsWith('Green again:'));
+  assert.deepEqual(f.state.updates.map(u=>[u.issue_number,u.state,u.state_reason]),[[60,'closed','completed']]);
+  assert.ok(!f.state.calls.some(c=>c.name==='jobs'));
+  const none=fixture({setup:green});await none.run();
+  assert.equal(none.state.comments.length+none.state.updates.length+none.state.created.length,0);
+  const other=fixture({setup:green,issues:[{id:5,number:60,state:'open',body:standing.replace('batch-patch','ci')+'\nx',user:bot}]});
+  await other.run();assert.equal(other.state.updates.length,0);
+ });
+ await test('green path keeps every identity guard',async()=>{
+  const green=r=>Object.assign(r,{conclusion:'success'});
+  for(const patch of [{event:'pull_request'},{path:'.github/workflows/evil.yml'}])
+   await refuses({setup:({trigger,run,current})=>{for(const r of [trigger,run,current])Object.assign(green(r),patch);}});
+  await refuses({setup:({trigger,run,current})=>{for(const r of [trigger,run,current])green(r);current.run_attempt++;},
+   issues:[{id:5,number:60,state:'open',body:standing+'\nx',user:bot}]});
+ });
+ await test('a human-authored or doubled failing issue blocks automatic writes',async()=>{
+  await refuses({issues:[{id:5,number:60,state:'open',body:standing+'\nx',user:{login:'someone'}}]});
+  await refuses({issues:[{id:5,number:60,state:'open',body:standing,user:bot},{id:6,number:61,state:'open',body:standing,user:bot}]});
  });
  console.log('NOTIFY_CONTRACTS_PASS='+count);
 }

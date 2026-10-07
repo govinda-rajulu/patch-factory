@@ -90,7 +90,8 @@ class Fake:
                 return 200, json.dumps(self.comments)
             if method == 'GET' and '/pulls/' in url:
                 if headers.get('Accept') == 'application/vnd.github.v3.diff':
-                    return 200, 'diff --git a/src/build/x.sh b/src/build/x.sh\n+echo hi\n'
+                    return 200, ('diff --git a/src/build/x.sh b/src/build/x.sh\n--- a/src/build/x.sh\n'
+                                 '+++ b/src/build/x.sh\n@@ -0,0 +1 @@\n+echo hi there\n')
                 return 200, json.dumps({'title': 'demo', 'draft': False})
             if method in ('POST', 'PATCH'):
                 return 201, '{}'
@@ -172,9 +173,11 @@ class Council(unittest.TestCase):
             council.extract_json('no json here')
 
     def test_review_schema_rejects_oversized_or_malformed_findings(self):
-        f = {'severity': 'low', 'file': 'a.sh', 'line': 3, 'issue': 'x', 'fix': '', 'rule': ''}
+        f = {'severity': 'low', 'file': 'a.sh', 'line': 3, 'quote': 'set -e', 'issue': 'x', 'fix': '', 'rule': ''}
         council.check_review({'summary': 's', 'verdict': 'looks_ok', 'findings': [f]})
         for mutant in ({'summary': 's', 'verdict': 'approve', 'findings': []},
+                       {'summary': 's', 'verdict': 'looks_ok', 'findings': [dict(f, quote='')]},
+                       {'summary': 's', 'verdict': 'looks_ok', 'findings': [{k: v for k, v in f.items() if k != 'quote'}]},
                        {'summary': 's', 'verdict': 'looks_ok', 'findings': [f] * 9},
                        {'summary': 's', 'verdict': 'looks_ok', 'findings': [dict(f, severity='critical')]},
                        {'summary': 's', 'verdict': 'looks_ok', 'findings': [dict(f, line='3')]},
@@ -318,9 +321,11 @@ class Council(unittest.TestCase):
 
     # ----- end to end with fakes -----
     def test_review_posts_one_comment_then_edits_it(self):
-        f = {'severity': 'medium', 'file': 'src/build/x.sh', 'line': 1, 'issue': 'echo is noisy', 'fix': 'remove', 'rule': ''}
+        f = {'severity': 'medium', 'file': 'src/build/x.sh', 'line': 1, 'quote': 'echo hi there', 'issue': 'echo is noisy',
+             'fix': 'remove', 'rule': ''}
         reply = json.dumps({'summary': 'fine', 'verdict': 'needs_changes', 'findings': [f]})
-        n = len(json.loads((ROOT / 'src/council/seats.json').read_text())['seats'])  # every seat answers
+        n = len([s for s in json.loads((ROOT / 'src/council/seats.json').read_text())['seats']
+                 if 'review' in s.get('jobs', council.JOBS)])  # every reviewing seat answers
         fake = Fake([reply] * n)
         council.http = fake
         env = self.env(PF_EVENT='pull_request', PF_PR='5')
@@ -520,7 +525,7 @@ class Council(unittest.TestCase):
                          ['contents: read', 'issues: write', 'pull-requests: write'])
         self.assertEqual(wf.count('secrets.'), 6)
         self.assertEqual(sorted(re.findall(r'secrets\.(\w+)', wf)), sorted(p['key'] for p in council.PROVIDERS.values()))
-        self.assertIn('options: [probe, question, ask, audit]', wf)
+        self.assertIn('options: [probe, question, ask, audit, triage]', wf)
         self.assertIn('          PF_QUESTION: ${{ inputs.question }}\n', wf)
         self.assertIn('          PF_SHARD: ${{ inputs.shard }}\n', wf)
         self.assertIn('    timeout-minutes: 50\n', wf)
@@ -597,7 +602,8 @@ class Council(unittest.TestCase):
             self.assertLessEqual(sum(len(council.file_block(r, t)) for r, t in part), council.AUDIT_PART_CHARS)
 
     def audit_http(self, fake, seen):
-        finding = {'severity': 'low', 'file': 'src/council/council.py', 'line': 3, 'issue': 'demo', 'fix': '', 'rule': ''}
+        finding = {'severity': 'low', 'file': 'src/council/council.py', 'line': 3,
+                   'quote': 'Advisory council: free model seats review pull requests', 'issue': 'demo', 'fix': '', 'rule': ''}
 
         def http(method, url, headers, body=None, timeout=90):
             if 'chat/completions' in url:
@@ -644,6 +650,164 @@ class Council(unittest.TestCase):
         body = [c for c in fake.calls if c[0] == 'POST'][-1][2]['body']
         self.assertIn('Not reviewed (time or part limit): part(s) 1, 2', body)
         self.assertIn('No seat returned a valid audit', body)
+
+    # ----- 7 Oct 2026: why seats failed, and the fixes -----
+    def reply(self, content, finish='stop'):
+        return 200, json.dumps({'choices': [{'message': {'content': content}, 'finish_reason': finish}]})
+
+    def test_quotes_must_exist_in_the_cited_file_and_fix_the_line(self):
+        good = {'severity': 'low', 'file': 'a.sh', 'line': 9, 'quote': 'rm -rf "$W"', 'issue': 'x', 'fix': '', 'rule': ''}
+        fake = dict(good, quote='curl http://evil')
+        rows = [{'seat': 's', 'status': 'OK', 'answer': {'findings': [good, fake, dict(good, file='b.sh')]}}]
+        council.verify_quotes(rows, {'a.sh': {1: 'set -e', 4: '  rm -rf "$W"   # tidy', 20: 'rm -rf "$W"'}})
+        self.assertEqual(rows[0]['dropped'], 2)
+        self.assertEqual([f['line'] for f in rows[0]['answer']['findings']], [4])
+        src = council.diff_sources('--- a/x\n+++ b/x\n@@ -1,2 +7,3 @@\n ctx line\n-gone\n+new line here\n+more\n')
+        self.assertEqual(src, {'x': {7: 'ctx line', 8: 'new line here', 9: 'more'}})
+        self.assertEqual(council.dropped_note(rows), ['2 finding(s) dropped: quote not found in the cited file.'])
+
+    def test_404_without_the_word_model_still_falls_through(self):
+        asked = []
+
+        def http(method, url, headers, body=None, timeout=90):
+            if url.endswith('/models'):
+                return 200, json.dumps({'data': []})
+            asked.append(body['model'])
+            if body['model'] == 'm1':
+                return 404, "Function 'abc': Not found for account 'x'"
+            return self.reply('{"summary": "ok", "verdict": "looks_ok", "findings": []}')
+        council.http = http
+        got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual((got['status'], got['model'], asked), ('OK', 'm2', ['m1', 'm2']))
+        council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual(asked, ['m1', 'm2', 'm2'])  # the missing model is remembered for the run
+
+    def test_json_mode_and_reasoning_are_sent_and_dropped_once_when_refused(self):
+        bodies = []
+
+        def http(method, url, headers, body=None, timeout=90):
+            if url.endswith('/models'):
+                return 200, json.dumps({'data': []})
+            bodies.append(dict(body))
+            if 'response_format' in body:
+                return 400, '{"error": "response_format is not supported"}'
+            if 'reasoning_effort' in body:
+                return 400, '{"error": "unknown field reasoning_effort"}'
+            return self.reply('{"summary": "ok", "verdict": "looks_ok", "findings": []}')
+        council.http = http
+        seat = dict(SEAT, reasoning_effort='low')
+        got = council.run_seat(seat, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual(got['status'], 'OK')
+        self.assertEqual([('response_format' in b, 'reasoning_effort' in b) for b in bodies],
+                         [(True, True), (False, True), (False, False)])
+        self.assertEqual(bodies[0]['response_format'], {'type': 'json_object'})
+        bodies.clear()
+        council.run_seat(seat, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual(len(bodies), 1)  # refusals are remembered for the run
+        council._model_cache.clear()
+        bodies.clear()
+        council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertNotIn('reasoning_effort', bodies[0])  # only seats that ask for it send it
+
+    def test_cut_reply_moves_on_and_says_why(self):
+        def http(method, url, headers, body=None, timeout=90):
+            if url.endswith('/models'):
+                return 200, json.dumps({'data': []})
+            return self.reply('', finish='length')
+        council.http = http
+        got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual(got['status'], 'UNAVAILABLE no listed model answered (0 missing, 0 busy, 2 cut at max_tokens)')
+
+    def test_one_repair_turn_with_the_exact_refusal(self):
+        sent = []
+        replies = ['{"summary": "ok", "verdict": "fine", "findings": []}',
+                   '{"summary": "ok", "verdict": "looks_ok", "findings": []}']
+
+        def http(method, url, headers, body=None, timeout=90):
+            if url.endswith('/models'):
+                return 200, json.dumps({'data': []})
+            sent.append(body['messages'])
+            return self.reply(replies.pop(0) if replies else '{}')
+        council.http = http
+        got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual((got['status'], got['model']), ('OK', 'm1 (repaired)'))
+        self.assertEqual(len(sent), 2)
+        self.assertEqual(sent[1][-1]['content'], 'Refused: verdict or summary. Reply with only the corrected JSON object.')
+        sent.clear()
+        replies[:] = ['not json', 'still not json']
+        got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertTrue(got['status'].startswith('INVALID_SCHEMA'), got['status'])
+        self.assertEqual(len(sent), 2)  # never more than one repair
+
+    def test_json_candidates_skip_prompt_templates_and_think_blocks(self):
+        text = ('<think>use {"a": 1}</think>Schema was {"summary": "...", "verdict": "x"}. Answer:\n'
+                '```json\n{"summary": "ok", "verdict": "looks_ok", "findings": []}\n```')
+        got = council.first_valid(council.json_candidates(text), council.check_review)
+        self.assertEqual(got['verdict'], 'looks_ok')
+        self.assertEqual(council.json_candidates('x {"s": "a } b"} y'), [{'s': 'a } b'}])
+        council.http = lambda m, u, h, body=None, timeout=90: (200, '{"data": []}') if u.endswith('/models') else \
+            self.reply('<think>never repeat C123</think>{"summary": "ok", "verdict": "looks_ok", "findings": []}')
+        self.assertEqual(council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C123')['status'], 'OK')
+
+    def test_seats_take_only_their_jobs(self):
+        cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
+        for s in cfg['seats']:
+            self.assertTrue(set(s.get('jobs', council.JOBS)) <= set(council.JOBS), s['id'])
+            self.assertIn(s.get('reasoning_effort', 'low'), ('none', 'minimal', 'low', 'medium', 'high'), s['id'])
+        for job in council.JOBS:
+            self.assertGreaterEqual(len([s for s in cfg['seats'] if job in s.get('jobs', council.JOBS)]), cfg['quorum'], job)
+        groq = [s for s in cfg['seats'] if s['id'] == 'groq'][0]
+        self.assertNotIn('audit', groq['jobs'])
+        self.assertNotIn('review', groq['jobs'])
+
+    def triage_http(self, fake, votes):
+        issues = [{'number': n, 'title': 'Workflow failure: %d' % n, 'body': 'run failed', 'labels': [],
+                   'created_at': '2026-10-01T00:00:00Z'} for n in (11, 12, 13)]
+        issues.append({'number': 14, 'pull_request': {}, 'title': 'a PR'})
+        issues.append({'number': 9, 'title': 'report issue', 'body': ''})
+        runs = {'workflow_runs': [{'id': 37580215235, 'name': '2. Check new patch', 'display_title': 'x',
+                                   'conclusion': 'success', 'created_at': '2026-10-06T10:00:00Z'}]}
+
+        def http(method, url, headers, body=None, timeout=90):
+            if '/issues?state=open' in url:
+                return 200, json.dumps(issues)
+            if url.endswith('/actions/runs?per_page=100'):
+                return 200, json.dumps(runs)
+            if 'chat/completions' in url:
+                text = body['messages'][1]['content']
+                nums = json.loads(re.search(r'Issue numbers to judge: (\[[^\]]*\])', text)[1])
+                seat_votes = votes(body['model'], nums)
+                return self.reply(json.dumps({'verdicts': seat_votes}))
+            return fake(method, url, headers, body, timeout)
+        return http
+
+    def test_triage_counts_only_cited_verdicts_and_posts_one_table(self):
+        def votes(model, nums):
+            ev = ['green run 37580215235'] if 'mistral' not in model else ['looks fixed']
+            return [{'issue': n, 'verdict': 'close' if n != 13 else 'keep', 'reason': 'target green again', 'evidence': ev}
+                    for n in nums]
+        fake = Fake()
+        council.http = self.triage_http(fake, votes)
+        env = self.env(PF_MODE='triage', PF_ISSUE='9')
+        self.assertEqual(council.main(env), 0)
+        posts = [c for c in fake.calls if c[0] == 'POST']
+        self.assertEqual(len(posts), 1)
+        self.assertTrue(posts[0][1].endswith('/issues/9/comments'))
+        body = posts[0][2]['body']
+        self.assertTrue(body.startswith('<!-- pf-council:triage -->'))
+        self.assertIn('| #11 |', body)
+        self.assertNotIn('| #14 |', body)
+        self.assertNotIn('| #9 |', body)
+        self.assertRegex(body, r'\| #11 \| \d+ \| 0 \| 0 \| close \|')
+        self.assertRegex(body, r'\| #13 \| 0 \| \d+ \| 0 \| keep \|')
+        self.assertIn('verdict(s) dropped: their evidence cites no run, issue or file.', body)
+        self.assertIn('nothing closes', body)
+        self.assertFalse([c for c in fake.calls if c[0] == 'PATCH' and '/issues/1' in c[1]])
+        self.assertEqual(council.main(dict(env, PF_ISSUE='')), 1)
+        with self.assertRaises(ValueError):
+            council.check_triage({'verdicts': [{'issue': 99, 'verdict': 'close', 'reason': 'r', 'evidence': ['#1']}]}, [11], [])
+        with self.assertRaises(council.Uncited):
+            council.check_triage({'verdicts': [{'issue': 11, 'verdict': 'close', 'reason': 'r', 'evidence': ['trust me']}]}, [11], ['5'])
 
     def test_lessons_are_append_only_and_tagged(self):
         import hashlib

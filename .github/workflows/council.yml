@@ -1,7 +1,7 @@
 name: Council
 # Advisory only. Free model seats review pull requests, vote on one patch or provider
-# question, answer one factual question from cited repository facts, or audit one shard of
-# the repository. The job can read the repository and write one comment; it never pushes,
+# question, answer one factual question from cited repository facts, audit one shard of
+# the repository, or triage every open issue (close, keep or owner, with cited evidence). The job can read the repository and write one comment; it never pushes,
 # merges, dispatches, publishes or changes settings. See docs/council/README.md.
 permissions:
   contents: read
@@ -11,12 +11,12 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'probe = check which seats answer; question = vote on one patch or provider; ask = factual answer with cited facts; audit = review one shard of the repository'
+        description: 'probe = check which seats answer; question = vote on one patch or provider; ask = factual answer with cited facts; audit = review one shard of the repository; triage = judge every open issue'
         type: choice
-        options: [probe, question, ask, audit]
+        options: [probe, question, ask, audit, triage]
         default: probe
       issue:
-        description: 'Question, ask or audit mode: issue number for the comment'
+        description: 'Question, ask, audit or triage mode: issue number for the comment'
         required: false
         default: ''
       target:
@@ -54,7 +54,7 @@ jobs:
     # Fork PRs and bot PRs never receive the model keys.
     if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-24.04
-    # Audit mode stops starting new parts after 40 minutes (PF_AUDIT_SECONDS in council.py).
+    # Audit mode stops starting new parts after 30 minutes, leaving 20 for the last part (PF_AUDIT_SECONDS in council.py).
     timeout-minutes: 50
     permissions:
       contents: read

@@ -59,6 +59,14 @@ This file keeps only what fits in neither.
 18. **A remote asset fetch is optional per item.** One icon host serving WebP must not stop a
     packet: each tile passes the PNG gate or keeps its monogram, and the result names which.
 
+19. **Free seats fail on format before they fail on judgement.** On the 7 Oct audit 6 of 8 seats
+    gave no usable answer: broken or cut-off JSON, a 404 that stopped the seat, a too-small budget.
+    Fix the transport (JSON mode, low reasoning, 404 falls through, one repair turn), not the prompt.
+20. **A finding without a quote is a guess.** Audit seats invented lines ("no retry step") and
+    generic advice. Findings now quote the file; a quote that is not there drops the finding.
+21. **One standing issue per failing workflow.** 38 of 39 per-run failure issues were the same
+    ci.yml story. Failures comment on one "Failing:" issue; the next green run closes it.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of
