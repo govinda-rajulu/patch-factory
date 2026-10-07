@@ -2,6 +2,23 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 7 Oct 2026, evening (handover; start here)
+
+- **Main** `fec38e60` (PR #156, V2) plus the handover packet. 15 targets. 7 council seats on 6
+  providers; probe after V2: 6 of 7 ready (open seat flaky). Desk #154 pinned: the schedule posts
+  one audit shard at 08:47 and 20:47 IST and triage on Monday 08:47 IST. Open issues: #27
+  (standing nightly report), #102, #142, #154.
+- **Session record**: `docs/review/SESSION-2026-10-07.md` (what shipped, findings, wrong calls 1-8,
+  coverage limits). Audit ledger: `docs/review/AUDIT-COUNCIL-2026-10-06.md`. Clutter plan:
+  `docs/review/CLUTTER-2026-10-07.md`. Provider facts: `docs/council/PROVIDERS.md`. Runner plan:
+  `docs/council/RUNNERS.md`. Generic lessons: `knowledge/handbook/FREE-LLM-AGENTS.md`.
+- **Next, in order**: (1) read the desk after a few rotations; packet the leads that reproduce,
+  first the open confirmed items in OPEN-WORK. (2) Agent runner pilot (RUNNERS.md). (3) Pages and
+  release-notes consolidation (CLUTTER plan). (4) S2: publisher certificate pins, version
+  step-down. (5) Edge, #102, F05/F06, PR53, phone tests, ES File icon.
+- **openskip** (its own repo and chat): keys stored; its packet (more seats, drop duplicate
+  `sweep.yml`, GitHub Models remnants) is recorded in openskip `knowledge/STATE.md`.
+
 ## 7 Oct 2026, afternoon (V1 results, packet V2)
 
 - **V1** merged as PR #153 (main `1fe3d4a7`). Probe: 6 of 8 seats ready. Council desk #154.

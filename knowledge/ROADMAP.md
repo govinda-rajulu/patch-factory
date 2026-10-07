@@ -39,7 +39,13 @@ stood here (Facebook #118/#119, Dependabot #103, YouTube #114) is closed or supe
   (`include-patches`, `extra_bundles`, `note`), enforced by a path guard. BANNED and CONFIRM
   still apply; CONFIRM means the owner decides. No workflows, signing or releases.
 
+- Pages, release notes and review desk: one home per notice, generated text only where tests
+  pin it; plan in [docs/review/CLUTTER-2026-10-07.md](../docs/review/CLUTTER-2026-10-07.md).
+
 ## Parking lot
+
+- 7 Oct 2026: scrapers as MCP tools (lmorg/mcp-web-scraper, self-hosted Firecrawl) only after
+  the read-only runner pilot works; allow-listed URLs.
 
 - 1 Oct 2026: council `ask` mode answering the morning report's questions.
 - 1 Oct 2026: competing drafts, only if the limited worker proves useful.

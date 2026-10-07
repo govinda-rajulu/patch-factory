@@ -72,6 +72,14 @@ This file keeps only what fits in neither.
 23. **A fetch tool can truncate; count from the API, not from a page you read.** "Three shards
     posted nothing" was a truncated read; every run had succeeded and posted. Check counts twice.
 
+24. **Stage removals before running the gates.** A moved file broke a test that copies the
+    tracked file list until the deletion was staged; staged status also reports renames, so
+    compare file sets with `git diff --name-only --no-renames`.
+25. **Rehearse every controller against a fake GitHub, including the stop cases.** The V2
+    rehearsal caught a rename in the file-set check before the owner ran it.
+26. **A handover names what it could not cover.** Compacted chat context loses detail (wrong
+    calls 1-5 of 6 Oct); say so in the record instead of filling the gap.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of
