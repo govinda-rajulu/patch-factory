@@ -31,14 +31,23 @@ ROOT = Path(__file__).resolve().parents[2]
 COUNCIL = ROOT / 'docs' / 'council'
 SENTINEL = '----- prompt below -----'
 MARKER = {'review': '<!-- pf-council:review -->', 'question': '<!-- pf-council:question -->',
-          'ask': '<!-- pf-council:ask -->'}
+          'ask': '<!-- pf-council:ask -->', 'audit': '<!-- pf-council:audit:%s -->'}
+# Every provider speaks OpenAI-style chat completions. 'auth' marks a model catalogue that
+# needs the key; OpenRouter's is public. Free tiers, keys and limits: docs/council/SETUP.md.
 PROVIDERS = {
     'gemini': {'chat': 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-               'models': 'https://generativelanguage.googleapis.com/v1beta/openai/models', 'key': 'GEMINI_API_KEY'},
+               'models': 'https://generativelanguage.googleapis.com/v1beta/openai/models', 'key': 'GEMINI_API_KEY',
+               'auth': True},
     'nvidia': {'chat': 'https://integrate.api.nvidia.com/v1/chat/completions',
-               'models': 'https://integrate.api.nvidia.com/v1/models', 'key': 'NVIDIA_API_KEY'},
+               'models': 'https://integrate.api.nvidia.com/v1/models', 'key': 'NVIDIA_API_KEY', 'auth': True},
     'openrouter': {'chat': 'https://openrouter.ai/api/v1/chat/completions',
-                   'models': 'https://openrouter.ai/api/v1/models', 'key': 'OPENROUTER_API_KEY'},
+                   'models': 'https://openrouter.ai/api/v1/models', 'key': 'OPENROUTER_API_KEY', 'auth': False},
+    'groq': {'chat': 'https://api.groq.com/openai/v1/chat/completions',
+             'models': 'https://api.groq.com/openai/v1/models', 'key': 'GROQ_API_KEY', 'auth': True},
+    'mistral': {'chat': 'https://api.mistral.ai/v1/chat/completions',
+                'models': 'https://api.mistral.ai/v1/models', 'key': 'MISTRAL_API_KEY', 'auth': True},
+    'cohere': {'chat': 'https://api.cohere.ai/compatibility/v1/chat/completions',
+               'models': 'https://api.cohere.ai/v1/models', 'key': 'COHERE_API_KEY', 'auth': True},
 }
 VOTES = ('adopt', 'reject', 'hold', 'ask_owner')
 ANSWERS = ('yes', 'no', 'unknown')
@@ -50,6 +59,11 @@ CITATION = re.compile(r'[\w.-]+/[\w./-]+|\b[\w.-]+\.(?:md|json|txt|tsv|yml|py|sh
 SEVERITIES = ('high', 'medium', 'low', 'nit')
 VERDICTS = ('looks_ok', 'needs_changes', 'unsure')
 MAX_DIFF = 150000
+# Audit mode: file text per part (DATA escaping and the trusted context must still fit a
+# 100000-character seat), parts per run, and the wall-clock budget inside the job's limit.
+AUDIT_PART_CHARS = 70000
+AUDIT_MAX_PARTS = 10
+AUDIT_FILE_MAX = 200000
 GH_ALLOWED = (
     ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/pulls/\d+$')),
     ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/issues/\d+$')),
@@ -238,7 +252,7 @@ def available_models(provider, env):
         return _model_cache[provider]
     p = PROVIDERS[provider]
     headers = {'User-Agent': 'pf-council'}
-    if provider in ('gemini', 'nvidia'):
+    if p.get('auth'):
         headers['Authorization'] = 'Bearer ' + env[p['key']]
     status, text = http('GET', p['models'], headers, timeout=30)
     ids = None
@@ -706,6 +720,153 @@ def mode_ask(env, seats, cfg):
     return upsert(env, number, MARKER['ask'], body)
 
 
+def glob_rx(pattern):
+    """A repository glob: '**' crosses directories, '*' and '?' stay inside one."""
+    out, i = '', 0
+    while i < len(pattern):
+        if pattern.startswith('**', i):
+            out, i = out + '.*', i + 2
+        elif pattern[i] == '*':
+            out, i = out + '[^/]*', i + 1
+        elif pattern[i] == '?':
+            out, i = out + '[^/]', i + 1
+        else:
+            out, i = out + re.escape(pattern[i]), i + 1
+    return re.compile(out + r'\Z')
+
+
+def repo_files():
+    """Every file in the checkout, as sorted relative paths; .git and caches are skipped."""
+    skip = {'.git', '__pycache__', 'node_modules'}
+    return sorted(p.relative_to(ROOT).as_posix() for p in ROOT.rglob('*')
+                  if p.is_file() and not skip & set(p.relative_to(ROOT).parts))
+
+
+def shard_files(spec, shard_id, paths=None):
+    """Files of one shard. Excluded files belong to none. Any other file belongs to the first
+    shard whose patterns match it, and 'rest' takes every file no shard claims."""
+    paths = repo_files() if paths is None else paths
+    shards = spec['shards']
+    if shard_id not in [s['id'] for s in shards]:
+        raise Refused('unknown shard')
+    rx = {s['id']: [glob_rx(g) for g in s.get('paths', [])] for s in shards}
+    never = [glob_rx(g) for g in spec.get('exclude', [])]
+    owner = {}
+    for path in paths:
+        if any(r.match(path) for r in never):
+            continue
+        for s in shards:
+            if any(r.match(path) for r in rx[s['id']]):
+                owner[path] = s['id']
+                break
+        else:
+            owner[path] = 'rest'
+    return [p for p in paths if owner.get(p) == shard_id]
+
+
+def file_block(rel, text):
+    return '=== FILE %s\n%s\n' % (rel, text)
+
+
+def audit_parts(files, part_chars=None, file_max=None):
+    """Deterministic parts: files in path order, packed greedily so that each part's text,
+    file headers included, stays within part_chars. Returns (parts, skipped); skipped names
+    binary or oversized files, so nothing is dropped silently."""
+    part_chars = part_chars or AUDIT_PART_CHARS
+    file_max = file_max or AUDIT_FILE_MAX
+    parts, skipped, cur, size = [], [], [], 0
+    for rel in files:
+        data = (ROOT / rel).read_bytes()
+        try:
+            text = data.decode('utf-8')
+        except UnicodeDecodeError:
+            skipped.append((rel, 'binary'))
+            continue
+        n = len(file_block(rel, text))
+        if n > part_chars or len(text) > file_max:
+            skipped.append((rel, 'over %d characters' % min(part_chars, file_max)))
+            continue
+        if cur and size + n > part_chars:
+            parts.append(cur)
+            cur, size = [], 0
+        cur.append((rel, text))
+        size += n
+    if cur:
+        parts.append(cur)
+    return parts, skipped
+
+
+def render_audit(shard, rows, parts, skipped, unreached, prompt_hash, pack_hash):
+    ok = [r for r in rows if r['status'] == 'OK']
+    seats = sorted({r['seat'] for r in ok})
+    out = [MARKER['audit'] % shard, '### Council audit (advisory): shard `%s`' % clean(shard, 40), '',
+           '%d part(s), %d file(s) reviewed; %d of %d seat answers valid from %d seat(s).' % (
+               len(parts) - len(unreached), sum(len(p) for i, p in enumerate(parts) if i + 1 not in unreached),
+               len(ok), len(rows), len(seats))]
+    if unreached:
+        out.append('Not reviewed (time or part limit): part(s) %s. Run the shard again for them.' %
+                   ', '.join(str(i) for i in unreached))
+    if skipped:
+        out.append('Skipped, never sent: ' + ', '.join('`%s` (%s)' % (clean(p, 120), why) for p, why in skipped[:20]))
+    found = merge_findings(rows)
+    if found:
+        out += ['', '| agree | severity | where | issue | suggested fix |', '|---|---|---|---|---|']
+        for g in found[:30]:
+            where = clean(g['file'], 120) + ('' if g['line'] is None else ':%d' % g['line'])
+            out.append('| %d | %s | %s | %s | %s |' % (len(g['seats']), g['severity'], where,
+                                                     clean(g['issue']), clean(g['fix']) or '-'))
+        out += ['', 'Leads, not conclusions: each finding is verified against the code before any change.']
+    elif ok:
+        out.append('No findings.')
+    else:
+        out.append('No seat returned a valid audit. Nothing to act on.')
+    table = ['| part | seat | model | status |', '|---|---|---|---|']
+    table += ['| %s | %s | %s | %s |' % (r.get('part', '-'), r['seat'], clean(r['model'] or '-', 80),
+                                         clean(r['status'], 90)) for r in rows]
+    out += ['', '<details><summary>Seats and provenance</summary>', ''] + table + [
+        '', 'prompt sha256 `%s`, evidence sha256 `%s`. Advisory only: nothing merges, builds or '
+        'publishes because of this comment.' % (prompt_hash[:12], pack_hash[:12]), '', '</details>']
+    return '\n'.join(out)
+
+
+def mode_audit(env, seats, cfg):
+    """Heavy lane: one shard of the repository, read at the checked-out commit, reviewed in
+    parts by every seat whose budget fits; one comment per shard on the chosen issue."""
+    shard = env.get('PF_SHARD', '').strip()
+    number = int(env.get('PF_ISSUE') or 0)
+    if not shard or not number:
+        raise Refused('audit mode needs a shard and an issue')
+    spec = json.loads(read('src/council/shards.json'))
+    files = shard_files(spec, shard)
+    if not files:
+        raise Refused('shard has no files')
+    parts, skipped = audit_parts(files)
+    deadline = time.time() + float(env.get('PF_AUDIT_SECONDS', '2400'))
+    instructions = prompt('AUDIT.md')
+    context = '\n\n'.join(['REPOSITORY RULES (trusted):\n' + agents_limits(),
+                           'OWNER (trusted):\n' + read('docs/council/OWNER.md'),
+                           'LESSONS (trusted):\n' + '\n\n'.join(lessons(tags_for(files)))])
+    rows, unreached, digest = [], [], hashlib.sha256()
+    for index, part in enumerate(parts, 1):
+        if index > AUDIT_MAX_PARTS or time.time() > deadline:
+            unreached.append(index)
+            continue
+        text = ''.join(file_block(rel, body) for rel, body in part)
+        block, cut = envelope('files', text, AUDIT_PART_CHARS)
+        if cut:
+            raise Refused('audit part over budget')  # audit_parts makes this unreachable
+        digest.update(text.encode())
+        names = [rel for rel, _ in part]
+        user = '\n\n'.join([instructions, context, 'Shard %s, part %d of %d. Files: %s' % (
+            shard, index, len(parts), json.dumps(names)), block])
+        canary = secrets.token_hex(8)
+        for r in convene(seats, base_system(canary), user, env, check_review, canary):
+            r['part'] = index
+            rows.append(r)
+    body = render_audit(shard, rows, parts, skipped, unreached, sha(instructions), digest.hexdigest())
+    return upsert(env, number, MARKER['audit'] % shard, body)
+
+
 def mode_probe(env, seats, cfg):
     canary = secrets.token_hex(8)
     rows = convene(seats, base_system(canary),
@@ -739,6 +900,8 @@ def main(env=None):
             result = mode_question(env, seats, cfg)
         elif mode == 'ask':
             result = mode_ask(env, seats, cfg)
+        elif mode == 'audit':
+            result = mode_audit(env, seats, cfg)
         elif mode == 'probe':
             result = mode_probe(env, seats, cfg)
         else:

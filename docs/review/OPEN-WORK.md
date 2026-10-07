@@ -1,6 +1,14 @@
 # Open work
 
-## Current checkpoint: 6 October 2026, evening
+## Current checkpoint: 6 October 2026, night
+
+Packet S1 is on main (PR #150) and Reddit built green through the second store; #146 is closed.
+Packet T1 adds three free council providers, the council `audit` lane over repository shards
+(guide: `docs/council/SETUP.md`) and owner-supplied icons for JioHotstar, MX Player and ES File.
+Open: verify the council audit findings, packet S2 (publisher pins, version step-down), Edge,
+#102, F05/F06, PR53, phone tests.
+
+## Earlier checkpoint: 6 October 2026, evening
 
 Packet R is on main (PR #148); YouTube Music and Facebook 580 built green, Reddit did not (APKPure
 lagged one version). Packet S1 adds the second-store chain ([record](SOURCE-CHAIN-2026-10-06.md)).

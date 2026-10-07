@@ -25,9 +25,27 @@ only these local files; a missing file falls back to the monogram.
 | `reddit` | [File:Snoo.svg](https://commons.wikimedia.org/wiki/File:Snoo.svg) | Public domain, trademarked |
 | `truecaller-combo` | [File:TrueCaller Icon.png](https://commons.wikimedia.org/wiki/File:TrueCaller_Icon.png) | CC BY-SA 4.0 |
 
-Still a monogram: ES File Explorer (no open-licensed official mark found), MX Player and
-JioHotstar (only wide wordmarks or a retired Disney+ Hotstar mark on Commons), Morphe MicroG RE
-(Morphe branding is not open-licensed: **Blocked**). The 26 September table below is history.
+Still a monogram on 6 October: ES File Explorer (no open-licensed official mark found), MX Player
+and JioHotstar (only wide wordmarks or a retired Disney+ Hotstar mark on Commons), Morphe MicroG RE
+(Morphe branding is not open-licensed: **Blocked**). The section below supersedes this for the
+first three. The 26 September table below is history.
+
+## Owner-supplied store icons (6 October 2026, night, packet T1)
+
+Owner approval: the owner supplied these exact icon links in chat on 6 October 2026 and asked
+for them on the page. They are **official store artwork, not open-licensed**: each is the
+trademark of its owner, shown only to identify the app this repository patches, bundled
+locally, never hotlinked, and removed on any request from the mark's owner. Gate items 1, 3
+and 4 are recorded here; item 2 (licence) is recorded as "none; identification only" by owner
+decision. The packet controller fetched each file on the owner's machine; a tile ships only if
+its file passed the PNG gate (PNG signature, 16 to 512 px, under 64 KB). Its hash is in
+`docs/assets/NOTICE.txt`; a tile that failed keeps its monogram and is named in the PR.
+
+| Target | Source the owner supplied | Licence |
+| --- | --- | --- |
+| `hotstar` | Google Play icon for JioHotstar (`in.startv.hotstar`), play-lh.googleusercontent.com `02xiO0pt...` | None; trademark, identification only |
+| `mxplayer` | Google Play icon for MX Player, play-lh.googleusercontent.com `pL-FlnQw...` | None; trademark, identification only |
+| `esfile` | Uptodown icon for ES File Explorer, img.utdstc.com `icon/826/725/82672572...` | None; trademark, identification only |
 
 ## 26 September 2026 record
 

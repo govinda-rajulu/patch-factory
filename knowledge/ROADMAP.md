@@ -13,9 +13,10 @@ stood here (Facebook #118/#119, Dependabot #103, YouTube #114) is closed or supe
 
 - CodeRabbit on this repository, advisory only, with path instructions for workflows and
   signing. Never a required check (it passes when rate-limited).
-- Council seats: the PR110 review got 4 of 6 (mistral 404, gpt unavailable). Probe, then fix
-  `seats.json` in an owner-approved PR. Candidate extra seats: Groq, Cerebras, Mistral free mode,
-  Cloudflare Workers AI. Each is a new secret the owner adds; keys never go in chat.
+- Council seats: 6 Oct 2026, packet T1 seats Mistral free mode, Cohere and Groq (eight seats, six
+  providers) and adds the `audit` lane; keys, limits and lanes in
+  [docs/council/SETUP.md](../docs/council/SETUP.md). Cerebras has no lasting free tier; Cloudflare
+  Workers AI is not the OpenAI chat shape. The owner adds each secret in Settings; keys never go in chat.
 
 ## Lane 2: security audit (read-only)
 

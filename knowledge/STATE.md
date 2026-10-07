@@ -2,6 +2,22 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+## 6 Oct 2026, night (packet T1)
+
+- **Base** main `97e7fd06` (PR #150, packet S1). Reddit run 37452203181 green through the second
+  store (APKPure failed, APKMirror 2026.40.0 arm64 480-640dpi, 19 patches); #146 closed.
+- **Keys** (7 Oct, owner scripts keys-k1/k2): all six free provider keys tested and stored in both
+  repositories. The 7 Oct probe had 4 of 6 seats: NVIDIA-hosted `mistral` 404, `minimax` unserved.
+- **Packet T1**: council seats for Mistral, Cohere and Groq; `mistral` dropped, `minimax` becomes
+  `kimi` (eight seats, six providers, budgets per seat), a new `audit` mode over 11 repository shards (`src/council/shards.json`, prompt
+  `docs/council/AUDIT.md`), and the key and lane guide `docs/council/SETUP.md`. Owner-supplied
+  store icons for JioHotstar, MX Player and ES File, recorded in `docs/review/ICON-PROVENANCE.md`;
+  a tile ships only if its fetch passed the PNG gate on the controller's run.
+- **Council audit results** are comments on one issue opened by the T1 controller. They are
+  leads: each is verified against the code before any fix packet.
+- **Next**: (1) review the audit comments and packet the findings that reproduce. (2) Packet S2:
+  publisher certificate pins, version step-down. (3) Edge. (4) #102. (5) F05/F06, PR53. (6) Phone tests.
+
 ## 6 Oct 2026, evening (packet R results, packet S1)
 
 - **Packet R** merged as PR #148 (main `eb3d3fb5`). Post-merge builds: YouTube Music run

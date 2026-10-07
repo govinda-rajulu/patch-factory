@@ -1,0 +1,17 @@
+{
+  "note": "Audit shards for council mode audit. Excluded files are never sent. Any other file belongs to the first shard whose paths match ('**' crosses directories, '*' does not); 'rest' takes every file no shard claims. Each shard is split into parts of at most 70000 characters. See docs/council/SETUP.md.",
+  "exclude": ["LICENSE", "CREDITS.md", "docs/review/**", "docs/assets/**", "docs/obtainium*.json", "knowledge/archive/**", "src/patches/_attic/**", "src/community/**", "src/build/helper/ggplay_dl/ggplay_pb2.py", "tests/fixtures/**", "reference/**"],
+  "shards": [
+    {"id": "workflows", "about": "Actions workflows, composite actions, hooks and dev container", "paths": [".github/**", ".githooks/**", ".devcontainer/**"]},
+    {"id": "council", "about": "Advisory council code, seats, shards and prompts", "paths": ["src/council/**", "docs/council/**"]},
+    {"id": "selection", "about": "Targets, patch selections, options, store and fallback maps", "paths": ["src/targets.json", "src/patches/**", "src/options/**", "src/build/helper/*.json"]},
+    {"id": "build-shell", "about": "Build and fetch shell scripts", "paths": ["src/build/*.sh"]},
+    {"id": "build-python", "about": "Build, identity, source and release Python", "paths": ["src/build/**"]},
+    {"id": "etc", "about": "Generators, watchers, reports and guards", "paths": ["src/etc/**"]},
+    {"id": "portal", "about": "The Pages portal", "paths": ["docs/index.html", "docs/portal.js", "docs/*.json", "docs/.nojekyll"]},
+    {"id": "docs", "about": "Guides, root documents and the knowledge base", "paths": ["docs/*.md", "*.md", "knowledge/**"]},
+    {"id": "tests-build", "about": "Regression tests for identity, repair, transport and source inputs", "paths": ["tests/test_*.py"]},
+    {"id": "tests", "about": "Contract tests", "paths": ["tests/**"]},
+    {"id": "rest", "about": "Every other file not excluded above", "paths": []}
+  ]
+}

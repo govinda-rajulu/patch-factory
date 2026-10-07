@@ -53,6 +53,11 @@ This file keeps only what fits in neither.
     stopped Reddit for a month.
 16. **Sort with `LC_ALL=C` before comparing lists.** The owner's Cloud Shell sorts
     `NOTICE.txt` after `logos/`, the sandbox before it; packet R r2 stopped on that alone.
+17. **Size work to the seat, not the seat to the work.** Free tiers differ by more than ten times
+    in request size (Groq 8000 tokens a minute, Gemini a million of context). Each seat has a
+    budget and abstains above it; heavy work is split into parts that fit, never truncated.
+18. **A remote asset fetch is optional per item.** One icon host serving WebP must not stop a
+    packet: each tile passes the PNG gate or keeps its monogram, and the result names which.
 
 ## Standing rules (short form; AGENTS.md is authoritative)
 
