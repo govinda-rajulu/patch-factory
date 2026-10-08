@@ -143,6 +143,7 @@ check('MicroG card lists every upstream file by icon and CPU, and the toolbar ke
  assert.ok(source.includes('tracked apps are unchanged'));
  assert.ok(source.includes('can show the same version when stable is newest'));
  assert.ok(source.includes('SHA-256 checksums'));
+ assert.ok(source.includes("id==='microg'?'assets/microg.png'"));const mb=fs.readFileSync(path.join(root,'docs/assets/microg.png'));assert.equal(mb.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.ok(mb.length<65536);
 });
 check('provider report identity binds exact run and attempt only',()=>{
  const issue={title:'provider watch: CHANGED run 36173375425/1',body:'# Provider watch: CHANGED\nhttps://github.com/govinda-rajulu/patch-factory/actions/runs/36173375425/attempts/1\nmore'};
@@ -183,6 +184,6 @@ check('brand tiles are local, provenance-recorded target logos and the monogram 
  const known=new Set(targets.filter(t=>t.enabled).map(t=>t.id)),notice=fs.readFileSync(path.join(root,'docs/assets/NOTICE.txt'),'utf8'),prov=fs.readFileSync(path.join(root,'docs/review/ICON-PROVENANCE.md'),'utf8');
  const files=fs.readdirSync(path.join(root,'docs/assets/logos')).sort();assert.deepEqual(files,ids.map(i=>i+'.png').sort());
  for(const id of ids){assert.ok(known.has(id),id);const b=fs.readFileSync(path.join(root,'docs/assets/logos',id+'.png'));assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.ok(b.length<65536,id);assert.ok(notice.includes('logos/'+id+'.png'),id);assert.ok(prov.includes('`'+id+'`'),id);}
- assert.ok(source.includes("logo.src='assets/logos/'+id+'.png'"));assert.ok(source.includes("monogram.classList.remove('has-logo')"));assert.ok(!/logo\.src=['"]https?:/.test(source));assert.ok(!/<img[^>]+src="https?:/i.test(html));
+ assert.ok(source.includes(":'assets/logos/'+id+'.png'"));assert.ok(source.includes("monogram.classList.remove('has-logo')"));assert.ok(!/logo\.src=['"]https?:/.test(source));assert.ok(!/<img[^>]+src="https?:/i.test(html));
 });
 console.log('PORTAL_CONTRACTS_PASS='+count);

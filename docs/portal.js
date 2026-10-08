@@ -577,7 +577,7 @@ function organizePanel(root,activeTab){
   if(heading){
    const monogram=el('span',article.querySelector('h3')?.textContent.trim().slice(0,1)||'A','app-monogram');
    monogram.setAttribute('aria-hidden','true');
-   if(LOGOS.has(id)){const logo=el('img',undefined,'app-logo');logo.src='assets/logos/'+id+'.png';logo.alt='';logo.width=40;logo.height=40;logo.decoding='async';logo.addEventListener('error',()=>{logo.remove();monogram.classList.remove('has-logo');});monogram.textContent='';monogram.classList.add('has-logo');monogram.append(logo);}
+   if(LOGOS.has(id)||id==='microg'){const logo=el('img',undefined,'app-logo');logo.src=id==='microg'?'assets/microg.png':'assets/logos/'+id+'.png';logo.alt='';logo.width=40;logo.height=40;logo.decoding='async';logo.addEventListener('error',()=>{logo.remove();monogram.classList.remove('has-logo');});monogram.textContent='';monogram.classList.add('has-logo');monogram.append(logo);}
    heading.prepend(monogram);
   }
   const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta')&&!n.classList.contains('channel-status'));

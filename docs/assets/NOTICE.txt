@@ -105,6 +105,10 @@ logos/truecaller-combo.png
   tile: Commons 250 px PNG thumbnail, fetched by the packet controller; sha256 at the end of this file
 logos/reddit.png tile sha256 9da3ff155fd866b0b25ed2bf0abc74790019dc0d3fdb2a1619b2a40e9393dfb0 (Commons thumbnail fetched 20261006T101028Z)
 logos/truecaller-combo.png tile sha256 c544294026dfa8199adb4e00e33e1251fb70f7618d23742e80f24ca1e60ba22f (Commons thumbnail fetched 20261006T101028Z)
+microg.png
+  source: owner-supplied MicroG RE icon, https://downloadr2.apkmirror.com/wp-content/uploads/2024/04/MicroG_round.png (uploaded in chat 8 October 2026)
+  licence: none recorded; mark of the MicroG RE project, shown only to identify the upstream companion (docs/review/ICON-PROVENANCE.md)
+  tile: resized from the owner's 512 px PNG to 128 px in packet W4; sha256 e2904b347a5dfbc7fd4f923d545a5a04e327612314ec1ffc02900f5eca84ac25
 logos/linkedin.png
   source: owner-supplied Google Play icon for LinkedIn (com.linkedin.android), uploaded in chat 8 October 2026
   licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
