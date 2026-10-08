@@ -79,6 +79,8 @@ def world():
 
 def reader(w, missing=()):
     def fetch(path):
+        if path not in missing and path not in w and path.startswith(R + '/commits?'):
+            return [{'sha': 'f' * 40}] if 'ci.yml' in path else []
         if path in missing or path not in w:
             raise urllib.error.HTTPError('u', 404, 'nf', {}, None)
         return w[path]
@@ -135,15 +137,15 @@ class Status(unittest.TestCase):
         self.assertEqual(st.clean('adguard-v4.14.68-arm64-v8a.apk'), 'adguard-v4.14.68-arm64-v8a.apk')
         self.assertEqual(st.clean('a\x00b\u202ec'), 'a b c')
 
-    def test_old_failure_is_history_not_a_current_problem(self):
+    def test_failure_stays_listed_until_a_later_run_works(self):
+        # Owner, 8 Oct 2026: age never hides a failure; only a later success clears it.
         d = st.build(self.r, TARGETS, now='2026-11-08T07:00:00Z')
         ci = [w for w in d['workflows'] if w['file'] == 'ci.yml'][0]
         self.assertTrue(ci['last']['old'])
         self.assertGreater(ci['last']['age_days'], st.STALE_DAYS)
-        self.assertNotIn(ci['name'], d['headline']['workflows'])
-        self.assertIn(ci['name'], d['headline']['old_failures'])
-        fresh = [w for w in self.d['workflows'] if w['file'] == 'ci.yml'][0]
-        self.assertFalse(fresh['last']['old'])
+        self.assertIn(ci['name'], d['headline']['workflows'])
+        self.assertIs(ci['last']['changed_since'], True)
+        self.assertIn(ci['name'], d['headline']['run_once_to_confirm'])
 
     def test_failed_reads_are_unknown_never_fine(self):
         r = reader(world(), missing={R + '/releases?per_page=100&page=1'})

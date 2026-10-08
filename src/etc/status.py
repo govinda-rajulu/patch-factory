@@ -78,7 +78,8 @@ WORDS = {
 LIVE = {'in_progress': 'Running now', 'queued': 'Waiting to start', 'waiting': 'Waiting for approval',
         'requested': 'Waiting to start', 'pending': 'Waiting to start'}
 BAD = {'failure', 'timed_out', 'startup_failure', 'action_required', 'cancelled'}
-# A failure older than this, with nothing run since, is history, not a current problem (W4).
+# A failure stays listed until a later run of the same workflow or app works (owner, 8 Oct 2026).
+# Age is shown, never used to hide it. STALE_DAYS only words the label.
 STALE_DAYS = 14
 
 
@@ -207,12 +208,21 @@ def age_days(stamp, now):
 
 
 def mark_age(row, now):
-    """Adds age_days and old (a failure older than STALE_DAYS) to a run or build row."""
+    """Adds age_days and old (a failure older than STALE_DAYS, still unresolved) to a row."""
     if not row:
         return row
     row['age_days'] = age_days(row.get('when'), now)
     row['old'] = bool(row.get('result') in BAD and row['age_days'] is not None and row['age_days'] > STALE_DAYS)
     return row
+
+
+def changed_since(reader, path, stamp):
+    """True when the workflow file was changed on main after the failed run: a fix may be in,
+    and one run confirms it. Unknown (read failed) is None, shown as unknown."""
+    data = reader.get('repos/%s/commits?path=%s&since=%s&per_page=1' % (REPO, path, stamp), 'changes to ' + path)
+    if data is None:
+        return None
+    return bool(data)
 
 
 def run_row(run):
@@ -291,6 +301,8 @@ def build(reader, targets, now=None):
                     if len(last['jobs']) >= 4:
                         break
             row['last'] = mark_age(last, now)
+            if done[0].get('conclusion') in BAD and last.get('when'):
+                last['changed_since'] = changed_since(reader, path, last['when'])
         out['workflows'].append(row)
         if path in BUILD_FILES:
             for r in runs:
@@ -330,16 +342,16 @@ def build(reader, targets, now=None):
         if i.get('pull_request') or not title.startswith('Failing: '):
             continue
         out['issues'].append({'title': title, 'url': link(i.get('html_url')), 'number': i.get('number')})
-    bad_apps = [a['label'] for a in out['apps'] if a['last_build'] and a['last_build']['result'] in BAD and not a['last_build']['old']]
-    bad_wfs = [w['name'] for w in out['workflows'] if w['last'] and w['last']['result'] in BAD and not w['last']['old']]
-    old = [w['name'] for w in out['workflows'] if w['last'] and w['last']['old']]
+    bad_apps = [a['label'] for a in out['apps'] if a['last_build'] and a['last_build']['result'] in BAD]
+    bad_wfs = [w['name'] for w in out['workflows'] if w['last'] and w['last']['result'] in BAD]
+    confirm = [w['name'] for w in out['workflows'] if w['last'] and w['last'].get('changed_since')]
     if out['problems']:
         head = 'Partly unknown: some GitHub reads failed (listed at the bottom).'
     elif bad_apps or bad_wfs:
         head = '%d app build(s) and %d automation(s) need a look.' % (len(bad_apps), len(bad_wfs))
     else:
         head = 'Everything that ran recently worked.'
-    out['headline'] = {'text': head, 'apps': bad_apps, 'workflows': bad_wfs, 'old_failures': old}
+    out['headline'] = {'text': head, 'apps': bad_apps, 'workflows': bad_wfs, 'run_once_to_confirm': confirm}
     return out
 
 
