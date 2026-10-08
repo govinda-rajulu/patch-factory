@@ -1,6 +1,7 @@
 [
   {
     "id": "youtube",
+    "installed_package": "app.morphe.android.youtube",
     "enabled": true,
     "package": "com.google.android.youtube",
     "apk_name": "youtube",
@@ -26,6 +27,7 @@
   },
   {
     "id": "ytmusic",
+    "installed_package": "app.morphe.android.apps.youtube.music",
     "enabled": true,
     "package": "com.google.android.apps.youtube.music",
     "apk_name": "yt-music",
@@ -86,6 +88,7 @@
   },
   {
     "id": "photos",
+    "installed_package": "app.morphe.android.apps.photos",
     "enabled": true,
     "package": "com.google.android.apps.photos",
     "apk_name": "gg-photos",

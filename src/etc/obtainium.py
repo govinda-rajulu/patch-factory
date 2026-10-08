@@ -18,11 +18,10 @@ for t in targets:
         continue
     p = t.get("tag_prefix") or t["id"]
     assert re.fullmatch("[a-z0-9-]+", p), ("prefix has regex metachars", p)
-    pkg[p] = t["package"]
+    # installed_package in src/targets.json: the id the patched APK installs as when a patch
+    # renames it (GmsCore support, Change package name). One home for that fact (8 Oct 2026).
+    pkg[p] = t.get("installed_package") or t["package"]
     LABELS[p] = t.get("label") or p
-pkg["gg-photos"] = "app.morphe.android.apps.photos"
-pkg["yt-music"] = "app.morphe.android.apps.youtube.music" # GmsCore support renames the package
-pkg["youtube-morphe"] = "app.morphe.android.youtube" # GmsCore support renames the package  # Change package name patch default
 ALL_APPS = sorted(LABELS)
 for p in ALL_APPS:
     assert p in LABELS, ("no label", p)
