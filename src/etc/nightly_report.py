@@ -39,7 +39,7 @@ def analyze(text, rc, setup_ok, targets, env):
     # candidate and extra (GitHub and GitLab). What it still does not cover stays explicit
     # even when the subprocess exits zero.
     gaps = ['name check compares patch names only; versions, options and effective defaults are not compared',
-            'release reader does not paginate; historical coverage can be incomplete']
+            'release reader stops after 30 pages (3000 releases); an unreadable page makes release coverage UNKNOWN']
     failed = rc not in (0, None) or (markers_ok and matches[0] == '1')
     if markers_ok and rc == 0 and matches[0] == '1': reasons.append('report exit/result mismatch')
     status = 'FAILED' if failed else 'UNKNOWN' if reasons else 'PARTIAL'
