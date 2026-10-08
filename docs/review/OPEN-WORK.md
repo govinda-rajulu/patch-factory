@@ -1,6 +1,22 @@
 # Open work
 
-## Current checkpoint: 8 October 2026 (packet W2)
+## Current checkpoint: 8 October 2026, afternoon (packet W4)
+
+W4 (one pull request): Pages Builds and Watch rebuilt on `status.json`, failures listed until
+fixed, MicroG RE six-file card, Obtainium import with icon choice, Amazon Music and LinkedIn,
+a working two-step app add, cleanup tool, obsolete files removed. Record:
+[SESSION-2026-10-08.md](SESSION-2026-10-08.md) (W4 section). Open, in order:
+
+1. Merge W4; run `Status page data`; open the page.
+2. `1. Manual Patch` for `amazonmusic` and `linkedin`; phone-test both.
+3. `src/etc/cleanup.py preview`, review, `apply --token`.
+4. #102 (provider watch with and without `-u`), council `same_site` exact host, free council
+ seats from `knowledge/handbook/FREE-LLM-APIS-2026-10-v2.md`, release-notes consolidation.
+5. Desk leads still unread: `explore.yml` `$PKG`, portal SRI. Packet S2: publisher pins,
+ version step-down. Then Edge apkpure refusal, F05/F06, PR53, phone tests, ES File icon, agent
+ runner pilot, the unused `TDL_BACKUP` secret.
+
+## Earlier checkpoint: 8 October 2026 (packet W2)
 
 W2 (one pull request) makes every app or patch change two steps (`5. Add target`, then merge),
 adds the plain status page, ships MicroG RE with the apps that need it, removes repeated notes,

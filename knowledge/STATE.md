@@ -2,7 +2,30 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
-## 8 Oct 2026 (packet W2; start here)
+## 8 Oct 2026, afternoon (packet W4; start here)
+
+- **Base** main `18670c23` (W2 #158 and W3 #159 merged). Record: the W4 section of
+ `docs/review/SESSION-2026-10-08.md`.
+- **Sandbox sees the whole repo now.** The owner uploads `git bundle --all` of main; the
+ assistant runs every test and renders Pages in a headless browser before handing a packet over.
+- **Pages**: Builds and Watch read `status.json` (grouped, newest first, capped lists, the data's
+ age). A failure stays listed until a later run of the same app or automation works; when its
+ workflow changed since, the row asks for one confirming run. `status.html` redirects there.
+- **MicroG RE card**: stable and pre-release, six files each (icon or no icon; ARM64, ARMv7,
+ universal) with sha256. Obtainium import: three steps, icon choice. Before W4 the ARM64 and
+ ARMv7 downloads were broken by MicroG's 7.2 file names.
+- **New apps**: Amazon Music (RookieEnough/De-Vanced) and LinkedIn (heyymichii/michii-patches).
+ Not built yet: run `1. Manual Patch` with `amazonmusic` and `linkedin` after merge.
+- **Adding apps really is two steps now**: `app.py add` writes the store-fallback entry and the
+ APKMirror org/name; tests count targets from `src/targets.json` (`tests/target_counts.py`).
+- **Cleanup**: `src/etc/cleanup.py preview`, then `apply --token`. Reddit page diagnostic and two
+ unused patch folders removed.
+- **Next, in order**: (1) merge W4, run Status page data, open the page. (2) Manual Patch for
+ amazonmusic and linkedin; if Amazon Music will not install, add `Rename shared permissions`.
+ (3) cleanup preview and apply. (4) #102, council `same_site`, free council seats, release-notes
+ consolidation. (5) S2 publisher pins; Edge, F05/F06, PR53, phone tests.
+
+## 8 Oct 2026 (packet W2)
 
 - **Base** main `4bdb82b8`. Record: `docs/review/SESSION-2026-10-08.md` (applied and dropped
  hunks at its end). Leads decided: `docs/review/LEADS-2026-10-08.md`.

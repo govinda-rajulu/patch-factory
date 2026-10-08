@@ -9,6 +9,7 @@ Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 
 ## 2026-10-08
 
+- packet W3: silent failures made loud, changelog reads merge commits, status workflow contract ([#159](https://github.com/govinda-rajulu/patch-factory/pull/159))
 - packet W2: two-step app changes, plain status page, MicroG where needed, onboarding gate ([#158](https://github.com/govinda-rajulu/patch-factory/pull/158))
 
 ## 2026-10-07
@@ -30,44 +31,44 @@ Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 
 ## 2026-10-03
 
-- Merge PR #133: pf state (direct `fb043c0`)
+- pf state ([#133](https://github.com/govinda-rajulu/patch-factory/pull/133))
 
 ## 2026-10-01
 
 - chore: keepalive (direct `09bf31b`)
-- Merge PR #124: setup-java 6.0.1 (packet Q) (direct `b410436`)
-- Merge PR #123: packet P (direct `dc8a4a2`)
-- Merge PR #122: roadmap and agent tooling (direct `0122b47`)
+- setup-java 6.0.1 (packet Q) ([#124](https://github.com/govinda-rajulu/patch-factory/pull/124))
+- packet P ([#123](https://github.com/govinda-rajulu/patch-factory/pull/123))
+- roadmap and agent tooling ([#122](https://github.com/govinda-rajulu/patch-factory/pull/122))
 
 ## 2026-09-29
 
-- Merge PR #113: packet O (direct `2b58d78`)
+- packet O ([#113](https://github.com/govinda-rajulu/patch-factory/pull/113))
 - docs(knowledge): end-of-session state and lessons, 29 Sep ([#112](https://github.com/govinda-rajulu/patch-factory/pull/112))
 - docs(knowledge): lessons, state and handbook in the repo ([#110](https://github.com/govinda-rajulu/patch-factory/pull/110))
-- Merge PR #111: packet N (direct `5301b5c`)
-- Merge PR #108: packet M (direct `1b8e42c`)
-- Merge PR #107: packet L (direct `90e12e5`)
+- packet N ([#111](https://github.com/govinda-rajulu/patch-factory/pull/111))
+- packet M ([#108](https://github.com/govinda-rajulu/patch-factory/pull/108))
+- packet L ([#107](https://github.com/govinda-rajulu/patch-factory/pull/107))
 
 ## 2026-09-28
 
 - community: acknowledge reported index 7769b985f631 (direct `93fc2b9`)
-- Merge PR #95: council live seats (direct `228d90d`)
+- council live seats ([#95](https://github.com/govinda-rajulu/patch-factory/pull/95))
 
 ## 2026-09-27
 
-- Merge PR #94: council seat repair (direct `c5c5bac`)
-- Merge PR #93: advisory model council (direct `860959c`)
-- Merge PR #92: poll for new patches 4x a day (direct `7180426`)
-- Merge PR #91: micro-audit hardening (direct `69c39f1`)
-- Merge PR #90: 5S hygiene - review desk, corrections, index contract (direct `789d47a`)
+- council seat repair ([#94](https://github.com/govinda-rajulu/patch-factory/pull/94))
+- advisory model council ([#93](https://github.com/govinda-rajulu/patch-factory/pull/93))
+- poll for new patches 4x a day ([#92](https://github.com/govinda-rajulu/patch-factory/pull/92))
+- micro-audit hardening ([#91](https://github.com/govinda-rajulu/patch-factory/pull/91))
+- 5S hygiene - review desk, corrections, index contract ([#90](https://github.com/govinda-rajulu/patch-factory/pull/90))
 
 ## 2026-09-26
 
-- Merge PR #89: IST schedules on quiet minutes + 26 Sep handover (direct `2f3acec`)
-- Merge PR #88: Photos 7.92.0.977185651 fallback with exact signer rotation pin (direct `aa74a47`)
-- Merge PR #87: CI hygiene (nightly annotation, ubuntu-24.04 runners) (direct `9a0b728`)
-- Merge PR #86: exact-version source fallbacks (direct `b84f929`)
-- Merge PR #85: dormant qualified APK-source fallbacks (direct `037bf8f`)
+- IST schedules on quiet minutes + 26 Sep handover ([#89](https://github.com/govinda-rajulu/patch-factory/pull/89))
+- Photos 7.92.0.977185651 fallback with exact signer rotation pin ([#88](https://github.com/govinda-rajulu/patch-factory/pull/88))
+- CI hygiene (nightly annotation, ubuntu-24.04 runners) ([#87](https://github.com/govinda-rajulu/patch-factory/pull/87))
+- exact-version source fallbacks ([#86](https://github.com/govinda-rajulu/patch-factory/pull/86))
+- dormant qualified APK-source fallbacks ([#85](https://github.com/govinda-rajulu/patch-factory/pull/85))
 - fix: archive validation, secure explore/add-target, portal binding, wired suites, action pinning ([#84](https://github.com/govinda-rajulu/patch-factory/pull/84))
 
 ## 2026-09-25
@@ -95,33 +96,33 @@ Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 ## 2026-09-21
 
 - community: snapshot the patch index (direct `635b9ac`)
-- Merge PR #70: preserve ES File and MX Player resources (direct `90b7717`)
+- preserve ES File and MX Player resources ([#70](https://github.com/govinda-rajulu/patch-factory/pull/70))
 
 ## 2026-09-19
 
-- Merge PR #68: operating guidance and evidence-aware retention (direct `60c59ea`)
-- Merge PR #67: visible channels, mixed-run status and page-only diagnostic (direct `d2777e3`)
-- Merge PR #66: store download log privacy and missing-link diagnostics (direct `8ebbfd2`)
-- Merge PR #64: prepared dependency subset comparison and coverage (direct `a3d8c4b`)
-- Merge PR #63: reader-first release information and dependency upkeep (direct `6bda711`)
-- Merge PR #62: reviewed action upgrades with mandatory runtime smoke (direct `d533562`)
-- Merge PR #61: deterministic teardown and unified app shelf (direct `376b62d`)
-- Merge PR #60: optional MicroG and portal correctness (direct `04e7d29`)
+- operating guidance and evidence-aware retention ([#68](https://github.com/govinda-rajulu/patch-factory/pull/68))
+- visible channels, mixed-run status and page-only diagnostic ([#67](https://github.com/govinda-rajulu/patch-factory/pull/67))
+- store download log privacy and missing-link diagnostics ([#66](https://github.com/govinda-rajulu/patch-factory/pull/66))
+- prepared dependency subset comparison and coverage ([#64](https://github.com/govinda-rajulu/patch-factory/pull/64))
+- reader-first release information and dependency upkeep ([#63](https://github.com/govinda-rajulu/patch-factory/pull/63))
+- reviewed action upgrades with mandatory runtime smoke ([#62](https://github.com/govinda-rajulu/patch-factory/pull/62))
+- deterministic teardown and unified app shelf ([#61](https://github.com/govinda-rajulu/patch-factory/pull/61))
+- optional MicroG and portal correctness ([#60](https://github.com/govinda-rajulu/patch-factory/pull/60))
 
 ## 2026-09-18
 
-- Merge PR #59: connected shadow input evidence (direct `3a855e5`)
-- Merge PR #58: reviewed patch-factory repair (direct `a09f022`)
-- Merge PR #57: reviewed patch-factory repair (direct `1a69a62`)
+- connected shadow input evidence ([#59](https://github.com/govinda-rajulu/patch-factory/pull/59))
+- reviewed patch-factory repair ([#58](https://github.com/govinda-rajulu/patch-factory/pull/58))
+- reviewed patch-factory repair ([#57](https://github.com/govinda-rajulu/patch-factory/pull/57))
 
 ## 2026-09-16
 
-- Merge PR #56: reviewed patch-factory repair (direct `35bace4`)
-- Merge PR #55: grouped catalog and neutral Obtainium import (direct `250a0cd`)
-- Merge PR #54: reviewed patch-factory repair (direct `446184c`)
-- Merge PR #52: reviewed patch-factory repair (direct `548dadc`)
-- Merge PR #51: reviewed patch-factory repair (direct `4b63557`)
-- Merge PR #48: reviewed patch-factory repair (direct `9861d51`)
+- reviewed patch-factory repair ([#56](https://github.com/govinda-rajulu/patch-factory/pull/56))
+- grouped catalog and neutral Obtainium import ([#55](https://github.com/govinda-rajulu/patch-factory/pull/55))
+- reviewed patch-factory repair ([#54](https://github.com/govinda-rajulu/patch-factory/pull/54))
+- reviewed patch-factory repair ([#52](https://github.com/govinda-rajulu/patch-factory/pull/52))
+- reviewed patch-factory repair ([#51](https://github.com/govinda-rajulu/patch-factory/pull/51))
+- reviewed patch-factory repair ([#48](https://github.com/govinda-rajulu/patch-factory/pull/48))
 
 ## 2026-09-14
 
