@@ -168,6 +168,26 @@ def text(value):
     return re.sub(r'([\\`*_\[\]|])', r'\\\1', value)
 
 
+def works_on(current):
+    """Device requirements: verified Android minimum and CPU, plus MicroG from src/targets.json (W2)."""
+    names = {21: '5.0', 22: '5.1', 23: '6', 24: '7.0', 25: '7.1', 26: '8', 27: '8.1', 28: '9', 29: '10',
+             30: '11', 31: '12', 32: '12L', 33: '13', 34: '14', 35: '15', 36: '16'}
+    api = current['min_sdk']
+    cpu = 'ARM64 phones' if current['arch'] == 'arm64-v8a' else 'any phone CPU (no native code)'
+    rows = ['- Android %s or newer (minimum API %d), %s.' % (names.get(api, 'API %d' % api), api, cpu)]
+    try:
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'targets.json')
+        with open(path, encoding='utf-8') as f:
+            match = [t for t in json.load(f) if isinstance(t, dict) and t.get('id') == current['target']]
+        microg = bool(match and match[0].get('needs_microg'))
+    except (OSError, ValueError):
+        microg = None
+    if microg:
+        rows.append('- Install [Morphe MicroG RE](https://github.com/MorpheApp/MicroG-RE/releases) first: Google sign-in in this app goes through it.')
+    elif microg is None:
+        rows.append('- MicroG requirement unknown: src/targets.json was unreadable when these notes were written.')
+    return rows
+
 def render(current, previous=None, reason='Previous-release comparison not requested in this nonpublishing check.'):
     checked(current)
     guide = WEB + '/blob/' + current['source'] + '/docs/guide.md'
@@ -180,6 +200,7 @@ def render(current, previous=None, reason='Previous-release comparison not reque
               ('Patch providers', current['provider']), ('Primary bundle', current['bundle']),
               ('Applied patch names', len(current['patches']))]
     lines += ['| ' + name + ' | ' + text(value) + ' |' for name, value in values]
+    lines += ['', '## Works on', *works_on(current)]
     lines += ['', '## Applied patches (' + str(len(current['patches'])) + ')',
               '<details>', '<summary>All applied patch names</summary>', '',
               *('- ' + text(name) for name in current['patches']),
