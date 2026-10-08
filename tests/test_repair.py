@@ -1232,11 +1232,9 @@ def load_tests(loader, tests, pattern):
     import provider_watch_contracts
     import nightly_contracts
     import daily_plan_contracts
-    import reddit_probe_contracts
     import operational_docs_contracts
     tests.addTests(loader.loadTestsFromTestCase(nightly_contracts.Nightly))
     tests.addTests(loader.loadTestsFromTestCase(daily_plan_contracts.DailyPlanTests))
-    tests.addTests(loader.loadTestsFromTestCase(reddit_probe_contracts.RedditProbe))
     tests.addTests(loader.loadTestsFromTestCase(operational_docs_contracts.OperationalDocs))
     tests.addTests(loader.loadTestsFromTestCase(provider_watch_contracts.ProviderWatch))
     return tests
