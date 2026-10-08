@@ -12,6 +12,17 @@
    "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^adguard-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"AdGuard\"}"
   },
   {
+   "id": "com.amazon.mp3",
+   "url": "https://github.com/govinda-rajulu/patch-factory",
+   "author": "govinda-rajulu",
+   "name": "Amazon Music",
+   "categories": [
+    "patch-factory"
+   ],
+   "preferredApkIndex": 0,
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^amazonmusic-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"Amazon Music\"}"
+  },
+  {
    "id": "com.microsoft.emmx",
    "url": "https://github.com/govinda-rajulu/patch-factory",
    "author": "govinda-rajulu",
@@ -87,6 +98,17 @@
    ],
    "preferredApkIndex": 0,
    "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^key-mapper-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"Key Mapper\"}"
+  },
+  {
+   "id": "com.linkedin.android",
+   "url": "https://github.com/govinda-rajulu/patch-factory",
+   "author": "govinda-rajulu",
+   "name": "LinkedIn",
+   "categories": [
+    "patch-factory"
+   ],
+   "preferredApkIndex": 0,
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^linkedin-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+)-b[0-9]+$\", \"matchGroupToUse\": \"1\", \"trackOnly\": false, \"appName\": \"LinkedIn\"}"
   },
   {
    "id": "com.mxtech.videoplayer.pro",

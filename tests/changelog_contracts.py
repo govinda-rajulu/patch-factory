@@ -22,6 +22,9 @@ class Changelog(unittest.TestCase):
                        '\npacket W2: two-step app changes\n')
         self.assertEqual(row, ('2026-10-08', '5e648da', 'packet W2: two-step app changes', 158))
 
+    def test_hand_merged_subject_keeps_number(self):
+        self.assertEqual(cl.parse('fb043c0', '2026-10-03', 'Merge PR #133: pf state'), ('2026-10-03', 'fb043c0', 'pf state', 133))
+
     def test_bot_commit_stays_direct(self):
         self.assertEqual(cl.parse('0a0a0a0', '2026-10-08', 'keepalive')[3], None)
         self.assertIn('direct `0a0a0a0`', cl.render([cl.parse('0a0a0a0', '2026-10-08', 'keepalive')]))

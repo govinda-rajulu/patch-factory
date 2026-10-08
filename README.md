@@ -123,7 +123,7 @@ branches and local folders are distinct scopes.
 Generated from `src/targets.json` by `src/etc/readmegen.py`. **3. Validate** fails a push
 that leaves this block stale, so it cannot drift.
 
-- **15 apps**, all enabled, 15 polled by the scheduled build (`23 12 * * *` UTC = 17:53 IST; plus poll-only checks at 23:53, 05:53 and 11:53 IST that build only when a provider has published; GitHub can start scheduled runs late).
+- **17 apps**, all enabled, 17 polled by the scheduled build (`23 12 * * *` UTC = 17:53 IST; plus poll-only checks at 23:53, 05:53 and 11:53 IST that build only when a provider has published; GitHub can start scheduled runs late).
 - Patch-age warning: 60, 120 days. Age is advisory; requested/applied checks and build verification decide.
 - 2 build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.
 - 2 patch(es) quarantined in `src/patches/QUARANTINE`, held out of every include list by CI.
@@ -131,12 +131,14 @@ that leaves this block stale, so it cannot drift.
 | App | id | tag prefix | store | patch providers | polled |
 |---|---|---|---|---|---|
 | AdGuard | `adguard` | `adguard` | apkmirror | rushiranpise + hoo-dles | yes |
+| Amazon Music | `amazonmusic` | `amazonmusic` | apkmirror | rookieenough | yes |
 | ES File Explorer | `esfile` | `es-file` | apkmirror | ftl | yes |
 | Facebook | `facebook` | `facebook` | apkmirror | derevanced | yes |
 | Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise | yes |
 | Instagram | `instagram` | `instagram` | apkpure | piko + brosssh | yes |
 | JioHotstar | `hotstar` | `hotstar` | apkmirror | chiggi | yes |
 | Key Mapper | `keymapper` | `key-mapper` | apkpure | lain | yes |
+| LinkedIn | `linkedin` | `linkedin` | apkmirror | heyymichii | yes |
 | Microsoft Edge | `edge` | `edge` | apkpure | quantavil | yes |
 | MX Player Pro | `mxplayer` | `mx-player` | apkmirror | ftl + paresh | yes |
 | Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |

@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch
 import test_identity as fixtures
 from test_identity import ROOT, identity, input_recipe, release_contract
+from target_counts import ENABLED, TOTAL, ROWS, CANDIDATES, GITHUB_ROWS  # W4: counts follow src/targets.json
 
 class InputRecipeTests(unittest.TestCase):
     """Actual source layouts, semantic controls and no-write failure tests."""
@@ -41,8 +42,8 @@ class InputRecipeTests(unittest.TestCase):
                     input_recipe.verify(self.r,t['id'],c['name'],d)
                     self.assertGreater(len(d['components']),len(input_recipe.SHARED))
                     counts.append(t['id'])
-        self.assertEqual(len(set(counts)),15)
-        self.assertEqual(len(counts),16)
+        self.assertEqual(len(set(counts)),ENABLED)
+        self.assertEqual(len(counts),CANDIDATES)
 
     def test_real_hosts_option_is_discovered(self):
         self.assertEqual(self.recipe()['resource_paths'],['src/options/hosts.txt'])

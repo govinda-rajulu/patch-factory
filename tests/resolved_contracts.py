@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+from target_counts import ENABLED, TOTAL, ROWS  # W4: counts follow src/targets.json
 
 import test_identity as fixtures
 import resolved_inputs as resolved
@@ -120,7 +121,7 @@ class ResolvedContracts(unittest.TestCase):
             self.assertNotEqual(doc["state"], "UNCHANGED")
             shutil.rmtree(self.r / "resolved-inputs")
             count += 1
-        self.assertEqual(count, 15)
+        self.assertEqual(count, ENABLED)
         self.assertTrue(any(isinstance(c, tuple) and c[0] == "gitlab" for c in self.calls))
 
     def test_run_attempt_source_and_repository_mismatch_refuse_without_writes(self):
@@ -266,7 +267,7 @@ class ResolvedContracts(unittest.TestCase):
         lines = out.read_text().splitlines()
         self.assertEqual(lines[0], 'matrix={"target":[]}')
         observation = json.loads(next(x.split("=", 1)[1] for x in lines if x.startswith("resolution_matrix=")))
-        self.assertEqual(len(observation["target"]), 15)
+        self.assertEqual(len(observation["target"]), ENABLED)
         self.assertNotIn("UNCHANGED", (self.r / "shadow-evidence/plan.json").read_text())
 
     def test_workflow_read_only_resolution_no_secrets_and_pre_secret_verify(self):

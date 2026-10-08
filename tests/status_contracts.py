@@ -79,6 +79,8 @@ def world():
 
 def reader(w, missing=()):
     def fetch(path):
+        if path not in missing and path not in w and path.startswith(R + '/commits?'):
+            return [{'sha': 'f' * 40}] if 'ci.yml' in path else []
         if path in missing or path not in w:
             raise urllib.error.HTTPError('u', 404, 'nf', {}, None)
         return w[path]
@@ -129,6 +131,22 @@ class Status(unittest.TestCase):
         self.assertIn('need a look', self.d['headline']['text'])
         self.assertEqual(self.apps['facebook']['android_cap'], {'api': 30, 'version': '11'})
 
+    def test_hyphens_survive_cleaning(self):
+        # W4: a bare '-' in the character class turned every hyphen into a space.
+        self.assertEqual(st.clean('manual-patch.yml'), 'manual-patch.yml')
+        self.assertEqual(st.clean('adguard-v4.14.68-arm64-v8a.apk'), 'adguard-v4.14.68-arm64-v8a.apk')
+        self.assertEqual(st.clean('a\x00b\u202ec'), 'a b c')
+
+    def test_failure_stays_listed_until_a_later_run_works(self):
+        # Owner, 8 Oct 2026: age never hides a failure; only a later success clears it.
+        d = st.build(self.r, TARGETS, now='2026-11-08T07:00:00Z')
+        ci = [w for w in d['workflows'] if w['file'] == 'ci.yml'][0]
+        self.assertTrue(ci['last']['old'])
+        self.assertGreater(ci['last']['age_days'], st.STALE_DAYS)
+        self.assertIn(ci['name'], d['headline']['workflows'])
+        self.assertIs(ci['last']['changed_since'], True)
+        self.assertIn(ci['name'], d['headline']['run_once_to_confirm'])
+
     def test_failed_reads_are_unknown_never_fine(self):
         r = reader(world(), missing={R + '/releases?per_page=100&page=1'})
         d = st.build(r, TARGETS, now='2026-10-08T07:00:00Z')
@@ -137,17 +155,17 @@ class Status(unittest.TestCase):
         self.assertFalse({a['id']: a for a in d['apps']}['reddit']['release_known'])
 
     def test_page_is_read_only_and_never_writes_html(self):
-        js = (ROOT / 'docs/status.js').read_text(encoding='utf-8')
+        # W4: Builds and Watch in docs/portal.js show this data; status.html only redirects there.
+        js = (ROOT / 'docs/portal.js').read_text(encoding='utf-8')
         html = (ROOT / 'docs/status.html').read_text(encoding='utf-8')
         for bad in ('innerHTML', 'outerHTML', 'insertAdjacentHTML', 'document.write', 'localStorage', 'sessionStorage',
                     'Authorization', 'method:', 'eval(', 'new Function'):
             self.assertNotIn(bad, js, bad)
         self.assertIn("credentials:'omit'", js)
-        self.assertIn('/status/status.json', js)
-        self.assertIn('status.js', html)
-        self.assertNotIn('<script>', html)
-        self.assertNotIn('type="password"', html)
-        self.assertRegex(js, re.escape("u.protocol==='https:'&&u.hostname==='github.com'"))
+        self.assertIn("u.pathname==='/'+REPO+'/status/status.json'", js)
+        self.assertNotIn('<script', html)
+        self.assertIn('url=./#builds', html)
+        self.assertFalse((ROOT / 'docs/status.js').exists())
 
 
 if __name__ == '__main__':

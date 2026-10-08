@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import patch
+from target_counts import ENABLED, TOTAL, ROWS  # W4: counts follow src/targets.json
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src/build'))
@@ -143,7 +144,7 @@ class OriginalVariantContracts(unittest.TestCase):
 
     def test_policy_admits_only_reviewed_exact_versions(self):
         doc = fb.policy(ROOT)
-        self.assertEqual(len(doc['targets']), 15)
+        self.assertEqual(len(doc['targets']), TOTAL)
         reviewed = {'reddit', 'telegram', 'facebook', 'truecaller-combo', 'photos'}
         self.assertTrue(all(row['admissions'] == [] for ident, row in doc['targets'].items()
                             if ident not in reviewed))

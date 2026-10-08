@@ -27,6 +27,8 @@ Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 
 
 MERGE = re.compile(r'^Merge pull request #(\d+) from \S+$')
+# Before 29 Sep 2026 PRs were merged by hand as "Merge PR #N: title" (W4).
+LEGACY = re.compile(r'^Merge PR #(\d+):\s*(.+)$')
 SQUASH = re.compile(r'\s*\(#(\d+)\)\s*$')
 
 
@@ -38,6 +40,9 @@ def parse(sha, day, subject, body=''):
     if m:
         title = next((l.strip() for l in body.splitlines() if l.strip()), '') or subject
         return (day, sha, title, int(m[1]))
+    m = LEGACY.match(subject.strip())
+    if m:
+        return (day, sha, m[2].strip(), int(m[1]))
     m = SQUASH.search(subject)
     return (day, sha, SQUASH.sub('', subject), m and int(m[1]))
 

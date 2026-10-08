@@ -49,7 +49,9 @@ class Nightly(unittest.TestCase):
         # GitLab extras and channel-exact bundles are read since 29 Sep 2026; what remains is named.
         self.assertFalse(any('GitLab' in x for x in d['coverage_gaps']))
         self.assertTrue(any('names only' in x for x in d['coverage_gaps']))
-        self.assertTrue(any('paginate' in x for x in d['coverage_gaps']))
+        # W4: report.sh reads every release page since W3; the remaining gap is the 30-page cap.
+        self.assertFalse(any('does not paginate' in x for x in d['coverage_gaps']))
+        self.assertTrue(any('30 pages' in x for x in d['coverage_gaps']))
 
     def test_exact_bundle_name_check_output_is_classified(self):
         ok = 'ok youtube/youtube-morphe (0 include names)\nchecked=19 dirs_with_missing_names=0 not_checked=0\n'

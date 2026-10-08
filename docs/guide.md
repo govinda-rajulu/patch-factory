@@ -47,6 +47,6 @@ Missing, rate-limited, failed or truncated reads remain unknown. Timestamps desc
 
 ## Maintaining dependencies
 
-The manual-only Reddit source page diagnostic observes two fixed APKPure HTML pages (version 2026.38.0 and the current download page) using the existing pinned resolver. It has no signing secrets and performs no APK download, build, publication or fallback. Its small seven-day report contains counts and boolean response-shape markers, not raw HTML, cookies or signed URLs. A marker is a hint, not a diagnosis, and today's response does not reconstruct a failed historical response. Observation failure stays UNKNOWN; this workflow is not an app-recovery test.
+The Reddit source page diagnostic was removed on 8 October 2026 (packet W4): Reddit builds from APKPure again and the probe had no remaining use. Its history stays in git and `docs/review/`.
 
 Dependabot groups minor/patch action updates, while major action upgrades receive individual PRs. Structural tests check action identity, pin format, production/smoke agreement, permissions and order instead of hardcoding yesterday's version number. The mandatory runtime smoke still has to execute the proposed versions successfully. No automatic merge and no promise that every future action upgrade is compatible.

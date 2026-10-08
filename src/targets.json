@@ -476,5 +476,61 @@
     "source": "apkpure",
     "label": "Key Mapper",
     "note": "Premium unlocked."
+  },
+  {
+    "id": "amazonmusic",
+    "enabled": true,
+    "package": "com.amazon.mp3",
+    "apk_name": "amazonmusic",
+    "apk_type": "bundle",
+    "max_app_version": null,
+    "max_patch_age_days": 60,
+    "min_sdk_ceiling": 29,
+    "pin": null,
+    "candidates": [
+      {
+        "name": "rookieenough",
+        "host": "github",
+        "owner": "RookieEnough",
+        "repo": "De-Vanced",
+        "channel": "prerelease",
+        "patch_dir": "amazonmusic-rookieenough",
+        "options": "rookieenough"
+      }
+    ],
+    "tag_prefix": "amazonmusic",
+    "poll": true,
+    "label": "Amazon Music",
+    "source": "apkmirror",
+    "note": "Added 2026-10-08 through 5. Add target.",
+    "exclusive": true
+  },
+  {
+    "id": "linkedin",
+    "enabled": true,
+    "package": "com.linkedin.android",
+    "apk_name": "linkedin",
+    "apk_type": "bundle",
+    "max_app_version": null,
+    "max_patch_age_days": 60,
+    "min_sdk_ceiling": 29,
+    "pin": null,
+    "candidates": [
+      {
+        "name": "heyymichii",
+        "host": "github",
+        "owner": "heyymichii",
+        "repo": "michii-patches",
+        "channel": "prerelease",
+        "patch_dir": "linkedin-heyymichii",
+        "options": "heyymichii"
+      }
+    ],
+    "tag_prefix": "linkedin",
+    "poll": true,
+    "label": "LinkedIn",
+    "source": "apkmirror",
+    "note": "Added 2026-10-08 through 5. Add target.",
+    "exclusive": true
   }
 ]

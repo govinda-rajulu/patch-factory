@@ -64,7 +64,9 @@ write("docs/obtainium.json", ALL_APPS)
 # Upstream companion, NOT a patched target or a change to the patched-app import.
 # Release 6.1.4, commit d8df10ab687a1c1ca05221634cfa46bad262023a:
 # build.gradle basePackageName + play-services-core applicationId => this ID.
-# Default release asset: microg-6.1.4.apk. No fallback to another variant.
+# Default: the universal file with an icon, microg-V.apk. Since 7.2 a release ships six files
+# (icon/noicon x arm64-v8a/armeabi-v7a/universal); the page rewrites this filter for the
+# chosen one (W4, 8 Oct 2026). No fallback to another variant.
 companion = {
     "id": "app.revanced.android.gms",
     "url": "https://github.com/MorpheApp/MicroG-RE",
@@ -76,7 +78,7 @@ companion = {
         "includePrereleases": False,
         "fallbackToOlderReleases": False,
         "filterReleaseTitlesByRegEx": "^v?[0-9]+([.][0-9]+)*$",
-        "apkFilterRegEx": "^microg-[0-9]+([.][0-9]+)*(?:-arm64-v8a|-armeabi-v7a)?[.]apk$",
+        "apkFilterRegEx": "^microg-[0-9]+([.][0-9]+)*[.]apk$",
         "versionExtractionRegEx": "^v?([0-9]+(?:[.][0-9]+)*)$",
         "autoApkFilterByArch": False,
         "matchGroupToUse": "1",

@@ -11,6 +11,7 @@ import subprocess
 import sys
 import unittest
 from unittest.mock import patch
+from target_counts import ENABLED, TOTAL, ROWS, CANDIDATES, GITHUB_ROWS  # W4: counts follow src/targets.json
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src/build'))
@@ -196,7 +197,7 @@ class DependencyContracts(unittest.TestCase):
         doc=self.reseal(doc);self.artifact(doc)
         report=dep.aggregate(self.r,self.env)
         self.assertEqual(report["counts"]["CHANGED_SUBSET"],1)
-        self.assertEqual(report["counts"]["UNKNOWN"],14)
+        self.assertEqual(report["counts"]["UNKNOWN"],ENABLED - 1)
         self.assertNotIn("matrix",report)
 
     def test_duplicate_json_unknown_and_stale_local_semantics_unknown(self):
@@ -265,7 +266,7 @@ class DependencyContracts(unittest.TestCase):
     def test_all_fourteen_have_observations_even_when_legacy_matrix_empty(self):
         out=self.r/"output";out.write_text('matrix={"target":[]}\n')
         shadow.plan(self.r,dict(self.env,GITHUB_OUTPUT=str(out)))
-        expected=dep.expected_targets(self.r);self.assertEqual(len(expected),15)
+        expected=dep.expected_targets(self.r);self.assertEqual(len(expected),ENABLED)
         for ident in expected:
             self.f.prepare(ident)
             with patch.object(shadow,"latest_baseline",return_value=(None,"NO_PUBLISHED_BASELINE")):
@@ -274,16 +275,16 @@ class DependencyContracts(unittest.TestCase):
             shutil.rmtree(self.r/"resolved-inputs")
         report=dep.aggregate(self.r,self.env)
         self.assertEqual(report["coverage"],"complete")
-        self.assertEqual(report["validated_observations"],15)
-        self.assertEqual(report["counts"],{"MATCHED_SUBSET":0,"CHANGED_SUBSET":0,"UNKNOWN":15})
+        self.assertEqual(report["validated_observations"],ENABLED)
+        self.assertEqual(report["counts"],{"MATCHED_SUBSET":0,"CHANGED_SUBSET":0,"UNKNOWN":ENABLED})
         self.assertTrue(out.read_text().startswith('matrix={"target":[]}\n'))
 
     def test_missing_all_observations_is_fourteen_unknown_not_healthy_zero(self):
         report=dep.aggregate(self.r,self.env)
         self.assertEqual(report["coverage"],"incomplete")
         self.assertEqual(report["validated_observations"],0)
-        self.assertEqual(report["counts"]["UNKNOWN"],15)
-        self.assertEqual(len(report["targets"]),15)
+        self.assertEqual(report["counts"]["UNKNOWN"],ENABLED)
+        self.assertEqual(len(report["targets"]),ENABLED)
 
     def test_one_match_thirteen_missing_summary_keeps_coverage_separate(self):
         doc=self.observed();self.artifact(doc)
@@ -291,7 +292,7 @@ class DependencyContracts(unittest.TestCase):
         report=dep.aggregate(self.r,dict(self.env,GITHUB_STEP_SUMMARY=str(p)))
         self.assertEqual(report["coverage"],"incomplete")
         self.assertEqual(report["counts"]["MATCHED_SUBSET"],1)
-        self.assertEqual(report["counts"]["UNKNOWN"],14)
+        self.assertEqual(report["counts"]["UNKNOWN"],ENABLED - 1)
         self.assertTrue(p.read_text().startswith("Previous summary"))
         self.assertIn("UNKNOWN is not unchanged",p.read_text())
 
@@ -304,7 +305,7 @@ class DependencyContracts(unittest.TestCase):
             bad=copy.deepcopy(doc);change(bad);path.write_text(json.dumps(self.reseal(bad)))
             report=dep.aggregate(self.r,self.env)
             self.assertEqual(report["validated_observations"],0)
-            self.assertEqual(report["counts"]["UNKNOWN"],15)
+            self.assertEqual(report["counts"]["UNKNOWN"],ENABLED)
         bad=copy.deepcopy(doc);bad["sha256"]="0"*64;path.write_text(json.dumps(bad))
         self.assertEqual(dep.aggregate(self.r,self.env)["validated_observations"],0)
 
@@ -315,7 +316,7 @@ class DependencyContracts(unittest.TestCase):
         self.assertEqual(report["counts"]["MATCHED_SUBSET"],0)
         self.assertIn("UNEXPECTED_OR_UNSAFE_ARTIFACT",report["inventory_issues"])
         p.rmdir();p.symlink_to(self.r,target_is_directory=True)
-        self.assertEqual(dep.aggregate(self.r,self.env)["counts"]["UNKNOWN"],15)
+        self.assertEqual(dep.aggregate(self.r,self.env)["counts"]["UNKNOWN"],ENABLED)
 
     def test_extra_file_in_expected_artifact_cannot_hide_duplicate_evidence(self):
         p=self.artifact(self.observed());(p.parent/"duplicate-comparison.json").write_bytes(p.read_bytes())
@@ -325,7 +326,7 @@ class DependencyContracts(unittest.TestCase):
     def test_disabled_poll_false_and_duplicate_target_inventory(self):
         p=self.r/"src/targets.json";rows=json.loads(p.read_text())
         rows[0]["enabled"]=False;rows[1]["poll"]=False;p.write_text(json.dumps(rows))
-        self.assertEqual(len(dep.expected_targets(self.r)),13)
+        self.assertEqual(len(dep.expected_targets(self.r)),ENABLED - 2)
         rows.append(rows[2]);p.write_text(json.dumps(rows))
         with self.assertRaises(ValueError):dep.aggregate(self.r,self.env)
         self.assertFalse((self.r/"dependency-report/report.json").exists())
@@ -337,7 +338,7 @@ class DependencyContracts(unittest.TestCase):
                                   cwd=self.r,env=env,capture_output=True,text=True,timeout=30)
             self.assertEqual(result.returncode,0,result.stderr)
             self.assertNotIn("DO_NOT_INHERIT",result.stdout+result.stderr)
-        self.assertEqual(json.loads((self.r/"dependency-report/report.json").read_text())["counts"]["UNKNOWN"],15)
+        self.assertEqual(json.loads((self.r/"dependency-report/report.json").read_text())["counts"]["UNKNOWN"],ENABLED)
 
     def test_workflow_preserves_matrix_and_read_only_report_scope(self):
         text=(self.r/".github/workflows/ci.yml").read_text()

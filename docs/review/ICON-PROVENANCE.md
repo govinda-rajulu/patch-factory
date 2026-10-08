@@ -43,6 +43,9 @@ its file passed the PNG gate (PNG signature, 16 to 512 px, under 64 KB). Its has
 
 | Target | Source the owner supplied | Licence |
 | --- | --- | --- |
+| `microg` (upstream companion card, `docs/assets/microg.png`) | MicroG RE icon from APKMirror's upload area, uploaded by the owner in chat, 8 Oct 2026; stored locally so the page never loads a third-party image | None recorded; identification only |
+| `amazonmusic` | Google Play icon for Amazon Music (`com.amazon.mp3`), uploaded by the owner in chat, 8 Oct 2026 | None; trademark, identification only |
+| `linkedin` | Google Play icon for LinkedIn (`com.linkedin.android`), uploaded by the owner in chat, 8 Oct 2026 | None; trademark, identification only |
 | `hotstar` | Google Play icon for JioHotstar (`in.startv.hotstar`), play-lh.googleusercontent.com `02xiO0pt...` | None; trademark, identification only |
 | `mxplayer` | Google Play icon for MX Player, play-lh.googleusercontent.com `pL-FlnQw...` | None; trademark, identification only |
 | `esfile` | Uptodown icon for ES File Explorer, img.utdstc.com `icon/826/725/82672572...` | None; trademark, identification only |

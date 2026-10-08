@@ -57,6 +57,7 @@ class AppTool(unittest.TestCase):
              'tag_prefix': 'gg-photos', 'poll': True, 'exclusive': True, 'label': 'Google Photos'}]
         Path('src/targets.json').write_text(json.dumps(targets, indent=2) + '\n')
         Path('src/build/helper/apps.json').write_text(json.dumps({'apkmirror': {}, 'apkpure': {}}, indent=1) + '\n')
+        Path('src/build/helper/source-fallbacks.json').write_text('{\n  "schema": 1,\n  "targets": {}\n}\n')
         Path('docs/portal.js').write_text(PORTAL)
         Path('docs/assets/logos/photos.png').write_bytes(b'png')
         shutil.copy(ROOT / 'src/etc/app.py', 'src/etc/app.py')
@@ -77,24 +78,28 @@ class AppTool(unittest.TestCase):
         return json.loads(Path('src/targets.json').read_text())
 
     def test_add_is_one_command_and_writes_every_file(self):
-        rc, out = self.run_app('add', 'amazonmusic', '--package', 'com.amazon.mp3', '--label', 'Amazon Music',
+        rc, out = self.run_app('add', 'demomusic', '--package', 'com.example.music', '--label', 'Demo Music',
                                '--provider', 'SomeOwner/some-patches', '--patches', 'Hide ads; Unlock HD',
                                '--source', 'apkmirror-bundle', '--store-url', 'https://www.apkmirror.com/apk/amazon/x/',
                                '--group', 'media')
         self.assertEqual(rc, 0, out)
-        t = [x for x in self.targets() if x['id'] == 'amazonmusic'][0]
+        t = [x for x in self.targets() if x['id'] == 'demomusic'][0]
         self.assertTrue(t['enabled'] and t['poll'] and t['exclusive'])
-        self.assertEqual(t['candidates'][0]['patch_dir'], 'amazonmusic-someowner')
-        self.assertEqual(Path('src/patches/amazonmusic-someowner/include-patches').read_text(), 'Hide ads\nUnlock HD\n')
-        self.assertTrue(Path('src/patches/amazonmusic-someowner/exclude-patches').is_file())
+        self.assertEqual(t['candidates'][0]['patch_dir'], 'demomusic-someowner')
+        self.assertEqual(Path('src/patches/demomusic-someowner/include-patches').read_text(), 'Hide ads\nUnlock HD\n')
+        self.assertTrue(Path('src/patches/demomusic-someowner/exclude-patches').is_file())
         self.assertEqual(Path('src/options/someowner.json').read_text(), '[]\n')
         apps = json.loads(Path('src/build/helper/apps.json').read_text())
-        self.assertEqual(apps['apkmirror']['com.amazon.mp3']['list_url'], 'https://www.apkmirror.com/apk/amazon/x/')
-        rec = Path('docs/review/onboarding/amazonmusic.md').read_text()
-        for must in ('SomeOwner/some-patches', '- Hide ads:', '- Unlock HD:', 'com.amazon.mp3'):
+        self.assertEqual(apps['apkmirror']['com.example.music'], {'org': 'amazon', 'name': 'x',
+                         'list_url': 'https://www.apkmirror.com/uploads/?appcategory=x'})
+        fb = json.loads(Path('src/build/helper/source-fallbacks.json').read_text())
+        self.assertEqual(fb['targets']['demomusic']['admissions'], [])
+        rec = Path('docs/review/onboarding/demomusic.md').read_text()
+        for must in ('SomeOwner/some-patches', '- Hide ads:', '- Unlock HD:', 'com.example.music',
+                     'bundle: the one .mpp asset', 'licence: the LICENSE file at https://github.com/SomeOwner/some-patches'):
             self.assertIn(must, rec)
         self.assertNotIn('TODO', rec)
-        self.assertIn("['youtube','amazonmusic']", Path('docs/portal.js').read_text())
+        self.assertIn("['youtube','demomusic']", Path('docs/portal.js').read_text())
 
     @unittest.skipUnless((ROOT / 'src/etc/onboard_check.py').is_file(), 'onboarding gate not in this tree')
     def test_record_satisfies_the_onboarding_check(self):

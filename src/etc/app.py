@@ -35,6 +35,9 @@ from pathlib import Path
 
 TARGETS = Path('src/targets.json')
 APPS = Path('src/build/helper/apps.json')
+# Every target needs a store-fallback policy entry; the input recipe reads it (W4: adds without
+# one broke Validate).
+FALLBACKS = Path('src/build/helper/source-fallbacks.json')
 PATCHES = Path('src/patches')
 OPTIONS = Path('src/options')
 RECORDS = Path('docs/review/onboarding')
@@ -68,6 +71,13 @@ def read_json(path):
 
 def write_json(path, data, indent):
     path.write_text(json.dumps(data, indent=indent, ensure_ascii=False) + '\n', encoding='utf-8')
+
+
+def write_fallbacks(data):
+    """source-fallbacks.json keeps one target per line; reviewers diff it by eye."""
+    rows = ['    %s: %s' % (json.dumps(k), json.dumps(v, ensure_ascii=False)) for k, v in data['targets'].items()]
+    head = ['{'] + ['  %s: %s,' % (json.dumps(k), json.dumps(v)) for k, v in data.items() if k != 'targets']
+    FALLBACKS.write_text('\n'.join(head + ['  "targets": {', ',\n'.join(rows), '  }', '}']) + '\n', encoding='utf-8')
 
 
 def rules(kind):
@@ -139,6 +149,15 @@ def source_key(b):
     return '%s/%s' % (b.get('owner'), b.get('repo'))
 
 
+def provider_text(b):
+    """Owner/repo, channel, where its bundle and licence live (onboarding review rule 3)."""
+    key = source_key(b)
+    home = ('GitLab project %s' % b.get('project_id') if key.startswith('gitlab:')
+            else 'https://github.com/' + key)
+    return ('%s (%s, channel %s; bundle: the one .mpp asset of the newest release on that channel; '
+            'licence: the LICENSE file at %s)') % (key, b.get('name'), b.get('channel'), home)
+
+
 def write_record(t, added=(), approved=(), note=None, store=None):
     """Create or extend docs/review/onboarding/<id>.md so the onboarding check can pass."""
     RECORDS.mkdir(parents=True, exist_ok=True)
@@ -147,18 +166,17 @@ def write_record(t, added=(), approved=(), note=None, store=None):
     if p.is_file():
         text = p.read_text(encoding='utf-8')
     else:
-        provs = ', '.join('%s (%s, channel %s)' % (source_key(b), b.get('name'), b.get('channel'))
-                          for b in (t.get('candidates') or []) + (t.get('extra_bundles') or []))
+        provs = '; '.join(provider_text(b) for b in (t.get('candidates') or []) + (t.get('extra_bundles') or []))
         text = ('# %s (%s)\n\nPackage: %s\nSource APK: %s\nProvider: %s\n\n## Patches\n\n## Risks\n'
-                '- Written by the agent review on the pull request that carries this record.\n\n'
+                '- See the agent review on the pull request that adds this record.\n\n'
                 '## Decision\nOwner request through "5. Add target" on %s; merging the pull request is the approval.\n') % (
             t.get('label') or t['id'], t['id'], t['package'], store or 'per src/build/helper/apps.json',
             provs or 'none', stamp)
     for b in (t.get('candidates') or []) + (t.get('extra_bundles') or []):
         key = source_key(b)
         if key not in text:
-            text = text.replace('\n## Patches\n', '\nProvider added %s: %s (%s, channel %s)\n\n## Patches\n' % (
-                stamp, key, b.get('name'), b.get('channel')), 1)
+            text = text.replace('\n## Patches\n', '\nProvider added %s: %s\n\n## Patches\n' % (
+                stamp, provider_text(b)), 1)
     rows = []
     for n in added:
         if ('- ' + n + ':') not in text:
@@ -285,7 +303,16 @@ def apply_store(pkg, source, url):
     if source == 'apkpure':
         data.setdefault('apkpure', {}).setdefault(pkg, {})['download_url'] = url
     else:
-        data.setdefault('apkmirror', {}).setdefault(pkg, {})['list_url'] = url
+        entry = data.setdefault('apkmirror', {}).setdefault(pkg, {})
+        # An app or release page (/apk/ORG/NAME/...) gives the org and name the version and
+        # variant readers need (src/build/source_variant.py); W4, 8 Oct 2026.
+        m = re.match(r'^https://www\.apkmirror\.com/apk/([a-z0-9-]+)/([a-z0-9-]+)/(?:([a-z0-9-]+-release)/)?$', url)
+        if m:
+            entry.update(org=m[1], name=m[2], list_url='https://www.apkmirror.com/uploads/?appcategory=' + m[2])
+            if m[3]:
+                entry['example_url'] = url
+        else:
+            entry['list_url'] = url
     write_json(APPS, data, indent)
     return None
 
@@ -340,6 +367,11 @@ def cmd_add(a):
     targets.append(t)
     write_json(TARGETS, targets, indent)
     warn = apply_store(a.package, source, a.store_url)
+    fb, _ = read_json(FALLBACKS)
+    fb.setdefault('targets', {})[tid] = {'package': a.package, 'primary': t['source'],
+                                       'blocked_reason': 'No alternate store qualified yet (added %s through 5. Add target)' % today(),
+                                       'admissions': []}
+    write_fallbacks(fb)
     write_record(t, names, approved, store=a.store_url)
     if a.group:
         portal_group(tid, a.group)
@@ -440,6 +472,10 @@ def cmd_remove(a):
         shutil.move(str(PATCHES / pd), str(dest))
         moved.append('%s -> %s' % (pd, dest))
     write_json(TARGETS, rest, indent)
+    if FALLBACKS.exists():
+        fb, _ = read_json(FALLBACKS)
+        if fb.get('targets', {}).pop(a.id, None) is not None:
+            write_fallbacks(fb)
     portal_forget(a.id)
     if record_path(a.id).is_file():
         write_record(t, note='Removed %s by owner request. Patch folders moved to src/patches/_attic; '

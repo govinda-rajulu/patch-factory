@@ -3,26 +3,35 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,jobRole,jobSummary,reportIdentity,reportBinding,checkCompleteness};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,ago,isOld,headline,reportIdentity,reportBinding,checkCompleteness};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
+const ENABLED=targets.filter(t=>t.enabled===true).length; // W4: counts follow src/targets.json
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
-check('MicroG architecture selections stay single-file and refuse variant fallbacks',()=>{
- const pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json'))),rel={tag_name:'7.1.0',published_at:'2026-09-06T09:08:10Z',prerelease:false,draft:false,html_url:'https://github.com/MorpheApp/MicroG-RE/releases/tag/7.1.0',assets:['microg-7.1.0.apk','microg-7.1.0-arm64-v8a.apk','microg-7.1.0-noicon.apk','microg-7.1.0-noicon-arm64-v8a.apk'].map((name,i)=>({name,state:'uploaded',size:2000000+i,browser_download_url:'https://github.com/MorpheApp/MicroG-RE/releases/download/7.1.0/'+name}))};
- for(const [arch,name] of [['universal','microg-7.1.0.apk'],['arm64-v8a','microg-7.1.0-arm64-v8a.apk']]){
-  const app=c.microgConfig(pack,'stable',arch),settings=JSON.parse(app.additionalSettings);
-  assert.equal(settings.autoApkFilterByArch,false);assert.ok(settings.apkFilterRegEx.includes(arch==='universal'?'[.]apk$':'-'+arch+'[.]apk$'));
-  assert.equal(c.microgRelease([rel],'stable',arch).asset.name,name);
+check('MicroG choices pick exactly one upstream file by icon and CPU, never another variant',()=>{
+ const pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json'))),web='https://github.com/MorpheApp/MicroG-RE',v='7.2.1';
+ const names=['microg-7.2.1.apk','microg-7.2.1-noicon.apk','microg-7.2.1-icon-arm64-v8a.apk','microg-7.2.1-icon-armeabi-v7a.apk','microg-7.2.1-noicon-arm64-v8a.apk','microg-7.2.1-noicon-armeabi-v7a.apk'];
+ const rel={tag_name:v,published_at:'2026-10-04T10:02:40Z',prerelease:false,draft:false,html_url:web+'/releases/tag/'+v,assets:names.map(n=>({name:n,state:'uploaded',size:44928071,browser_download_url:web+'/releases/download/'+v+'/'+n}))};
+ for(const [icon,arch,name] of [['icon','universal','microg-7.2.1.apk'],['noicon','universal','microg-7.2.1-noicon.apk'],['icon','arm64-v8a','microg-7.2.1-icon-arm64-v8a.apk'],['noicon','armeabi-v7a','microg-7.2.1-noicon-armeabi-v7a.apk']]){
+  const s=JSON.parse(c.microgConfig(pack,'stable',arch,icon).additionalSettings),rx=new RegExp(s.apkFilterRegEx);
+  assert.equal(s.autoApkFilterByArch,false);
+  assert.deepEqual(names.filter(n=>rx.test(n)),[name]);
+  assert.equal(c.microgRelease([rel],'stable',arch,icon).asset.name,name);
  }
- const auto=c.microgConfig(pack,'stable','auto');assert.equal(JSON.parse(auto.additionalSettings).autoApkFilterByArch,true);
- assert.throws(()=>c.microgRelease([rel],'stable','armeabi-v7a'));assert.throws(()=>c.microgConfig(pack,'stable','x86_64'));
+ const auto=JSON.parse(c.microgConfig(pack,'stable','auto','noicon').additionalSettings),arx=new RegExp(auto.apkFilterRegEx);
+ assert.equal(auto.autoApkFilterByArch,true);
+ assert.deepEqual(names.filter(n=>arx.test(n)),['microg-7.2.1-noicon-arm64-v8a.apk','microg-7.2.1-noicon-armeabi-v7a.apk']);
+ assert.ok(new RegExp(JSON.parse(c.microgConfig(pack,'stable','arm64-v8a','icon').additionalSettings).apkFilterRegEx).test('microg-7.1.0-arm64-v8a.apk'),'pre-7.2 icon naming still matches');
+ const missing=structuredClone(rel);missing.assets=missing.assets.filter(a=>a.name!=='microg-7.2.1-noicon-armeabi-v7a.apk');
+ assert.throws(()=>c.microgRelease([missing],'stable','armeabi-v7a','noicon'));
+ assert.throws(()=>c.microgConfig(pack,'stable','x86_64'));assert.throws(()=>c.microgConfig(pack,'stable','universal','big'));
 });
 check('optional Obtainium self companion matches the official standard entry',()=>{
  const pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-self.json'))),app=c.validateObtainium(pack)[0],settings=JSON.parse(app.additionalSettings);
  assert.equal(app.id,'dev.imranr.obtainium');assert.equal(settings.apkFilterRegEx,'fdroid');assert.equal(settings.invertAPKFilter,true);assert.equal(settings.autoApkFilterByArch,true);assert.equal(settings.trackOnly,false);
  const d=structuredClone(pack);d.apps[0].id='dev.imranr.obtainium.fdroid';assert.throws(()=>c.validateObtainium(d));
 });
-check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,15);assert.equal(c.validateImport(pack,targets).length,15);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
-check('import encoded URI round trip retains full and selected app settings',()=>{const apps=c.validateImport(pack,targets),uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));assert.deepEqual(JSON.parse(decodeURIComponent(uri.slice(17))),pack.apps);assert.ok(uri.length<100000);const before=JSON.stringify(apps);const chosen=c.selectApps(apps,[apps[2].id,apps[0].id]);assert.deepEqual(JSON.parse(JSON.stringify(chosen)),[pack.apps[0],pack.apps[2]]);assert.equal(JSON.stringify(apps),before);for(const ids of [[],['unknown'],[apps[0].id,apps[0].id],null])assert.throws(()=>c.selectApps(apps,ids));assert.equal(c.selectApps(apps,apps.map(a=>a.id)).length,15)});
+check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,ENABLED);assert.equal(c.validateImport(pack,targets).length,ENABLED);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
+check('import encoded URI round trip retains full and selected app settings',()=>{const apps=c.validateImport(pack,targets),uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));assert.deepEqual(JSON.parse(decodeURIComponent(uri.slice(17))),pack.apps);assert.ok(uri.length<100000);const before=JSON.stringify(apps);const chosen=c.selectApps(apps,[apps[2].id,apps[0].id]);assert.deepEqual(JSON.parse(JSON.stringify(chosen)),[pack.apps[0],pack.apps[2]]);assert.equal(JSON.stringify(apps),before);for(const ids of [[],['unknown'],[apps[0].id,apps[0].id],null])assert.throws(()=>c.selectApps(apps,ids));assert.equal(c.selectApps(apps,apps.map(a=>a.id)).length,ENABLED)});
 check('malformed imports refuse global settings, duplicates, foreign URLs and credentials',()=>{for(const mutate of [d=>d.settings={},d=>d.apps.pop(),d=>d.apps.push(d.apps[0]),d=>d.apps[0].url='https://evil.invalid',d=>d.apps[0].additionalSettings='{"token":"SECRET"}']){const d=structuredClone(pack);mutate(d);assert.throws(()=>c.validateImport(d,targets))}});
 check('version and arbitrary precision build ID remain separate',()=>{const d=c.parseTag('youtube-morphe-v21.36.45-b2026091300000000034768808230000001');assert.equal(d.version,'21.36.45');assert.equal(d.run,'34768808230');assert.equal(d.attempt,'1');assert.equal(c.parseTag('app-v1.0-b2026091399999999999999999999000001').run,'99999999999999999999')});
 check('legacy date tags accepted; malformed tags rejected',()=>{assert.equal(c.parseTag('app-v1.0-b20260913').run,null);for(const t of ['app-v1.0-b20260230','app-v1.0-b2026091300000000000000000000000000','app-v1<script>','app-v1.0-b20260913junk',null])assert.equal(c.parseTag(t),null)});
@@ -43,9 +52,9 @@ check('optional MicroG stays separate and preserves upstream package and exact f
  const d=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
  const [app]=c.validateMicroG(d),s=JSON.parse(app.additionalSettings);
  assert.equal(app.id,'app.revanced.android.gms');
- assert.equal(pack.apps.length,15);assert.ok(!pack.apps.some(x=>x.id===app.id));
- assert.equal(new RegExp(s.apkFilterRegEx).test('microg-6.1.4.apk'),true);
- for(const name of ['microg-6.1.4-hw.apk','microg-6.1.4-arm64.apk','other.apk','microg-6.1.4.apk.sig','microg-6.1.4-no-icon.apk'])assert.equal(new RegExp(s.apkFilterRegEx).test(name),false);
+ assert.equal(pack.apps.length,ENABLED);assert.ok(!pack.apps.some(x=>x.id===app.id));
+ assert.equal(new RegExp(s.apkFilterRegEx).test('microg-7.2.1.apk'),true);
+ for(const name of ['microg-6.1.4-hw.apk','microg-6.1.4-arm64.apk','other.apk','microg-6.1.4.apk.sig','microg-6.1.4-no-icon.apk','microg-7.2.1-noicon.apk','microg-7.2.1-icon-arm64-v8a.apk'])assert.equal(new RegExp(s.apkFilterRegEx).test(name),false);
  assert.equal(new RegExp(s.versionExtractionRegEx).exec('v6.1.4')[1],'6.1.4');
  for(const mutate of [x=>x.settings={},x=>x.apps.push(x.apps[0]),x=>x.apps[0].id='com.google.android.gms',x=>x.apps[0].url='https://github.com/other/microg',x=>x.apps[0].additionalSettings='{}',x=>{let y=JSON.parse(x.apps[0].additionalSettings);y.fallbackToOlderReleases=true;x.apps[0].additionalSettings=JSON.stringify(y)}]){
   const bad=structuredClone(d);mutate(bad);assert.throws(()=>c.validateMicroG(bad));
@@ -62,17 +71,18 @@ check('APK URL must belong to its exact release tag and asset name',()=>{
   const bad=structuredClone(r);bad.assets[0].browser_download_url=url;assert.equal(c.releaseRows([bad],targets).rejected,1);
  }
 });
-check('MicroG channel retains full dev version and excludes every alternate asset',()=>{
+check('MicroG pre-release channel keeps the full dev version and the chosen variant only',()=>{
  const data=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
- const before=JSON.stringify(data),app=c.microgConfig(data,'prerelease'),s=JSON.parse(app.additionalSettings);
+ const before=JSON.stringify(data),s=JSON.parse(c.microgConfig(data,'prerelease','universal','icon').additionalSettings),rx=new RegExp(s.apkFilterRegEx);
  assert.equal(s.includePrereleases,true);assert.equal(s.fallbackToOlderReleases,false);
- assert.equal(new RegExp(s.versionExtractionRegEx).exec('7.2.1-dev.2')[1],'7.2.1-dev.2');
- for(const name of ['microg-6.1.4.apk','microg-7.2.1-dev.2.apk'])assert.ok(new RegExp(s.apkFilterRegEx).test(name));
- for(const name of ['microg-7.2.1-dev.2-arm64-v8a.apk','microg-7.2.1-dev.2-armeabi-v7a.apk'])assert.ok(new RegExp(s.apkFilterRegEx).test(name),name);
- for(const name of ['microg-7.2.1-dev.2-noicon.apk','microg-7.2.1-dev.2-noicon-arm64-v8a.apk','microg-7.2.1-dev.2-noicon-armeabi-v7a.apk','microg-7.2.1-dev.2.apk.sig','microg-7.2.1-beta.apk'])assert.ok(!new RegExp(s.apkFilterRegEx).test(name),name);
+ assert.equal(new RegExp(s.versionExtractionRegEx).exec('7.2.2-dev.1')[1],'7.2.2-dev.1');
+ for(const name of ['microg-7.2.1.apk','microg-7.2.2-dev.1.apk'])assert.ok(rx.test(name),name);
+ for(const name of ['microg-7.2.2-dev.1-noicon.apk','microg-7.2.2-dev.1-noicon-arm64-v8a.apk','microg-7.2.2-dev.1-icon-arm64-v8a.apk','microg-7.2.2-dev.1.apk.sig','microg-7.2.1-beta.apk'])assert.ok(!rx.test(name),name);
+ const n=new RegExp(JSON.parse(c.microgConfig(data,'prerelease','arm64-v8a','noicon').additionalSettings).apkFilterRegEx);
+ assert.ok(n.test('microg-7.2.2-dev.1-noicon-arm64-v8a.apk'));assert.ok(!n.test('microg-7.2.2-dev.1-icon-arm64-v8a.apk'));
  assert.equal(JSON.stringify(data),before);assert.throws(()=>c.microgConfig(data,'whatever'));
- const stable=JSON.parse(c.microgConfig(data,'stable').additionalSettings);
- assert.equal(stable.includePrereleases,false);assert.ok(!new RegExp(stable.apkFilterRegEx).test('microg-7.2.1-dev.2.apk'));
+ const stable=JSON.parse(c.microgConfig(data,'stable','universal').additionalSettings);
+ assert.equal(stable.includePrereleases,false);assert.ok(!new RegExp(stable.apkFilterRegEx).test('microg-7.2.2-dev.1.apk'));
 });
 check('upstream downloads bind exact version, tag, universal asset and channel',()=>{
  const web='https://github.com/MorpheApp/MicroG-RE';
@@ -88,7 +98,7 @@ check('upstream downloads bind exact version, tag, universal asset and channel',
 check('unified selection permits upstream without changing fourteen build targets or IDs',()=>{
  const d=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
  const mixed=[...pack.apps,c.microgConfig(d,'prerelease')];
- assert.equal(new Set(mixed.map(a=>a.id)).size,16);
+ assert.equal(new Set(mixed.map(a=>a.id)).size,ENABLED+1);
  assert.equal(c.selectApps(mixed,['app.revanced.android.gms']).length,1);
  const tc=targets.find(t=>t.id==='truecaller-combo');assert.equal(tc.label,'Truecaller');assert.equal(tc.tag_prefix,'tc-combo');
  for(const marker of ['Filter source type','Filter publication date','Sort apps'])assert.ok(source.includes(marker));
@@ -106,39 +116,35 @@ check('release summaries keep same-version rebuild and unknown history distinct'
  assert.equal(c.noteText('Useful notes\n\n[pf-release-v1]: # "QUFBQQ=="'),'Useful notes');
 });
 check('reader flows retain disclosure, reset and explicit unknown evidence',()=>{
- for(const id of ['importPanel','collapseImport','resetChoices'])assert.ok(html.includes('id="'+id+'"'));
- for(const marker of ['Show job results and failed steps','Read latest saved report comments','Job/run identity changed','does not build or install apps'])assert.ok(source.includes(marker)); assert.ok(!source.includes('Read release notes here'));
- assert.ok(source.includes('/attempts/'));
- assert.ok(source.includes("j.run_attempt===run.run_attempt"));
- assert.ok(source.includes("j.head_sha===run.head_sha"));
+ for(const id of ['importPanel','collapseImport','resetChoices','microgIcon','microgArch','microgChannel'])assert.ok(html.includes('id="'+id+'"'));
+ for(const marker of ['Read the saved report','Read latest saved report comments','Partly unknown: ','may have stopped'])assert.ok(source.includes(marker),marker);
+ assert.ok(source.includes("u.pathname==='/'+REPO+'/status/status.json'"));
  assert.ok(!source.includes("link('Release details',top.rel.html_url)"));
  assert.ok(html.includes('About downloads, updates & status'));
 });
-check('job roles distinguish dependencies from app builds',()=>{
- assert.equal(c.jobRole('Resolve shadow dependencies (youtube)'),'Dependencies only');
- assert.equal(c.jobRole('build (reddit) / Patch reddit'),'App build');
- assert.equal(c.jobRole('Patch youtube'),'App build');
- assert.equal(c.jobRole('Plan'),'Build selection');
- for(const name of [null,'Patch','Patch youtube malicious','Resolve shadow dependencies ()'])assert.equal(c.jobRole(name),'Other / unknown');
+check('status rows: a failure stays listed until a later run works, lists are capped',()=>{
+ const old={result:'failure',words:'Failed',when:new Date(Date.now()-40*86400000).toISOString()};
+ const fresh={result:'failure',words:'Failed',when:new Date(Date.now()-2*86400000).toISOString()};
+ assert.equal(c.isOld(old),true);assert.equal(c.isOld(fresh),false);assert.equal(c.isOld({result:'success',when:old.when}),false);
+ assert.match(c.ago(new Date(Date.now()-3*86400000).toISOString()),/3 days ago/);
+ assert.ok(source.includes("capped(box,runs.slice(0,15)"));
+ assert.ok(source.includes('Unresolved rows are never hidden'));
+ assert.ok(!source.includes('Nothing failed in the last'));
 });
-check('mixed jobs do not turn cancelled or incomplete jobs into successes',()=>{
- const job=(name,status,conclusion)=>({name,status,conclusion});
- const d=c.jobSummary([job('Patch youtube','completed','success'),job('Patch reddit','completed','failure'),job('Patch edge','completed','cancelled'),job('Patch instagram','in_progress',null),job('Resolve shadow dependencies (youtube)','completed','success'),job('Plan','completed','success')]);
- assert.equal(d.succeeded,1);assert.equal(d.failed,1);assert.equal(d.other,2);assert.equal(d.dependencies,1);
- assert.match(d.text,/Complete job inventory: 6/);
- assert.equal(c.jobSummary([]).succeeded,0);assert.throws(()=>c.jobSummary(null));
-});
-check('MicroG direct control and toolbar share explicit page-only state',()=>{
- assert.ok(source.includes("channelSelect.id='microgCardChannel'"));
- assert.ok(source.includes("channelSelect.value=microgChannel"));
+check('MicroG card lists every upstream file by icon and CPU, and the toolbar keeps one choice',()=>{
+ assert.equal(c.microgName('7.2.1','icon','universal'),'microg-7.2.1.apk');
+ assert.equal(c.microgName('7.2.1','noicon','universal'),'microg-7.2.1-noicon.apk');
+ assert.equal(c.microgName('7.2.2-dev.1','noicon','arm64-v8a'),'microg-7.2.2-dev.1-noicon-arm64-v8a.apk');
+ assert.equal(c.microgName('7.2.1','icon','armeabi-v7a'),'microg-7.2.1-icon-armeabi-v7a.apk');
+ assert.throws(()=>c.microgName('7.2.1','big','universal'));
  assert.ok(source.includes("async function changeMicrogChannel(value)"));
  assert.ok(source.includes("microgChannel=value;$('microgChannel').value=value"));
  assert.ok(source.includes('Open Obtainium import settings'));
- assert.ok(!source.includes("'Change MicroG channel'"));
  assert.ok(source.includes('tracked apps are unchanged'));
  assert.ok(source.includes('can show the same version when stable is newest'));
+ assert.ok(source.includes('SHA-256 checksums'));
+ assert.ok(source.includes("id==='microg'?'assets/microg.png'"));const mb=fs.readFileSync(path.join(root,'docs/assets/microg.png'));assert.equal(mb.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.ok(mb.length<65536);
 });
-
 check('provider report identity binds exact run and attempt only',()=>{
  const issue={title:'provider watch: CHANGED run 36173375425/1',body:'# Provider watch: CHANGED\nhttps://github.com/govinda-rajulu/patch-factory/actions/runs/36173375425/attempts/1\nmore'};
  const id=c.reportIdentity('agent-watch.yml',issue);assert.deepEqual(JSON.parse(JSON.stringify(id)),{run_id:'36173375425',attempt:'1'});
@@ -178,6 +184,6 @@ check('brand tiles are local, provenance-recorded target logos and the monogram 
  const known=new Set(targets.filter(t=>t.enabled).map(t=>t.id)),notice=fs.readFileSync(path.join(root,'docs/assets/NOTICE.txt'),'utf8'),prov=fs.readFileSync(path.join(root,'docs/review/ICON-PROVENANCE.md'),'utf8');
  const files=fs.readdirSync(path.join(root,'docs/assets/logos')).sort();assert.deepEqual(files,ids.map(i=>i+'.png').sort());
  for(const id of ids){assert.ok(known.has(id),id);const b=fs.readFileSync(path.join(root,'docs/assets/logos',id+'.png'));assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.ok(b.length<65536,id);assert.ok(notice.includes('logos/'+id+'.png'),id);assert.ok(prov.includes('`'+id+'`'),id);}
- assert.ok(source.includes("logo.src='assets/logos/'+id+'.png'"));assert.ok(source.includes("monogram.classList.remove('has-logo')"));assert.ok(!/logo\.src=['"]https?:/.test(source));assert.ok(!/<img[^>]+src="https?:/i.test(html));
+ assert.ok(source.includes(":'assets/logos/'+id+'.png'"));assert.ok(source.includes("monogram.classList.remove('has-logo')"));assert.ok(!/logo\.src=['"]https?:/.test(source));assert.ok(!/<img[^>]+src="https?:/i.test(html));
 });
 console.log('PORTAL_CONTRACTS_PASS='+count);

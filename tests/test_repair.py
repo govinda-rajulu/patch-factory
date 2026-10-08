@@ -13,6 +13,7 @@ import tempfile
 import unittest
 import zipfile
 from unittest.mock import patch
+from target_counts import ENABLED  # W4: counts follow src/targets.json
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -144,7 +145,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=28', result.stdout)
+        self.assertIn('PORTAL_CONTRACTS_PASS=27', result.stdout)
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
@@ -181,7 +182,7 @@ class Repair(unittest.TestCase):
     def test_batch_all_enabled_has_exact_unique_coverage(self):
         targets = json.loads((self.r/'src/targets.json').read_text())
         ids = [t['id'] for t in targets if t['enabled']]
-        self.assertEqual(len(ids), 15)
+        self.assertEqual(len(ids), ENABLED)
         result, text = self.batch_probe(','.join(ids))
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
         lines = text.splitlines()
@@ -1231,11 +1232,9 @@ def load_tests(loader, tests, pattern):
     import provider_watch_contracts
     import nightly_contracts
     import daily_plan_contracts
-    import reddit_probe_contracts
     import operational_docs_contracts
     tests.addTests(loader.loadTestsFromTestCase(nightly_contracts.Nightly))
     tests.addTests(loader.loadTestsFromTestCase(daily_plan_contracts.DailyPlanTests))
-    tests.addTests(loader.loadTestsFromTestCase(reddit_probe_contracts.RedditProbe))
     tests.addTests(loader.loadTestsFromTestCase(operational_docs_contracts.OperationalDocs))
     tests.addTests(loader.loadTestsFromTestCase(provider_watch_contracts.ProviderWatch))
     return tests
