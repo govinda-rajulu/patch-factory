@@ -155,17 +155,17 @@ class Status(unittest.TestCase):
         self.assertFalse({a['id']: a for a in d['apps']}['reddit']['release_known'])
 
     def test_page_is_read_only_and_never_writes_html(self):
-        js = (ROOT / 'docs/status.js').read_text(encoding='utf-8')
+        # W4: Builds and Watch in docs/portal.js show this data; status.html only redirects there.
+        js = (ROOT / 'docs/portal.js').read_text(encoding='utf-8')
         html = (ROOT / 'docs/status.html').read_text(encoding='utf-8')
         for bad in ('innerHTML', 'outerHTML', 'insertAdjacentHTML', 'document.write', 'localStorage', 'sessionStorage',
                     'Authorization', 'method:', 'eval(', 'new Function'):
             self.assertNotIn(bad, js, bad)
         self.assertIn("credentials:'omit'", js)
-        self.assertIn('/status/status.json', js)
-        self.assertIn('status.js', html)
-        self.assertNotIn('<script>', html)
-        self.assertNotIn('type="password"', html)
-        self.assertRegex(js, re.escape("u.protocol==='https:'&&u.hostname==='github.com'"))
+        self.assertIn("u.pathname==='/'+REPO+'/status/status.json'", js)
+        self.assertNotIn('<script', html)
+        self.assertIn('url=./#builds', html)
+        self.assertFalse((ROOT / 'docs/status.js').exists())
 
 
 if __name__ == '__main__':

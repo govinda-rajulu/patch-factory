@@ -105,7 +105,7 @@ function validateMicroG(data){
  need(app&&Object.keys(app).length===7&&Object.keys(app).every(k=>['id','url','author','name','categories','preferredApkIndex','additionalSettings'].includes(k)),'Unsupported companion fields');
  need(app.id==='app.revanced.android.gms'&&app.url==='https://github.com/MorpheApp/MicroG-RE'&&app.author==='MorpheApp'&&app.name==='Morphe MicroG RE'&&app.preferredApkIndex===0&&JSON.stringify(app.categories)==='["morphe-companion"]','Unexpected companion identity');
  need(typeof app.additionalSettings==='string'&&app.additionalSettings.length<10000,'Invalid companion settings');
- const s=JSON.parse(app.additionalSettings),expected={includePrereleases:false,fallbackToOlderReleases:false,filterReleaseTitlesByRegEx:'^v?[0-9]+([.][0-9]+)*$',apkFilterRegEx:'^microg-[0-9]+([.][0-9]+)*(?:-arm64-v8a|-armeabi-v7a)?[.]apk$',versionExtractionRegEx:'^v?([0-9]+(?:[.][0-9]+)*)$',matchGroupToUse:'1',autoApkFilterByArch:false,trackOnly:false,appName:'Morphe MicroG RE'};
+ const s=JSON.parse(app.additionalSettings),expected={includePrereleases:false,fallbackToOlderReleases:false,filterReleaseTitlesByRegEx:'^v?[0-9]+([.][0-9]+)*$',apkFilterRegEx:'^microg-[0-9]+([.][0-9]+)*[.]apk$',versionExtractionRegEx:'^v?([0-9]+(?:[.][0-9]+)*)$',matchGroupToUse:'1',autoApkFilterByArch:false,trackOnly:false,appName:'Morphe MicroG RE'};
  need(s&&Object.keys(s).length===Object.keys(expected).length&&Object.entries(expected).every(([k,v])=>s[k]===v),'Unreviewed companion filters/settings');
  return data.apps;
 }
@@ -448,11 +448,12 @@ const BUILD_FLOWS=['1. Manual Patch','2. Check new patch','9. Batch Patch'];
 const WATCH_FLOWS=['6. Provider watch','7. Nightly watch','8. Community watch','Tooling watch'];
 const WATCH=[['agent-watch.yml','6. Provider watch','provider watch:'],['community-watch.yml','8. Community watch','community: index changed for apps you build'],['watch.yml','7. Nightly watch','watch: repo and provider status']];
 function daysOld(v){const t=Date.parse(v);return Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/86400000)):null;}
+function unresolved(row){return !!row&&BAD_RUN.has(row.result);}
 function isOld(row){const d=daysOld(row&&row.when);return !!row&&BAD_RUN.has(row.result)&&d!==null&&d>STALE_DAYS;}
 function pill(row){
- const code=row&&row.result,old=isOld(row);
- const n=el('span',row?(old?'Failed '+daysOld(row.when)+' days ago (old)':row.words||'Unknown'):'No run yet','pill '+(old?'old':BAD_RUN.has(code)?'bad':code==='success'?'ok':'wait'));
- return n;
+ const code=row&&row.result,bad=!!row&&BAD_RUN.has(code);
+ if(bad&&row.changed_since)return el('span','Changed since it failed: run once to confirm','pill wait');
+ return el('span',row?(bad&&isOld(row)?'Failed '+daysOld(row.when)+' days ago, not fixed yet':row.words||'Unknown'):'No run yet','pill '+(bad?'bad':code==='success'?'ok':'wait'));
 }
 function runLink(text,url){return safeLink(url)?link(text,url):el('span','','meta');}
 async function readStatus(){
@@ -467,13 +468,15 @@ function freshness(root,d){
  if(Array.isArray(d.problems)&&d.problems.length)root.append(el('p','Partly unknown: '+d.problems.length+' GitHub read(s) failed when the data was written. Unknown is not fine.','notice'));
 }
 function headline(d){
- const apps=d.apps.filter(a=>a.last_build&&BAD_RUN.has(a.last_build.result)&&!isOld(a.last_build)).map(a=>a.label);
- const flows=d.workflows.filter(w=>w.last&&BAD_RUN.has(w.last.result)&&!isOld(w.last)).map(w=>w.name);
- if(!apps.length&&!flows.length)return el('p','Nothing failed in the last '+STALE_DAYS+' days.','headline ok');
+ // A failure stays here until a later run of the same app or workflow works; age never hides it.
+ const apps=d.apps.filter(a=>unresolved(a.last_build)).map(a=>a.label);
+ const flows=d.workflows.filter(w=>unresolved(w.last)).map(w=>w.name);
+ if(!apps.length&&!flows.length)return el('p','Nothing is failing: the latest run of every app and automation worked.','headline ok');
  return el('p','Needs a look: '+[...apps,...flows].join(', ')+'.','headline bad');
 }
 function whyLines(row){
- const out=[];if(!row||!BAD_RUN.has(row.result)||isOld(row))return out;
+ const out=[];if(!unresolved(row))return out;
+ if(row.changed_since)out.push('The workflow was changed after this failure. Run it once; a success clears this row.');
  if(row.step_plain)out.push('Stopped at: '+row.step_plain+'.');
  for(const w of (row.why||[]).slice(0,2))out.push(w);
  for(const j of (row.jobs||[]).slice(0,2)){if(j.step_plain)out.push(j.name+': stopped at '+j.step_plain+'.');for(const w of (j.why||[]).slice(0,1))out.push(w);}
@@ -482,12 +485,14 @@ function whyLines(row){
 function statusRow(title,sub,row,url){
  const r=el('div',undefined,'status-row');
  const name=el('div',undefined,'status-name');name.append(el('strong',title));if(sub)name.append(el('small',sub));
- const state=el('div',undefined,'status-state');state.append(pill(row));if(row&&!isOld(row))state.append(el('small',ago(row.when)));
+ const state=el('div',undefined,'status-state');state.append(pill(row));if(row)state.append(el('small',ago(row.when)));
  r.append(name,state,runLink('Open',url||(row&&row.url)));
  for(const w of whyLines(row))r.append(el('div',w,'why'));
  return r;
 }
-function capped(parent,rows,make,first=5,label='more'){
+function capped(parent,rows,make,first=5,label='more',pinned=()=>false){
+ // Unresolved rows are never hidden behind "show more".
+ first=Math.max(first,rows.filter(pinned).length);
  rows.slice(0,first).forEach(x=>parent.append(make(x)));
  if(rows.length>first){const d=el('details',undefined,'more');d.append(el('summary','Show '+(rows.length-first)+' '+label));rows.slice(first).forEach(x=>d.append(make(x)));parent.append(d);}
 }
@@ -498,7 +503,7 @@ async function buildsPanel(root){
  for(const [id] of [...GROUPS,['other']]){
   const g=groups.get(id);if(!g)continue;
   const box=el('section',undefined,'status-group');box.append(el('h3',g.label));
-  g.rows.sort((a,b)=>(a.label||'').localeCompare(b.label||''));
+  g.rows.sort((a,b)=>(unresolved(b.last_build)-unresolved(a.last_build))||(a.label||'').localeCompare(b.label||''));
   for(const a of g.rows){const rel=a.release?a.release.version+' · released '+ago(a.release.published_at):a.release_known?'no release yet':'release unknown';box.append(statusRow(a.label,rel,a.last_build));}
   root.append(box);
  }
@@ -530,8 +535,8 @@ async function watchPanel(root){
   ['Checks and housekeeping','Repository checks, this page, failure issues and helpers.',w=>!WATCH_FLOWS.includes(w.name)&&!BUILD_FLOWS.includes(w.name)]];
  for(const [label,sub,pick] of sections){
   const box=el('section',undefined,'status-group');box.append(el('h3',label),el('p',sub,'meta'));
-  const rows=d.workflows.filter(pick).sort((a,b)=>{const x=a.last&&BAD_RUN.has(a.last.result)&&!isOld(a.last),y=b.last&&BAD_RUN.has(b.last.result)&&!isOld(b.last);return (y-x)||(a.name||'').localeCompare(b.name||'');});
-  capped(box,rows,w=>{const r=statusRow(w.name,w.purpose,w.last,w.url);const hit=WATCH.find(x=>x[1]===w.name);if(hit)savedReport(r,hit[0],hit[2]);return r;},label==='Watchers'?8:6,'more automations');
+  const rows=d.workflows.filter(pick).sort((a,b)=>{const x=unresolved(a.last),y=unresolved(b.last);return (y-x)||(a.name||'').localeCompare(b.name||'');});
+  capped(box,rows,w=>{const r=statusRow(w.name,w.purpose,w.last,w.url);const hit=WATCH.find(x=>x[1]===w.name);if(hit)savedReport(r,hit[0],hit[2]);return r;},label==='Watchers'?8:6,'more automations',w=>unresolved(w.last));
   root.append(box);
  }
  if(Array.isArray(d.issues)&&d.issues.length){const box=el('section',undefined,'status-group');box.append(el('h3','Open failure issues'));for(const i of d.issues.slice(0,8)){const p=el('p');p.append(runLink(i.title,i.url));box.append(p);}root.append(box);}
@@ -654,7 +659,9 @@ $('resetChoices').addEventListener('click',()=>{
  if(tab==='apps')render();
 });
 $('refresh').addEventListener('click',()=>{cache.clear();targets=null;render();});
-for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{tab=b.dataset.tab;for(const x of document.querySelectorAll('[data-tab]'))x.setAttribute('aria-selected',String(x===b));render();});
+function selectTab(name){tab=name;for(const x of document.querySelectorAll('[data-tab]'))x.setAttribute('aria-selected',String(x.dataset.tab===name));}
+for(const b of document.querySelectorAll('[data-tab]'))b.addEventListener('click',()=>{selectTab(b.dataset.tab);history.replaceState(null,'',tab==='apps'?location.pathname:'#'+tab);render();});
+if(['builds','watch'].includes(location.hash.slice(1)))selectTab(location.hash.slice(1));
 document.addEventListener('visibilitychange',()=>{clearTimeout(pollTimer);if(!document.hidden)render();});
 render();
 })();
