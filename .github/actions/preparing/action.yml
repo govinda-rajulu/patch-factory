@@ -39,7 +39,13 @@ runs:
         usque register --accept-tos
         usque socks -b 127.0.0.1 -p 9099 &
         sleep 5
-        curl -x socks5://127.0.0.1:9099 -s -o /dev/null -w "%{http_code}" https://www.google.com && echo "[+] usque SOCKS5 proxy is ready" || echo "[-] usque proxy failed"
+        # 8 Oct 2026 (W2): a dead proxy used to print one line and pass silently.
+        if curl -x socks5://127.0.0.1:9099 -s -o /dev/null -w "%{http_code}" https://www.google.com; then
+          echo "[+] usque SOCKS5 proxy is ready"
+        else
+          echo "::warning::usque proxy did not answer; downloads that need the WARP proxy will fail"
+          echo "- usque WARP proxy did not answer; downloads that need it will fail" >> "$GITHUB_STEP_SUMMARY"
+        fi
     - name: Start FlareSolverr
       shell: bash
       run: |
@@ -52,6 +58,10 @@ runs:
           fi
           sleep 2
         done
+        if ! curl -s http://localhost:8191/ > /dev/null 2>&1; then
+          echo "::warning::FlareSolverr did not start within 60 s; store pages behind a Cloudflare check may fail to download"
+          echo "- FlareSolverr did not start; store pages behind a Cloudflare check may fail to download" >> "$GITHUB_STEP_SUMMARY"
+        fi
     - name: Start CloudflareBypassForScraping
       shell: bash
       run: |
@@ -64,6 +74,10 @@ runs:
           fi
           sleep 2
         done
+        if ! curl -s http://localhost:8000/ > /dev/null 2>&1; then
+          echo "::warning::CloudflareBypassForScraping did not start within 60 s; the second Cloudflare path is unavailable"
+          echo "- CloudflareBypassForScraping did not start; the second Cloudflare path is unavailable" >> "$GITHUB_STEP_SUMMARY"
+        fi
     - name: Set up Python
       if: inputs.install_python_deps == 'true'
       uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6

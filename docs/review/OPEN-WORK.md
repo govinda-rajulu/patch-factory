@@ -4,7 +4,7 @@
 
 W2 (one pull request) makes every app or patch change two steps (`5. Add target`, then merge),
 adds the plain status page, ships MicroG RE with the apps that need it, removes repeated notes,
-fixes four silent failures, and carries W1's onboarding gate, tooling watch and decided leads
+fixes four silent failures (shipped in W3), and carries W1's onboarding gate, tooling watch and decided leads
 ([LEADS-2026-10-08.md](LEADS-2026-10-08.md)). Record: [SESSION-2026-10-08.md](SESSION-2026-10-08.md).
 Open, in order:
 

@@ -27,22 +27,36 @@ print("ok")
 PY
 echo
 echo "### release coverage"
-rm -f /tmp/rp.txt
+rm -f /tmp/rp.txt /tmp/rp.all
 RAUTH=()
 [ -n "${GH_TOKEN:-${GITHUB_TOKEN:-}}" ] && RAUTH=(-H "Authorization: Bearer ${GH_TOKEN:-${GITHUB_TOKEN:-}}")
 # Authenticated: an anonymous read on a shared runner IP is rate limited (Nightly #99).
-curl -sS "${RAUTH[@]}" "https://api.github.com/repos/govinda-rajulu/patch-factory/releases?per_page=100" \
-  | jq -r '.[].tag_name' 2>/dev/null \
-  | sed -n 's/-v[0-9.]*-b[0-9]*$//p' | sort -u > /tmp/rp.txt
-[ -s /tmp/rp.txt ] || echo "(release read returned nothing - throttled or offline)"
+# 8 Oct 2026 (W2): every page, not the newest 100 only (older apps looked "never built"),
+# and a failed read is UNKNOWN instead of an empty list.
+RP_OK=0
+: > /tmp/rp.all
+for P in $(seq 1 30); do
+  if ! OUT=$(curl -sfS "${RAUTH[@]}" "https://api.github.com/repos/govinda-rajulu/patch-factory/releases?per_page=100&page=$P"); then break; fi
+  if ! N=$(printf '%s' "$OUT" | jq 'length' 2>/dev/null); then break; fi
+  printf '%s' "$OUT" | jq -r '.[].tag_name' | sed -n 's/-v[0-9.]*-b[0-9]*$//p' >> /tmp/rp.all
+  if [ "$N" -lt 100 ]; then RP_OK=1; break; fi
+done
+if [ "$RP_OK" = 1 ]; then
+  sort -u /tmp/rp.all > /tmp/rp.txt
+else
+  echo "::warning::release list unreadable or longer than 3000 (throttled, offline or capped); release coverage is UNKNOWN"
+fi
 python3 - <<'PY'
-import json
-try: have=set(open("/tmp/rp.txt").read().split())
-except Exception: have=set()
+import json, os
 d=json.load(open("src/targets.json"))
-miss=sorted(t["id"] for t in d if (t.get("tag_prefix") or t["id"]) not in have)
-print("released:", len(have), sorted(have))
-print("never built:", miss)
+if not os.path.exists("/tmp/rp.txt"):
+    print("released: UNKNOWN (release list unreadable)")
+    print("never built: UNKNOWN")
+else:
+    have=set(open("/tmp/rp.txt").read().split())
+    miss=sorted(t["id"] for t in d if (t.get("tag_prefix") or t["id"]) not in have)
+    print("released:", len(have), sorted(have))
+    print("never built:", miss)
 PY
 if [ "$MODE" = "full" ]; then
   # One exact-bundle read per provider, as the build reads it (includes extras and GitLab).
