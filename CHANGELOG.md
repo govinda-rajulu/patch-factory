@@ -7,6 +7,10 @@ GitHub release carries its own notes (app version, applied patches, provider bun
 Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 
 
+## 2026-10-08
+
+- packet W2: two-step app changes, plain status page, MicroG where needed, onboarding gate ([#158](https://github.com/govinda-rajulu/patch-factory/pull/158))
+
 ## 2026-10-07
 
 - handover 7 Oct 2026: session record, audit ledger, clutter plan, provider facts, lessons ([#157](https://github.com/govinda-rajulu/patch-factory/pull/157))
@@ -38,8 +42,8 @@ Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 ## 2026-09-29
 
 - Merge PR #113: packet O (direct `2b58d78`)
-- Merge pull request #112 from govinda-rajulu/docs/state-20260929 (direct `6af6834`)
-- Merge pull request #110 from govinda-rajulu/docs/knowledge (direct `f2a31fe`)
+- docs(knowledge): end-of-session state and lessons, 29 Sep ([#112](https://github.com/govinda-rajulu/patch-factory/pull/112))
+- docs(knowledge): lessons, state and handbook in the repo ([#110](https://github.com/govinda-rajulu/patch-factory/pull/110))
 - Merge PR #111: packet N (direct `5301b5c`)
 - Merge PR #108: packet M (direct `1b8e42c`)
 - Merge PR #107: packet L (direct `90e12e5`)
@@ -64,29 +68,29 @@ Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 - Merge PR #87: CI hygiene (nightly annotation, ubuntu-24.04 runners) (direct `9a0b728`)
 - Merge PR #86: exact-version source fallbacks (direct `b84f929`)
 - Merge PR #85: dormant qualified APK-source fallbacks (direct `037bf8f`)
-- Merge pull request #84 from govinda-rajulu/audit-fix-batch-2026-09-26 (direct `b5ab2b3`)
+- fix: archive validation, secure explore/add-target, portal binding, wired suites, action pinning ([#84](https://github.com/govinda-rajulu/patch-factory/pull/84))
 
 ## 2026-09-25
 
 - community: acknowledge reported index 2f73bb1aa8f6 (direct `d43ad3c`)
-- Merge pull request #81 from govinda-rajulu/watch/community-delivery-00cb77a4 (direct `67f4a16`)
-- Merge pull request #80 from govinda-rajulu/watch/provider-observations-8fff8af1 (direct `f86662c`)
-- Merge pull request #79 from govinda-rajulu/report/source-coverage-768433a0 (direct `7bca887`)
+- fix: complete community feed reports before advancing snapshots ([#81](https://github.com/govinda-rajulu/patch-factory/pull/81))
+- fix: keep failed provider observations out of patch deltas ([#80](https://github.com/govinda-rajulu/patch-factory/pull/80))
+- test: report bounded source-preparation coverage ([#79](https://github.com/govinda-rajulu/patch-factory/pull/79))
 
 ## 2026-09-24
 
-- Merge pull request #78 from govinda-rajulu/build/source-inputs-1733d99d413b (direct `ef1d711`)
+- build: reuse exact source APKs and observe execution inputs ([#78](https://github.com/govinda-rajulu/patch-factory/pull/78))
 
 ## 2026-09-23
 
-- Merge pull request #77 from govinda-rajulu/docs/upstream-attribution-2026-09-23 (direct `e60d46e`)
-- Merge pull request #76 from govinda-rajulu/build/release-readiness-sdk-2026-09-23 (direct `49b5614`)
+- docs: record upstream attribution boundaries ([#77](https://github.com/govinda-rajulu/patch-factory/pull/77))
+- build: tighten SDK readers and release presentation ([#76](https://github.com/govinda-rajulu/patch-factory/pull/76))
 
 ## 2026-09-22
 
-- Merge pull request #75 from govinda-rajulu/docs/morphe-companion-guide-2026-09-22 (direct `e1711eb`)
-- Merge pull request #74 from govinda-rajulu/repair/reddit-probe-reasons-2026-09-22 (direct `7d46d6a`)
-- Merge pull request #73 from govinda-rajulu/repair/companion-and-community-watch-2026-09-22 (direct `504e03a`)
+- docs: retain Morphe companion decisions and current import guidance ([#75](https://github.com/govinda-rajulu/patch-factory/pull/75))
+- fix: retain safe Reddit probe failure categories ([#74](https://github.com/govinda-rajulu/patch-factory/pull/74))
+- fix: repair companions and community reporting ([#73](https://github.com/govinda-rajulu/patch-factory/pull/73))
 
 ## 2026-09-21
 
@@ -125,13 +129,13 @@ Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 
 ## 2026-09-10
 
-- Merge pull request #47 from govinda-rajulu/repair/youtube-no-live-position-135424d8 (direct `4bec910`)
-- Merge pull request #46 from govinda-rajulu/repair/unique-build-tags-20260910-9dbfc2d7 (direct `94a0229`)
-- Merge pull request #45 from govinda-rajulu/repair/retention-preview-20260910-534d8291 (direct `5143071`)
-- Merge pull request #44 from govinda-rajulu/repair/extra-bundle-20260910-8a59df9b (direct `a8e902f`)
-- Merge pull request #43 from govinda-rajulu/repair/release-handoff-20260910-af8a69fb (direct `bb6d043`)
-- Merge pull request #42 from govinda-rajulu/repair/apk-identity-20260910-7240d3b7 (direct `d8e8033`)
-- Merge pull request #41 from govinda-rajulu/repair/evidence-gates-20260910-5d0a3c3a (direct `ef48c45`)
+- fix: exclude unused YouTube live-stream position patch ([#47](https://github.com/govinda-rajulu/patch-factory/pull/47))
+- fix: unique build tags and release overwrite protection ([#46](https://github.com/govinda-rajulu/patch-factory/pull/46))
+- fix: preview release retention and preserve frozen or manual entries ([#45](https://github.com/govinda-rajulu/patch-factory/pull/45))
+- fix: verify GitHub and GitLab extra bundle downloads ([#44](https://github.com/govinda-rajulu/patch-factory/pull/44))
+- fix: bind release handoff to verified APK evidence ([#43](https://github.com/govinda-rajulu/patch-factory/pull/43))
+- verify: APK signer, package, architecture and input evidence ([#42](https://github.com/govinda-rajulu/patch-factory/pull/42))
+- repair: verified gates and truthful provider evidence ([#41](https://github.com/govinda-rajulu/patch-factory/pull/41))
 
 ## 2026-09-07
 

@@ -102,7 +102,7 @@ class SelectionNames(unittest.TestCase):
     def test_nightly_uses_exact_bundles_and_authenticated_release_read(self):
         report = (ROOT / 'src/etc/report.sh').read_text()
         self.assertIn('python3 src/etc/selection_names.py || FAIL=1', report)
-        self.assertIn('curl -sS "${RAUTH[@]}" "https://api.github.com/repos/govinda-rajulu/patch-factory/releases', report)
+        self.assertIn('curl -sfS "${RAUTH[@]}" "https://api.github.com/repos/govinda-rajulu/patch-factory/releases', report)
         for path in sorted((ROOT / 'src/etc').glob('*.sh')):
             self.assertNotRegex(path.read_text(), r'--patches="?https://', path.name)
         self.assertNotIn('--patches=https://', (ROOT / 'src/etc/selection_names.py').read_text())

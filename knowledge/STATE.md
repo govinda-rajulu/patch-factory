@@ -15,7 +15,7 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
  review (`Onboarding review`).
 - **Tooling watch** (09:59 IST): pinned tools follow new releases, pre-releases included, as PRs.
 - **Requirements**: `needs_microg` and `installed_package` in `src/targets.json` are the one home.
-- **Next, in order**: (1) merge W2 on green Validate; run `Status page data` once and open
+- **Next, in order**: (1) W2 merged (#158), W3 follows; run `Status page data` once and open
  the page. (2) Amazon Music and LinkedIn: pick a provider from the scout, one add run each.
  (3) #102 baselines with and without `-u`, council `same_site` exact host, free council seats
  from the v2 guide. (4) S2 publisher pins, version step-down. (5) Edge, F05/F06, PR53, phone

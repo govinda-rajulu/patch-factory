@@ -4,11 +4,11 @@
 
 W2 (one pull request) makes every app or patch change two steps (`5. Add target`, then merge),
 adds the plain status page, ships MicroG RE with the apps that need it, removes repeated notes,
-fixes four silent failures, and carries W1's onboarding gate, tooling watch and decided leads
+fixes four silent failures (shipped in W3), and carries W1's onboarding gate, tooling watch and decided leads
 ([LEADS-2026-10-08.md](LEADS-2026-10-08.md)). Record: [SESSION-2026-10-08.md](SESSION-2026-10-08.md).
 Open, in order:
 
-1. Merge W2; run `Status page data` once; check the page and one `5. Add target` dry change.
+1. W2 merged (#158, merge commit `5e648da5`), W3 follows. Run `Status page data` once; check the page and one `5. Add target` dry change.
 2. Amazon Music and LinkedIn: provider from the [scout](onboarding/CANDIDATES-2026-10-08.md),
  then one add run each.
 3. #102 (provider watch with and without `-u`), council `same_site` exact host, free council
