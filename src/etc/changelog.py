@@ -26,17 +26,35 @@ Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 '''
 
 
+MERGE = re.compile(r'^Merge pull request #(\d+) from \S+$')
+SQUASH = re.compile(r'\s*\(#(\d+)\)\s*$')
+
+
+def parse(sha, day, subject, body=''):
+    """One history row. A squash merge ends its subject with "(#N)"; a merge commit's
+    subject is "Merge pull request #N from owner/branch" and its first body line is the
+    pull request title (W3, 8 Oct 2026: #158 was merged that way and listed as "direct")."""
+    m = MERGE.match(subject.strip())
+    if m:
+        title = next((l.strip() for l in body.splitlines() if l.strip()), '') or subject
+        return (day, sha, title, int(m[1]))
+    m = SQUASH.search(subject)
+    return (day, sha, SQUASH.sub('', subject), m and int(m[1]))
+
+
 def history(ref='HEAD'):
     shallow = subprocess.run(['git', 'rev-parse', '--is-shallow-repository'], capture_output=True, text=True)
     if shallow.stdout.strip() == 'true':
         raise SystemExit('shallow clone: fetch full history first (git fetch --unshallow)')
-    out = subprocess.run(['git', 'log', '--first-parent', '--date=short', '--format=%h%x09%ad%x09%s', ref],
+    out = subprocess.run(['git', 'log', '--first-parent', '--date=short', '--format=%h%x1f%ad%x1f%s%x1f%b%x1e', ref],
                          capture_output=True, text=True, check=True).stdout
     rows = []
-    for line in out.splitlines():
-        sha, day, subject = line.split('\t', 2)
-        m = re.search(r'\(#(\d+)\)\s*$', subject)
-        rows.append((day, sha, re.sub(r'\s*\(#\d+\)\s*$', '', subject), m and int(m[1])))
+    for rec in out.split('\x1e'):
+        rec = rec.strip('\n')
+        if not rec:
+            continue
+        sha, day, subject, body = (rec.split('\x1f') + ['', '', '', ''])[:4]
+        rows.append(parse(sha, day, subject, body))
     return rows
 
 
