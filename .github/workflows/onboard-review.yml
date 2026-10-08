@@ -1,0 +1,132 @@
+name: Onboarding review
+# Packet W1/W2 (8 Oct 2026): every pull request that adds an app, a provider or a patch name
+# must pass a written onboarding record (deterministic) and an agent review (council seats).
+# Job 1 reads the pull request as data with the BASE checkout's checker and no model keys.
+# Job 2 runs the base's reviewer with the model keys and sees only job 1's manifest.
+# "5. Add target" opens its pull requests with the workflow token, which starts no other
+# workflow, so it dispatches this one with the pull request number; both paths resolve the
+# same base and head commits. Neither job pushes, merges or publishes.
+# See docs/review/onboarding/README.md.
+permissions:
+  contents: read
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'src/targets.json'
+      - 'src/patches/**'
+      - 'src/options/**'
+      - 'docs/review/onboarding/**'
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: 'Pull request number to review'
+        required: true
+        type: string
+concurrency:
+  group: onboard-${{ github.event.pull_request.number || inputs.pr }}
+  cancel-in-progress: true
+jobs:
+  record:
+    name: Onboarding record
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+      pr: ${{ steps.pr.outputs.number }}
+      base: ${{ steps.pr.outputs.base }}
+      head_repo: ${{ steps.pr.outputs.head_repo }}
+    steps:
+      - name: Resolve the pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT_PR: ${{ github.event.pull_request.number }}
+          INPUT_PR: ${{ inputs.pr }}
+        run: |
+          N="${EVENT_PR:-$INPUT_PR}"
+          if ! printf '%s' "$N" | grep -Eq '^[0-9]{1,7}$'; then echo "::error::pull request number '$N' is not a number"; exit 1; fi
+          gh api "repos/$REPO/pulls/$N" > pr.json
+          if [ "$(jq -r .state pr.json)" != "open" ]; then echo "::error::pull request $N is not open"; exit 1; fi
+          {
+            echo "number=$N"
+            echo "base=$(jq -r .base.sha pr.json)"
+            echo "head=$(jq -r .head.sha pr.json)"
+            echo "head_repo=$(jq -r .head.repo.full_name pr.json)"
+          } >> "$GITHUB_OUTPUT"
+      - name: Checkout the base (the checker that runs)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.pr.outputs.base }}
+          path: base
+          persist-credentials: false
+      - name: Checkout the pull request (data only, never executed)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.pr.outputs.head }}
+          path: head
+          persist-credentials: false
+      - name: Check onboarding records
+        id: check
+        run: |
+          mkdir -p onboard-manifest
+          if [ ! -f base/src/etc/onboard_check.py ]; then
+            echo "onboarding checker is not on the base commit yet"
+            echo '{"onboarding": false, "problems": []}' > onboard-manifest/manifest.json
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          python3 base/src/etc/onboard_check.py --base base --head head --manifest onboard-manifest/manifest.json
+      - name: Keep the manifest for the agent review
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: onboard-manifest-${{ github.run_id }}-${{ github.run_attempt }}
+          path: onboard-manifest/manifest.json
+          if-no-files-found: error
+          retention-days: 7
+  agents:
+    name: Agent review (required for onboarding)
+    needs: record
+    if: always() && needs.record.result != 'cancelled' && needs.record.outputs.ready == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Refuse fork and bot pull requests (no keys there)
+        if: needs.record.outputs.head_repo != github.repository || github.actor == 'dependabot[bot]'
+        run: |
+          echo "::error::agent review needs the model keys, which fork and bot pull requests never receive; push the branch to this repository"
+          exit 1
+      - name: Checkout the reviewed base, never the pull request's code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.record.outputs.base }}
+          persist-credentials: false
+      - name: Download this run's manifest
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: onboard-manifest-${{ github.run_id }}-${{ github.run_attempt }}
+          path: onboard-manifest/
+          digest-mismatch: error
+      - name: Convene the onboarding review
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+          PF_REPO: ${{ github.repository }}
+          PF_PR: ${{ needs.record.outputs.pr }}
+          PF_MANIFEST: onboard-manifest/manifest.json
+        run: python3 src/council/onboard_review.py

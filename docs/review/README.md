@@ -4,13 +4,14 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **7 October 2026** for the 6-7 Oct handover (council desk, cleanup, V1 and V2). Hygiene record:
+Last indexed **8 October 2026** for packet W2 (two-step app changes, status page, leads decided). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
 
 | Read | Why |
 | --- | --- |
+| [SESSION-2026-10-08.md](SESSION-2026-10-08.md) | 8 Oct session: packet W2 (two-step app changes, plain status page, MicroG shipped where needed, silent failures, onboarding gate, tooling watch, leads decided). Read first. |
 | [SESSION-2026-10-07.md](SESSION-2026-10-07.md) | 6-7 Oct session: packets R to V2, council desk #154, cleanup, findings, wrong calls, coverage limits. Read first. |
 | [HANDOVER-2026-09-26.md](history/HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
 | [SESSION-2026-09-29.md](history/SESSION-2026-09-29.md) | Packet L session: findings, what PR107 shipped, the assistant's wrong calls, and what is still open. |
@@ -29,8 +30,10 @@ Last indexed **7 October 2026** for the 6-7 Oct handover (council desk, cleanup,
 | [ICON-PROVENANCE.md](ICON-PROVENANCE.md) | Which app icons ship as brand tiles, their sources, and which stay monograms. | Current gate |
 | [SOURCE-CHAIN-2026-10-06.md](SOURCE-CHAIN-2026-10-06.md) | Second store with the same gates (S1) and the publisher-pin and version step-down plan (S2). | Current decision |
 | [YTMUSIC-2026-10-06.md](YTMUSIC-2026-10-06.md) | YouTube Music target: patch review, exclusions with reasons, and the YouTube DeArrow decision. | Current decision |
+| [onboarding/](onboarding/) | Onboarding records: one per target for every new app, provider or patch name; rules and template in its README. | Current gate |
 | [AUDIT-COUNCIL-2026-10-06.md](AUDIT-COUNCIL-2026-10-06.md) | All 84 findings of the first council audit, each checked at `d2060b82`: 33 confirmed, 6 unclear, 45 refuted. | Leads |
 | [CLUTTER-2026-10-07.md](CLUTTER-2026-10-07.md) | Plan to consolidate Pages, release notes and this desk, with every test-pinned phrase. | Plan, not done |
+| [LEADS-2026-10-08.md](LEADS-2026-10-08.md) | Every open audit and desk lead with a decision: keep, fixed in W2, or later with its evidence. | Current decision |
 
 ## APK source admissions
 

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="Patch Factory status in plain words: what ran, what worked, what failed and why."><title>Patch Factory / Status</title>
+<style>
+/* Packet W2, 8 Oct 2026: the plain-language status page. Same palette as the app shelf. */
+@font-face{font-family:Manrope;src:url("assets/manrope-v4.504.woff2") format("woff2");font-weight:200 800;font-display:swap}
+:root{--paper:#f4f6f1;--ink:#202d28;--muted:#56635a;--plum:#235c46;--rule:#d9e1d5;--card:#fff;--mint:#d8f3b2;--bad:#8a2d1c;--badbg:#fbe9e4;--warn:#76521a;--warnbg:#f6efdf;--okbg:#e6f1de}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 Manrope,system-ui,sans-serif}a{color:var(--plum)}
+.shell{max-width:1200px;margin:auto;padding:24px 40px 56px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-weight:800;font-size:14px}
+h1{font-size:clamp(34px,5vw,56px);letter-spacing:-.05em;line-height:1.05;margin:28px 0 8px}h2{font-size:22px;letter-spacing:-.02em;margin:34px 0 10px}h3{font-size:17px;margin:0}
+.meta{color:var(--muted);font-size:14px}.headline{border-radius:14px;padding:16px 20px;margin:16px 0;font-weight:700;background:var(--okbg)}
+.headline.bad{background:var(--badbg);color:var(--bad)}.headline.unknown{background:var(--warnbg);color:var(--warn)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.card{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:16px;min-width:0}
+.card.bad{border-color:#d9a99b}.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:700;background:var(--okbg);color:var(--plum)}
+.pill.bad{background:var(--badbg);color:var(--bad)}.pill.wait{background:var(--warnbg);color:var(--warn)}.pill.skip{background:#eceee9;color:var(--muted)}
+.why{background:var(--badbg);border-radius:8px;padding:8px 10px;font-size:14px;margin:8px 0;overflow-wrap:anywhere}.needs{font-size:14px;margin-top:8px}
+.row{display:grid;grid-template-columns:1.2fr 2fr 1.4fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--rule);align-items:start}.row:last-child{border-bottom:0}
+.dots{display:flex;gap:4px;margin-top:4px}.dot{width:12px;height:12px;border-radius:3px;background:#b9c6b3}.dot.ok{background:#3f8f62}.dot.bad{background:#c0533a}.dot.wait{background:#c9a23f}
+.button{display:inline-block;border:1px solid var(--rule);border-radius:9px;padding:6px 12px;background:var(--card);text-decoration:none;font-size:14px;font-weight:700;margin:6px 6px 0 0}
+details{margin-top:24px}summary{cursor:pointer;font-weight:700}ul{padding-left:20px}footer{margin-top:40px;border-top:1px solid var(--rule);padding-top:16px;font-size:14px;color:var(--muted)}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.row{grid-template-columns:1fr}.shell{padding:20px}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style></head><body><main class="shell">
+<div class="top"><a href="./">← App shelf</a><span class="meta">Public, read-only. No GitHub token is asked for or used here.</span></div>
+<h1>What happened recently</h1>
+<p class="meta" id="updated">Loading the latest status…</p>
+<div class="headline" id="headline" role="status">Loading…</div>
+<h2>Apps</h2>
+<p class="meta">Every build here runs on ARM64 phones (almost every Android phone since 2017). The Android version below is the minimum the latest APK declares. Apps marked MicroG need Morphe MicroG RE installed first.</p>
+<div class="grid" id="apps"></div>
+<h2>Automations</h2>
+<p class="meta">Each job the repository runs by itself, what it is for, and how its last runs went (newest first).</p>
+<div class="card" id="workflows"></div>
+<h2>Open problem reports</h2>
+<div id="issues" class="meta"></div>
+<div id="problems"></div>
+<details><summary>What the words mean</summary><ul>
+<li><b>Worked</b>: the job finished without an error. For a build, a release was published or nothing new was needed.</li>
+<li><b>Failed</b>: it stopped with an error. "Stopped at" names the step; the grey box is the reason line the step printed.</li>
+<li><b>Skipped (nothing to do)</b>: the scheduled check found no new patches for that app, so it did not build.</li>
+<li><b>Stopped (cancelled)</b> and <b>Ran out of time</b>: someone or something cut the run short; the result is unknown, not good.</li>
+<li><b>Unknown</b>: this page could not read GitHub's record. Unknown is never shown as fine.</li>
+</ul><p class="meta">Data comes from GitHub's own run records, written by the "Status page data" automation after each run and once a day. A green build is not a phone test.</p></details>
+<footer><a href="https://github.com/govinda-rajulu/patch-factory/actions">All runs on GitHub</a> · <a href="https://github.com/govinda-rajulu/patch-factory/releases">All releases</a> · <a href="https://github.com/govinda-rajulu/patch-factory/blob/main/docs/APPS.md">Add or remove an app</a></footer>
+</main><script src="status.js" defer></script></body></html>

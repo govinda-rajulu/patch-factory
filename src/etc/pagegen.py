@@ -12,12 +12,20 @@ import io,json,re,sys,hashlib
 PAGE='docs/index.html'
 OPEN='// >>> CATALOG GENERATED FROM src/targets.json - edit targets.json, not this'
 CLOSE='// <<< CATALOG GENERATED'
+ANDROID={26:'8',27:'8.1',28:'9',29:'10',30:'11',31:'12',32:'12L',33:'13',34:'14',35:'15',36:'16'}
 def build():
     T=json.load(io.open('src/targets.json',encoding='utf-8'))
     rows=[]
     for t in T:
         if not t.get('enabled'): continue
         note=(t.get('note') or '').split('.')[0].strip()
+        # 8 Oct 2026 (W2): what the phone needs, from targets.json; shown only when it differs
+        # from the shelf-wide rule (ARM64, Android 10 or newer, no MicroG).
+        needs=[]
+        if t.get('needs_microg') and 'microg' not in note.lower(): needs.append('Needs MicroG RE')
+        cap=t.get('min_sdk_ceiling',29)
+        if cap!=29: needs.append('Android %s or newer'%ANDROID.get(cap,'API %s'%cap))
+        if needs: note=(note+'. ' if note else '')+'. '.join(needs)
         rows.append(" { prefix:%s, target:%s, name:%s, note:%s }"%(
             json.dumps(t.get('tag_prefix') or t['id']),json.dumps(t['id']),
             json.dumps(t.get('label') or t['id']),json.dumps(note)))

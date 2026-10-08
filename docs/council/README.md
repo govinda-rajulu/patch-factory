@@ -110,3 +110,11 @@ This repository is public. Nothing here or in a council comment may contain keys
 signing material, personal accounts, private chats, or anything unrelated to this project.
 Keys live only in repository secrets and reach only the council step. Free tiers may use
 prompts to improve models; everything sent is already public in this repository.
+
+## Onboarding review (8 Oct 2026, packet W1)
+
+`src/council/onboard_review.py` reuses the seats and transport above for one more job: the
+`Onboarding review` workflow's agent step. It reads only the manifest that
+`src/etc/onboard_check.py` wrote from the pull request, answers with quoted findings
+(prompt: `ONBOARD.md`), and passes with at least 2 counted verdicts and fewer than half block.
+Rules: `docs/review/onboarding/README.md`.

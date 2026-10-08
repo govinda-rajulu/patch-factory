@@ -80,6 +80,15 @@ Facts you may not rely on: anything you remember, and any number typed into pros
 Open an issue instead. An issue costs a read; a wrong PR merged costs a phone reinstall and
 possibly an account.
 
+## New apps, providers and patch names
+
+Owner rule, 8 Oct 2026: **every new app, provider or patch name goes through agent review.**
+Make app and patch changes with `src/etc/app.py` (the `5. Add target` workflow runs it; how-to
+`docs/APPS.md`); it writes `docs/review/onboarding/<target id>.md`. A pull request that adds a
+target, enables one, adds a provider source or adds an include name needs that record naming
+each item verbatim (no `TODO`; a CONFIRM match needs `Owner approved: <name>`, which only the
+owner may give), and the `Onboarding review` workflow must pass before the owner merges.
+
 ## Knowledge base
 
 `knowledge/README.md` holds the owner working agreement, a dated state checkpoint,

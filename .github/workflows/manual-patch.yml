@@ -10,26 +10,10 @@ on:
         default: true
         type: boolean
       target:
-        description: 'Which target do you want to patch?'
+        description: 'App id from src/targets.json, e.g. youtube (list: docs/APPS.md)'
         required: true
         default: 'youtube'
-        type: choice
-        options:
-          - 'youtube'
-          - 'ytmusic'
-          - 'adguard'
-          - 'photos'
-          - 'truecaller-combo'
-          - 'primevideo'
-          - 'esfile'
-          - 'facebook'
-          - 'instagram'
-          - 'reddit'
-          - 'hotstar'
-          - 'edge'
-          - 'mxplayer'
-          - 'telegram'
-          - 'keymapper'
+        type: string
   workflow_call:
     inputs:
       resolved_requested:
@@ -75,6 +59,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Refuse an unknown app id
+        env:
+          TARGET: ${{ inputs.target }}
+        run: |
+          if ! jq -e --arg t "$TARGET" 'any(.[]; .id == $t and .enabled == true)' src/targets.json > /dev/null; then
+            echo "::error::'$TARGET' is not an enabled app id. Enabled: $(jq -r '[.[] | select(.enabled) | .id] | join(", ")' src/targets.json)"
+            exit 1
+          fi
       - name: Preflight before secrets and downloads
         env:
           TARGET: ${{ inputs.target }}

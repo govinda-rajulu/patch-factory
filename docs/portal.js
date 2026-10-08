@@ -82,7 +82,7 @@ function validateImport(data,ts){
  for(const app of data.apps){need(app&&plain(app.id,200)&&/^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$/.test(app.id)&&!ids.has(app.id),'Invalid/duplicate app package');ids.add(app.id);
  need(app.url===WEB&&plain(app.name,200)&&!names.has(app.name),'Invalid import source/name');names.add(app.name);
  const target=enabled.find(t=>(t.label||t.id)===app.name);need(target&&!matched.has(target.id),'Import app not in enabled catalog');matched.add(target.id);
- const packageId=({youtube:'app.morphe.android.youtube',ytmusic:'app.morphe.android.apps.youtube.music',photos:'app.morphe.android.apps.photos'})[target.id]||target.package;
+ const packageId=target.installed_package||target.package;
  need(app.id===packageId,'Import package does not match this target');
  need(typeof app.additionalSettings==='string'&&app.additionalSettings.length<10000,'Invalid app filters');const settings=JSON.parse(app.additionalSettings);
  need(settings&&Object.keys(settings).every(k=>['includePrereleases','fallbackToOlderReleases','filterReleaseTitlesByRegEx','apkFilterRegEx','versionExtractionRegEx','matchGroupToUse','trackOnly','appName'].includes(k)),'Unreviewed tracking settings; use reviewed JSON import instead');
@@ -618,7 +618,7 @@ $('microgArch').addEventListener('change',()=>{need(['auto','universal','arm64-v
 $('includeMicrog').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
 $('collapseImport').addEventListener('click',()=>{$('importPanel').open=false;$('importPanel').querySelector('summary').focus();});
 $('resetChoices').addEventListener('click',()=>{
- resetImport();$('pack').value='all';$('includeMicrog').checked=false;$('includeObtainium').checked=false;$('includeMicrog').parentElement.hidden=false;
+ resetImport();$('pack').value='all';$('includeMicrog').checked=true;$('includeObtainium').checked=false;$('includeMicrog').parentElement.hidden=false;
  $('microgChannel').value='stable';microgChannel='stable';$('microgArch').value='universal';microgArch='universal';$('prepareImport').disabled=false;
  $('importMessage').textContent='Page choices reset. No tracked or installed apps were changed.';
  if(tab==='apps')render();

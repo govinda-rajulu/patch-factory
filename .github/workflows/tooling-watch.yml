@@ -1,0 +1,64 @@
+name: Tooling watch
+# Packet W1 (8 Oct 2026): pinned build tools (src/build/TOOLING.sha256) follow their
+# newest GitHub release, pre-releases included by owner decision. A change becomes a
+# pull request (never a push to main); Validate is dispatched on its branch because pull
+# requests opened with the workflow token do not start other workflows. If the repository
+# does not let Actions open pull requests, the branch and report land on one standing issue.
+permissions:
+  contents: read
+on:
+  schedule:
+    - cron: "29 4 * * *"  # 09:59 IST daily
+  workflow_dispatch:
+concurrency:
+  group: tooling-watch
+  cancel-in-progress: false
+jobs:
+  watch:
+    name: Check pinned tools
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Read releases and verify any newer asset
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 src/etc/tooling_watch.py --apply --report tooling-report.md --json tooling-plan.json
+      - name: Open or refresh the update pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if git diff --quiet -- src/build/TOOLING.sha256; then echo "no tool update"; exit 0; fi
+          H=$(sha256sum src/build/TOOLING.sha256 | cut -c1-12)
+          B="tooling/pins-$H"
+          if git ls-remote --exit-code --heads origin "$B" > /dev/null; then echo "branch $B already exists"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$B"
+          git add src/build/TOOLING.sha256
+          git commit -m "tooling: update pinned tools (tooling watch)"
+          git push origin "$B"
+          if gh pr create --repo "$REPO" --base main --head "$B" --title "tooling: update pinned tools" --body-file tooling-report.md; then
+            gh workflow run validate.yml --repo "$REPO" --ref "$B" || echo "::warning::could not dispatch Validate on $B"
+          else
+            T="Tooling: update ready"
+            N=$(gh issue list --repo "$REPO" --state open --search "in:title \"$T\"" --json number --jq '.[0].number // empty')
+            printf '%s\n\nBranch: `%s`. Open the pull request from the compare page: https://github.com/%s/compare/main...%s\n' "$(cat tooling-report.md)" "$B" "$REPO" "$B" > issue.md
+            if [ -n "$N" ]; then gh issue comment "$N" --repo "$REPO" --body-file issue.md; else gh issue create --repo "$REPO" --title "$T" --body-file issue.md; fi
+          fi
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: tooling-watch-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            tooling-report.md
+            tooling-plan.json
+          if-no-files-found: warn
+          retention-days: 30

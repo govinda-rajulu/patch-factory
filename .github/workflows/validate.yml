@@ -115,15 +115,6 @@ jobs:
           fi
           [ "$FAIL" = 0 ] && echo "extra patch dirs OK"
           exit $FAIL
-      - name: Dropdown coverage
-        run: |
-          FAIL=0
-          W=.github/workflows/manual-patch.yml
-          while read -r id; do
-            grep -q -- "- '$id'" "$W" || { echo "::error::$id is enabled but missing from the target dropdown in $W"; FAIL=1; }
-          done < <(jq -r '.[] | select(.enabled) | .id' src/targets.json)
-          [ "$FAIL" = 0 ] && echo "dropdown covers every enabled target"
-          exit $FAIL
       - name: apps.json coverage
         run: |
           A=src/build/helper/apps.json

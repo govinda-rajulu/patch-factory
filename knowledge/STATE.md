@@ -2,7 +2,26 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
-## 7 Oct 2026, evening (handover; start here)
+## 8 Oct 2026 (packet W2; start here)
+
+- **Base** main `4bdb82b8`. Record: `docs/review/SESSION-2026-10-08.md` (applied and dropped
+ hunks at its end). Leads decided: `docs/review/LEADS-2026-10-08.md`.
+- **App changes are two steps**: run `5. Add target` (add, patch, disable, enable, remove),
+ merge its pull request. Tool: `src/etc/app.py`; how-to `docs/APPS.md`. `1. Manual Patch`
+ takes a typed id.
+- **Status in plain words**: `docs/status.html`, data from `Status page data` on the `status`
+ branch.
+- **Onboarding gate**: every new app, provider or patch name needs its record and the agent
+ review (`Onboarding review`).
+- **Tooling watch** (09:59 IST): pinned tools follow new releases, pre-releases included, as PRs.
+- **Requirements**: `needs_microg` and `installed_package` in `src/targets.json` are the one home.
+- **Next, in order**: (1) merge W2 on green Validate; run `Status page data` once and open
+ the page. (2) Amazon Music and LinkedIn: pick a provider from the scout, one add run each.
+ (3) #102 baselines with and without `-u`, council `same_site` exact host, free council seats
+ from the v2 guide. (4) S2 publisher pins, version step-down. (5) Edge, F05/F06, PR53, phone
+ tests, ES File icon, agent runner pilot.
+
+## 7 Oct 2026, evening (handover)
 
 - **Main** `fec38e60` (PR #156, V2) plus the handover packet. 15 targets. 7 council seats on 6
   providers; probe after V2: 6 of 7 ready (open seat flaky). Desk #154 pinned: the schedule posts

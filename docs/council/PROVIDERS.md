@@ -18,3 +18,18 @@ names `response_format` or `reasoning` drops that field once and is remembered; 
 (`finish_reason` length, empty content) moves to the next model and is reported; one repair
 turn shows the seat its exact refusal; findings must quote a real line or are dropped; heavy
 jobs run one at a time on the desk schedule.
+
+## 8 Oct 2026: checked against the owner's v2 field guide
+
+Source: `knowledge/handbook/FREE-LLM-APIS-2026-10-v2.md` (owner-supplied, facts dated 7 Oct
+2026; free tiers change monthly). Against the seats in `src/council/seats.json`:
+
+- Groq's Qwen id `qwen/qwen3.8-27b` matches the guide's corrected id. GitHub Models stays retired.
+- OpenRouter free models: 20 RPM and 50 requests a day, 1,000 a day after a one-time $10
+  purchase (owner decision; it would lift the `open` seat's daily cap).
+- Not seated yet, free without a card: Kilo Gateway (anonymous, 200 requests an hour per IP),
+  Requesty (200 a day), Cloudflare Workers AI (10,000 Neurons a day), LLM7 (100K tokens a day),
+  Reka ($10 monthly credit). Each needs a `PROVIDERS` entry in `council.py`, a secret and a
+  probe run: packet W2, one provider at a time.
+- Free tiers log prompts (NVIDIA, Gemini free, OpenRouter stealth models, Kilo auto, Requesty).
+  Seats only ever see this public repository.
