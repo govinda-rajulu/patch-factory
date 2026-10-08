@@ -7,7 +7,10 @@ fixed, MicroG RE six-file card, Obtainium import with icon choice, Amazon Music 
 a working two-step app add, cleanup tool, obsolete files removed. Record:
 [SESSION-2026-10-08.md](SESSION-2026-10-08.md) (W4 section). Open, in order:
 
-1. Merge W4; run `Status page data`; open the page.
+1. Merge W4 (#160). Its onboarding review blocks Amazon Music's "Unlock Unlimited" and
+ "Unlimited track skipping" under rule 1; the owner keeps them for a throwaway-account test
+ and merges over that block (record: `onboarding/amazonmusic.md`). Run `Status page data`;
+ open the page. The review's gpt seat answered with invalid finding fields; check its parser.
 2. `1. Manual Patch` for `amazonmusic` and `linkedin`; phone-test both.
 3. `src/etc/cleanup.py preview`, review, `apply --token`.
 4. #102 (provider watch with and without `-u`), council `same_site` exact host, free council

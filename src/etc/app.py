@@ -149,6 +149,15 @@ def source_key(b):
     return '%s/%s' % (b.get('owner'), b.get('repo'))
 
 
+def provider_text(b):
+    """Owner/repo, channel, where its bundle and licence live (onboarding review rule 3)."""
+    key = source_key(b)
+    home = ('GitLab project %s' % b.get('project_id') if key.startswith('gitlab:')
+            else 'https://github.com/' + key)
+    return ('%s (%s, channel %s; bundle: the one .mpp asset of the newest release on that channel; '
+            'licence: the LICENSE file at %s)') % (key, b.get('name'), b.get('channel'), home)
+
+
 def write_record(t, added=(), approved=(), note=None, store=None):
     """Create or extend docs/review/onboarding/<id>.md so the onboarding check can pass."""
     RECORDS.mkdir(parents=True, exist_ok=True)
@@ -157,18 +166,17 @@ def write_record(t, added=(), approved=(), note=None, store=None):
     if p.is_file():
         text = p.read_text(encoding='utf-8')
     else:
-        provs = ', '.join('%s (%s, channel %s)' % (source_key(b), b.get('name'), b.get('channel'))
-                          for b in (t.get('candidates') or []) + (t.get('extra_bundles') or []))
+        provs = '; '.join(provider_text(b) for b in (t.get('candidates') or []) + (t.get('extra_bundles') or []))
         text = ('# %s (%s)\n\nPackage: %s\nSource APK: %s\nProvider: %s\n\n## Patches\n\n## Risks\n'
-                '- Written by the agent review on the pull request that carries this record.\n\n'
+                '- See the agent review on the pull request that adds this record.\n\n'
                 '## Decision\nOwner request through "5. Add target" on %s; merging the pull request is the approval.\n') % (
             t.get('label') or t['id'], t['id'], t['package'], store or 'per src/build/helper/apps.json',
             provs or 'none', stamp)
     for b in (t.get('candidates') or []) + (t.get('extra_bundles') or []):
         key = source_key(b)
         if key not in text:
-            text = text.replace('\n## Patches\n', '\nProvider added %s: %s (%s, channel %s)\n\n## Patches\n' % (
-                stamp, key, b.get('name'), b.get('channel')), 1)
+            text = text.replace('\n## Patches\n', '\nProvider added %s: %s\n\n## Patches\n' % (
+                stamp, provider_text(b)), 1)
     rows = []
     for n in added:
         if ('- ' + n + ':') not in text:

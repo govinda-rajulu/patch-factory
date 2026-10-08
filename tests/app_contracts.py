@@ -95,7 +95,8 @@ class AppTool(unittest.TestCase):
         fb = json.loads(Path('src/build/helper/source-fallbacks.json').read_text())
         self.assertEqual(fb['targets']['demomusic']['admissions'], [])
         rec = Path('docs/review/onboarding/demomusic.md').read_text()
-        for must in ('SomeOwner/some-patches', '- Hide ads:', '- Unlock HD:', 'com.example.music'):
+        for must in ('SomeOwner/some-patches', '- Hide ads:', '- Unlock HD:', 'com.example.music',
+                     'bundle: the one .mpp asset', 'licence: the LICENSE file at https://github.com/SomeOwner/some-patches'):
             self.assertIn(must, rec)
         self.assertNotIn('TODO', rec)
         self.assertIn("['youtube','demomusic']", Path('docs/portal.js').read_text())

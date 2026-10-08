@@ -2,7 +2,7 @@
 
 Package: com.linkedin.android
 Source APK: https://www.apkmirror.com/uploads/?appcategory=linkedin-linkedin
-Provider: heyymichii/michii-patches (heyymichii, channel prerelease)
+Provider: heyymichii/michii-patches (heyymichii, channel prerelease; bundle: the one .mpp asset of the newest release on that channel; licence: GPL-3.0, the LICENSE file at https://github.com/heyymichii/michii-patches/blob/dev/LICENSE, read 2026-10-08)
 
 ## Patches
 - Block tracking: added 2026-10-08 by owner request
@@ -18,7 +18,8 @@ Provider: heyymichii/michii-patches (heyymichii, channel prerelease)
 - Sanitize share links: added 2026-10-08 by owner request
 
 ## Risks
-- Written by the agent review on the pull request that carries this record.
+- By their names the 11 patches hide content, block tracking or add downloads; none names a paid unlock ("Hide Premium upsells" hides the Premium adverts). The provider's own descriptions were not read for this record.
+- Account risk from a re-signed LinkedIn app is unknown; test with a spare account first.
 
 ## Decision
 Owner request through "5. Add target" on 2026-10-08; merging the pull request is the approval.
