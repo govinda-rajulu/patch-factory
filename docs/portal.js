@@ -618,7 +618,7 @@ $('microgArch').addEventListener('change',()=>{need(['auto','universal','arm64-v
 $('includeMicrog').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
 $('collapseImport').addEventListener('click',()=>{$('importPanel').open=false;$('importPanel').querySelector('summary').focus();});
 $('resetChoices').addEventListener('click',()=>{
- resetImport();$('pack').value='all';$('includeMicrog').checked=false;$('includeObtainium').checked=false;$('includeMicrog').parentElement.hidden=false;
+ resetImport();$('pack').value='all';$('includeMicrog').checked=true;$('includeObtainium').checked=false;$('includeMicrog').parentElement.hidden=false;
  $('microgChannel').value='stable';microgChannel='stable';$('microgArch').value='universal';microgArch='universal';$('prepareImport').disabled=false;
  $('importMessage').textContent='Page choices reset. No tracked or installed apps were changed.';
  if(tab==='apps')render();

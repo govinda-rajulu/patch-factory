@@ -1,6 +1,7 @@
 [
   {
     "id": "youtube",
+    "needs_microg": true,
     "installed_package": "app.morphe.android.youtube",
     "enabled": true,
     "package": "com.google.android.youtube",
@@ -27,6 +28,7 @@
   },
   {
     "id": "ytmusic",
+    "needs_microg": true,
     "installed_package": "app.morphe.android.apps.youtube.music",
     "enabled": true,
     "package": "com.google.android.apps.youtube.music",
@@ -88,6 +90,7 @@
   },
   {
     "id": "photos",
+    "needs_microg": true,
     "installed_package": "app.morphe.android.apps.photos",
     "enabled": true,
     "package": "com.google.android.apps.photos",
