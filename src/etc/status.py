@@ -78,13 +78,17 @@ WORDS = {
 LIVE = {'in_progress': 'Running now', 'queued': 'Waiting to start', 'waiting': 'Waiting for approval',
         'requested': 'Waiting to start', 'pending': 'Waiting to start'}
 BAD = {'failure', 'timed_out', 'startup_failure', 'action_required', 'cancelled'}
+# A failure older than this, with nothing run since, is history, not a current problem (W4).
+STALE_DAYS = 14
 
 
 def clean(value, cap=300):
     if not isinstance(value, str):
         return ''
     value = TOKEN.sub('[redacted]', value)
-    value = re.sub(r'[-\u0008\u000b-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]', ' ', value)
+    # W4 (8 Oct 2026): the class began with a bare '-', so every hyphen became a space
+    # ("manual patch.yml", "arm64 v8a"). Control and bidi characters only.
+    value = re.sub(r'[\x00-\x08\x0b-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]', ' ', value)
     value = ' '.join(value.split())
     return value[:cap - 1] + '…' if len(value) > cap else value
 
@@ -193,6 +197,24 @@ def jobs_of(reader, run):
     return (data or {}).get('jobs') or []
 
 
+def age_days(stamp, now):
+    try:
+        a = datetime.datetime.fromisoformat(str(stamp).replace('Z', '+00:00'))
+        b = datetime.datetime.fromisoformat(str(now).replace('Z', '+00:00'))
+    except ValueError:
+        return None
+    return max(0, (b - a).days)
+
+
+def mark_age(row, now):
+    """Adds age_days and old (a failure older than STALE_DAYS) to a run or build row."""
+    if not row:
+        return row
+    row['age_days'] = age_days(row.get('when'), now)
+    row['old'] = bool(row.get('result') in BAD and row['age_days'] is not None and row['age_days'] > STALE_DAYS)
+    return row
+
+
 def run_row(run):
     code, words = result_of(run)
     return {'when': when(run), 'result': code, 'words': words, 'event': clean(run.get('event'), 30),
@@ -268,7 +290,7 @@ def build(reader, targets, now=None):
                                          'url': link(j.get('html_url'))})
                     if len(last['jobs']) >= 4:
                         break
-            row['last'] = last
+            row['last'] = mark_age(last, now)
         out['workflows'].append(row)
         if path in BUILD_FILES:
             for r in runs:
@@ -300,7 +322,7 @@ def build(reader, targets, now=None):
             if code in BAD:
                 lb['step'], lb['step_plain'] = failed_step(j)
                 lb['why'] = reasons(reader, j['id']) if isinstance(j.get('id'), int) else []
-            app['last_build'] = lb
+            app['last_build'] = mark_age(lb, now)
         out['apps'].append(app)
     iss = reader.get('repos/%s/issues?state=open&per_page=100' % REPO, 'open issues')
     for i in iss or []:
@@ -308,15 +330,16 @@ def build(reader, targets, now=None):
         if i.get('pull_request') or not title.startswith('Failing: '):
             continue
         out['issues'].append({'title': title, 'url': link(i.get('html_url')), 'number': i.get('number')})
-    bad_apps = [a['label'] for a in out['apps'] if a['last_build'] and a['last_build']['result'] in BAD]
-    bad_wfs = [w['name'] for w in out['workflows'] if w['last'] and w['last']['result'] in BAD]
+    bad_apps = [a['label'] for a in out['apps'] if a['last_build'] and a['last_build']['result'] in BAD and not a['last_build']['old']]
+    bad_wfs = [w['name'] for w in out['workflows'] if w['last'] and w['last']['result'] in BAD and not w['last']['old']]
+    old = [w['name'] for w in out['workflows'] if w['last'] and w['last']['old']]
     if out['problems']:
         head = 'Partly unknown: some GitHub reads failed (listed at the bottom).'
     elif bad_apps or bad_wfs:
         head = '%d app build(s) and %d automation(s) need a look.' % (len(bad_apps), len(bad_wfs))
     else:
         head = 'Everything that ran recently worked.'
-    out['headline'] = {'text': head, 'apps': bad_apps, 'workflows': bad_wfs}
+    out['headline'] = {'text': head, 'apps': bad_apps, 'workflows': bad_wfs, 'old_failures': old}
     return out
 
 
