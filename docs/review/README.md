@@ -29,6 +29,7 @@ Last indexed **7 October 2026** for the 6-7 Oct handover (council desk, cleanup,
 | [ICON-PROVENANCE.md](ICON-PROVENANCE.md) | Which app icons ship as brand tiles, their sources, and which stay monograms. | Current gate |
 | [SOURCE-CHAIN-2026-10-06.md](SOURCE-CHAIN-2026-10-06.md) | Second store with the same gates (S1) and the publisher-pin and version step-down plan (S2). | Current decision |
 | [YTMUSIC-2026-10-06.md](YTMUSIC-2026-10-06.md) | YouTube Music target: patch review, exclusions with reasons, and the YouTube DeArrow decision. | Current decision |
+| [onboarding/](onboarding/) | Onboarding records: one per target for every new app, provider or patch name; rules and template in its README. | Current gate |
 | [AUDIT-COUNCIL-2026-10-06.md](AUDIT-COUNCIL-2026-10-06.md) | All 84 findings of the first council audit, each checked at `d2060b82`: 33 confirmed, 6 unclear, 45 refuted. | Leads |
 | [CLUTTER-2026-10-07.md](CLUTTER-2026-10-07.md) | Plan to consolidate Pages, release notes and this desk, with every test-pinned phrase. | Plan, not done |
 
