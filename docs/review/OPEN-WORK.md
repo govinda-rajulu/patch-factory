@@ -1,6 +1,24 @@
 # Open work
 
-## Current checkpoint: 7 October 2026, evening (handover)
+## Current checkpoint: 8 October 2026 (packet W2)
+
+W2 (one pull request) makes every app or patch change two steps (`5. Add target`, then merge),
+adds the plain status page, ships MicroG RE with the apps that need it, removes repeated notes,
+fixes four silent failures, and carries W1's onboarding gate, tooling watch and decided leads
+([LEADS-2026-10-08.md](LEADS-2026-10-08.md)). Record: [SESSION-2026-10-08.md](SESSION-2026-10-08.md).
+Open, in order:
+
+1. Merge W2; run `Status page data` once; check the page and one `5. Add target` dry change.
+2. Amazon Music and LinkedIn: provider from the [scout](onboarding/CANDIDATES-2026-10-08.md),
+ then one add run each.
+3. #102 (provider watch with and without `-u`), council `same_site` exact host, free council
+ seats from `knowledge/handbook/FREE-LLM-APIS-2026-10-v2.md`, release-notes consolidation
+ ([plan](CLUTTER-2026-10-07.md)).
+4. Desk leads still unread: `explore.yml` `$PKG`, `nightly_report.py`, portal SRI and cache.
+5. Packet S2: publisher certificate pins, version step-down. Then Edge apkpure refusal,
+ F05/F06, PR53, phone tests, ES File icon, agent runner pilot, the unused `TDL_BACKUP` secret.
+
+## Earlier checkpoint: 7 October 2026, evening (handover)
 
 V2 is on main (PR #156); the council works the pinned desk #154 on a schedule. Everything the
 6-7 Oct chat found is in the [session record](SESSION-2026-10-07.md). Open, in order:
