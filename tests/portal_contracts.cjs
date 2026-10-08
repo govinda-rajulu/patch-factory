@@ -5,6 +5,7 @@ const marker='// Expose pure contracts only for tests';assert.equal(source.split
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
 vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,ago,isOld,headline,reportIdentity,reportBinding,checkCompleteness};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
+const ENABLED=targets.filter(t=>t.enabled===true).length; // W4: counts follow src/targets.json
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
 check('MicroG choices pick exactly one upstream file by icon and CPU, never another variant',()=>{
  const pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json'))),web='https://github.com/MorpheApp/MicroG-RE',v='7.2.1';
@@ -29,8 +30,8 @@ check('optional Obtainium self companion matches the official standard entry',()
  assert.equal(app.id,'dev.imranr.obtainium');assert.equal(settings.apkFilterRegEx,'fdroid');assert.equal(settings.invertAPKFilter,true);assert.equal(settings.autoApkFilterByArch,true);assert.equal(settings.trackOnly,false);
  const d=structuredClone(pack);d.apps[0].id='dev.imranr.obtainium.fdroid';assert.throws(()=>c.validateObtainium(d));
 });
-check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,15);assert.equal(c.validateImport(pack,targets).length,15);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
-check('import encoded URI round trip retains full and selected app settings',()=>{const apps=c.validateImport(pack,targets),uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));assert.deepEqual(JSON.parse(decodeURIComponent(uri.slice(17))),pack.apps);assert.ok(uri.length<100000);const before=JSON.stringify(apps);const chosen=c.selectApps(apps,[apps[2].id,apps[0].id]);assert.deepEqual(JSON.parse(JSON.stringify(chosen)),[pack.apps[0],pack.apps[2]]);assert.equal(JSON.stringify(apps),before);for(const ids of [[],['unknown'],[apps[0].id,apps[0].id],null])assert.throws(()=>c.selectApps(apps,ids));assert.equal(c.selectApps(apps,apps.map(a=>a.id)).length,15)});
+check('one public catalog and full import have exact enabled coverage',()=>{assert.equal(c.validateTargets(targets).length,ENABLED);assert.equal(c.validateImport(pack,targets).length,ENABLED);assert.ok(html.includes('<option value="all">All apps</option>'));assert.ok(html.includes('<option value="custom">Select only</option>'));assert.ok(!html.includes('family pack'));assert.ok(!source.includes("['govind','parents'"));assert.ok(source.includes("RAW+'docs/obtainium.json'"))});
+check('import encoded URI round trip retains full and selected app settings',()=>{const apps=c.validateImport(pack,targets),uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));assert.deepEqual(JSON.parse(decodeURIComponent(uri.slice(17))),pack.apps);assert.ok(uri.length<100000);const before=JSON.stringify(apps);const chosen=c.selectApps(apps,[apps[2].id,apps[0].id]);assert.deepEqual(JSON.parse(JSON.stringify(chosen)),[pack.apps[0],pack.apps[2]]);assert.equal(JSON.stringify(apps),before);for(const ids of [[],['unknown'],[apps[0].id,apps[0].id],null])assert.throws(()=>c.selectApps(apps,ids));assert.equal(c.selectApps(apps,apps.map(a=>a.id)).length,ENABLED)});
 check('malformed imports refuse global settings, duplicates, foreign URLs and credentials',()=>{for(const mutate of [d=>d.settings={},d=>d.apps.pop(),d=>d.apps.push(d.apps[0]),d=>d.apps[0].url='https://evil.invalid',d=>d.apps[0].additionalSettings='{"token":"SECRET"}']){const d=structuredClone(pack);mutate(d);assert.throws(()=>c.validateImport(d,targets))}});
 check('version and arbitrary precision build ID remain separate',()=>{const d=c.parseTag('youtube-morphe-v21.36.45-b2026091300000000034768808230000001');assert.equal(d.version,'21.36.45');assert.equal(d.run,'34768808230');assert.equal(d.attempt,'1');assert.equal(c.parseTag('app-v1.0-b2026091399999999999999999999000001').run,'99999999999999999999')});
 check('legacy date tags accepted; malformed tags rejected',()=>{assert.equal(c.parseTag('app-v1.0-b20260913').run,null);for(const t of ['app-v1.0-b20260230','app-v1.0-b2026091300000000000000000000000000','app-v1<script>','app-v1.0-b20260913junk',null])assert.equal(c.parseTag(t),null)});
@@ -51,7 +52,7 @@ check('optional MicroG stays separate and preserves upstream package and exact f
  const d=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
  const [app]=c.validateMicroG(d),s=JSON.parse(app.additionalSettings);
  assert.equal(app.id,'app.revanced.android.gms');
- assert.equal(pack.apps.length,15);assert.ok(!pack.apps.some(x=>x.id===app.id));
+ assert.equal(pack.apps.length,ENABLED);assert.ok(!pack.apps.some(x=>x.id===app.id));
  assert.equal(new RegExp(s.apkFilterRegEx).test('microg-7.2.1.apk'),true);
  for(const name of ['microg-6.1.4-hw.apk','microg-6.1.4-arm64.apk','other.apk','microg-6.1.4.apk.sig','microg-6.1.4-no-icon.apk','microg-7.2.1-noicon.apk','microg-7.2.1-icon-arm64-v8a.apk'])assert.equal(new RegExp(s.apkFilterRegEx).test(name),false);
  assert.equal(new RegExp(s.versionExtractionRegEx).exec('v6.1.4')[1],'6.1.4');
@@ -97,7 +98,7 @@ check('upstream downloads bind exact version, tag, universal asset and channel',
 check('unified selection permits upstream without changing fourteen build targets or IDs',()=>{
  const d=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium-microg.json')));
  const mixed=[...pack.apps,c.microgConfig(d,'prerelease')];
- assert.equal(new Set(mixed.map(a=>a.id)).size,16);
+ assert.equal(new Set(mixed.map(a=>a.id)).size,ENABLED+1);
  assert.equal(c.selectApps(mixed,['app.revanced.android.gms']).length,1);
  const tc=targets.find(t=>t.id==='truecaller-combo');assert.equal(tc.label,'Truecaller');assert.equal(tc.tag_prefix,'tc-combo');
  for(const marker of ['Filter source type','Filter publication date','Sort apps'])assert.ok(source.includes(marker));

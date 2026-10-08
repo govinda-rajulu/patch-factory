@@ -20,6 +20,7 @@ as code or APKs to copy.
 |---|---|---|
 | AdGuard | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | AdGuard | hoo-dles | https://github.com/hoo-dles/morphe-patches |
+| Amazon Music | rookieenough | https://github.com/RookieEnough/De-Vanced |
 | ES File Explorer | ftl | https://github.com/BlazeFTL/FTL-Patches |
 | Facebook | derevanced | https://github.com/RookieEnough/De-Vanced |
 | Google Photos | rushiranpise | https://github.com/rushiranpise/morphe-patches |
@@ -27,6 +28,7 @@ as code or APKs to copy.
 | Instagram | brosssh | https://github.com/brosssh/morphe-patches |
 | JioHotstar | chiggi | https://github.com/durgesh0505/chiggi_morphe_patches |
 | Key Mapper | lain | https://github.com/kiraio-moe/Lain-Patches |
+| LinkedIn | heyymichii | https://github.com/heyymichii/michii-patches |
 | Microsoft Edge | quantavil | https://github.com/quantavil/edge-morphe-patches |
 | MX Player Pro | ftl | https://github.com/BlazeFTL/FTL-Patches |
 | MX Player Pro | paresh | https://gitlab.com/Paresh-Maheshwari/paresh-patches |

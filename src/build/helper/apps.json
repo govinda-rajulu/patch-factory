@@ -73,6 +73,17 @@
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=telegram",
    "org": "telegram-fz-llc",
    "name": "telegram"
+  },
+  "com.amazon.mp3": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=amazon-music-discover-songs",
+   "example_url": "https://www.apkmirror.com/apk/amazon-mobile-llc/amazon-music-discover-songs/amazon-music-songs-podcasts-26-36-1-release/",
+   "org": "amazon-mobile-llc",
+   "name": "amazon-music-discover-songs"
+  },
+  "com.linkedin.android": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=linkedin-linkedin",
+   "org": "linkedin",
+   "name": "linkedin-linkedin"
   }
  },
  "apkpure": {
@@ -106,6 +117,12 @@
   },
   "io.github.sds100.keymapper": {
    "download_url": "https://apkpure.com/x/io.github.sds100.keymapper/download"
+  },
+  "com.amazon.mp3": {
+   "download_url": "https://apkpure.com/x/com.amazon.mp3/download"
+  },
+  "com.linkedin.android": {
+   "download_url": "https://apkpure.com/x/com.linkedin.android/download"
   }
  }
 }

@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
+from target_counts import ENABLED, TOTAL, ROWS, CANDIDATES, GITHUB_ROWS  # W4: counts follow src/targets.json
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("provider_watch", ROOT / "src/etc/provider_watch.py")
@@ -46,15 +47,15 @@ class ProviderWatch(unittest.TestCase):
         self.assertEqual({p.name: p.read_bytes() for p in self.base.iterdir()}, self.before)
 
     def test_inventory_includes_candidates_and_gitlab_extras(self):
-        self.assertEqual(len(self.rows), 20)
-        self.assertEqual(sum(r["host"] == "github" for r in self.rows), 18)
+        self.assertEqual(len(self.rows), ROWS)
+        self.assertEqual(sum(r["host"] == "github" for r in self.rows), GITHUB_ROWS)
         self.assertEqual([(r["target"], r["role"]) for r in self.rows if r["host"] == "gitlab"],
                          [("truecaller-combo", "extra"), ("mxplayer", "extra")])
 
     def test_good_deltas_and_coverage(self):
         result = self.collect()
         self.assertEqual(result["status"], "CHANGED")
-        self.assertEqual(result["coverage"], dict(expected=20, attempted=20, succeeded=20, failed=0, pending=0))
+        self.assertEqual(result["coverage"], dict(expected=ROWS, attempted=ROWS, succeeded=ROWS, failed=0, pending=0))
         for row in result["sources"]:
             self.assertEqual(row["delta"], dict(state="LEGACY_NAMES", added=["New"], removed=["Old"]))
         self.unchanged_baselines()
@@ -66,7 +67,7 @@ class ProviderWatch(unittest.TestCase):
             return self.observe(row)
         result = self.collect(observe)
         self.assertEqual(result["status"], "PARTIAL")
-        self.assertEqual(result["coverage"]["succeeded"], 19)
+        self.assertEqual(result["coverage"]["succeeded"], ROWS - 1)
         row = result["sources"][0]
         self.assertEqual(row["status"], "FAILED")
         self.assertIsNone(row["delta"])

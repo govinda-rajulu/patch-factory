@@ -13,6 +13,7 @@ import tempfile
 import unittest
 import zipfile
 from unittest.mock import patch
+from target_counts import ENABLED  # W4: counts follow src/targets.json
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -181,7 +182,7 @@ class Repair(unittest.TestCase):
     def test_batch_all_enabled_has_exact_unique_coverage(self):
         targets = json.loads((self.r/'src/targets.json').read_text())
         ids = [t['id'] for t in targets if t['enabled']]
-        self.assertEqual(len(ids), 15)
+        self.assertEqual(len(ids), ENABLED)
         result, text = self.batch_probe(','.join(ids))
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
         lines = text.splitlines()

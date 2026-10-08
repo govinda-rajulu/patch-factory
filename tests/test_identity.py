@@ -13,6 +13,7 @@ import tempfile
 import unittest
 import zipfile
 from unittest.mock import patch
+from target_counts import ENABLED  # W4: counts follow src/targets.json
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src/build'))
@@ -241,7 +242,7 @@ class Identity(unittest.TestCase):
         targets = json.loads((self.r/'src/targets.json').read_text())
         original = {t['id']: input_recipe.create(self.r, t['id'], t['candidates'][0]['name'])
                     for t in targets if t['enabled']}
-        self.assertEqual(len(original), 15)
+        self.assertEqual(len(original), ENABLED)
         path = self.r/'src/build/sdk_metadata.py'
         data = path.read_bytes()
         path.write_bytes(data.replace(b'{0,8}', b'{0,7}'))

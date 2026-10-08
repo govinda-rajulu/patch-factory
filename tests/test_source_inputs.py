@@ -8,6 +8,7 @@ import sys
 import unittest
 import zipfile
 from unittest.mock import patch
+from target_counts import ENABLED  # W4: counts follow src/targets.json
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src/build'))
 import resolved_contracts as fixtures
@@ -157,7 +158,7 @@ class SourceContracts(unittest.TestCase):
     def test_download_adapter_preserves_apkpure_apkmirror_and_any_version(self):
         (self.r/'src/build/utils.sh').write_text('get_apk(){ printf "mirror|%s|%s|%s|%s|%s|%s\\n" "$1" "$2" "$3" "$version" "$lock_version" "$near_version"; }\nget_apkpure(){ printf "pure|%s|%s|%s|%s|%s\\n" "$1" "$2" "$3" "$version" "$lock_version"; }\n')
         targets=json.loads((self.r/'src/targets.json').read_text())
-        self.assertEqual(len(targets),15)
+        self.assertEqual(len(targets),ENABLED)
         for target in targets:
             result=subprocess.run(['bash','src/build/source_download.sh',target['id'],'4.2.1'],cwd=self.r,env=source.clean_env(self.env),capture_output=True,text=True)
             self.assertEqual(result.returncode,0,result.stderr)
