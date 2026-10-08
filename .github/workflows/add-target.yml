@@ -1,145 +1,137 @@
 name: 5. Add target
+# 8 Oct 2026 (packet W2): ONE form for every app and patch change, so a change is two steps:
+# 1. run this workflow, 2. merge the pull request it opens once "3. Validate" and
+# "Onboarding review" are green. It runs src/etc/app.py (the same tool works locally),
+# which writes targets.json, the patch folder, options, apps.json, the onboarding record and
+# every generated file, and runs the repo checks. Inputs reach the tool only as environment
+# variables. It never pushes to main, merges, builds or publishes.
+# How-to and the patch rule: docs/APPS.md.
 permissions:
-  contents: write
+  contents: read
 on:
   workflow_dispatch:
     inputs:
+      action:
+        description: 'What to do'
+        required: true
+        default: 'add'
+        type: choice
+        options:
+          - 'add'
+          - 'patch'
+          - 'disable'
+          - 'enable'
+          - 'remove'
       id:
-        description: 'Target id, lowercase, e.g. telegram'
+        description: 'App id, lowercase, e.g. amazonmusic'
         required: true
         type: string
       package:
-        description: 'Package name, e.g. org.telegram.messenger'
-        required: true
+        description: 'add: Android package, e.g. com.amazon.mp3'
+        required: false
+        default: ''
         type: string
-      tag_prefix:
-        description: 'Release tag prefix, no provider name in it'
-        required: true
+      label:
+        description: 'add: name people see, e.g. Amazon Music'
+        required: false
+        default: ''
         type: string
-      apkmirror_list_url:
-        description: 'APKMirror uploads list url for this app'
-        required: true
+      provider:
+        description: 'add: patch provider on GitHub, OWNER/REPO'
+        required: false
+        default: ''
         type: string
-      provider_name:
-        description: 'Provider short name, e.g. hoo-dles'
-        required: true
+      patches:
+        description: 'add or patch: patch names separated by ; (prefix - to drop or exclude one)'
+        required: false
+        default: ''
         type: string
-      provider_host:
-        description: 'Provider host'
-        required: true
-        default: 'github'
+      source:
+        description: 'add: where the original APK comes from'
+        required: false
+        default: 'apkmirror-bundle'
         type: choice
         options:
-          - 'github'
-          - 'gitlab'
-      provider_ident:
-        description: 'OWNER/REPO for github, numeric project id for gitlab'
-        required: true
+          - 'apkmirror-bundle'
+          - 'apkmirror-apk'
+          - 'apkpure'
+      store_url:
+        description: 'add: APKMirror uploads list URL or APKPure download URL'
+        required: false
+        default: ''
         type: string
-      apk_type:
-        description: 'APKMirror download type'
-        required: true
-        default: 'apk'
-        type: choice
-        options:
-          - 'apk'
-          - 'bundle'
+      needs_microg:
+        description: 'add: the patched app signs in through MicroG RE (GmsCore support)'
+        required: false
+        default: false
+        type: boolean
+      approve_confirm:
+        description: 'I approve the CONFIRM-listed patch names in this request'
+        required: false
+        default: false
+        type: boolean
+concurrency:
+  group: app-change
+  cancel-in-progress: false
 jobs:
-  add:
-    name: Add ${{ inputs.id }}
+  change:
+    name: ${{ inputs.action }} ${{ inputs.id }}
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Guards
+      - name: Make the change (src/etc/app.py)
         env:
-          ID: ${{ inputs.id }}
-          PKG: ${{ inputs.package }}
-          TP: ${{ inputs.tag_prefix }}
-          PN: ${{ inputs.provider_name }}
+          PF_ACTION: ${{ inputs.action }}
+          PF_ID: ${{ inputs.id }}
+          PF_PACKAGE: ${{ inputs.package }}
+          PF_LABEL: ${{ inputs.label }}
+          PF_PROVIDER: ${{ inputs.provider }}
+          PF_PATCHES: ${{ inputs.patches }}
+          PF_SOURCE: ${{ inputs.source }}
+          PF_STORE_URL: ${{ inputs.store_url }}
+          PF_NEEDS_MICROG: ${{ inputs.needs_microg }}
+          PF_APPROVE_CONFIRM: ${{ inputs.approve_confirm }}
+          PF_SUMMARY: pr-body.md
         run: |
-          FAIL=0
-          echo "$ID" | grep -Eq '^[a-z0-9-]+$' || { echo "::error::id must be lowercase letters, digits and hyphens"; FAIL=1; }
-          echo "$TP" | grep -Eq '^[a-z0-9-]+$' || { echo "::error::tag_prefix must be lowercase letters, digits and hyphens"; FAIL=1; }
-          jq -e --arg i "$ID" 'any(.[]; .id == $i)' src/targets.json > /dev/null && { echo "::error::target id $ID already exists"; FAIL=1; }
-          jq -e --arg t "$TP" 'any(.[]; (.tag_prefix // .id) == $t)' src/targets.json > /dev/null && { echo "::error::tag_prefix $TP is already used"; FAIL=1; }
-          D="src/patches/$ID-$PN"
-          [ -e "$D" ] && { echo "::error::$D already exists, refusing to clobber"; FAIL=1; }
-          [ -e "src/options/$PN.json" ] && echo "::warning::src/options/$PN.json exists, reusing it"
-          echo "planned dir: $D"
-          exit $FAIL
-      - name: Write files
+          python3 src/etc/app.py from-env
+          cat pr-body.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Open the pull request and start its checks
         env:
-          ID: ${{ inputs.id }}
-          PKG: ${{ inputs.package }}
-          TP: ${{ inputs.tag_prefix }}
-          URL: ${{ inputs.apkmirror_list_url }}
-          PN: ${{ inputs.provider_name }}
-          PH: ${{ inputs.provider_host }}
-          PI: ${{ inputs.provider_ident }}
-          AT: ${{ inputs.apk_type }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PF_ACTION: ${{ inputs.action }}
+          PF_ID: ${{ inputs.id }}
         run: |
-          if [ "$PH" = "gitlab" ]; then
-            echo "::error::GitLab is supported only as an extra bundle, not as a primary candidate. The build resolver and provider watch resolve primaries through GitHub owner/repo, so a GitLab primary would be unbuildable and unwatched. Pick provider_host=github."
+          B="app/$PF_ACTION-$PF_ID-$GITHUB_RUN_ID"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$B"
+          # Workflow files are never staged: this token cannot push them. dropgen keeps the
+          # build input free text, so no app change needs one.
+          if ! git diff --quiet -- .github; then
+            echo "::error::the change touched a workflow file, which this token cannot push; nothing pushed"
+            git diff --stat -- .github
             exit 1
           fi
-          D="src/patches/$ID-$PN"
-          mkdir -p "$D"; : > "$D/include-patches"; : > "$D/exclude-patches"
-          [ -f "src/options/$PN.json" ] || echo '[]' > "src/options/$PN.json"
-          if [ "$PH" = "gitlab" ]; then
-            CAND=$(jq -n --arg n "$PN" --arg p "$PI" --arg d "$ID-$PN" \
-              '{name:$n, host:"gitlab", project_id:($p|tonumber), channel:"prerelease", patch_dir:$d, options:$n}')
-          else
-            CAND=$(jq -n --arg n "$PN" --arg o "${PI%%/*}" --arg r "${PI##*/}" --arg d "$ID-$PN" \
-              '{name:$n, host:"github", owner:$o, repo:$r, channel:"prerelease", patch_dir:$d, options:$n}')
+          git add -A -- src docs README.md CREDITS.md
+          if git diff --cached --quiet; then
+            echo "::warning::nothing changed; no pull request"
+            exit 0
           fi
-          jq --indent 2 --arg i "$ID" --arg p "$PKG" --arg t "$TP" --arg a "$AT" --argjson c "$CAND" \
-            '. + [{id:$i, enabled:false, package:$p, apk_name:$i, apk_type:$a,
-                   max_app_version:null, max_patch_age_days:60, min_sdk_ceiling:29,
-                   pin:null, candidates:[$c], tag_prefix:$t, poll:false}]' \
-            src/targets.json > /tmp/t.json
-          jq -e . /tmp/t.json > /dev/null || { echo "::error::produced invalid targets.json"; exit 1; }
-          N=$(jq length /tmp/t.json); O=$(jq length src/targets.json)
-          [ "$N" -eq "$((O+1))" ] || { echo "::error::expected $((O+1)) targets, got $N"; exit 1; }
-          mv /tmp/t.json src/targets.json
-          jq --indent 1 --arg p "$PKG" --arg u "$URL" '.apkmirror[$p].list_url = $u' \
-            src/build/helper/apps.json > /tmp/a.json
-          jq -e . /tmp/a.json > /dev/null && mv /tmp/a.json src/build/helper/apps.json
-          python3 - <<'PY'
-          import os
-          p='.github/workflows/manual-patch.yml'
-          s=open(p).read()
-          i=os.environ['ID']
-          assert s.count("- '"+i+"'")==0, 'dropdown entry already present'
-          m='  workflow_call:'
-          assert s.count(m)==1, 'workflow_call anchor not unique'
-          L=s.split(chr(10))
-          opts=[k for k,x in enumerate(L) if x.strip().startswith("- '")]
-          assert opts, 'no option lines found'
-          last=opts[-1]
-          pad=L[last][:len(L[last])-len(L[last].lstrip())]
-          L.insert(last+1, pad + "- '" + i + "'")
-          open(p,'w').write(chr(10).join(L))
-          print('inserted dropdown entry after line', last+1)
-          PY
-          echo "--- summary ---"
-          jq -r '.[] | [.id, (.enabled|tostring), (.tag_prefix // .id)] | @tsv' src/targets.json
-          git diff --stat
-      - name: Commit
-        env:
-          ID: ${{ inputs.id }}
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add -A
-          git status --short
-          git commit -m "targets: add $ID, disabled pending a patch list"
-          git push
-          git log --oneline -1
-      - name: Next steps
-        env:
-          ID: ${{ inputs.id }}
-          PKG: ${{ inputs.package }}
-          PI: ${{ inputs.provider_ident }}
-        run: |
-          echo "::notice::$ID added and DISABLED. Run '4. Explore patches' for $PI / $PKG, fill the include list, then set enabled true."
+          git commit -m "apps: $PF_ACTION $PF_ID (5. Add target run $GITHUB_RUN_ID)"
+          git push origin "$B"
+          if gh pr create --repo "$REPO" --base main --head "$B" --title "apps: $PF_ACTION $PF_ID" --body-file pr-body.md > pr-url.txt; then
+            PR="$(gh pr view "$B" --repo "$REPO" --json number --jq .number)"
+            echo "Pull request: $(cat pr-url.txt)" >> "$GITHUB_STEP_SUMMARY"
+            if ! gh workflow run validate.yml --repo "$REPO" --ref "$B"; then echo "::warning::could not start 3. Validate on $B; run it from the Actions tab"; fi
+            if ! gh workflow run onboard-review.yml --repo "$REPO" --ref main -f pr="$PR"; then echo "::warning::could not start Onboarding review for pull request $PR"; fi
+          else
+            echo "::warning::GitHub refused to let Actions open the pull request (Settings, Actions, General: allow GitHub Actions to create pull requests). Open it yourself: https://github.com/$REPO/compare/main...$B"
+            echo "Open the pull request: https://github.com/$REPO/compare/main...$B" >> "$GITHUB_STEP_SUMMARY"
+          fi

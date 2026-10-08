@@ -100,9 +100,11 @@ class Repair(unittest.TestCase):
             preflight.check(self.r)
 
     def test_add_target_rejects_gitlab_primary_before_write(self):
-        source = (self.r / '.github/workflows/add-target.yml').read_text()
+        # 8 Oct 2026 (W2): the form runs src/etc/app.py, so the refusal and the writes live there.
+        source = (self.r / 'src/etc/app.py').read_text()
         self.assertIn('GitLab is supported only as an extra bundle, not as a primary candidate', source)
-        self.assertLess(source.index('GitLab is supported only as an extra bundle'), source.index('mkdir -p "$D"'))
+        self.assertLess(source.index('GitLab is supported only as an extra bundle'), source.index('pdir.mkdir(parents=True)'))
+        self.assertIn('python3 src/etc/app.py from-env', (self.r / '.github/workflows/add-target.yml').read_text())
 
     def test_public_import_generator_roundtrip_and_retired_exports_absent(self):
         path = self.r/'docs/obtainium.json'
