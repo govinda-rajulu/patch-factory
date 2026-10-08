@@ -49,6 +49,23 @@ def tags(run=subprocess.run):
     return out
 
 
+def inventory(run=subprocess.run):
+    """Every release, all pages, or stop: a partial list must never become a delete list."""
+    rows, seen = [], set()
+    for page in range(1, 101):
+        data = json.loads(gh(['api', 'repos/%s/releases?per_page=100&page=%d' % (REPO, page)], run))
+        if not isinstance(data, list):
+            raise SystemExit('STOP: release list is not a list; nothing changed')
+        for row in data:
+            if not isinstance(row, dict) or type(row.get('id')) is not int or row['id'] in seen:
+                raise SystemExit('STOP: invalid or duplicate release in the list; nothing changed')
+            seen.add(row['id'])
+            rows.append(row)
+        if len(data) < 100:
+            return rows
+    raise SystemExit('STOP: more than 10000 releases; nothing changed')
+
+
 def plan(releases, tag_map, targets):
     p = rr.preview(releases, targets, REPO)
     have = {r['tag_name'] for r in releases}
@@ -90,8 +107,7 @@ def main(argv=None, run=subprocess.run):
     ap.add_argument('--receipt', default='cleanup-receipt.json')
     a = ap.parse_args(argv)
     targets = json.loads(pathlib.Path('src/targets.json').read_text(encoding='utf-8'))
-    rr.subprocess.run = run
-    releases = rr.inventory(REPO)
+    releases = inventory(run)
     tag_map = tags(run)
     p = plan(releases, tag_map, targets)
     if a.mode == 'preview':
