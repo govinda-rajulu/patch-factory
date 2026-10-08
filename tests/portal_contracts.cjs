@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,jobRole,jobSummary,reportIdentity,reportBinding,checkCompleteness};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,ago,isOld,headline,reportIdentity,reportBinding,checkCompleteness};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
 check('MicroG architecture selections stay single-file and refuse variant fallbacks',()=>{
@@ -106,39 +106,32 @@ check('release summaries keep same-version rebuild and unknown history distinct'
  assert.equal(c.noteText('Useful notes\n\n[pf-release-v1]: # "QUFBQQ=="'),'Useful notes');
 });
 check('reader flows retain disclosure, reset and explicit unknown evidence',()=>{
- for(const id of ['importPanel','collapseImport','resetChoices'])assert.ok(html.includes('id="'+id+'"'));
- for(const marker of ['Show job results and failed steps','Read latest saved report comments','Job/run identity changed','does not build or install apps'])assert.ok(source.includes(marker)); assert.ok(!source.includes('Read release notes here'));
- assert.ok(source.includes('/attempts/'));
- assert.ok(source.includes("j.run_attempt===run.run_attempt"));
- assert.ok(source.includes("j.head_sha===run.head_sha"));
+ for(const id of ['importPanel','collapseImport','resetChoices','microgIcon','microgArch','microgChannel'])assert.ok(html.includes('id="'+id+'"'));
+ for(const marker of ['Read the saved report','Read latest saved report comments','Partly unknown: ','may have stopped'])assert.ok(source.includes(marker),marker);
+ assert.ok(source.includes("u.pathname==='/'+REPO+'/status/status.json'"));
  assert.ok(!source.includes("link('Release details',top.rel.html_url)"));
  assert.ok(html.includes('About downloads, updates & status'));
 });
-check('job roles distinguish dependencies from app builds',()=>{
- assert.equal(c.jobRole('Resolve shadow dependencies (youtube)'),'Dependencies only');
- assert.equal(c.jobRole('build (reddit) / Patch reddit'),'App build');
- assert.equal(c.jobRole('Patch youtube'),'App build');
- assert.equal(c.jobRole('Plan'),'Build selection');
- for(const name of [null,'Patch','Patch youtube malicious','Resolve shadow dependencies ()'])assert.equal(c.jobRole(name),'Other / unknown');
+check('status rows: failures older than 14 days are history, lists are capped',()=>{
+ const old={result:'failure',words:'Failed',when:new Date(Date.now()-40*86400000).toISOString()};
+ const fresh={result:'failure',words:'Failed',when:new Date(Date.now()-2*86400000).toISOString()};
+ assert.equal(c.isOld(old),true);assert.equal(c.isOld(fresh),false);assert.equal(c.isOld({result:'success',when:old.when}),false);
+ assert.match(c.ago(new Date(Date.now()-3*86400000).toISOString()),/3 days ago/);
+ assert.ok(source.includes("capped(box,runs.slice(0,15)"));
 });
-check('mixed jobs do not turn cancelled or incomplete jobs into successes',()=>{
- const job=(name,status,conclusion)=>({name,status,conclusion});
- const d=c.jobSummary([job('Patch youtube','completed','success'),job('Patch reddit','completed','failure'),job('Patch edge','completed','cancelled'),job('Patch instagram','in_progress',null),job('Resolve shadow dependencies (youtube)','completed','success'),job('Plan','completed','success')]);
- assert.equal(d.succeeded,1);assert.equal(d.failed,1);assert.equal(d.other,2);assert.equal(d.dependencies,1);
- assert.match(d.text,/Complete job inventory: 6/);
- assert.equal(c.jobSummary([]).succeeded,0);assert.throws(()=>c.jobSummary(null));
-});
-check('MicroG direct control and toolbar share explicit page-only state',()=>{
- assert.ok(source.includes("channelSelect.id='microgCardChannel'"));
- assert.ok(source.includes("channelSelect.value=microgChannel"));
+check('MicroG card lists every upstream file by icon and CPU, and the toolbar keeps one choice',()=>{
+ assert.equal(c.microgName('7.2.1','icon','universal'),'microg-7.2.1.apk');
+ assert.equal(c.microgName('7.2.1','noicon','universal'),'microg-7.2.1-noicon.apk');
+ assert.equal(c.microgName('7.2.2-dev.1','noicon','arm64-v8a'),'microg-7.2.2-dev.1-noicon-arm64-v8a.apk');
+ assert.equal(c.microgName('7.2.1','icon','armeabi-v7a'),'microg-7.2.1-icon-armeabi-v7a.apk');
+ assert.throws(()=>c.microgName('7.2.1','big','universal'));
  assert.ok(source.includes("async function changeMicrogChannel(value)"));
  assert.ok(source.includes("microgChannel=value;$('microgChannel').value=value"));
  assert.ok(source.includes('Open Obtainium import settings'));
- assert.ok(!source.includes("'Change MicroG channel'"));
  assert.ok(source.includes('tracked apps are unchanged'));
  assert.ok(source.includes('can show the same version when stable is newest'));
+ assert.ok(source.includes('SHA-256 checksums'));
 });
-
 check('provider report identity binds exact run and attempt only',()=>{
  const issue={title:'provider watch: CHANGED run 36173375425/1',body:'# Provider watch: CHANGED\nhttps://github.com/govinda-rajulu/patch-factory/actions/runs/36173375425/attempts/1\nmore'};
  const id=c.reportIdentity('agent-watch.yml',issue);assert.deepEqual(JSON.parse(JSON.stringify(id)),{run_id:'36173375425',attempt:'1'});

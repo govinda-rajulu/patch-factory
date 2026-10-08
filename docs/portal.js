@@ -12,7 +12,7 @@ const $=id=>document.getElementById(id);
 let tab='apps',generation=0,importGeneration=0,pollTimer=null;
 let targets=null,importBlob=null,customApps=[];
 let appQuery='',appCategory='all',appType='all',appAge='all',appSort='name';
-let microgChannel='stable',microgArch='universal';
+let microgChannel='stable',microgArch='universal',microgIcon='icon';
 // Local brand tiles only (docs/assets/logos, provenance in docs/review/ICON-PROVENANCE.md); others keep the monogram.
 const LOGOS=new Set(['adguard','edge','facebook','hotstar','instagram','keymapper','mxplayer','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
 const GROUPS=[
@@ -29,9 +29,11 @@ function need(ok,message){if(!ok)throw new Error(message);}
 function el(tag,text,className){const n=document.createElement(tag);if(text!==undefined)n.textContent=String(text);if(className)n.className=className;return n;}
 function plain(v,max=500){return typeof v==='string'&&v.length>0&&v.length<=max&&!/[\u0000-\u001f\u007f]/.test(v);}
 function date(v){return typeof v==='string'&&Number.isFinite(Date.parse(v))?new Date(v):null;}
+function ago(v){const t=Date.parse(v);if(!Number.isFinite(t))return 'time unknown';const m=Math.round((Date.now()-t)/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<48)return h+' h ago';return Math.round(h/24)+' days ago';}
 function when(v){const d=date(v);return d?d.toLocaleString(): 'Date unknown';}
 function safeLink(url,kind='repo'){
  try{const u=new URL(url);if(u.protocol!=='https:'||u.hostname!=='github.com'||u.port||u.username||u.password)return null;
+ if(kind==='upstream')return u.href===MICROG_WEB+'/releases'?u.href:null;
  const prefix='/'+REPO+'/';if(!u.pathname.startsWith(prefix))return null;
  if(kind==='download'&&!u.pathname.startsWith(prefix+'releases/download/'))return null;
  if(kind==='run'&&!new RegExp('^/'+REPO+'/actions/runs/[0-9]+(?:/job/[0-9]+)?$').test(u.pathname))return null;
@@ -42,6 +44,7 @@ async function read(url,ttl=30000){
  const u=new URL(url);need(!u.username&&!u.password&&!u.port&&(
  u.origin==='https://api.github.com'&&u.pathname.startsWith('/repos/'+REPO+'/')||
  u.origin==='https://raw.githubusercontent.com'&&u.pathname.startsWith('/'+REPO+'/main/')||
+ u.origin==='https://raw.githubusercontent.com'&&u.pathname==='/'+REPO+'/status/status.json'||
  u.origin==='https://api.github.com'&&u.pathname==='/repos/MorpheApp/MicroG-RE/releases'),'Unsupported data source');
  const existing=cache.get(url);if(existing&&Date.now()-existing.at<ttl)return existing.data;
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),25000);
@@ -122,86 +125,100 @@ function selectApps(apps,ids){
  const chosen=new Set(ids);
  return apps.filter(app=>chosen.has(app.id));
 }
-function microgConfig(data,channel,arch='auto'){
+// MicroG RE ships six files per release (W4, owner ask 8 Oct 2026): with or without a launcher
+// icon, for ARM64, ARMv7 or every CPU. Names: microg-V.apk, microg-V-noicon.apk,
+// microg-V-icon-ARCH.apk, microg-V-noicon-ARCH.apk (before 7.2: microg-V-ARCH.apk).
+const MICROG_ICONS=[['noicon','No icon','hidden from the launcher; open it from Android Settings → Apps'],['icon','With icon','shows in the app drawer']];
+const MICROG_ARCHES=[['arm64-v8a','ARM64','most phones'],['armeabi-v7a','ARMv7','older 32-bit phones'],['universal','Universal','any phone, biggest file']];
+function microgName(version,icon,arch){
+ need(['icon','noicon'].includes(icon),'Unknown MicroG icon choice');
+ need(['universal','arm64-v8a','armeabi-v7a'].includes(arch),'Unknown MicroG architecture');
+ return 'microg-'+version+(arch==='universal'?(icon==='noicon'?'-noicon':''):'-'+icon+'-'+arch)+'.apk';
+}
+function microgConfig(data,channel,arch='auto',icon='icon'){
  need(['stable','prerelease'].includes(channel),'Unknown MicroG channel');
  need(['auto','universal','arm64-v8a','armeabi-v7a'].includes(arch),'Unknown MicroG architecture');
- const app=JSON.parse(JSON.stringify(validateMicroG(data)[0]));
+ need(['icon','noicon'].includes(icon),'Unknown MicroG icon choice');
+ const app=JSON.parse(JSON.stringify(validateMicroG(data)[0])),s=JSON.parse(app.additionalSettings);
+ const version=channel==='stable'?'[0-9]+([.][0-9]+)*':'[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?';
  if(channel==='prerelease'){
-  const s=JSON.parse(app.additionalSettings);
   s.includePrereleases=true;
   s.filterReleaseTitlesByRegEx='^v?[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?$';
-  s.apkFilterRegEx='^microg-[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?(?:-arm64-v8a|-armeabi-v7a)?[.]apk$';
   s.versionExtractionRegEx='^v?([0-9]+(?:[.][0-9]+)*(?:-dev[.][0-9]+)?)$';
-  app.additionalSettings=JSON.stringify(s);
  }
- if(arch!=='auto'){
-  const s=JSON.parse(app.additionalSettings),version=channel==='stable'?'[0-9]+([.][0-9]+)*':'[0-9]+([.][0-9]+)*(-dev[.][0-9]+)?';
-  s.apkFilterRegEx='^microg-'+version+(arch==='universal'?'[.]apk$':'-'+arch+'[.]apk$');
-  s.autoApkFilterByArch=false;app.additionalSettings=JSON.stringify(s);
- }else{
-  const s=JSON.parse(app.additionalSettings);s.autoApkFilterByArch=true;app.additionalSettings=JSON.stringify(s);
- }
+ const cpu=arch==='auto'?'(?:arm64-v8a|armeabi-v7a)':arch;
+ s.apkFilterRegEx='^microg-'+version+(arch==='universal'?(icon==='noicon'?'-noicon':''):(icon==='noicon'?'-noicon-':'(?:-icon)?-')+cpu)+'[.]apk$';
+ s.autoApkFilterByArch=arch==='auto';
+ app.additionalSettings=JSON.stringify(s);
  return app;
 }
-function microgRelease(rows,channel,arch='auto'){
+function microgLatest(rows,channel){
  need(['stable','prerelease'].includes(channel),'Unknown upstream channel');
- need(['auto','universal','arm64-v8a','armeabi-v7a'].includes(arch),'Unknown architecture');
  need(Array.isArray(rows)&&rows.length<=100,'Invalid upstream release inventory');
- const candidates=rows.filter(r=>r&&!r.draft&&(channel==='prerelease'||r.prerelease===false));
+ const candidates=rows.filter(r=>r&&!r.draft&&(channel==='prerelease'?r.prerelease===true:r.prerelease===false));
  candidates.sort((a,b)=>(Date.parse(b.published_at)||0)-(Date.parse(a.published_at)||0));
- need(candidates.length>0,'No eligible upstream release in this 100-release window');
+ need(candidates.length>0,'No '+(channel==='stable'?'stable':'pre-release')+' MicroG RE release in the newest 100');
  const r=candidates[0],tag=r.tag_name;
- const pattern=channel==='stable'?/^v?[0-9]+(?:[.][0-9]+)*$/:/^v?[0-9]+(?:[.][0-9]+)*(?:-dev[.][0-9]+)?$/;
+ const pattern=channel==='stable'?/^v?[0-9]+(?:[.][0-9]+)*$/:/^v?[0-9]+(?:[.][0-9]+)*-dev[.][0-9]+$/;
  need(typeof tag==='string'&&pattern.test(tag)&&date(r.published_at),'Unsupported upstream release identity; inspect upstream instead');
- const version=tag.replace(/^v/,''),name='microg-'+version+(arch==='auto'||arch==='universal'?'':'-'+arch)+'.apk';
  need(r.html_url===MICROG_WEB+'/releases/tag/'+encodeURIComponent(tag),'Upstream release URL mismatch');
- const assets=Array.isArray(r.assets)?r.assets.filter(a=>a&&a.name===name):[];
- need(assets.length===1,(arch==='auto'||arch==='universal'?'Standard universal upstream APK':'Requested '+arch+' upstream APK')+' missing or ambiguous; no variant fallback');
+ return {rel:r,version:tag.replace(/^v/,'')};
+}
+function microgRelease(rows,channel,arch='universal',icon='icon'){
+ const {rel,version}=microgLatest(rows,channel),name=microgName(version,icon,arch==='auto'?'universal':arch);
+ const assets=Array.isArray(rel.assets)?rel.assets.filter(a=>a&&a.name===name):[];
+ need(assets.length===1,name+' missing or ambiguous upstream; no variant fallback');
  const a=assets[0];
- need(a.state==='uploaded'&&Number.isSafeInteger(a.size)&&a.size>1000000&&a.browser_download_url===MICROG_WEB+'/releases/download/'+encodeURIComponent(tag)+'/'+encodeURIComponent(name),'Upstream APK identity mismatch');
- return {rel:r,asset:a,version};
+ need(a.state==='uploaded'&&Number.isSafeInteger(a.size)&&a.size>1000000&&a.browser_download_url===MICROG_WEB+'/releases/download/'+encodeURIComponent(rel.tag_name)+'/'+encodeURIComponent(name),'Upstream APK identity mismatch');
+ return {rel,asset:a,version};
+}
+function mb(bytes){return Math.round(bytes/1048576)+' MB';}
+function microgChannelBlock(rows,channel){
+ const box=el('section',undefined,'microg-channel');
+ let latest;try{latest=microgLatest(rows,channel);}catch(e){box.append(el('h4',channel==='stable'?'Stable':'Pre-release'),el('p',e.message,'meta'));return box;}
+ const head=el('h4',(channel==='stable'?'Stable ':'Pre-release ')+latest.version);head.append(el('span',' · '+ago(latest.rel.published_at),'meta'));box.append(head);
+ const grid=el('div',undefined,'variant-grid'),sums=[];
+ grid.append(el('span',''));for(const [,label,hint] of MICROG_ICONS){const h=el('span',label,'variant-head');h.title=hint;grid.append(h);}
+ for(const [arch,label,hint] of MICROG_ARCHES){
+  const rowHead=el('span',undefined,'variant-row');rowHead.append(el('strong',label),el('small',hint));grid.append(rowHead);
+  for(const [icon] of MICROG_ICONS){
+   try{const {asset}=microgRelease(rows,channel,arch,icon);const a=el('a','Download · '+mb(asset.size),'button');a.href=asset.browser_download_url;a.target='_blank';a.rel='noopener noreferrer';a.title=asset.name;grid.append(a);
+    if(/^sha256:[a-f0-9]{64}$/.test(asset.digest||''))sums.push(asset.name+'  '+asset.digest.slice(7));}
+   catch(e){grid.append(el('span','Not in this release','meta'));}
+  }
+ }
+ box.append(grid);
+ const d=el('details');d.append(el('summary','SHA-256 checksums'),el('pre',sums.join('\n')||'Not published for this release.'));box.append(d);
+ return box;
 }
 async function microgCard(root){
  const article=el('article');article.dataset.target='microg';article.dataset.type='upstream';
- const heading=el('div',undefined,'app-title');heading.append(el('h3','Morphe MicroG RE'),el('span','Upstream','badge'));article.append(heading);
- article.append(el('p','Direct from MorpheApp. Not patched or re-signed here.','meta'));
- const channelLabel=el('label','Download channel: '),channelSelect=el('select');
- channelSelect.id='microgCardChannel';channelSelect.setAttribute('aria-label','MicroG download channel');
- for(const [value,text] of [['stable','Stable only'],['prerelease','Stable + dev prereleases']]){
-  const option=el('option',text);option.value=value;channelSelect.append(option);
- }
- channelSelect.value=microgChannel;channelLabel.append(channelSelect);article.append(channelLabel);
- channelSelect.addEventListener('change',async()=>{
-  await changeMicrogChannel(channelSelect.value);
-  $('microgCardChannel')?.focus({preventScroll:true});
- });
- const channelStatus=el('p','Selected: '+(microgChannel==='stable'?'Stable only':'Stable + dev prereleases')+'. Applies to this page; tracked apps are unchanged.','channel-status');
- channelStatus.setAttribute('role','status');article.append(channelStatus);
+ const heading=el('div',undefined,'app-title');heading.append(el('h3','MicroG RE'),el('span','Upstream','badge'));article.append(heading);
+ article.append(el('p','Needed by YouTube, YouTube Music and Google Photos. Straight from MorpheApp, not rebuilt here.','meta release-facts'));
+ article.append(el('p','No icon or With icon: same app, the icon only changes whether it shows in your app drawer. ARM64 fits most phones.','meta release-facts'));
  try{
-  const row=microgRelease(await read(MICROG_API+'?per_page=100'),microgChannel,microgArch);
-  article.dataset.published=row.rel.published_at;
-  article.append(el('p',row.version),el('p',(row.rel.prerelease?'Prerelease':'Stable')+' · '+Math.round(row.asset.size/1048576)+' MB · '+when(row.rel.published_at),'meta'));
-  const actions=el('div',undefined,'actions');
-  for(const [text,url] of [['Download upstream APK',row.asset.browser_download_url],['Release details',row.rel.html_url]]){
-   const a=el('a',text,'button');a.href=url;a.target='_blank';a.rel='noopener noreferrer';actions.append(a);
-  }
-  article.append(actions);
-  releaseNotes(article,row.rel.body,['Upstream release notes from MorpheApp. This companion is not built by Patch Factory.']);
- }catch(e){article.append(el('p','Upstream unavailable: '+e.message,'notice'));}
- const details=el('details');details.append(el('summary','Channel & installation notes'),
- el('p',"The card and Obtainium toolbar share one channel and architecture choice. Stable + dev prereleases can show the same version when stable is newest. Universal is the default; Auto uses Obtainium's filename-based CPU filter, and exact ARM64/ARMv7 choices never fall back to another CPU file."),
- el('p','Keep existing MicroG data. Installed signer compatibility is not checked here; never uninstall or bypass Android checks to force an update.'));
+  const rows=await read(MICROG_API+'?per_page=100');
+  const stable=microgChannelBlock(rows,'stable');article.append(stable);
+  try{article.dataset.published=microgLatest(rows,'stable').rel.published_at;}catch(e){}
+  let newer=false;try{newer=Date.parse(microgLatest(rows,'prerelease').rel.published_at)>Date.parse(microgLatest(rows,'stable').rel.published_at);}catch(e){}
+  if(newer)article.append(microgChannelBlock(rows,'prerelease'));
+  const notes=microgLatest(rows,newer?'prerelease':'stable');
+  releaseNotes(article,notes.rel.body,['Release notes from MorpheApp.']);
+  const more=el('p',undefined,'meta');more.append(link('All MicroG RE releases',MICROG_WEB+'/releases','upstream'));article.append(more);
+ }catch(e){article.append(el('p','MicroG RE releases unavailable: '+e.message,'notice'));}
+ const details=el('details');details.append(el('summary','Installing and updating'),
+ el('p','Install MicroG RE before the Google apps. Updating keeps its data. Do not uninstall it to switch between icon and no-icon: both are the same app, install the other file over it.'),
+ el('p','Pre-releases are tested less. The page shows one only when it is newer than the stable release; Stable + dev prereleases can show the same version when stable is newest.'));
  article.append(details);root.append(article);
  const channelButton=el('button','Open Obtainium import settings');channelButton.type='button';
- channelButton.addEventListener('click',()=>{$('importPanel').open=true;$('microgChannel').focus();$('importPanel').scrollIntoView({block:'center'});});
+ channelButton.addEventListener('click',()=>{$('importPanel').open=true;$('microgIcon').focus();$('importPanel').scrollIntoView({block:'center'});});
  article.append(channelButton);
 }
 async function changeMicrogChannel(value){
  need(['stable','prerelease'].includes(value),'Unknown MicroG channel');
  microgChannel=value;$('microgChannel').value=value;
  resetImport();$('prepareImport').disabled=false;
- $('importMessage').textContent='MicroG channel changed for this page. Prepare a new import and confirm in Obtainium to update tracking; installed apps are unchanged.';
- if(tab==='apps')await render();
+ $('importMessage').textContent='MicroG choice changed. Prepare the import again; tracked apps are unchanged until you confirm in Obtainium.';
 }
 function clearImportLinks(){
  $('openImport').hidden=true;$('openImport').removeAttribute('href');
@@ -220,7 +237,7 @@ function setImportLinks(apps,pack){
  importBlob=URL.createObjectURL(new Blob([JSON.stringify({apps},null,2)+'\n'],{type:'application/json'}));
  $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected.json':apps.length===1&&apps[0].id==='app.revanced.android.gms'?'obtainium-microg.json':apps.length===1&&apps[0].id==='dev.imranr.obtainium'?'obtainium-self.json':'obtainium.json';$('downloadImport').hidden=false;
  $('importMessage').textContent='Ready: '+apps.length+' configs. Tap Open, then confirm in Obtainium. Unselected apps already tracked in Obtainium are not removed. If the link cannot open, use the JSON fallback.';
- if(apps.some(app=>app.id==='app.revanced.android.gms'))$('importMessage').textContent+=' Includes MicroG directly from upstream ('+(microgChannel==='stable'?'stable only':'stable + dev prereleases')+'). Existing tracked settings may change; installed signer compatibility is unverified.';
+ if(apps.some(app=>app.id==='app.revanced.android.gms'))$('importMessage').textContent+=' Includes MicroG RE ('+(microgIcon==='noicon'?'no icon':'with icon')+', '+({auto:'CPU picked by Obtainium',universal:'universal','arm64-v8a':'ARM64','armeabi-v7a':'ARMv7'})[microgArch]+', '+(microgChannel==='stable'?'stable only':'pre-releases allowed')+'). Existing tracked settings may change; installed signer compatibility is unverified.';
  if(apps.some(app=>app.id==='dev.imranr.obtainium'))$('importMessage').textContent+=' Includes standard Obtainium tracking. F-Droid installs are not replaced or migrated.';
 }
 function updateCustom(){
@@ -251,7 +268,7 @@ async function prepareImport(){
  const wantMicrog=pack==='custom'||$('includeMicrog').checked;
  cache.delete(RAW+'docs/obtainium.json');targets=null;const wantSelf=$('includeObtainium').checked;const [ts,data,companion,selfPack]=await Promise.all([getTargets(),read(RAW+'docs/obtainium.json',0),wantMicrog?read(RAW+'docs/obtainium-microg.json',0):Promise.resolve(null),wantSelf?read(RAW+'docs/obtainium-self.json',0):Promise.resolve(null)]);if(token!==importGeneration)return;
  const apps=validateImport(data,ts);
- const microg=wantMicrog?microgConfig(companion,microgChannel,microgArch):null;const self=wantSelf?validateObtainium(selfPack)[0]:null;
+ const microg=wantMicrog?microgConfig(companion,microgChannel,microgArch,microgIcon):null;const self=wantSelf?validateObtainium(selfPack)[0]:null;
  const extras=[microg,self].filter(Boolean);if(pack==='custom')showCustom([...apps,...extras]);else setImportLinks([...apps,...extras],pack);
  }catch(e){if(token===importGeneration)$('importMessage').textContent='Import unavailable: '+e.message;}finally{if(token===importGeneration)$('prepareImport').disabled=false;}
 }
@@ -389,26 +406,6 @@ async function appsPanel(root){
  await microgCard(root);
  return releaseResult.error?'Partial data: patched release availability unknown.':'Patched inventory checked: '+releaseResult.rows.length+' releases. Upstream channel checked separately.';
 }
-async function buildsPanel(root){
- root.append(el('p','Builds make APKs. Read target results and failed steps here; a successful workflow alone does not prove a published download. Test artifacts may require GitHub sign-in.','notice'));
- const runs=[],failures=[];
- await Promise.all(['ci.yml','batch-patch.yml','manual-patch.yml'].map(async workflow=>{
-  try{
-   const data=await read(API+'actions/workflows/'+workflow+'/runs?per_page=10');need(Array.isArray(data.workflow_runs),'Invalid workflow results');
-   for(const r of data.workflow_runs){need(r&&Number.isSafeInteger(r.id)&&r.path==='.github/workflows/'+workflow&&safeLink(r.html_url,'run'),'Invalid app-build run');}
-   runs.push(...data.workflow_runs);
-  }catch(e){failures.push(workflow+': '+e.message);}
- }));
- runs.sort((a,b)=>(Date.parse(b.created_at)||0)-(Date.parse(a.created_at)||0));
- for(const failure of failures)root.append(el('p',failure,'notice'));
- for(const r of runs){const a=el('article');a.append(el('h3',r.display_title||r.name),el('p',(r.status==='completed'?(r.conclusion||'Unknown result'):r.status)+' · '+when(r.created_at),'meta'),
- el('p','Branch '+r.head_branch+' · commit '+String(r.head_sha).slice(0,8),'meta'));
- addJobs(a,r);
- a.append(link('Exact run / downloadable test artifacts',r.html_url,'run'));root.append(a);}
- if(!runs.length)root.append(el('p',failures.length?'Build inventory unavailable or incomplete, not proof of no builds.':'No visible runs in these workflow windows. Open GitHub for older builds.'));
- return failures.length?'Build inventory incomplete: '+failures.length+' workflow read(s) failed. Available runs remain visible.':'Up to 10 runs per app-build workflow. Unrelated validations cannot crowd this window out.';
-}
-const WATCH=[['agent-watch.yml','Provider Watch','provider watch:'],['community-watch.yml','Community Watch','community: index changed for apps you build'],['watch.yml','Nightly Watch','watch: repo and provider status']];
 function lazySection(parent,label,loader){
  const section=el('details',undefined,'inline-report'),summary=el('summary',label),content=el('div');
  section.append(summary,content);parent.append(section);
@@ -420,44 +417,6 @@ function lazySection(parent,label,loader){
   finally{busy=false;}
  }
  section.addEventListener('toggle',()=>{if(section.open&&!loaded)load();});
-}
-function addJobs(parent,run){
- lazySection(parent,'Show job results and failed steps',async root=>{
-  need(Number.isSafeInteger(run.id)&&Number.isSafeInteger(run.run_attempt)&&run.run_attempt>0,'Invalid run identity');
-  const jobs=await pages('actions/runs/'+run.id+'/attempts/'+run.run_attempt+'/jobs','jobs',10);
-  need(jobs.every(j=>Number.isSafeInteger(j.id)&&j.id>0&&j.run_id===run.id&&j.run_attempt===run.run_attempt&&j.head_sha===run.head_sha&&j.html_url===WEB+'/actions/runs/'+run.id+'/job/'+j.id),'Job/run identity changed; refresh the page');
-  if(!jobs.length){root.append(el('p','No jobs visible yet. This is not a passed build.'));return;}
-  const summary=jobSummary(jobs);
-  root.append(el('p',summary.text,'job-summary'));
-  if(run.conclusion==='failure'&&summary.succeeded>0)root.append(el('p','Mixed result: the red workflow does not mean every app failed. Successful releases may exist; baseline qualification currently requires the whole source run to succeed.','notice'));
-  const wrap=el('div',undefined,'table-scroll'),table=el('table'),header=el('tr');
-  for(const title of ['Job / target','Role','Result','Failed or incomplete steps'])header.append(el('th',title));
-  table.append(header);
-  for(const job of jobs){
-   const row=el('tr'),steps=Array.isArray(job.steps)?job.steps:[];
-   const title=el('td');title.append(link(job.name||'Unnamed job',job.html_url,'run'));
-   row.append(title,el('td',jobRole(job.name)),el('td',job.conclusion||job.status||'Unknown'));
-   const bad=steps.filter(s=>s.status!=='completed'||!['success','skipped'].includes(s.conclusion));
-   row.append(el('td',bad.length?bad.map(s=>s.name+': '+(s.conclusion||s.status||'Unknown')).join('; '):steps.length?'No failed steps reported; skipped steps may exist.':'Step detail unavailable.'));
-   table.append(row);
-  }
-  wrap.append(table);root.append(wrap,el('p','Exact run attempt '+run.run_attempt+'. Dependency checks are not APK builds. “Patch apk” includes source download: open that job for the actual error. Job success is not publication or Android-installation proof.','meta'));
- });
-}
-function jobRole(name){
- if(typeof name!=='string')return 'Other / unknown';
- if(/^Resolve shadow dependencies \([a-z0-9-]+\)$/.test(name))return 'Dependencies only';
- if(/^(?:.* \/ )?Patch [a-z0-9-]+$/.test(name))return 'App build';
- if(name==='Plan')return 'Build selection';
- return 'Other / unknown';
-}
-function jobSummary(jobs){
- need(Array.isArray(jobs),'Invalid job inventory');
- const builds=jobs.filter(j=>jobRole(j.name)==='App build');
- const succeeded=builds.filter(j=>j.status==='completed'&&j.conclusion==='success').length;
- const failed=builds.filter(j=>j.status==='completed'&&['failure','timed_out','startup_failure','action_required'].includes(j.conclusion)).length;
- const other=builds.length-succeeded-failed,dependencies=jobs.filter(j=>jobRole(j.name)==='Dependencies only').length;
- return {succeeded,failed,other,dependencies,text:'App-build jobs: '+builds.length+' · succeeded '+succeeded+' · failed '+failed+' · other/pending '+other+'. Dependency-only jobs: '+dependencies+'. Complete job inventory: '+jobs.length+'.'};
 }
 function addComments(parent,report){
  if(!Number.isSafeInteger(report.number)||!Number.isSafeInteger(report.comments)||report.comments<1)return;
@@ -480,33 +439,103 @@ function addComments(parent,report){
   for(const c of newest){const item=el('section',undefined,'saved-report');item.append(el('h4','Report saved '+when(c.created_at)),markdown(c.body,{chars:49152,lines:2000}));root.append(item);}
  });
 }
+// Builds and Watch read one file, status.json, written by "Status page data" after every run
+// (W4, 8 Oct 2026): short rows, grouped, newest first, capped lists, and the data's own age.
+const STATUS=RAW.replace('/main/','/status/')+'status.json';
+const BAD_RUN=new Set(['failure','timed_out','startup_failure','action_required','cancelled']);
+const STALE_DAYS=14,STALE_DATA_HOURS=26;
+const BUILD_FLOWS=['1. Manual Patch','2. Check new patch','9. Batch Patch'];
+const WATCH_FLOWS=['6. Provider watch','7. Nightly watch','8. Community watch','Tooling watch'];
+const WATCH=[['agent-watch.yml','6. Provider watch','provider watch:'],['community-watch.yml','8. Community watch','community: index changed for apps you build'],['watch.yml','7. Nightly watch','watch: repo and provider status']];
+function daysOld(v){const t=Date.parse(v);return Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/86400000)):null;}
+function isOld(row){const d=daysOld(row&&row.when);return !!row&&BAD_RUN.has(row.result)&&d!==null&&d>STALE_DAYS;}
+function pill(row){
+ const code=row&&row.result,old=isOld(row);
+ const n=el('span',row?(old?'Failed '+daysOld(row.when)+' days ago (old)':row.words||'Unknown'):'No run yet','pill '+(old?'old':BAD_RUN.has(code)?'bad':code==='success'?'ok':'wait'));
+ return n;
+}
+function runLink(text,url){return safeLink(url)?link(text,url):el('span','','meta');}
+async function readStatus(){
+ const d=await read(STATUS,30000);
+ need(d&&d.schema===1&&Array.isArray(d.apps)&&Array.isArray(d.workflows)&&date(d.generated_at),'Status data is missing or in an unknown format');
+ return d;
+}
+function freshness(root,d){
+ const hours=(Date.now()-Date.parse(d.generated_at))/3600000;
+ const p=el('p',hours>STALE_DATA_HOURS?'Status data is '+ago(d.generated_at).replace(' ago','')+' old: "Status page data" may have stopped. Open Actions to check.':'Status data from '+ago(d.generated_at)+'.',hours>STALE_DATA_HOURS?'notice':'meta fresh');
+ root.append(p);
+ if(Array.isArray(d.problems)&&d.problems.length)root.append(el('p','Partly unknown: '+d.problems.length+' GitHub read(s) failed when the data was written. Unknown is not fine.','notice'));
+}
+function headline(d){
+ const apps=d.apps.filter(a=>a.last_build&&BAD_RUN.has(a.last_build.result)&&!isOld(a.last_build)).map(a=>a.label);
+ const flows=d.workflows.filter(w=>w.last&&BAD_RUN.has(w.last.result)&&!isOld(w.last)).map(w=>w.name);
+ if(!apps.length&&!flows.length)return el('p','Nothing failed in the last '+STALE_DAYS+' days.','headline ok');
+ return el('p','Needs a look: '+[...apps,...flows].join(', ')+'.','headline bad');
+}
+function whyLines(row){
+ const out=[];if(!row||!BAD_RUN.has(row.result)||isOld(row))return out;
+ if(row.step_plain)out.push('Stopped at: '+row.step_plain+'.');
+ for(const w of (row.why||[]).slice(0,2))out.push(w);
+ for(const j of (row.jobs||[]).slice(0,2)){if(j.step_plain)out.push(j.name+': stopped at '+j.step_plain+'.');for(const w of (j.why||[]).slice(0,1))out.push(w);}
+ return out;
+}
+function statusRow(title,sub,row,url){
+ const r=el('div',undefined,'status-row');
+ const name=el('div',undefined,'status-name');name.append(el('strong',title));if(sub)name.append(el('small',sub));
+ const state=el('div',undefined,'status-state');state.append(pill(row));if(row&&!isOld(row))state.append(el('small',ago(row.when)));
+ r.append(name,state,runLink('Open',url||(row&&row.url)));
+ for(const w of whyLines(row))r.append(el('div',w,'why'));
+ return r;
+}
+function capped(parent,rows,make,first=5,label='more'){
+ rows.slice(0,first).forEach(x=>parent.append(make(x)));
+ if(rows.length>first){const d=el('details',undefined,'more');d.append(el('summary','Show '+(rows.length-first)+' '+label));rows.slice(first).forEach(x=>d.append(make(x)));parent.append(d);}
+}
+async function buildsPanel(root){
+ const d=await readStatus();freshness(root,d);root.append(headline(d));
+ const groups=new Map();
+ for(const a of d.apps){const g=appGroup(a.id);if(!groups.has(g[0]))groups.set(g[0],{label:g[1],rows:[]});groups.get(g[0]).rows.push(a);}
+ for(const [id] of [...GROUPS,['other']]){
+  const g=groups.get(id);if(!g)continue;
+  const box=el('section',undefined,'status-group');box.append(el('h3',g.label));
+  g.rows.sort((a,b)=>(a.label||'').localeCompare(b.label||''));
+  for(const a of g.rows){const rel=a.release?a.release.version+' · released '+ago(a.release.published_at):a.release_known?'no release yet':'release unknown';box.append(statusRow(a.label,rel,a.last_build));}
+  root.append(box);
+ }
+ const runs=[];for(const w of d.workflows)if(BUILD_FLOWS.includes(w.name))for(const r of (w.recent||[]))runs.push(Object.assign({flow:w.name},r));
+ runs.sort((a,b)=>(Date.parse(b.when)||0)-(Date.parse(a.when)||0));
+ const box=el('section',undefined,'status-group');box.append(el('h3','Recent build runs'));
+ if(!runs.length)box.append(el('p','No build runs in the data.','meta'));
+ capped(box,runs.slice(0,15),r=>statusRow(r.flow,r.event==='schedule'?'scheduled':r.event==='workflow_dispatch'?'started by hand':r.event,r),5,'older runs');
+ root.append(box);
+ return 'Builds: '+d.apps.length+' apps, '+Math.min(runs.length,15)+' recent runs.';
+}
+function savedReport(parent,file,title){
+ lazySection(parent,'Read the saved report',async root=>{
+  const [issues,data]=await Promise.all([read(API+'issues?state=all&per_page=100'),read(API+'actions/workflows/'+file+'/runs?per_page=1')]);
+  need(Array.isArray(issues)&&Array.isArray(data.workflow_runs),'Invalid report inventory');
+  const run=data.workflow_runs[0]||null;
+  const report=issues.filter(x=>!x.pull_request&&typeof x.title==='string'&&(file==='agent-watch.yml'?x.title.startsWith(title):x.title===title)).sort((a,b)=>Date.parse(b.updated_at)-Date.parse(a.updated_at))[0];
+  if(!report){root.append(el('p','No saved report yet.','meta'));return;}
+  const binding=reportBinding(file,run,report,null);
+  root.append(el('p',binding.state==='joined'?'This report belongs to the latest run.':'This report may describe an older run.','meta'));
+  root.append(markdown(report.body,{chars:49152,lines:2000}));
+  if(typeof report.body==='string'&&/report mode=full fail=1\b/.test(report.body))root.append(el('p','The report says fail=1: something in it failed.','notice'));
+  const p=el('p');p.append(link('Open the report issue',report.html_url));root.append(p);addComments(root,report);
+ });
+}
 async function watchPanel(root){
- let issues=[],failedReads=0;
- root.append(el('p','Watch checks providers, community updates and repository health; it does not build or install apps. Saved reports appear here, but coverage remains partial.','notice'));
- try{issues=await pages('issues?state=all');}
- catch(e){failedReads++;root.append(el('p','Saved findings unavailable: '+e.message+' Workflow status is checked separately.','notice'));}
- for(const [workflow,label,title] of WATCH){const a=el('article');a.append(el('h3',label),el('p',({'agent-watch.yml':'Checks configured patch providers for changes.','community-watch.yml':'Looks for community updates relevant to configured apps.','watch.yml':'Checks repository, selection names and provider status.'})[workflow]));root.append(a);
- let run=null;
- try{const data=await read(API+'actions/workflows/'+workflow+'/runs?per_page=1');need(Array.isArray(data.workflow_runs),'Invalid watcher run response');run=data.workflow_runs[0]||null;
- if(run){need(run.path==='.github/workflows/'+workflow&&safeLink(run.html_url,'run'),'Unexpected watcher identity');a.append(el('p','Workflow: '+(run.conclusion||run.status)+' · '+when(run.created_at),'meta'));addJobs(a,run);a.append(link('Exact watcher run / full artifacts',run.html_url,'run'));}
- else a.append(el('p','No visible watcher runs.','meta'));
- }catch(e){failedReads++;a.append(el('p','Workflow read unavailable: '+e.message,'notice'));}
- let receipt=null;
- if(workflow==='community-watch.yml'){
-  try{receipt=await read(API+'contents/src/community/watch-state.json?ref=main').then(r=>JSON.parse(atob((r.content||'').replace(/\n/g,''))));}
-  catch(e){receipt=null;}
+ const d=await readStatus();freshness(root,d);root.append(headline(d));
+ const sections=[['Watchers','Look for new patches, tools and community changes. They never build.',w=>WATCH_FLOWS.includes(w.name)],
+  ['Checks and housekeeping','Repository checks, this page, failure issues and helpers.',w=>!WATCH_FLOWS.includes(w.name)&&!BUILD_FLOWS.includes(w.name)]];
+ for(const [label,sub,pick] of sections){
+  const box=el('section',undefined,'status-group');box.append(el('h3',label),el('p',sub,'meta'));
+  const rows=d.workflows.filter(pick).sort((a,b)=>{const x=a.last&&BAD_RUN.has(a.last.result)&&!isOld(a.last),y=b.last&&BAD_RUN.has(b.last.result)&&!isOld(b.last);return (y-x)||(a.name||'').localeCompare(b.name||'');});
+  capped(box,rows,w=>{const r=statusRow(w.name,w.purpose,w.last,w.url);const hit=WATCH.find(x=>x[1]===w.name);if(hit)savedReport(r,hit[0],hit[2]);return r;},label==='Watchers'?8:6,'more automations');
+  root.append(box);
  }
- const reports=issues.filter(x=>!x.pull_request&&typeof x.title==='string'&&(workflow==='agent-watch.yml'?x.title.startsWith(title):x.title===title)).sort((a,b)=>Date.parse(b.updated_at)-Date.parse(a.updated_at));
- const report=reports[0];if(report){a.append(link('Saved findings / comments',report.html_url),el('p','Issue updated '+when(report.updated_at)+'; may summarize an older run.','meta'));
- const binding=reportBinding(workflow,run,report,receipt);
- const statusLine={joined:'Saved report matches the workflow run shown above (run/attempt verified).',unidentified:'Saved report has no verifiable run identity; the workflow card above is independent and may be newer or older.','stale-receipt':'Saved report key does not match the acknowledged receipt on main; treat as an older report.','issue-mismatch':'Saved report key matches a different issue than the receipt; treat as unverified.','different-run':'Saved report belongs to a different run than the workflow card above; shown independently.','no-run':'No workflow run visible; saved report shown without a run comparison.'}[binding.state];
- a.append(el('p',statusLine,binding.state==='joined'?'meta':'notice'));
- const d=el('details',undefined,'inline-report');d.append(el('summary','Read saved report here'),markdown(report.body,{chars:49152,lines:2000}));a.append(d);addComments(a,report);
- const failures=typeof report.body==='string'&&/report mode=full fail=1\b/.test(report.body);if(failures)a.append(el('p','Stored report declares fail=1. A green workflow is not a healthy report.','notice'));
- }else a.append(el('p','No saved issue found. Inspect run logs; absent findings are not an all-clear.','meta'));
- a.append(el('p','Coverage: legacy / partial. This page does not infer a verified delta from issue text or consume expiring JSON as durable baseline state.','meta'));
- }
- return failedReads?'Watcher inventory incomplete: '+failedReads+' workflow read(s) failed. No all-clear.':'Watcher runs and saved issues loaded. Findings coverage remains explicitly partial.';
+ if(Array.isArray(d.issues)&&d.issues.length){const box=el('section',undefined,'status-group');box.append(el('h3','Open failure issues'));for(const i of d.issues.slice(0,8)){const p=el('p');p.append(runLink(i.title,i.url));box.append(p);}root.append(box);}
+ return 'Watch: '+d.workflows.length+' automations.';
 }
 async function render(){
  const own=++generation;clearTimeout(pollTimer);$('status').textContent='Checking '+tab+'...';$('refresh').disabled=true;
@@ -588,7 +617,7 @@ function filterApps(){
  $('appCount').textContent=shown+' app'+(shown===1?'':'s');
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,reportIdentity,reportBinding,checkCompleteness};
+window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,microgLatest,microgName,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,reportIdentity,reportBinding,checkCompleteness};
 const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
 const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
 search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});
@@ -614,12 +643,13 @@ $('prepareImport').addEventListener('click',prepareImport);$('pack').addEventLis
  resetImport();$('prepareImport').disabled=false;$('includeMicrog').parentElement.hidden=$('pack').value==='custom';
 });
 $('microgChannel').addEventListener('change',()=>changeMicrogChannel($('microgChannel').value));
-$('microgArch').addEventListener('change',()=>{need(['auto','universal','arm64-v8a','armeabi-v7a'].includes($('microgArch').value),'Unknown architecture');microgArch=$('microgArch').value;resetImport();$('prepareImport').disabled=false;if(tab==='apps')render();});
+$('microgArch').addEventListener('change',()=>{need(['auto','universal','arm64-v8a','armeabi-v7a'].includes($('microgArch').value),'Unknown architecture');microgArch=$('microgArch').value;resetImport();$('prepareImport').disabled=false;});
+$('microgIcon').addEventListener('change',()=>{need(['icon','noicon'].includes($('microgIcon').value),'Unknown icon choice');microgIcon=$('microgIcon').value;resetImport();$('prepareImport').disabled=false;});
 $('includeMicrog').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
 $('collapseImport').addEventListener('click',()=>{$('importPanel').open=false;$('importPanel').querySelector('summary').focus();});
 $('resetChoices').addEventListener('click',()=>{
  resetImport();$('pack').value='all';$('includeMicrog').checked=true;$('includeObtainium').checked=false;$('includeMicrog').parentElement.hidden=false;
- $('microgChannel').value='stable';microgChannel='stable';$('microgArch').value='universal';microgArch='universal';$('prepareImport').disabled=false;
+ $('microgChannel').value='stable';microgChannel='stable';$('microgArch').value='universal';microgArch='universal';$('microgIcon').value='icon';microgIcon='icon';$('prepareImport').disabled=false;
  $('importMessage').textContent='Page choices reset. No tracked or installed apps were changed.';
  if(tab==='apps')render();
 });
