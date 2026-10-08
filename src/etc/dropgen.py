@@ -1,48 +1,63 @@
 #!/usr/bin/env python3
-"""Generate the target dropdown in .github/workflows/manual-patch.yml from src/targets.json.
+"""Keep the "1. Manual Patch" target input in .github/workflows/manual-patch.yml honest.
 
-The option list was hand-maintained, so it drifted: it still offered `truecaller`, a target
-removed weeks ago, and a dispatch for it would fail after the runner had already started.
-Every enabled target appears, nothing else does.
+8 Oct 2026 (packet W2): the input is free text, not a dropdown. Workflows cannot edit
+workflow files with their own token, so a per-app dropdown made every add or remove of an
+app need a hand edit of a workflow; free text keeps "5. Add target" to one run and one
+merge. The first step of the build ("Refuse an unknown app id") stops a typo or a disabled
+id in seconds, before any secret or download. The ids are listed in docs/APPS.md and by
+`python3 src/etc/app.py list`.
 
-  python3 src/etc/dropgen.py           rewrite the option list
-  python3 src/etc/dropgen.py --check   exit 1 if it has drifted (used by CI)
+  python3 src/etc/dropgen.py           convert an old dropdown to free text (idempotent)
+  python3 src/etc/dropgen.py --check   exit 1 if it is a dropdown again or the default is not enabled
 """
-import io,json,re,sys
-W='.github/workflows/manual-patch.yml'
-def wanted():
-    T=json.load(io.open('src/targets.json',encoding='utf-8'))
+import io
+import json
+import re
+import sys
+
+W = '.github/workflows/manual-patch.yml'
+DESC = "'App id from src/targets.json, e.g. youtube (list: docs/APPS.md)'"
+BLOCK = re.compile(r"(^[ \t]*target:[ \t]*\n[ \t]*description:[ \t]*)('[^'\n]*')([ \t]*\n[ \t]*required:[ \t]*true[ \t]*\n"
+                   r"[ \t]*default:[ \t]*')([a-z0-9-]+)('[ \t]*\n([ \t]*)type:[ \t]*)(choice|string)([ \t]*\n)"
+                   r"((?:[ \t]*options:[ \t]*\n(?:[ \t]*-[ \t]*'[a-z0-9-]+'[ \t]*\n)+)?)", re.M)
+
+
+def enabled():
+    T = json.load(io.open('src/targets.json', encoding='utf-8'))
     return [t['id'] for t in T if t.get('enabled')]
+
+
 def main():
-    check='--check' in sys.argv
-    s=io.open(W,encoding='utf-8').read()
-    ids=wanted()
+    check = '--check' in sys.argv
+    s = io.open(W, encoding='utf-8').read()
+    ids = enabled()
     if not ids:
-        print("::error::no enabled targets in src/targets.json"); return 4
-    m=re.search(r'(^\s*default:\s*\')([a-z0-9-]+)(\'\s*\n\s*type:\s*choice\s*\n(\s*)options:\s*\n)((?:\s*-\s*\'[a-z0-9-]+\'\s*\n)+)',s,re.M)
-    if not m:
-        print("::error::cannot find the target dropdown in %s"%W); return 4
-    ind=m.group(4)+'  '
-    block=''.join("%s- '%s'\n"%(ind,i) for i in ids)
-    dflt=m.group(2) if m.group(2) in ids else ids[0]
-    cur=[x.strip().strip("'") for x in re.findall(r"-\s*'([a-z0-9-]+)'",m.group(5))]
-    if cur==ids and m.group(2)==dflt:
-        print("dropdown already current (%d targets)"%len(ids)); return 0
+        print('::error::no enabled targets in src/targets.json')
+        return 4
+    hits = list(BLOCK.finditer(s))
+    if len(hits) != 1:
+        print('::error::cannot find exactly one dispatch target input in %s (found %d)' % (W, len(hits)))
+        return 4
+    m = hits[0]
+    dflt = m[4] if m[4] in ids else ids[0]
+    current = m[7] == 'string' and not m[9] and m[2] == DESC and m[4] == dflt
+    if current:
+        print('target input is free text; default %r is enabled (%d enabled targets)' % (dflt, len(ids)))
+        return 0
     if check:
-        extra=[x for x in cur if x not in ids]; miss=[x for x in ids if x not in cur]
-        if extra: print("::error::%s offers targets that do not exist: %s"%(W,', '.join(extra)))
-        if miss:  print("::error::%s is missing enabled targets: %s"%(W,', '.join(miss)))
-        if m.group(2)!=dflt: print("::error::%s default '%s' is not an enabled target"%(W,m.group(2)))
-        print("Run: python3 src/etc/dropgen.py")
+        if m[7] != 'string' or m[9]:
+            print('::error::%s target input is a dropdown again; run: python3 src/etc/dropgen.py' % W)
+        if m[4] not in ids:
+            print("::error::%s default '%s' is not an enabled target; run: python3 src/etc/dropgen.py" % (W, m[4]))
+        if m[2] != DESC:
+            print('::error::%s target description drifted; run: python3 src/etc/dropgen.py' % W)
         return 1
-    s=s[:m.start()]+m.group(1)+dflt+m.group(3)+block+s[m.end():]
-    io.open(W,'w',encoding='utf-8',newline='\n').write(s)
-    print("dropdown: %d targets, default '%s'"%(len(ids),dflt))
-    for x in cur:
-        if x not in ids: print("   removed dead option: %s"%x)
-    for x in ids:
-        if x not in cur: print("   added: %s"%x)
-    chk=[y.strip().strip("'") for y in re.findall(r"-\s*'([a-z0-9-]+)'",re.search(r'options:\s*\n((?:\s*-\s*\'[a-z0-9-]+\'\s*\n)+)',s).group(1))]
-    assert chk==ids, ('dropdown does not match targets.json after the write',chk,ids)
+    s = s[:m.start()] + m[1] + DESC + m[3] + dflt + m[5] + 'string' + m[8] + s[m.end():]
+    io.open(W, 'w', encoding='utf-8', newline='\n').write(s)
+    print("target input: free text, default '%s'" % dflt)
     return 0
-sys.exit(main())
+
+
+if __name__ == '__main__':
+    sys.exit(main())
