@@ -1,0 +1,54 @@
+name: Status page data
+# Packet W2 (8 Oct 2026): the owner could not tell from Pages what recent runs did. After each
+# run of the automations below, src/etc/status.py reads GitHub's own records
+# (GET only) and writes status.json in plain words; docs/status.html shows it. The daily cron
+# only refreshes "updated N ago" on quiet days: every listed run already triggers it. The only write
+# is one file force-pushed to the `status` branch (one commit, no history growth, never main).
+# Pull-request runs are ignored by the script. No checkout of anything but main.
+permissions:
+  contents: read
+on:
+  workflow_run:
+    workflows: ["1. Manual Patch", "2. Check new patch", "3. Validate", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "9. Batch Patch", "Tooling watch", "Onboarding review"]
+    types: [completed]
+  schedule:
+    - cron: "53 2 * * *"  # 08:23 IST daily
+  workflow_dispatch:
+concurrency:
+  group: status-page
+  cancel-in-progress: true
+jobs:
+  status:
+    name: Write status.json
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+      checks: read
+      issues: read
+    steps:
+      - name: Checkout main (the reader that runs)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Read recent runs, releases and failing issues
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PF_REPO: ${{ github.repository }}
+        run: python3 src/etc/status.py --out status.json
+      - name: Publish status.json to the status branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir pub
+          cp status.json pub/status.json
+          # Only status.json: a .md or src/ file here would start Validate on the status branch.
+          cd pub
+          git init -q -b status
+          git add status.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "status $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" status:status
+          echo "published status.json ($(wc -c < status.json) bytes)" >> "$GITHUB_STEP_SUMMARY"
