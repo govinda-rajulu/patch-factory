@@ -148,3 +148,32 @@ class AnyVersionResolve(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class VersionBackfill(unittest.TestCase):
+    def test_any_version_backfill_uses_the_sdk_reader(self):
+        # W8: run 37935814660 had no aapt2 on PATH and stopped with "version is empty".
+        block = BUILD[BUILD.index('# --- 4b. version backfill'):BUILD.index('# --- 5. sdk gate')]
+        self.assertIn('VN=$(python3 src/build/artifact_identity.py input-version "$ID" 2>/dev/null | tail -1)', block)
+        self.assertLess(block.index('input-version'), block.index('[ -n "$VN" ] ||'))
+
+    def test_identity_reader_finds_aapt2_under_android_home(self):
+        import importlib.util
+        import sys
+        sys.path.insert(0, str(ROOT / 'src/build'))
+        spec = importlib.util.spec_from_file_location('ai', ROOT / 'src/build/artifact_identity.py')
+        ai = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ai)
+        with tempfile.TemporaryDirectory() as d:
+            tool = Path(d) / 'build-tools/36.0.0/aapt2'
+            tool.parent.mkdir(parents=True)
+            tool.write_text('#!/bin/sh\n')
+            tool.chmod(0o755)
+            self.assertEqual(ai.sdk_tools('aapt2', {'ANDROID_HOME': d, 'PATH': '/nonexistent'}), [str(tool)])
+
+    def test_packet_branches_get_one_validate_run(self):
+        text = (ROOT / '.github/workflows/validate.yml').read_text()
+        on = text[text.index('\non:\n'):text.index('\njobs:\n')]
+        self.assertIn('  pull_request:\n', on)
+        self.assertIn('  push:\n    branches: [main]\n    paths:\n', on)
+        self.assertIn('  workflow_dispatch:', on)

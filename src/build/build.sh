@@ -218,6 +218,11 @@ if [ -z "$version" ]; then
   if [ -z "$VN" ] && command -v apkanalyzer > /dev/null 2>&1; then
     VN=$(apkanalyzer manifest version-name "./download/$APK_NAME.apk" 2>/dev/null | head -1)
   fi
+  # W8: the runner keeps aapt2 under ANDROID_HOME, not on PATH (run 37935814660 stopped here
+  # with the store's newest Amazon Music). The identity reader finds the SDK tools itself.
+  if [ -z "$VN" ]; then
+    VN=$(python3 src/build/artifact_identity.py input-version "$ID" 2>/dev/null | tail -1)
+  fi
   [ -n "$VN" ] || { red_log "[-] version is empty and unreadable from the apk - refusing to build a release nothing can tag"; exit 1; }
   version="$VN"
   green_log "[+] version read from apk: $version"

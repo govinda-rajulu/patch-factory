@@ -3,7 +3,10 @@ permissions:
   contents: read
 on:
   pull_request:
+  # W8: packet branches are checked by their pull request run; a second push run of the same
+  # commit only doubled the noise (9 Oct: its artifact smoke failed twice while the PR run passed).
   push:
+    branches: [main]
     paths:
       - 'src/**'
       - '.github/**'
