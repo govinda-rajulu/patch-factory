@@ -6,7 +6,15 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
 
-## 9 Oct 2026, late night (packet W9; start here)
+## 10 Oct 2026, past midnight IST (packet W10; start here)
+
+- **Main** `a2c2ab27` (W9 #167). keymapper built in run 37969103802 without the retention step.
+- **W10** (controller `pf-w10.py`): cleanup marks Pages records inactive before deleting and drops
+ releases of retired apps (one Truecaller: `tc-combo`); the watch lists universal patches (#102);
+ provider review in `docs/review/PROVIDERS-2026-10-09.md`.
+- **Next**: W10 RESULT and its watch artifact, then W11 (baselines, owner's provider calls).
+
+## 9 Oct 2026, late night (packet W9)
 
 - **Main** `6c3a626a` (W8 #166). Amazon Music 26.36.1 (run 37938683390) and LinkedIn 4.1.1255.1
  (run 37935850580, step-down) built; phone tests pending.

@@ -43,7 +43,7 @@ class Fake:
     def __init__(self, releases, tagnames):
         self.releases, self.tags, self.deleted = releases, tagnames, []
         self.deploys, self.branches, self.pulls, self.fail_on = [], [], [], None
-        self.reads = []
+        self.reads, self.writes = [], []
 
     def page(self, rows, path):
         return rows if path.endswith('page=1') else []
@@ -56,6 +56,7 @@ class Fake:
             if self.fail_on and self.fail_on in cmd[4]:
                 return subprocess.CompletedProcess(cmd, 1, '', 'HTTP 422: refused')
             self.deleted.append(cmd[4])
+            self.writes.append(cmd)
         elif cmd[:2] == ['gh', 'api']:
             path = cmd[2]
             self.reads.append(path)
@@ -78,11 +79,15 @@ class Cleanup(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         os.chdir(self.tmp.name)
         Path('src').mkdir()
-        Path('src/targets.json').write_text(json.dumps([{'id': 'adguard', 'enabled': True}]))
+        Path('src/targets.json').write_text(json.dumps([{'id': 'adguard', 'enabled': True, 'tag_prefix': 'adguard'},
+                                                    {'id': 'truecaller-combo', 'enabled': True, 'tag_prefix': 'tc-combo'}]))
+        self.old_targets = cl.TARGETS
+        cl.TARGETS = Path(self.tmp.name) / 'src/targets.json'
         rows = [rel(1, 1), rel(2, 2), rel(3, 3)]
         self.fake = Fake(rows, [r['tag_name'] for r in rows] + ['adguard-v0.9-b20260801', 'v1.0-manual'])
 
     def tearDown(self):
+        cl.TARGETS = self.old_targets
         os.chdir(self.old)
         self.tmp.cleanup()
 
@@ -172,8 +177,11 @@ class Cleanup(unittest.TestCase):
         R = 'repos/%s/' % cl.REPO
         self.assertEqual(self.fake.deleted, [R + 'releases/1', R + 'git/refs/tags/adguard-v0.9-b20260801',
                                              R + 'git/refs/tags/adguard-v1.1-b20260901',
-                                             R + 'deployments/9001', R + 'deployments/9002',
+                                             R + 'deployments/9001/statuses', R + 'deployments/9001',
+                                             R + 'deployments/9002/statuses', R + 'deployments/9002',
                                              R + 'git/refs/heads/packet/w8'])
+        posts = [c for c in self.fake.writes if c[3] == 'POST']
+        self.assertEqual([c[-1] for c in posts], ['state=inactive', 'state=inactive'])
         rec = json.loads(Path('r.json').read_text())
         self.assertEqual([d['id'] for d in rec['deployments']], [9001, 9002])
         self.assertEqual(rec['deployments'][0]['sha'], '%040x' % 0xd01)
@@ -187,7 +195,7 @@ class Cleanup(unittest.TestCase):
         out = io.StringIO()
         with redirect_stdout(out):
             self.assertEqual(cl.main(['apply', '--token', p['token'], '--receipt', 'r.json'], run=self.fake), 1)
-        self.assertIn('STOP: deleted 4 of 6; failed at deployment 9002', out.getvalue())
+        self.assertIn('STOP: deleted 5 of 8; failed at deployment 9002', out.getvalue())
         self.assertNotIn('repos/%s/git/refs/heads/packet/w8' % cl.REPO, self.fake.deleted)
         self.assertTrue(Path('r.json').is_file())
 
@@ -206,6 +214,28 @@ class Cleanup(unittest.TestCase):
         self.fake.deploys[:] = [dep(1, 1), dep(1, 1)]
         with self.assertRaises(SystemExit):
             cl.main(['preview'], run=self.fake)
+        self.assertEqual(self.fake.deleted, [])
+
+
+    # W10: one Truecaller (owner, 9 Oct 2026). A release of an app no target builds goes.
+    def test_releases_of_a_retired_app_go_even_when_alone(self):
+        frozen = dict(rel(1, 1), tag_name='truecaller-v26.10.6', id=30)
+        self.fake.releases[:] = [frozen, rel(2, 2), rel(3, 3), rel(4, 4, prefix='tc-combo')]
+        self.fake.tags[:] = ['truecaller-v26.10.6']
+        p = self.preview()
+        self.assertEqual(p['releases'], [{'id': 30, 'tag': 'truecaller-v26.10.6', 'why': 'retired app truecaller'}])
+        self.assertEqual(p['tags'], ['truecaller-v26.10.6'])
+        kept = {k['tag'] for k in p['kept']}
+        self.assertIn('tc-combo-v1.4-b20260904', kept)
+
+    def test_targets_are_read_next_to_the_script_not_from_the_working_folder(self):
+        self.assertEqual(self.old_targets, ROOT / 'src/targets.json')
+        self.assertIn('tc-combo', cl.prefixes(self.old_targets))
+        self.assertNotIn('truecaller', cl.prefixes(self.old_targets))
+
+    def test_without_a_readable_targets_file_nothing_is_planned(self):
+        Path('src/targets.json').write_text('not json')
+        self.assertEqual(cl.main(['preview'], run=self.fake), 1)
         self.assertEqual(self.fake.deleted, [])
 
 

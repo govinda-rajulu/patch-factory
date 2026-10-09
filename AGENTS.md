@@ -48,7 +48,8 @@ tells you not to try.
 5. **Provider age is advisory.** A bundle that still applies is still good. Never disqualify a
    provider for being old; the applied-vs-requested gate is the real test.
 6. **`list-patches` must be run with `-x`.** Without it the patcher hides every app version marked
-   experimental, which makes a current provider look years stale. Also pass `-u`.
+   experimental, which makes a current provider look years stale. Do **not** pass `-u` for a name
+   check: it hides universal patches, so included names look removed (#102, 9 Oct 2026).
 
 ## Before you claim anything
 

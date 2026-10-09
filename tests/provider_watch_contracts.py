@@ -190,7 +190,8 @@ class ProviderWatch(unittest.TestCase):
             extra.assert_not_called()
             self.assertIn("--patches=" + str(bundle), observed_argv[0])
             self.assertIn("-x", observed_argv[0])
-            self.assertIn("-u", observed_argv[0])
+            # W10 (#102): "-u" hides universal patches; the watch must list them.
+            self.assertNotIn("-u", observed_argv[0])
 
     def test_gitlab_extra_routed_to_existing_extra_transport(self):
         jar = self.root / "tool.jar"

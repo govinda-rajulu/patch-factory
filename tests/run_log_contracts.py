@@ -48,6 +48,11 @@ class RunLog(unittest.TestCase):
         raw = '\n'.join(T + x for x in ['##[group]Run x', 'grep MARK', '##[endgroup]', 'MARK found']) + '\n'
         self.assertEqual(rl.key_lines(raw, ['MARK']), ['MARK found'])
 
+    def test_colour_codes_are_stripped(self):
+        # The W9 RESULT showed "^[[32m[+] winner=lain ...^[[0m": gh writes ESC as "^[".
+        log = JOB + '\t' + STEP + '\t' + T + '^[[32m[+] winner=lain^[[0m\n' + JOB + '\t' + STEP + '\t' + T + '\x1b[1;31mwinner=x\x1b[0m\n'
+        self.assertEqual(rl.key_lines(log, ['winner']), ['Patch apk | [+] winner=lain', 'Patch apk | winner=x'])
+
     def test_limit_and_cli_exit_codes(self):
         many = ''.join(JOB + '\t' + STEP + '\t' + T + 'hit %d\n' % n for n in range(9))
         self.assertEqual(len(rl.key_lines(many, ['hit'], limit=4)), 4)

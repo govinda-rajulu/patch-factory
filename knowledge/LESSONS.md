@@ -125,6 +125,13 @@ This file keeps only what fits in neither.
 - A run log repeats each step's script before its output. Filter the echoed block before you
  grep for a result, or the command reads as its own success (L042).
 
+## 9 Oct 2026, late night (packet W10)
+
+- A precondition in an API's docs is a test case: the fake must refuse the call the way the real
+ service does (L043).
+- Check watch output against the include lists. A name the build applies but the watch does not
+ list means the listing is incomplete, not that the patch is gone (L044).
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of

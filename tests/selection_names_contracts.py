@@ -84,10 +84,11 @@ class SelectionNames(unittest.TestCase):
 
     def test_name_check_lists_universal_patches_and_watch_argv_is_unchanged(self):
         # 29 Sep 2026: with "-x -u" the live check called ES "Remove Ads" missing, although
-        # the 28 Sep ES release applied it. The watch keeps its recorded argv; the check drops them.
+        # the 28 Sep ES release applied it. The check drops both flags. W10 (9 Oct, #102): the
+        # watch drops "-u" too, so it lists universal patches; it keeps "-x" (AGENTS.md rule 6).
         watch = sn.provider_watch.Observer(ROOT, ROOT / 'unused')
         self.assertEqual(watch.listing_argv('p.jar', 'b.mpp', 'com.x'),
-                         ['java', '-jar', 'p.jar', 'list-patches', '--patches=b.mpp', '-x', '-u',
+                         ['java', '-jar', 'p.jar', 'list-patches', '--patches=b.mpp', '-x',
                           '--with-packages', '--with-versions', '-f', 'com.x'])
         check = sn.provider_watch.Observer(ROOT, ROOT / 'unused', flags=())
         self.assertEqual(check.listing_argv('p.jar', 'b.mpp', 'com.x'),

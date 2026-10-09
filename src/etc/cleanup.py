@@ -6,11 +6,15 @@
 
 What goes (owner rules, 9 Oct 2026):
   * releases: grouped by app (the tag before "-v<version>"); per app the two newest by
-    publication time stay and every older one goes, whatever its layout, author or marker;
+    publication time stay and every older one goes, whatever its layout, author or marker.
+    A release whose app prefix is no target's tag_prefix in src/targets.json belongs to a
+    retired app and goes too (owner, 9 Oct 2026: one Truecaller, the tc-combo build);
   * the tags of those releases, and any build tag (PREFIX-vVERSION-bDIGITS) whose release
     is already gone. Any other tag stays;
   * Pages deployment records (environment github-pages): the newest 5 stay, older ones go.
-    They hold only an id, a date and a commit; the site itself is rebuilt from the branch;
+    They hold only an id, a date and a commit; the site itself is rebuilt from the branch.
+    GitHub deletes only inactive records, so apply first posts an `inactive` status
+    (W10: the W9 apply stopped on HTTP 422 without it);
   * merged packet branches: a `packet/...` branch whose head commit is already in main and
     which no open pull request uses. Every other branch stays (main, status, anything else).
 Apply re-reads GitHub, rebuilds the same list and refuses unless its token equals the
@@ -111,7 +115,21 @@ def newest_first(row):
     return (str(row.get('published_at') or row.get('created_at') or ''), row['id'])
 
 
-def plan(releases, tag_map, deploys=(), branch_rows=()):
+# The checkout this script lives in, wherever it is run from (the apply line runs it from ~).
+TARGETS = pathlib.Path(__file__).resolve().parents[2] / 'src' / 'targets.json'
+
+
+def prefixes(path=None):
+    """Every configured tag_prefix, enabled or not; None when the file cannot be read."""
+    try:
+        rows = json.loads(pathlib.Path(path or TARGETS).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return None
+    out = {t.get('tag_prefix') for t in rows if isinstance(t, dict) and t.get('tag_prefix')}
+    return out or None
+
+
+def plan(releases, tag_map, deploys=(), branch_rows=(), known=None):
     groups, kept, rel = {}, [], []
     for r in releases:
         m = APP_TAG.match(str(r.get('tag_name') or ''))
@@ -121,11 +139,14 @@ def plan(releases, tag_map, deploys=(), branch_rows=()):
         groups.setdefault(m[1], []).append(r)
     for app, rows in sorted(groups.items()):
         rows.sort(key=newest_first, reverse=True)
+        retired = known is not None and app not in known
         for i, r in enumerate(rows):
-            if i < KEEP:
+            if retired:
+                rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': 'retired app ' + app})
+            elif i < KEEP:
                 kept.append({'tag': r['tag_name'], 'reason': 'two newest of ' + app})
             else:
-                rel.append({'id': r['id'], 'tag': r['tag_name']})
+                rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': 'older build of ' + app})
     have = {r['tag_name'] for r in releases}
     gone = sorted(t for t in tag_map if t not in have and BUILD_TAG.match(t))
     drop_tags = sorted({c['tag'] for c in rel if c['tag'] in tag_map} | set(gone))
@@ -173,7 +194,7 @@ def show(p):
     print('Cleanup preview: %d release(s), %d tag(s), %d Pages deployment record(s) and %d merged packet branch(es) to delete; %d release(s) kept.'
           % (len(p['releases']), len(p['tags']), len(p['deployments']), len(p['branches']), p['protected']))
     for r in p['releases']:
-        print('  release ' + r['tag'])
+        print('  release %s  (%s)' % (r['tag'], r.get('why', '')))
     for t in p['tags']:
         print('  tag     ' + t)
     d = p['deployment_rows']
@@ -204,7 +225,11 @@ def main(argv=None, run=subprocess.run):
     tag_map = tags(run)
     deploys = deployments(run)
     branch_rows = branches(run)
-    p = plan(releases, tag_map, deploys, branch_rows)
+    known = prefixes()
+    if known is None:
+        print('STOP: src/targets.json unreadable here; run cleanup.py from a repository checkout. Nothing changed.')
+        return 1
+    p = plan(releases, tag_map, deploys, branch_rows, known)
     if a.mode == 'preview':
         show(p)
         if a.out:
@@ -218,11 +243,13 @@ def main(argv=None, run=subprocess.run):
     pathlib.Path(a.receipt).write_text(json.dumps(receipt(releases, tag_map, p, deploys), indent=1) + '\n', encoding='utf-8')
     steps = ([('release', r['tag'], 'repos/%s/releases/%d' % (REPO, r['id'])) for r in p['releases']]
              + [('tag', t, 'repos/%s/git/refs/tags/%s' % (REPO, t)) for t in p['tags']]
-             + [('deployment', str(i), 'repos/%s/deployments/%d' % (REPO, i)) for i in p['deployments']]
+             + [s for i in p['deployments'] for s in (
+                 ('deployment', str(i), ['-X', 'POST', 'repos/%s/deployments/%d/statuses' % (REPO, i), '-f', 'state=inactive']),
+                 ('deployment', str(i), 'repos/%s/deployments/%d' % (REPO, i)))]
              + [('branch', b['name'], 'repos/%s/git/refs/heads/%s' % (REPO, b['name'])) for b in p['branches']])
     for done, (kind, name, path) in enumerate(steps):
         try:
-            gh(['api', '-X', 'DELETE', path], run)
+            gh(['api'] + (path if isinstance(path, list) else ['-X', 'DELETE', path]), run)
         except SystemExit as e:
             print(str(e))
             print('STOP: deleted %d of %d; failed at %s %s. Receipt %s lists the whole plan; nothing after it was tried.'
