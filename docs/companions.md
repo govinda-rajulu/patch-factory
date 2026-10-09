@@ -1,5 +1,9 @@
 # Optional companions and review queue
 
+> **Checked 9 October 2026 (packet W9).** Nothing below was re-reviewed after 22 September.
+> MicroG RE and Obtainium are the only companions wired into the site. The unchecked
+> candidate rows are folded; open them only for a concrete need.
+
 Reviewed 22 September 2026. This is a decision record, not an installer, app
 bundle, security certification or approval to change a phone.
 
@@ -115,6 +119,9 @@ verified in this packet. Descriptions below are candidate use cases, not
 certified capabilities. Re-open a row only for a concrete need; installing the
 whole collection adds configuration rather than removing it.
 
+<details>
+<summary>22 unchecked candidates (folded 9 Oct 2026; last looked at 22 Sep 2026)</summary>
+
 | Candidate | Possible use | Decision / next gate |
 | --- | --- | --- |
 | [Morphe Manager](https://github.com/MorpheApp/morphe-manager) | On-device manual patching | Separate workflow; not needed for finished APKs. Review separately before an import preset. |
@@ -139,6 +146,8 @@ whole collection adds configuration rather than removing it.
 | [Shappky](https://github.com/YasserNull/shappky) | Background process management | Not a default; no automatic RAM-clearing policy or performance claim. |
 | [NoMoreBackground](https://github.com/adil192/no_more_background) | Background-permission management | Advanced-only; preserve required companion background behavior. |
 | [ShizuWall](https://github.com/AhmetCanArslan/ShizuWall) | Per-app network control | Advanced-only; permissions, persistence and rollback need their own review. |
+
+</details>
 
 Discovery references retained:
 [Morphe website](https://morphe.software/),

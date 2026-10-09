@@ -4,14 +4,14 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **9 October 2026** for packet W7 (two blocked history moves done). Hygiene record:
+Last indexed **9 October 2026** for packet W9 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
 
 | Read | Why |
 | --- | --- |
-| [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | 9 Oct afternoon: packet W6 (Amazon Music `libInit.so` marker, build status keyed by app, second cleanup). Read first. |
+| [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | 9 Oct: packets W6 to W9 (W9: routine cleanup, retention preview retired, run-log filter, notices). Earlier: packet W6 (Amazon Music `libInit.so` marker, build status keyed by app, second cleanup). Read first. |
 | [SESSION-2026-10-08.md](SESSION-2026-10-08.md) | 8 Oct session: packet W2 (two-step app changes, plain status page, MicroG shipped where needed, silent failures, onboarding gate, tooling watch, leads decided). Read first. |
 | [SESSION-2026-10-07.md](SESSION-2026-10-07.md) | 6-7 Oct session: packets R to V2, council desk #154, cleanup, findings, wrong calls, coverage limits. Read first. |
 | [HANDOVER-2026-09-26.md](history/HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
@@ -56,7 +56,7 @@ Last indexed **9 October 2026** for packet W7 (two blocked history moves done). 
 | [PATCHES-reddit-morphe.txt](PATCHES-reddit-morphe.txt) | Reddit bundle listing snapshot. | Snapshot |
 | [UNREVIEWED.tsv](UNREVIEWED.tsv) | Patch names not yet reviewed. | Working list |
 | [providers/](providers/) | Committed provider name baselines read by Provider watch. | Live input |
-| [retention/](retention/) | Release retention and cleanup records, including the 26 September cleanup. | Record |
+| [retention/](retention/) | Cleanup receipts (releases, tags, Pages deployments, branches), indexed in its README. | Record |
 | [history/](history/) | Closed checkpoints moved out of the desk on 7 Oct 2026 (packet V2); its README lists them. | History |
 
 ## History

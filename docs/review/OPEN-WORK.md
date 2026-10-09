@@ -1,6 +1,24 @@
 # Open work
 
-## Current checkpoint: 9 October 2026, night (packet W8)
+## Current checkpoint: 9 October 2026, late night (packet W9)
+
+W8 merged (#166); Amazon Music 26.36.1 and LinkedIn 4.1.1255.1 built. W9 (one pull request):
+records, routine cleanup (releases, tags, Pages deployments, merged packet branches), old
+retention preview retired, run-log filter, agent docs to history, one home for notices,
+companions folded. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W9). Open, in order:
+
+1. Owner runs `pf-w9.py` and uploads its RESULT file and logs folder. Then the printed cleanup
+ apply command, if the preview looks right; copy its receipt into `retention/` in W10.
+2. **W10, patches and providers** (next chat): seed the five missing provider baselines from
+ the Provider watch artifact in the W9 logs; read the provider release inventory (who
+ published since our last build, `latest` vs `prerelease` channels); regenerate
+ `UNREVIEWED.tsv` from current bundles for the owner's column 1; close or carry
+ `PROVIDER-DELTAS-2026-09.md`; #102 (`-u`).
+3. Phone-test Amazon Music (throwaway account only) and LinkedIn.
+4. **W11**: S2 publisher pins, APKPure store step-down, Plan-path step-down, onboarding gpt
+ parser (needs a failing log), openskip handbook copy of the W5 to W9 lessons by its own PR.
+
+## Earlier checkpoint: 9 October 2026, night (packet W8)
 
 W7 merged (#164, main `eebbb279`); LinkedIn stepped down to 4.1.1255.1 by itself and built.
 W8 (one pull request): Amazon Music's any-version backfill reads the APK with the SDK reader;

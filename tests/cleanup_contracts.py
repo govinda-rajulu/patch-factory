@@ -1,11 +1,16 @@
-"""Cleanup: preview and apply build the same list; apply refuses a changed list (W4)."""
+"""Cleanup: preview and apply build the same list; apply refuses a changed list (W4).
+
+W9: Pages deployment records (newest 5 stay) and merged packet branches are in the same list.
+"""
 import importlib.util
+import io
 import json
 import os
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,18 +30,45 @@ def rel(i, day, prefix='adguard'):
             'assets': [{'name': name, 'size': 2000000, 'digest': 'sha256:' + 'a' * 64}]}
 
 
+def dep(i, day, env='github-pages'):
+    return {'id': 9000 + i, 'environment': env, 'created_at': '2026-10-%02dT00:00:00Z' % day,
+            'sha': '%040x' % (0xd00 + i), 'ref': 'main', 'task': 'deploy'}
+
+
+IN_MAIN, NOT_IN_MAIN = 'a' * 40, 'b' * 40
+
+
 class Fake:
+    """GitHub as cleanup.py sees it: gh api paths and git ls-remote. Records every DELETE."""
     def __init__(self, releases, tagnames):
         self.releases, self.tags, self.deleted = releases, tagnames, []
+        self.deploys, self.branches, self.pulls, self.fail_on = [], [], [], None
+        self.reads = []
+
+    def page(self, rows, path):
+        return rows if path.endswith('page=1') else []
 
     def __call__(self, cmd, **kw):
         out = ''
         if cmd[:2] == ['git', 'ls-remote']:
             out = ''.join('%040x\trefs/tags/%s\n' % (n, t) for n, t in enumerate(self.tags))
         elif cmd[:3] == ['gh', 'api', '-X']:
+            if self.fail_on and self.fail_on in cmd[4]:
+                return subprocess.CompletedProcess(cmd, 1, '', 'HTTP 422: refused')
             self.deleted.append(cmd[4])
         elif cmd[:2] == ['gh', 'api']:
-            out = json.dumps(self.releases if cmd[2].endswith('page=1') else [])
+            path = cmd[2]
+            self.reads.append(path)
+            if '/compare/' in path:
+                out = 'ahead\n' if path.split('/compare/')[1].startswith(IN_MAIN) else 'diverged\n'
+            elif '/deployments' in path:
+                out = json.dumps(self.page(self.deploys, path))
+            elif '/branches' in path:
+                out = json.dumps(self.page(self.branches, path))
+            elif '/pulls' in path:
+                out = json.dumps(self.page(self.pulls, path))
+            else:
+                out = json.dumps(self.page(self.releases, path))
         return subprocess.CompletedProcess(cmd, 0, out, '')
 
 
@@ -101,6 +133,79 @@ class Cleanup(unittest.TestCase):
         self.fake.releases.append(rel(4, 4))
         self.fake.tags.append('adguard-v1.4-b20260904')
         self.assertEqual(cl.main(['apply', '--token', p['token']], run=self.fake), 1)
+        self.assertEqual(self.fake.deleted, [])
+
+
+    # W9: Pages deployment records and merged packet branches join the same preview and token.
+    def with_more(self):
+        self.fake.deploys[:] = [dep(i, i) for i in range(1, 8)]
+        self.fake.branches[:] = [{'name': 'main', 'commit': {'sha': IN_MAIN}},
+                                 {'name': 'status', 'commit': {'sha': NOT_IN_MAIN}},
+                                 {'name': 'feature', 'commit': {'sha': IN_MAIN}},
+                                 {'name': 'packet/w8', 'commit': {'sha': IN_MAIN}},
+                                 {'name': 'packet/w10', 'commit': {'sha': NOT_IN_MAIN}},
+                                 {'name': 'packet/open', 'commit': {'sha': IN_MAIN}}]
+        self.fake.pulls[:] = [{'id': 70007, 'number': 7, 'head': {'ref': 'packet/open', 'repo': {'full_name': cl.REPO}}}]
+
+    def test_pages_deployments_keep_the_newest_five(self):
+        self.with_more()
+        p = self.preview()
+        self.assertEqual(p['deployments'], [9001, 9002])
+        self.assertEqual([k['id'] for k in p['kept_deployments']], [9007, 9006, 9005, 9004, 9003])
+        self.assertTrue(all('environment=github-pages' in r for r in self.fake.reads if '/deployments' in r))
+
+    def test_only_merged_packet_branches_without_an_open_pull_request_go(self):
+        self.with_more()
+        p = self.preview()
+        self.assertEqual(p['branches'], [{'name': 'packet/w8', 'sha': IN_MAIN}])
+        kept = {k['name']: k['reason'] for k in p['kept_branches']}
+        self.assertEqual(kept, {'feature': 'not a packet branch', 'main': 'not a packet branch',
+                                'status': 'not a packet branch', 'packet/w10': 'head is not in main',
+                                'packet/open': 'an open pull request uses it'})
+        compared = [r for r in self.fake.reads if '/compare/' in r]
+        self.assertEqual(len(compared), 2)
+
+    def test_apply_deletes_in_order_and_the_receipt_can_restore_branches(self):
+        self.with_more()
+        p = self.preview()
+        self.assertEqual(cl.main(['apply', '--token', p['token'], '--receipt', 'r.json'], run=self.fake), 0)
+        R = 'repos/%s/' % cl.REPO
+        self.assertEqual(self.fake.deleted, [R + 'releases/1', R + 'git/refs/tags/adguard-v0.9-b20260801',
+                                             R + 'git/refs/tags/adguard-v1.1-b20260901',
+                                             R + 'deployments/9001', R + 'deployments/9002',
+                                             R + 'git/refs/heads/packet/w8'])
+        rec = json.loads(Path('r.json').read_text())
+        self.assertEqual([d['id'] for d in rec['deployments']], [9001, 9002])
+        self.assertEqual(rec['deployments'][0]['sha'], '%040x' % 0xd01)
+        self.assertEqual(rec['branches'][0]['restore'], 'git push origin %s:refs/heads/packet/w8' % IN_MAIN)
+        self.assertEqual(len(rec['kept_deployments']), 5)
+
+    def test_a_failed_delete_stops_there_and_says_how_far_it_got(self):
+        self.with_more()
+        p = self.preview()
+        self.fake.fail_on = 'deployments/9002'
+        out = io.StringIO()
+        with redirect_stdout(out):
+            self.assertEqual(cl.main(['apply', '--token', p['token'], '--receipt', 'r.json'], run=self.fake), 1)
+        self.assertIn('STOP: deleted 4 of 6; failed at deployment 9002', out.getvalue())
+        self.assertNotIn('repos/%s/git/refs/heads/packet/w8' % cl.REPO, self.fake.deleted)
+        self.assertTrue(Path('r.json').is_file())
+
+    def test_a_new_deployment_after_preview_changes_the_token(self):
+        self.with_more()
+        p = self.preview()
+        self.fake.deploys.append(dep(8, 8))
+        self.assertEqual(cl.main(['apply', '--token', p['token']], run=self.fake), 1)
+        self.assertEqual(self.fake.deleted, [])
+
+    def test_an_unreadable_deployment_list_deletes_nothing(self):
+        self.with_more()
+        self.fake.deploys[:] = [dep(1, 1), dep(2, 2, env='production')]
+        with self.assertRaises(SystemExit):
+            cl.main(['preview'], run=self.fake)
+        self.fake.deploys[:] = [dep(1, 1), dep(1, 1)]
+        with self.assertRaises(SystemExit):
+            cl.main(['preview'], run=self.fake)
         self.assertEqual(self.fake.deleted, [])
 
 

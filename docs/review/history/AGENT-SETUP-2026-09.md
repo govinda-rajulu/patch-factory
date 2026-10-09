@@ -1,3 +1,5 @@
+> History (moved from `docs/` on 9 Oct 2026, packet W9). Written in September 2026; model, quota and vendor claims were true then, not now. Current agent rules: `AGENTS.md` and `knowledge/handbook/FREE-LLM-AGENTS.md`.
+
 # Wiring the agent up, start to finish
 
 `docs/AGENT.md` is the architecture. This is the click-by-click, and the honest cost.

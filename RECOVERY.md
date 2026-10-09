@@ -94,21 +94,25 @@ disables them nor authorizes changing their schedule.
 
 ## Cleanup boundaries
 
-`src/etc/release_retention.py` makes a read-only, fingerprinted inventory preview.
-It has no apply mode. It keeps the newest two dated releases per configured
-prefix and protects frozen/manual/unknown/draft/prerelease/ambiguous entries.
-Known evidence JSON assets can be recognized as part of a release's metadata
-shape, but the planner does not fetch or validate their contents.
+This is the one home for the cleanup policy (owner rules, 9 Oct 2026). One tool does it:
+`src/etc/cleanup.py preview`, then `apply --token` with the token the preview printed.
 
-The preview fingerprint binds the observed release records and asset metadata,
-not APK byte backups, future GitHub state or independent provenance. Re-read
-the inventory before any write. A changed fingerprint or uncertain identity
-requires another review.
+| Scope | Kept | Deleted |
+| --- | --- | --- |
+| Releases | Each app's two newest builds; any release whose tag is not an app build tag | Older builds of the same app |
+| Tags | Every tag that is not a build tag | Tags of deleted releases; build tags whose release is gone |
+| Pages deployment records | The newest 5 (the live site's record is the newest) | Older records: an id, a date and a commit, nothing the site needs |
+| Branches | `main`, `status`, anything not under `packet/`, a packet branch with an open pull request or with commits not in main | A `packet/` branch whose head is already in main |
 
-Release deletion removes its downloadable assets; tag deletion is a separate
-operation. Actions run/artifact deletion can remove diagnosis and qualification
-evidence. Branches, local folders and the attic are different scopes again.
-Never interpret "clean releases" as permission to delete all of these.
+Apply re-reads GitHub and refuses unless the token still matches, so nothing that appeared
+after the preview is touched. It writes a receipt first (release assets with sizes and
+sha256, tag and branch commits, deployment ids) and stops at the first failed delete.
+Receipts are copied into `docs/review/retention/`. A deleted branch comes back with the
+`git push` line in its receipt row, because its commit is in main.
+
+Release deletion removes its downloadable assets for good: keep a copy of anything you may
+want to reinstall. Actions runs and artifacts, local folders and the attic are not in scope.
+Never read "clean up" as permission to delete any of them.
 
 ## Known gaps and entrypoints
 

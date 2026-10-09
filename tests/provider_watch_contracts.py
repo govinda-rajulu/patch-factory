@@ -243,7 +243,7 @@ class ProviderWatch(unittest.TestCase):
         for marker in ("Owner approval", "Blocked", "docs/assets/NOTICE.txt", "monogram"):
             self.assertIn(marker, text)
         self.assertIn("that estimate is not evidence", text)
-        setup = (ROOT / "docs/AGENT-SETUP.md").read_text()
+        setup = (ROOT / "docs/review/history/AGENT-SETUP-2026-09.md").read_text()  # moved in W9
         self.assertIn("20 provider entries", setup)
         self.assertNotIn("all fourteen providers", setup)
 

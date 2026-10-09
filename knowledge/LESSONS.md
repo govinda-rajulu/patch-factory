@@ -118,6 +118,13 @@ This file keeps only what fits in neither.
 - A tool on PATH in the sandbox may not be on PATH on the runner: use the reader that searches
  ANDROID_HOME.
 
+## 9 Oct 2026, W8 results
+
+- Pages deployment records are a list of past publishes, not content. Keep the newest 5; the
+ rest go through `cleanup.py` with a receipt (L041).
+- A run log repeats each step's script before its output. Filter the echoed block before you
+ grep for a result, or the command reads as its own success (L042).
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of
