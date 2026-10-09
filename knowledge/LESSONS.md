@@ -149,3 +149,5 @@ This file keeps only what fits in neither.
 - Launchers are never rerun after a PUSH phase; paste the RESULT instead.
 - The newest version a provider lists is not always the one with the most of our patches;
   choose by coverage, break ties by newest, and keep the old rule when the listing is in doubt (W12).
+- Promise only what the packet ships. Cutting promised scope needs the owner's yes first (W12).
+- Before a session ends, the tools it built go into the repo too (docs/review/controllers/, H12).

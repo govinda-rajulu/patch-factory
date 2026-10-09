@@ -264,3 +264,8 @@ when a record names a rule, and say so before the controller runs.
 Tags: status, automation
 "Status page data" cancels its own older run (cancel-in-progress) and the page listed that as a
 failing automation. Skip a cancelled run when a newer run of the same workflow exists.
+
+### L049 · A cleanup preview right after a merge goes stale
+Tags: automation, retention
+The W12 preview ran before GitHub Pages deployed the merge; the deploy changed the newest five
+records and the apply refused the old token. Wait for the merge's own Pages deployment, then preview.
