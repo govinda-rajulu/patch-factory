@@ -285,8 +285,10 @@ class Council(unittest.TestCase):
 
     def test_redirects_replay_only_within_the_same_site(self):
         self.assertTrue(council.same_site('https://models.github.ai/inference/chat/completions',
-                                          'https://eastus.models.github.ai/inference/chat/completions'))
-        for bad in ('http://models.github.ai/x', 'https://evil.example/x', 'https://github.ai.evil.example/x', 'file:///etc/passwd'):
+                                          'https://models.github.ai/v2/inference/chat/completions'))
+        # W7: exact host and port only; a sibling host of the same domain no longer keeps the key.
+        for bad in ('http://models.github.ai/x', 'https://evil.example/x', 'https://github.ai.evil.example/x', 'file:///etc/passwd',
+                    'https://eastus.models.github.ai/x', 'https://other.github.ai/x', 'https://models.github.ai:8443/x', 'https:///x'):
             self.assertFalse(council.same_site('https://models.github.ai/x', bad), bad)
         self.assertTrue(any(isinstance(h, council._NoRedirect) for h in council._OPENER.handlers))
 

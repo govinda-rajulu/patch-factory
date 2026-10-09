@@ -45,6 +45,10 @@ Build reports distinguish dependency-only checks from app-build jobs and summari
 
 Missing, rate-limited, failed or truncated reads remain unknown. Timestamps describe the underlying run/report. Watcher coverage remains partial; issue comments are reports, not trusted build-selection instructions.
 
+## Schedules
+
+Every scheduled automation with its IST time, generated from the workflow files: [SCHEDULES.md](SCHEDULES.md).
+
 ## Maintaining dependencies
 
 The Reddit source page diagnostic was removed on 8 October 2026 (packet W4): Reddit builds from APKPure again and the probe had no remaining use. Its history stays in git and `docs/review/`.

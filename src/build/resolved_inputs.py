@@ -38,6 +38,7 @@ RESOLVER_SUMMARY = tuple(re.compile(p) for p in (
     r" - [a-z0-9-]+: DISQUALIFIED \(no releases\)",
     r" - [a-z0-9-]+: nothing <= [0-9]+(?:[.][0-9]+)*",
     r" - [a-z0-9-]+: no max_app_version to fall back on - cannot pick a version",
+    r" - [a-z0-9-]+: any app version, the store's newest, -?[0-9]+d ago",
     r" - [a-z0-9-]+: could not parse a version[.] list-versions exit=[0-9]+",
     r" - [a-z0-9-]+: app [0-9]+(?:[.][0-9]+)*, [0-9]+ patches, -?[0-9]+d ago",
     r"::error::[a-z0-9-]+: local list-versions failed \(exit=-?[0-9]+\); refusing version fallback",

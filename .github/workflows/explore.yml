@@ -38,6 +38,22 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Refuse a malformed provider or package
+        # W7 (desk lead): inputs reach a shell, an issue title and the patcher; accept only their real shapes.
+        env:
+          HOST: ${{ inputs.host }}
+          IDENT: ${{ inputs.ident }}
+          PKG: ${{ inputs.package }}
+        run: |
+          if ! [[ "$PKG" =~ ^[A-Za-z][A-Za-z0-9_]*([.][A-Za-z][A-Za-z0-9_]*)+$ ]] || [ "${#PKG}" -gt 120 ]; then
+            echo "::error::package must look like com.example.app"; exit 1
+          fi
+          if [ "$HOST" = "gitlab" ]; then
+            if ! [[ "$IDENT" =~ ^[0-9]{1,12}$ ]]; then echo "::error::gitlab ident must be a numeric project id"; exit 1; fi
+          elif ! [[ "$IDENT" =~ ^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$ ]]; then
+            echo "::error::github ident must be OWNER/REPO"; exit 1
+          fi
+          echo "inputs accepted: $HOST $IDENT $PKG"
       - name: Set up Java
         uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
         with:

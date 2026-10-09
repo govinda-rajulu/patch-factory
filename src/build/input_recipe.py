@@ -28,6 +28,7 @@ SHARED = (
     "src/build/transfer_diagnostic.py",
     "src/build/source_inputs.py", "src/build/source_download.sh",
     "src/build/source_fallback.py", "src/build/source_alternate.sh",
+    "src/build/store_chain.sh", "src/build/version_steps.sh",
     "src/build/original_apk.py", "src/build/source_variant.py",
     "src/build/helper/source-fallbacks.json",
     "src/build/execution_inputs.py",

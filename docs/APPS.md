@@ -42,3 +42,10 @@ The run summary then gives the compare link: one click opens it.
 
 **What still needs a person.** A logo (`docs/assets/logos/<id>.png` plus a line in
 `docs/review/ICON-PROVENANCE.md`); without one the card shows a letter tile. Phone testing.
+
+## Versions (W7, 9 Oct 2026)
+
+Each build takes the newest app version its patch provider supports, or the store's newest
+when the provider says any version. If that version needs a newer Android than the phone cap
+(`min_sdk_ceiling`), the build tries up to three lower versions by itself. Set
+`max_app_version` only to hold an app at or below one version on purpose.

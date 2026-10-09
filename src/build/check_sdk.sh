@@ -92,6 +92,7 @@ fi
 echo "minSdkVersion=$MIN ceiling=$CEIL"
 if [ "$MIN" -gt "$CEIL" ]; then
   echo "::error::needs SDK $MIN, device is $CEIL. Set max_app_version in src/targets.json."
-  exit 1
+  # Status 3 means only "above the cap"; build.sh may then try a lower version (W7).
+  exit 3
 fi
 echo "OK: minimum SDK requirement fits ceiling $CEIL (not a device compatibility test)"

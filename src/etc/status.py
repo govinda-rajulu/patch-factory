@@ -4,7 +4,7 @@
 Owner ask, 8 Oct 2026: the Pages Builds and Watch views did not say what happened. This
 reads GitHub's own records with the workflow token (GET only: workflows, runs, jobs, the
 error annotations a failed step printed, releases, open "Failing:" issues) and writes one
-status.json that docs/status.html shows in plain words: what ran, did it work, where it
+status.json that the Pages Builds and Watch tabs show in plain words: what ran, did it work, where it
 stopped and the reason line it printed, the latest release per app, and what each app
 needs on a phone (CPU, Android version, MicroG).
 
@@ -112,9 +112,13 @@ def plain_reason(text):
     """A few known error lines rewritten for people; anything else is shown as printed."""
     m = re.search(r'needs SDK (\d+), device is (\d+)', text)
     if m:
-        return ('The newest app version needs Android %s (API %s); the phone cap here is Android %s (API %s). '
+        return ('This app version needs Android %s (API %s); the phone cap here is Android %s (API %s). '
+                'The build tries up to 3 lower versions by itself; this shows only when none fitted. '
                 'Fix: set max_app_version for this app in src/targets.json.' % (
                     ANDROID.get(int(m[1]), '?'), m[1], ANDROID.get(int(m[2]), '?'), m[2]))
+    m = re.search(r'VERSION_STEP_DOWN step=(\d+) from=([0-9.]+) to=([0-9.]+)', text)
+    if m:
+        return 'Version %s needed a newer Android, so the build tried %s instead (step %s of 3).' % (m[2], m[3], m[1])
     if 'rate-limited' in text or 'rate limit' in text.lower():
         return 'GitHub limited how often this could read; it retries on the next run. (' + text + ')'
     return text

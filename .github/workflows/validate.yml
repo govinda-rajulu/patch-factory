@@ -155,6 +155,8 @@ jobs:
           exit $FAIL
       - name: Unreferenced patch dirs are reported, not deleted
         run: bash src/etc/orphans.sh
+      - name: Schedule table matches the workflows
+        run: python3 src/etc/schedules.py --check
       - name: README state block matches targets.json
         run: python3 src/etc/readmegen.py --check
       - name: Exact source and execution input contracts

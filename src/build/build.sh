@@ -20,6 +20,7 @@ python3 src/build/artifact_identity.py capture-signer || exit 1
 # Scope strictness off around every call into it; our own logic stays strict.
 set +u; source ./src/build/utils.sh; set -u
 source ./src/build/store_chain.sh
+source ./src/build/version_steps.sh
 
 version=""; lock_version=""; prefer_version=""; PF_APK_RAW_ONLY=0
 excludePatches=""; includePatches=""
@@ -34,6 +35,7 @@ PKG=$(jq      -r '.package'             <<<"$T")
 APK_NAME=$(jq -r '.apk_name'            <<<"$T")
 APK_TYPE=$(jq -r '.apk_type // "apk"'   <<<"$T")
 CEIL=$(jq     -r '.min_sdk_ceiling // 29' <<<"$T")
+MAXVER=$(jq -r '.max_app_version // ""' <<<"$T")
 SRC=$(jq -r '.source // "apkmirror"' <<<"$T")
 ANYVER=$(jq -r '.any_version // false' <<<"$T")
 ARCH=$(jq -r '.arch // ""' <<<"$T")
@@ -154,6 +156,9 @@ green_log "[+] primary bundle: $(ls ./*.mpp)"
 green_log "[+] extra -p flags:$EXTRA_P"
 
 # --- 4. apk ----------------------------------------------------------------
+# Steps 4 and 5 repeat only when the APK needs a newer Android than the cap (W7).
+STEP=0
+while :; do
 if [ "${PF_SOURCE_READY:-false}" = "true" ]; then
 version=$(python3 src/build/source_inputs.py install "$ID") || { red_log "[-] checked source APK refused"; exit 1; }
 green_log "[+] using exact prepared source APK; no second store download"
@@ -218,7 +223,19 @@ if [ -z "$version" ]; then
   green_log "[+] version read from apk: $version"
 fi
 # --- 5. sdk gate, enforced ----------------------------------------------
-bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL" || { red_log "[-] SDK ceiling $CEIL exceeded"; exit 1; }
+bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL"; SDK_RC=$?
+if [ "$SDK_RC" -eq 0 ]; then break; fi
+if [ "$SDK_RC" -ne 3 ]; then red_log "[-] SDK ceiling $CEIL exceeded"; exit 1; fi
+if [ "${PF_SOURCE_READY:-false}" = "true" ]; then red_log "[-] SDK ceiling $CEIL exceeded by the exact prepared APK; no step-down"; exit 1; fi
+if [ -n "$(jq -r '.version_code // ""' <<<"$T")" ]; then red_log "[-] SDK ceiling $CEIL exceeded; $ID pins an exact version_code, so no step-down"; exit 1; fi
+if [ "$STEP" -ge "$PF_MAX_STEPS" ]; then red_log "[-] SDK ceiling $CEIL still exceeded after $STEP lower version(s); set max_app_version"; exit 1; fi
+set +u; NEXT=$(pf_next_version "$PKG" "$version" "$MAXVER"); NRC=$?; set -u
+if [ "$NRC" -ne 0 ] || [ -z "$NEXT" ]; then red_log "[-] SDK ceiling $CEIL exceeded and no lower version to try (status $NRC)"; exit 1; fi
+STEP=$((STEP+1))
+echo "::notice::VERSION_STEP_DOWN step=$STEP from=$version to=${NEXT%% *} source=${NEXT#* } ceiling=$CEIL"
+rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME"
+RVER="${NEXT%% *}"; ANYVER=false; lock_version=""; prefer_version=""
+done
 python3 src/build/artifact_identity.py capture-inputs "$ID" "$WINNER" || exit 1
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
