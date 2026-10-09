@@ -219,3 +219,15 @@ triage run on the desk schedule, one shard per run.
 Tags: evidence
 Triage against an owner-checked list: nemotron 19/20, codestral 12/13, gpt 2/5. A seat that
 scores low gets smaller jobs (gpt left triage in V2).
+
+### L041 · Pages deployment records hold nothing vital
+Tags: workflows
+Every Pages publish leaves a deployment record; by 9 Oct there were 221. The site is rebuilt
+from the branch, so old records only hold an id, a date and a commit. Keep the newest 5 so a
+recent publish can still be traced, and let `cleanup.py` remove the rest with a receipt.
+
+### L042 · A run log echoes its own script
+Tags: evidence
+GitHub prints each step's `run:` text before its output, so a grep for a notice name also finds
+the command that prints it. The W8 RESULT's key lines picked up echoed script lines as
+noise. Skip the echoed block (from `##[group]Run` to `##[endgroup]`) before matching.

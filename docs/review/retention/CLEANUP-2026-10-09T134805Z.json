@@ -1,0 +1,92 @@
+{
+ "repo": "govinda-rajulu/patch-factory",
+ "token": "825ae1379cb2eec9",
+ "releases": [
+  {
+   "tag": "instagram-v447.0.0.55.81-b2026100600000000037470753680000001",
+   "release_id": 404746088,
+   "name": "instagram-v447.0.0.55.81-b2026100600000000037470753680000001",
+   "published_at": "2026-10-06T13:30:34Z",
+   "commit": "97e7fd065fccb1aa70d1e0dd4013fa5f8920483c",
+   "assets": [
+    {
+     "name": "instagram-v447.0.0.55.81-arm64-v8a.apk",
+     "size": 142574616,
+     "digest": "sha256:d4efc892c624bec0ab517346348d28ce284b14b178d50cf563d272f82b4e9ecf"
+    },
+    {
+     "name": "pf-publication-v1-instagram.json",
+     "size": 3663,
+     "digest": "sha256:9749667f80ddd27efceecbe39781dc0d6ff34b6595cd64dc87241ddbbd33555f"
+    },
+    {
+     "name": "pf-qualified-v1-instagram.json",
+     "size": 5421,
+     "digest": "sha256:f0fe7d86262a893b145a440f259717d0d3a4a9a6c38a2a3c6295068f3738e85b"
+    }
+   ]
+  },
+  {
+   "tag": "youtube-morphe-v21.40.161-b2026100800000000037786494764000001",
+   "release_id": 406879829,
+   "name": "youtube-morphe-v21.40.161-b2026100800000000037786494764000001",
+   "published_at": "2026-10-08T13:47:28Z",
+   "commit": "be8aaa44fbb5bb80a167af107056b581166097e0",
+   "assets": [
+    {
+     "name": "pf-publication-v1-youtube.json",
+     "size": 3453,
+     "digest": "sha256:88832893cae8d3137891b165035d4f8405748452777ef67a2d0b54d8138a9434"
+    },
+    {
+     "name": "pf-qualified-v1-youtube.json",
+     "size": 5191,
+     "digest": "sha256:21702e522a32bf7b2cae95f34563b2780fe91109f963ac257739fea7c14142b6"
+    },
+    {
+     "name": "youtube-v21.40.161-arm64-v8a.apk",
+     "size": 113568778,
+     "digest": "sha256:f178b9114e8cd53589b9ed3389a7b2f94452000a19fa80c85826a239284b4411"
+    }
+   ]
+  },
+  {
+   "tag": "yt-music-v9.40.51-b2026100800000000037786494764000001",
+   "release_id": 406879075,
+   "name": "yt-music-v9.40.51-b2026100800000000037786494764000001",
+   "published_at": "2026-10-08T13:46:43Z",
+   "commit": "be8aaa44fbb5bb80a167af107056b581166097e0",
+   "assets": [
+    {
+     "name": "pf-publication-v1-ytmusic.json",
+     "size": 3440,
+     "digest": "sha256:2487534560a683d7b5f9afe1ad7e02ad1778fa5972939f05e01b84bfc0262603"
+    },
+    {
+     "name": "pf-qualified-v1-ytmusic.json",
+     "size": 5178,
+     "digest": "sha256:3f958d62cbf7a63c112d355ea810e8a8c8d33827f011fdffc7ccb9043e101d88"
+    },
+    {
+     "name": "yt-music-v9.40.51-arm64-v8a.apk",
+     "size": 79463840,
+     "digest": "sha256:8d4ccf477738877703076a22cbbdb0932d09a9a2b88c50b16772b43943d9842d"
+    }
+   ]
+  }
+ ],
+ "tags": [
+  {
+   "tag": "instagram-v447.0.0.55.81-b2026100600000000037470753680000001",
+   "commit": "97e7fd065fccb1aa70d1e0dd4013fa5f8920483c"
+  },
+  {
+   "tag": "youtube-morphe-v21.40.161-b2026100800000000037786494764000001",
+   "commit": "be8aaa44fbb5bb80a167af107056b581166097e0"
+  },
+  {
+   "tag": "yt-music-v9.40.51-b2026100800000000037786494764000001",
+   "commit": "be8aaa44fbb5bb80a167af107056b581166097e0"
+  }
+ ]
+}
