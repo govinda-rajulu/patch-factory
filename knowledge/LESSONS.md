@@ -95,6 +95,13 @@ This file keeps only what fits in neither.
 - Owner rules worth keeping: a failure stays listed until a later run of the same app works;
  keep each app's two newest builds and purge the rest; archive branches before deleting them.
 
+## 9 Oct 2026, afternoon (packet W6)
+
+- One vendor, two marker shapes: Prime Video's `libInit.so` is `release=NNN`, Amazon Music's
+ is `4.6.14`. Classify each from its own `NATIVE_MEMBER_DIAGNOSTIC`, never from a sibling app.
+- A per-workflow red light hides which app failed and clears on any other app's success. Key
+ build status by app; keep the workflow red only for failures no app owns.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of

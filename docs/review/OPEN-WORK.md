@@ -1,6 +1,25 @@
 # Open work
 
-## Current checkpoint: 9 October 2026 (packet W5, session close)
+## Current checkpoint: 9 October 2026, afternoon (packet W6)
+
+Done since W5 outside pull requests: W5 merged (#162); LinkedIn built (run 37912428867);
+cleanup applied a second time (22 releases, 22 tags; receipt
+`~/work/run-logs/cleanup-receipt-20261009T091933Z.json` on the owner box). W6 (one pull
+request): Amazon Music's `libInit.so` version marker (`4.6.14`) accepted by the native check,
+build workflows keyed by app on the status data and Pages. Record:
+[SESSION-2026-10-09.md](SESSION-2026-10-09.md). Open, in order:
+
+1. Merge W6. Run `1. Manual Patch` for `amazonmusic`. If it stops at a new check, paste the
+ reason line. Phone-test both apps (Amazon on a throwaway account only); if Amazon will not
+ install, add `Rename shared permissions`.
+2. "Any"-version providers (Amazon Music): follow the store's newest Android 10 version
+ automatically instead of a hand-raised `max_app_version` (joins S2 version step-down).
+3. Onboarding review gpt seat sometimes returns invalid finding fields; needs the failing
+ run's log before a parser change.
+4. Copy the W5 and W6 lessons (knowledge/LESSONS.md, 9 Oct) to openskip's handbook by its own PR.
+5. Then the W4 list below (#102, council `same_site`, free seats, release notes, S2, ...).
+
+## Earlier checkpoint: 9 October 2026 (packet W5, session close)
 
 Done on 8 to 9 Oct outside pull requests: cleanup applied (4 releases, 96 tags; receipt
 `~/work/run-logs/cleanup-receipt-20261009.json` on the owner box); 18 merged branches archived

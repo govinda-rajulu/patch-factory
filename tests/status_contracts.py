@@ -143,9 +143,61 @@ class Status(unittest.TestCase):
         ci = [w for w in d['workflows'] if w['file'] == 'ci.yml'][0]
         self.assertTrue(ci['last']['old'])
         self.assertGreater(ci['last']['age_days'], st.STALE_DAYS)
-        self.assertIn(ci['name'], d['headline']['workflows'])
+        # W6: only the Reddit job failed, so the Reddit row carries it, not the automation.
+        self.assertIn('Reddit', d['headline']['apps'])
+        self.assertTrue(ci['last']['per_app'])
+        self.assertEqual(ci['last']['apps'], ['reddit'])
+        self.assertNotIn(ci['name'], d['headline']['workflows'])
         self.assertIs(ci['last']['changed_since'], True)
         self.assertIn(ci['name'], d['headline']['run_once_to_confirm'])
+
+    def test_build_failure_outside_an_app_job_keeps_the_workflow_listed(self):
+        # W6: a Plan or resolve failure belongs to no app, so the automation row stays red.
+        w = world()
+        w[R + '/actions/runs/11/attempts/1/jobs?per_page=100']['jobs'].append(job(104, 'Plan', 'failure', 'Plan'))
+        d = st.build(reader(w), TARGETS, now='2026-10-08T07:00:00Z')
+        ci = [x for x in d['workflows'] if x['file'] == 'ci.yml'][0]
+        self.assertNotIn('per_app', ci['last'])
+        self.assertIn(ci['name'], d['headline']['workflows'])
+        self.assertIn('Reddit', d['headline']['apps'])
+
+    def test_failure_of_an_unknown_or_disabled_app_keeps_the_workflow_listed(self):
+        for name in ('build (old) / Patch old', 'Patch nosuchapp'):
+            with self.subTest(name=name):
+                w = world()
+                w[R + '/actions/runs/11/attempts/1/jobs?per_page=100']['jobs'] = [job(101, name, 'failure', 'Refuse an unknown app id')]
+                d = st.build(reader(w), TARGETS, now='2026-10-08T07:00:00Z')
+                ci = [x for x in d['workflows'] if x['file'] == 'ci.yml'][0]
+                self.assertNotIn('per_app', ci['last'])
+                self.assertIn(ci['name'], d['headline']['workflows'])
+
+    def test_unreadable_jobs_never_mark_a_failure_per_app(self):
+        r = reader(world(), missing={R + '/actions/runs/11/attempts/1/jobs?per_page=100'})
+        d = st.build(r, TARGETS, now='2026-10-08T07:00:00Z')
+        ci = [x for x in d['workflows'] if x['file'] == 'ci.yml'][0]
+        self.assertNotIn('per_app', ci['last'])
+        self.assertIn(ci['name'], d['headline']['workflows'])
+
+    def test_a_later_build_of_another_app_does_not_clear_a_failed_app(self):
+        # W6: the 9 Oct case. Manual Patch: Amazon Music failed after LinkedIn worked.
+        t = TARGETS + [{'id': 'amazonmusic', 'enabled': True, 'label': 'Amazon Music', 'min_sdk_ceiling': 29},
+                       {'id': 'linkedin', 'enabled': True, 'label': 'LinkedIn', 'min_sdk_ceiling': 29}]
+        w = world()
+        w[R + '/actions/workflows?per_page=100']['workflows'].append(
+            {'id': 4, 'name': '1. Manual Patch', 'path': '.github/workflows/manual-patch.yml', 'state': 'active'})
+        w[R + '/actions/workflows/4/runs?per_page=10'] = {'workflow_runs': [
+            run(41, '1. Manual Patch', 'success', event='workflow_dispatch', when='2026-10-08T06:30:00Z'),
+            run(42, '1. Manual Patch', 'failure', event='workflow_dispatch', when='2026-10-08T06:20:00Z')]}
+        w[R + '/actions/runs/41/attempts/1/jobs?per_page=100'] = {'jobs': [
+            job(411, 'Patch linkedin', 'success', when='2026-10-08T06:30:00Z')]}
+        w[R + '/actions/runs/42/attempts/1/jobs?per_page=100'] = {'jobs': [
+            job(421, 'Patch amazonmusic', 'failure', 'Verify finished APK identity', when='2026-10-08T06:20:00Z')]}
+        d = st.build(reader(w), t, now='2026-10-08T07:00:00Z')
+        apps = {a['id']: a for a in d['apps']}
+        self.assertEqual(apps['amazonmusic']['last_build']['result'], 'failure')
+        self.assertEqual(apps['linkedin']['last_build']['result'], 'success')
+        self.assertIn('Amazon Music', d['headline']['apps'])
+        self.assertNotIn('LinkedIn', d['headline']['apps'])
 
     def test_failed_reads_are_unknown_never_fine(self):
         r = reader(world(), missing={R + '/releases?per_page=100&page=1'})

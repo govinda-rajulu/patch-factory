@@ -131,6 +131,17 @@ check('status rows: a failure stays listed until a later run works, lists are ca
  assert.ok(source.includes('Unresolved rows are never hidden'));
  assert.ok(!source.includes('Nothing failed in the last'));
 });
+check('build runs keyed by app: an app-only failure is not a failed automation',()=>{
+ context.document.createElement=()=>({});
+ const when=new Date().toISOString(),app={label:'Amazon Music',last_build:{result:'failure',when}};
+ const perApp={name:'1. Manual Patch',last:{result:'failure',when,per_app:true,apps:['amazonmusic']}};
+ const plan={name:'2. Check new patch',last:{result:'failure',when}};
+ assert.equal(c.headline({apps:[app],workflows:[perApp]}).textContent,'Needs a look: Amazon Music.');
+ assert.equal(c.headline({apps:[],workflows:[perApp,plan]}).textContent,'Needs a look: 2. Check new patch.');
+ assert.match(c.headline({apps:[],workflows:[perApp]}).className,/ok/);
+ delete context.document.createElement;
+ assert.ok(source.includes("see that app under Builds"));
+});
 check('MicroG card lists every upstream file by icon and CPU, and the toolbar keeps one choice',()=>{
  assert.equal(c.microgName('7.2.1','icon','universal'),'microg-7.2.1.apk');
  assert.equal(c.microgName('7.2.1','noicon','universal'),'microg-7.2.1-noicon.apk');

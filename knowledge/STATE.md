@@ -2,7 +2,20 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
-## 9 Oct 2026 (packet W5, session close; start here)
+## 9 Oct 2026, afternoon (packet W6; start here)
+
+- **Base** main `1e08ef02` (W5 #162 merged). Packet W6 is one pull request on top. Record:
+ `docs/review/SESSION-2026-10-09.md`; open items: `docs/review/OPEN-WORK.md` (9 Oct, W6).
+- **Builds since W5**: LinkedIn built (run 37912428867, 4.1.1255.1); phone test pending.
+ Amazon Music failed the native check (run 37912474736): `lib/arm64-v8a/libInit.so` is the six
+ bytes `4.6.14`, unchanged by patching. W6 accepts only that shape under that file name.
+- **Cleanup**: second apply on 9 Oct deleted 22 releases and 22 tags (receipt
+ `~/work/run-logs/cleanup-receipt-20261009T091933Z.json` on the owner box).
+- **Status**: build workflows are keyed by app. A run whose only failures are app jobs marks
+ those apps, not the automation; a failure outside an app job still marks the workflow.
+- **Next**: OPEN-WORK 9 Oct (W6) list, in order. Rebuild Amazon Music first.
+
+## 9 Oct 2026 (packet W5, session close)
 
 - **Base** main `be8aaa44` (W4 #160 merged). Packet W5 is one pull request on top. Record: the W5
  section of `docs/review/SESSION-2026-10-08.md`; open items: `docs/review/OPEN-WORK.md` (9 Oct).

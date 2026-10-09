@@ -448,10 +448,12 @@ const BUILD_FLOWS=['1. Manual Patch','2. Check new patch','9. Batch Patch'];
 const WATCH_FLOWS=['6. Provider watch','7. Nightly watch','8. Community watch','Tooling watch'];
 const WATCH=[['agent-watch.yml','6. Provider watch','provider watch:'],['community-watch.yml','8. Community watch','community: index changed for apps you build'],['watch.yml','7. Nightly watch','watch: repo and provider status']];
 function daysOld(v){const t=Date.parse(v);return Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/86400000)):null;}
-function unresolved(row){return !!row&&BAD_RUN.has(row.result);}
+// W6: a build run whose only failures are app jobs is keyed by app; the app row carries it.
+function unresolved(row){return !!row&&BAD_RUN.has(row.result)&&!row.per_app;}
 function isOld(row){const d=daysOld(row&&row.when);return !!row&&BAD_RUN.has(row.result)&&d!==null&&d>STALE_DAYS;}
 function pill(row){
  const code=row&&row.result,bad=!!row&&BAD_RUN.has(code);
+ if(bad&&row.per_app)return el('span','Failed for '+(Array.isArray(row.apps)?row.apps.join(', '):'one app')+': see that app under Builds','pill wait');
  if(bad&&row.changed_since)return el('span','Changed since it failed: run once to confirm','pill wait');
  return el('span',row?(bad&&isOld(row)?'Failed '+daysOld(row.when)+' days ago, not fixed yet':row.words||'Unknown'):'No run yet','pill '+(bad?'bad':code==='success'?'ok':'wait'));
 }

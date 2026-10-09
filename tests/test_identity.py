@@ -528,6 +528,45 @@ class Identity(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'bytes changed'):
             identity.native_architecture(apk, source)
 
+    def test_observed_amazon_music_version_marker_preserved(self):
+        # 9 Oct 2026: Amazon Music 26.34.0 ships libInit.so as the six bytes 4.6.14
+        # (run 37912474736, input and output header 342e362e3134).
+        apk, source = self.preserved_payload(bytes.fromhex('342e362e3134'), 'lib/arm64-v8a/libInit.so')
+        result = identity.native_architecture(apk, source)
+        evidence = result['packaged_data'][0]
+        self.assertEqual(evidence['format'], 'literal-text-version-4.6.14')
+        self.assertEqual(evidence['input_sha256'], evidence['output_sha256'])
+        self.assertFalse(evidence['executable_elf'])
+        self.assertEqual(result['direct_arm64_elf_count'], 1)
+
+    def test_other_version_marker_shapes_still_rejected(self):
+        for payload in (b'4.6', b'4.6.14.1', b'4.6.14\n', b' 4.6.14', b'v4.6.14', b'4.6.1a', b'4..14',
+                        b'4.6.1234', b'4,6,14', b'', b'4.6.14' + b'\x7fELF', b'4.6.14' + b'0' * 20):
+            with self.subTest(payload=payload):
+                apk, source = self.preserved_payload(payload, 'lib/arm64-v8a/libInit.so')
+                with self.assertRaises(ValueError):
+                    identity.native_architecture(apk, source)
+
+    def test_version_marker_only_under_its_observed_name(self):
+        for name in ('lib/arm64-v8a/data.so', 'lib/arm64-v8a/libinit.so', 'lib/arm64-v8a/libInit.so.1'):
+            with self.subTest(name=name):
+                apk, source = self.preserved_payload(b'4.6.14', name)
+                with self.assertRaises(ValueError):
+                    identity.native_architecture(apk, source)
+
+    def test_version_marker_changed_during_patching_rejected(self):
+        apk, source = self.preserved_payload(b'4.6.14', 'lib/arm64-v8a/libInit.so')
+        with zipfile.ZipFile(source, 'w') as z:
+            z.writestr('lib/arm64-v8a/libInit.so', b'4.6.15')
+        with self.assertRaisesRegex(ValueError, 'bytes changed'):
+            identity.native_architecture(apk, source)
+
+    def test_version_marker_without_any_arm64_elf_rejected(self):
+        apk = self.apk({'lib/arm64-v8a/libInit.so': b'4.6.14'})
+        source = self.r / 'source.apk';shutil.copy(apk, source)
+        with self.assertRaisesRegex(ValueError, 'no direct arm64 ELF'):
+            identity.native_architecture(apk, source)
+
     def test_all_unknown_data_members_are_reported(self):
         apk = self.apk({'lib/arm64-v8a/libreal.so': self.elf(),
                         'lib/arm64-v8a/first.so': b'unknown1', 'lib/arm64-v8a/second.so': b'unknown2'})
