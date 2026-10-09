@@ -80,6 +80,21 @@ This file keeps only what fits in neither.
 26. **A handover names what it could not cover.** Compacted chat context loses detail (wrong
     calls 1-5 of 6 Oct); say so in the record instead of filling the gap.
 
+## 8 to 9 Oct 2026 (packets W2 to W5)
+
+- Get the owner's `git bundle --all` of main first and run the whole suite (contracts, repair,
+ portal, gates) plus a headless Pages render before any packet. A rehearsal without the suite
+ proves nothing about the repository.
+- Exercise every path a tool offers. `app.py` had add, disable, enable and remove; only add was
+ tested, and disabling an app broke about 20 checks.
+- Test a log filter on a real log. `gh run view --log-failed` does not label lines with the step
+ name; grep the saved log for error words or a known start/end line instead.
+- Check a record against the review's written rules before it ships (`docs/council/ONBOARD.md`).
+- Patches that say "Any" version give the build nothing to choose; pin `max_app_version` from the
+ store page (newest Android 10 build) until the build reads the store itself.
+- Owner rules worth keeping: a failure stays listed until a later run of the same app works;
+ keep each app's two newest builds and purge the rest; archive branches before deleting them.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of

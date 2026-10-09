@@ -17,3 +17,7 @@ Provider: RookieEnough/De-Vanced (rookieenough, channel prerelease; bundle: the 
 ## Decision
 Owner request through "5. Add target" on 2026-10-08.
 2026-10-08: the owner keeps "Unlock Unlimited" and "Unlimited track skipping" to test them with a throwaway Amazon account only, and merges over the review's block. If that account is warned or limited, remove both names with "5. Add target" before anyone signs in with a real account.
+2026-10-09: max_app_version 26.34.0. The provider's patches say "Any" version, so the build had no
+version to pick (Manual Patch run 37769298585: "no max_app_version to fall back on"). 26.34.0 is
+APKMirror's newest, universal, Android 10+ (read 2026-10-09). Raise it by hand until the build
+follows the store's newest Android 10 version itself (OPEN-WORK).

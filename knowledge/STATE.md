@@ -2,7 +2,24 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
-## 8 Oct 2026, afternoon (packet W4; start here)
+## 9 Oct 2026 (packet W5, session close; start here)
+
+- **Base** main `be8aaa44` (W4 #160 merged). Packet W5 is one pull request on top. Record: the W5
+ section of `docs/review/SESSION-2026-10-08.md`; open items: `docs/review/OPEN-WORK.md` (9 Oct).
+- **Start every packet** by asking the owner for `git bundle --all` of main; run the full suite
+ and a headless Pages render in the sandbox before handing anything over.
+- **Apps**: 17 targets. LinkedIn pinned to 4.1.1255.1 (4.1.1258 needs Android 12L); Amazon Music
+ pinned to 26.34.0 (its patches say "Any" version). Neither has built yet: Manual Patch both,
+ phone-test, Amazon only on a throwaway account (owner keeps its two paid-tier patches).
+- **Cleanup rule** (owner): each app keeps its two newest builds; everything older is purged.
+ `src/etc/cleanup.py preview` then `apply --token`. Done once on 9 Oct (4 releases, 96 tags).
+- **Branches**: only `main` and `status`. Merged branches are archived on the owner box
+ (`~/work/pf-archive`, INDEX) before deletion.
+- **Disable/enable** now pass the suite; a disabled app keeps folders, record, logo and fallback
+ entry.
+- **Next**: OPEN-WORK 9 Oct list, in order.
+
+## 8 Oct 2026, afternoon (packet W4)
 
 - **Base** main `18670c23` (W2 #158 and W3 #159 merged). Record: the W4 section of
  `docs/review/SESSION-2026-10-08.md`.

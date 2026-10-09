@@ -272,6 +272,8 @@ class Identity(unittest.TestCase):
     def test_output_package_mapping_matches_current_imports(self):
         targets=json.loads((self.r/'src/targets.json').read_text())
         for t in targets:
+            if not t.get('enabled'):
+                continue  # a disabled app is not in the Obtainium import (W5)
             expected={'youtube':'app.morphe.android.youtube','ytmusic':'app.morphe.android.apps.youtube.music','photos':'app.morphe.android.apps.photos'}.get(t['id'],t['package'])
             self.assertEqual(identity.expected_package(self.r,t),expected)
 

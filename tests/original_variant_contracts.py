@@ -144,7 +144,7 @@ class OriginalVariantContracts(unittest.TestCase):
 
     def test_policy_admits_only_reviewed_exact_versions(self):
         doc = fb.policy(ROOT)
-        self.assertEqual(len(doc['targets']), TOTAL)
+        self.assertEqual(len(doc['targets']), ENABLED)  # W5: the returned policy is the enabled apps
         reviewed = {'reddit', 'telegram', 'facebook', 'truecaller-combo', 'photos'}
         self.assertTrue(all(row['admissions'] == [] for ident, row in doc['targets'].items()
                             if ident not in reviewed))

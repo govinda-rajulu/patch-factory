@@ -107,14 +107,17 @@ def policy(root):
     need(set(doc) == {"schema", "targets"} and type(doc["schema"]) is int and
          doc["schema"] == 1, "unknown policy schema")
     targets = recipe.read_json(root, "src/targets.json")
-    enabled = {t["id"]: t for t in targets if t.get("enabled") is True}
-    need(isinstance(doc["targets"], dict) and set(doc["targets"]) == set(enabled),
+    known = {t["id"]: t for t in targets}
+    enabled = {i for i, t in known.items() if t.get("enabled") is True}
+    # A disabled app keeps its reviewed entry (W5, 9 Oct 2026): checked like any other, then left
+    # out of the returned policy, so nothing can fall back for an app that does not build.
+    need(isinstance(doc["targets"], dict) and enabled <= set(doc["targets"]) <= set(known),
          "policy must cover every enabled target exactly")
     for ident, row in doc["targets"].items():
         need(isinstance(row, dict) and
              set(row) == {"package", "primary", "blocked_reason", "admissions"},
              "unknown policy fields")
-        t = enabled[ident]
+        t = known[ident]
         need(row["package"] == t["package"] and row["primary"] == t.get("source", "apkmirror"),
              "policy target identity differs")
         need(isinstance(row["blocked_reason"], str) and row["blocked_reason"] and
@@ -160,7 +163,7 @@ def policy(root):
             if "signer_rotation" in a:
                 bound["signer_rotation"] = a["signer_rotation"]
             need(ev == bound, "qualification does not bind the admitted artifact")
-    return doc
+    return dict(doc, targets={k: v for k, v in doc["targets"].items() if k in enabled})
 
 
 def admission(root, ident, requested):

@@ -938,6 +938,8 @@ transfer(){
         targets = json.loads((self.r / 'src/targets.json').read_text())
         seen = set()
         for t in targets:
+            if not t.get('enabled'):
+                continue  # a disabled app's folders are kept but not written (W5)
             for b in t['candidates'] + t.get('extra_bundles', []):
                 d = b['patch_dir']
                 if d in seen:
@@ -1073,6 +1075,8 @@ transfer(){
     def test_safe_argv_all_current_targets(self):
         targets = json.loads((self.r / 'src/targets.json').read_text())
         for t in targets:
+            if not t.get('enabled'):
+                continue  # disabled apps are never built (W5)
             for c in t['candidates']:
                 with self.subTest(target=t['id'], candidate=c['name']):
                     text = self.prepare_bundles(t, c)
