@@ -80,6 +80,12 @@ def select(host, ident, channel, env):
             'unexpected extra-bundle URL origin')
     require(u.path.rsplit('/', 1)[-1] == name, 'bundle URL filename mismatch')
     if host == 'github':
+        # W11: the match stays exact (a security gate). When only the letter case differs, say which
+        # spelling GitHub uses: Explore of "SysAdminDoc/Hushfacebook" failed here on 9 Oct; the
+        # repository is "SysAdminDoc/HushFacebook".
+        canonical = '/'.join(u.path.split('/')[1:3])
+        require(not (canonical.lower() == ident.lower() and canonical != ident),
+                'repository name case differs: GitHub calls it ' + canonical + '; use that spelling')
         require(u.path.startswith('/' + ident + '/releases/download/'), 'bundle URL belongs to another repository')
         require(type(asset.get('size')) is int and 10000 < asset['size'] <= MAX_BYTES, 'invalid GitHub bundle size')
         expected_size = asset['size']

@@ -123,7 +123,7 @@ that leaves this block stale, so it cannot drift.
 | AdGuard | `adguard` | `adguard` | apkmirror | rushiranpise + hoo-dles | yes |
 | Amazon Music | `amazonmusic` | `amazonmusic` | apkmirror | rookieenough | yes |
 | ES File Explorer | `esfile` | `es-file` | apkmirror | ftl | yes |
-| Facebook | `facebook` | `facebook` | apkmirror | derevanced | yes |
+| Facebook | `facebook` | `facebook` | apkmirror | hushfacebook | yes |
 | Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise | yes |
 | Instagram | `instagram` | `instagram` | apkpure | piko + brosssh | yes |
 | JioHotstar | `hotstar` | `hotstar` | apkmirror | chiggi | yes |

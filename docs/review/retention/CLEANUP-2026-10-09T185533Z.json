@@ -1,0 +1,83 @@
+{
+ "repo": "govinda-rajulu/patch-factory",
+ "token": "3a47ff61760a324a",
+ "releases": [
+  {
+   "tag": "truecaller-v26.10.6",
+   "release_id": 366920951,
+   "name": "truecaller-v26.10.6",
+   "published_at": "2026-08-07T17:52:26Z",
+   "commit": "18211bc29a811bb275746da993c57b4fadd5187e",
+   "assets": [
+    {
+     "name": "truecaller-arm64-v8a.apk",
+     "size": 119420591,
+     "digest": "sha256:f3861d069a882ee8074d1bc66818785dba64b473d0cd1b06d725792732b37e72"
+    }
+   ]
+  }
+ ],
+ "tags": [
+  {
+   "tag": "truecaller-v26.10.6",
+   "commit": "18211bc29a811bb275746da993c57b4fadd5187e"
+  }
+ ],
+ "deployments": [
+  {
+   "id": 6933848860,
+   "environment": "github-pages",
+   "created_at": "2026-10-08T11:06:35Z",
+   "sha": "be8aaa44fbb5bb80a167af107056b581166097e0",
+   "ref": "main",
+   "task": "deploy"
+  },
+  {
+   "id": 6957465983,
+   "environment": "github-pages",
+   "created_at": "2026-10-09T09:31:58Z",
+   "sha": "1e08ef0256f2008f404447b69930f8b33d68db0b",
+   "ref": "main",
+   "task": "deploy"
+  }
+ ],
+ "kept_deployments": [
+  {
+   "id": 6968229348,
+   "created_at": "2026-10-09T18:35:01Z",
+   "sha": "7838a4ce62bc5bf7a61a4525adef1ede87c87145"
+  },
+  {
+   "id": 6967369141,
+   "created_at": "2026-10-09T17:50:39Z",
+   "sha": "a2c2ab2774f456e26a773fa6cc9e292d7b0dd57d"
+  },
+  {
+   "id": 6962149696,
+   "created_at": "2026-10-09T13:41:55Z",
+   "sha": "6c3a626a48e7486464559bc856bd4bae0fe3270e"
+  },
+  {
+   "id": 6961628261,
+   "created_at": "2026-10-09T13:17:00Z",
+   "sha": "eebbb279dcc5ffaeb58f9824a4acdb02ce4a8c46"
+  },
+  {
+   "id": 6958578915,
+   "created_at": "2026-10-09T10:34:36Z",
+   "sha": "2eccc4caf7d21855cc9a46f3e7d806143fedda96"
+  }
+ ],
+ "branches": [
+  {
+   "name": "packet/w10",
+   "sha": "089d06ea765f46f7ef94fc08a999a2dfbb956b20",
+   "restore": "git push origin 089d06ea765f46f7ef94fc08a999a2dfbb956b20:refs/heads/packet/w10"
+  },
+  {
+   "name": "packet/w9",
+   "sha": "6bfc08e93c0b10950d9578fe6de59d77f1e1811e",
+   "restore": "git push origin 6bfc08e93c0b10950d9578fe6de59d77f1e1811e:refs/heads/packet/w9"
+  }
+ ]
+}

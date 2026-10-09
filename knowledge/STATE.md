@@ -6,7 +6,15 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
 
-## 10 Oct 2026, past midnight IST (packet W10; start here)
+## 10 Oct 2026, 1 AM IST (packet W11; start here)
+
+- **Main** `7838a4ce` (W10 #169). Cleanup applied: standalone Truecaller release gone.
+- **W11** (`pf-w11.py`): baselines re-seeded; Facebook on `SysAdminDoc/HushFacebook` 581.0.0.45.58
+ (82 patches; record `docs/review/onboarding/facebook.md`); controller waits for the Onboarding
+ review, then builds Facebook.
+- **Next**: W11 RESULT, Facebook phone test, then W12 (build rule, fallbacks, Morphe digest).
+
+## 10 Oct 2026, past midnight IST (packet W10)
 
 - **Main** `a2c2ab27` (W9 #167). keymapper built in run 37969103802 without the retention step.
 - **W10** (controller `pf-w10.py`): cleanup marks Pages records inactive before deleting and drops

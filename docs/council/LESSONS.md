@@ -243,3 +243,13 @@ Tags: evidence, sources
 L030 found on 29 Sep that `-u` omits universal patches; the watch kept `-u` so old baselines
 stayed comparable, and by 9 Oct 15 included names looked removed while their apps built. A
 known blind spot left in place for consistency keeps misleading; fix it and re-seed.
+
+### L045 · A name can match in two spellings
+Tags: sources
+Explore of `SysAdminDoc/Hushfacebook` failed at the exact repository check; GitHub serves it as
+`HushFacebook`. Keep the check exact, take the spelling GitHub returns, and make the error say it.
+
+### L046 · An index has more than one way to say "this app"
+Tags: sources, evidence
+The community index ties a patch to an app either per patch or once per bundle (`targetApps`).
+Counting only one shape hid the strongest Facebook and Instagram bundles. Read every shape before ranking.

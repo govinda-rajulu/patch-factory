@@ -132,6 +132,11 @@ This file keeps only what fits in neither.
 - Check watch output against the include lists. A name the build applies but the watch does not
  list means the listing is incomplete, not that the patch is gone (L044).
 
+## 10 Oct 2026 (packet W11)
+
+- Use the repository spelling GitHub returns; exact checks stay exact (L045).
+- Before ranking providers, read every way the index links a patch to an app (L046).
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of

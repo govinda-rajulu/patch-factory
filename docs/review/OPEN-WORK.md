@@ -1,6 +1,23 @@
 # Open work
 
-## Current checkpoint: 9 October 2026, past midnight (packet W10)
+## Current checkpoint: 10 October 2026 (packet W11)
+
+W10 merged (#169, main `7838a4ce`), cleanup applied (one Truecaller). W11: 22 baselines
+re-seeded, Facebook on HushFacebook 581 (82 patches), repository-case hint, review correction.
+Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W11). Open, in order:
+
+1. Owner runs `pf-w11.py` (merge after Validate and the Onboarding review, then one Facebook
+ build) and uploads its logs. Phone-test Facebook: read receipts, typing and anonymous stories
+ are in for testing.
+2. **W12**: the build rule for every app (most chosen patches, newest breaks ties, step down,
+ then the next provider; lost patches named), with per-provider version pins so De-Vanced
+ becomes Facebook's fallback; the incremental Morphe changelog digest (from the
+ `MorpheApp/morphe-patches` release notes: added or renamed patches, version support, fixes to
+ patches we use; Manager skipped); close #102.
+3. Phone-test Amazon Music (throwaway account only) and LinkedIn.
+4. **W13**: S2 publisher pins, APKPure store step-down, onboarding gpt parser, openskip handbook copy.
+
+## Earlier checkpoint: 9 October 2026, past midnight (packet W10)
 
 W9 merged (#167, main `a2c2ab27`). W10 (one pull request): cleanup marks Pages records inactive
 first and removes retired apps' releases (one Truecaller: `tc-combo`), the watch lists universal

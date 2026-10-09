@@ -100,6 +100,10 @@ def fetch(owner, repo, channel, directory, env):
     require(re.fullmatch(r'[A-Za-z0-9_.+-]+\.mpp', name), 'unsafe bundle filename')
     url = asset['browser_download_url']
     parsed = urlparse(url)
+    # W11: still an exact match; a case-only difference names GitHub's spelling (HushFacebook, 9 Oct).
+    canonical = '/'.join(parsed.path.split('/')[1:3])
+    require(not (canonical.lower() == (owner + '/' + repo).lower() and canonical != owner + '/' + repo),
+            'repository name case differs: GitHub calls it ' + canonical + '; use that spelling')
     require(parsed.scheme == 'https' and parsed.hostname == 'github.com'
             and parsed.path.startswith('/' + owner + '/' + repo + '/releases/download/'), 'unexpected bundle download URL')
     directory = pathlib.Path(directory)

@@ -4,9 +4,11 @@ Change like animation
 Change version code
 Clone
 Copy comment
+Custom font
 Custom sharing domain
 Customise story ring size
 Customise story timestamp
+Customize navigation bar
 Disable Reels scrolling
 Disable ads
 Disable analytics
@@ -25,14 +27,18 @@ Download media
 Download voice message
 External downloader
 Filter stories
+Focus Lock
 Friendship status indicator
+Hide Reels follow button
 Hide group creation button on sharesheet
-Hide navigation buttons
 Hide notes tray
 Hide reshare button
+Hide save buttons
+Hide share button
 Hide stories tray
 Hide suggested content
 Improve image viewing
+Inbox lock
 Limit feed to following profiles
 Loop story
 Make ephemeral media permanent
@@ -44,6 +50,7 @@ Recommended flags
 Remove build expired popup
 Remove empty bottom space
 Sanitize share links
+Save Instants
 Save deleted messages
 Save media comment
 Theme

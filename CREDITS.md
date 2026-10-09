@@ -22,7 +22,7 @@ as code or APKs to copy.
 | AdGuard | hoo-dles | https://github.com/hoo-dles/morphe-patches |
 | Amazon Music | rookieenough | https://github.com/RookieEnough/De-Vanced |
 | ES File Explorer | ftl | https://github.com/BlazeFTL/FTL-Patches |
-| Facebook | derevanced | https://github.com/RookieEnough/De-Vanced |
+| Facebook | hushfacebook | https://github.com/SysAdminDoc/HushFacebook |
 | Google Photos | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | Instagram | piko | https://github.com/crimera/piko |
 | Instagram | brosssh | https://github.com/brosssh/morphe-patches |
