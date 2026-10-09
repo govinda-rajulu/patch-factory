@@ -52,6 +52,10 @@ class Transport(unittest.TestCase):
   r=json.loads(json.dumps(self.release));r['assets'][0]['browser_download_url']='https://example.invalid/file.mpp'
   with patch.object(bundle,'choose_release',return_value=r):
    with self.assertRaises(ValueError):bundle.fetch('owner','repo','latest',self.root,{})
+ def test_fetch_case_only_difference_names_the_canonical_spelling(self):
+  r=json.loads(json.dumps(self.release));r['assets'][0]['browser_download_url']='https://github.com/Owner/Repo/releases/download/v1/patches-1.mpp'
+  with patch.object(bundle,'choose_release',return_value=r):
+   with self.assertRaisesRegex(ValueError,'GitHub calls it Owner/Repo'):bundle.fetch('owner','repo','latest',self.root,{})
  def test_fetch_rejects_wrong_digest(self):
   r=json.loads(json.dumps(self.release));r['assets'][0]['digest']='sha256:'+'0'*64
   with patch.object(bundle,'choose_release',return_value=r),patch.object(bundle.subprocess,'run',side_effect=self.download):
@@ -260,6 +264,12 @@ class ExtraTransport(unittest.TestCase):
  def test_github_wrong_size_refused(self):
   self.gh['assets'][0]['size']+=1
   with self.assertRaisesRegex(ValueError,'size differs'):self.fetch('github')
+ def test_case_only_difference_names_the_canonical_spelling(self):
+  # W11: Explore of SysAdminDoc/Hushfacebook failed at Fetch bundle; GitHub serves HushFacebook.
+  self.gh['assets'][0]['browser_download_url']='https://github.com/Owner/Repo/releases/download/v1/patches-1.mpp'
+  with self.assertRaisesRegex(ValueError,'GitHub calls it Owner/Repo'):self.fetch('github')
+  self.gh['assets'][0]['browser_download_url']='https://github.com/other/repo/releases/download/v1/patches-1.mpp'
+  with self.assertRaisesRegex(ValueError,'belongs to another repository'):self.fetch('github')
  def test_github_other_repo_url_refused(self):
   self.gh['assets'][0]['browser_download_url']='https://github.com/other/repo/releases/download/v1/patches-1.mpp'
   with self.assertRaisesRegex(ValueError,'another repository'):self.fetch('github')

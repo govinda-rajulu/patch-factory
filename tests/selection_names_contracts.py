@@ -33,12 +33,12 @@ class SelectionNames(unittest.TestCase):
     def test_missing_include_name_fails_and_is_named(self):
         def observe(row):
             names = self.offered(row)['names']
-            if row['patch_dir'] == 'facebook-derevanced':
-                names = [n for n in names if n != 'Disable all ads']
+            if row['patch_dir'] == 'facebook-hushfacebook':  # W11: Facebook moved from De-Vanced
+                names = [n for n in names if n != 'Hide sponsored posts']
             return {'names': names}
         (checked, missing, unverified), text = self.run_check(observe)
         self.assertEqual(missing, 1)
-        self.assertIn('-- facebook/facebook-derevanced MISSING: Disable all ads', text)
+        self.assertIn('-- facebook/facebook-hushfacebook MISSING: Hide sponsored posts', text)
 
     def test_unreadable_provider_is_unverified_never_ok(self):
         def observe(row):
@@ -57,12 +57,12 @@ class SelectionNames(unittest.TestCase):
     def test_stale_exclude_is_reported_not_failed(self):
         def observe(row):
             names = self.offered(row)['names']
-            if row['patch_dir'] == 'facebook-derevanced':
-                names = [n for n in names if n != 'Change package name']
+            if row['patch_dir'] == 'facebook-hushfacebook':
+                names = [n for n in names if n != 'Start on x86 devices']
             return {'names': names}
         (checked, missing, unverified), text = self.run_check(observe)
         self.assertEqual(missing, 0)
-        self.assertIn('~~ facebook/facebook-derevanced exclude not offered by provider: Change package name', text)
+        self.assertIn('~~ facebook/facebook-hushfacebook exclude not offered by provider: Start on x86 devices', text)
 
     def test_clean_output_reads_as_partial_in_the_nightly_consumer(self):
         # The producer's own summary once said "unverified=0", which the Nightly consumer

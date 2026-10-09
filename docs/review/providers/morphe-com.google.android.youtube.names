@@ -1,5 +1,5 @@
+AI channel filter
 Add to queue
-Alternative thumbnails
 Ambient mode
 App refresh rate
 Bypass image region restrictions
@@ -7,14 +7,23 @@ Bypass link redirects
 Captions
 Change form factor
 Change header
+Change installer source
 Change start page
+Channel search
+Channel whitelist
 Check watch history domain name resolution
+Clone app
+Copy text
 Copy video link
 Custom branding
 Custom player overlay opacity
+DeArrow
 Disable DRC audio
+Disable Play Store updates
 Disable QUIC protocol
 Disable Shorts resuming on startup
+Disable auto feed refresh
+Disable continue watching prompt
 Disable double tap actions
 Disable fullscreen gestures
 Disable haptic feedback
@@ -29,6 +38,7 @@ Double tap to seek
 Downloads
 Enable debugging
 Exit fullscreen mode
+Force fullscreen landscape
 Force original audio
 Fullscreen video scale
 GmsCore support
@@ -43,6 +53,7 @@ Hide player flyout menu components
 Hide player overlay buttons
 Hide related video overlay
 Hide related videos
+Hide status bar
 Hide timestamp
 Hide video action buttons
 Loop video
@@ -57,23 +68,31 @@ Open links externally
 Open system share sheet
 Open videos fullscreen
 Override YouTube Music buttons
+Override certificate pinning
+Picture-in-picture button
 Play all
+Playback buffer
 Playback in feeds
 Playback speed
+Player icon style
 PoToken provider
 Reload video
-Remember livestream playback position
+Remember live stream playback position
 Remove background playback restrictions
 Remove viewer discretion dialog
+Restore original titles
 Return YouTube Dislike
 Sanitize sharing links
 Save to Watch later
 Seekbar
 Settings menu filter
 Shorts autoplay
+Shorts icon style
+Skip silence
 SponsorBlock
 Spoof app version
 Spoof device dimensions
+Spoof signature
 Spoof video streams
 Swipe controls
 Theme

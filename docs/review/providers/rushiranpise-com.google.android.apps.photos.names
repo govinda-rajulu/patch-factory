@@ -1,6 +1,14 @@
 AMOLED dark theme
 Change package name
+Custom branding
+Disable PairIP license check
 Enable DCIM folders backup control
 Fix DCIM folder classification
+Fix Firebase after re-signing
 GmsCore support
+GmsCore support (MicroG)
+Provide Original app certificate
+Spoof Widevine / DRM level
+Spoof app signature
 Spoof features
+Spoof install source

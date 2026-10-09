@@ -120,3 +120,20 @@ name; `Alternative thumbnails` became `DeArrow` (kept, `YTMUSIC-2026-10-06.md`).
 3. Optional names for exclusive apps (Instagram 8 new, Facebook 12 unused, Photos 1, Reddit 1):
  none are added without the owner naming them.
 
+## Correction, 10 October 2026 (packet W11)
+
+The "Other providers" column above missed every bundle that names its app once in
+`targetApps` instead of on each patch. That hid two candidates: `SysAdminDoc/HushFacebook`
+(Facebook; 60 patches in the 5 Oct index, 85 in Explore run 37976702866, issue #173) and
+`SysAdminDoc/HushGram` (Instagram; 78 in Explore, issue #171). HushTelegram targets
+`org.telegram.messenger.web`, not our package. No other row changes.
+
+Owner calls since (10 Oct):
+- Facebook moves to HushFacebook 581.0.0.45.58 with 82 of its 85 patches, the three
+ server-visible ones included for testing. Record: `onboarding/facebook.md`.
+- Instagram stays on piko + brosssh. HushGram lists `Change version code` (BANNED) and
+ `Spoof location`, and overlaps piko.
+- YouTube keeps its new default names.
+- Build rule for every app (design for W12): the version where most of the chosen patches
+ apply wins; the newest breaks a tie; a failed build steps down, then falls back to the next
+ provider. A patch lost on the way is named in the log.

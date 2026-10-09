@@ -264,7 +264,8 @@ class Identity(unittest.TestCase):
         self.assertEqual(identity.check_input_variant({'version_code':'475019268'},meta),'MATCH 475019268')
         self.assertEqual(identity.check_input_variant({},meta),'NOT PINNED')
         fb=[t for t in json.loads((self.r/'src/targets.json').read_text()) if t['id']=='facebook'][0]
-        self.assertEqual((fb['arch'],fb['dpi'],fb['version_code']),('arm64-v8a','240-640dpi','475019344'))
+        # W11 (10 Oct 2026): HushFacebook is checked against 581.0.0.45.58 build 475215365 (arm64, 320-640dpi).
+        self.assertEqual((fb['arch'],fb['dpi'],fb['version_code'],fb['max_app_version']),('arm64-v8a','320-640dpi','475215365','581.0.0.45.58'))
         build=(self.r/'src/build/build.sh').read_text()
         self.assertIn('get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"',build)
         self.assertIn('artifact_identity.py input-variant "$ID"',build)

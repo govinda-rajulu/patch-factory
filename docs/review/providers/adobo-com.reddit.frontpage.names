@@ -1,9 +1,16 @@
+Block ads, trackers, and analytics
+Change package name
 Colorize comment indent lines
+Deactivate Firebase Analytics
+Deactivate Firebase Performance Monitoring
+Disable Google Safe Browsing in WebView
 Disable bottom navigation bar auto-hide
 Disable home feed auto-refresh
 Disable home feed refresh on back to exit
 Disable home feed swipe
 Disable home screen redirect
+Disable metrics collection in WebView
+Disable mobile ads
 Disable post detail swipe
 Disable screenshot banner
 Enable guest mode
@@ -11,6 +18,7 @@ Hide Ask button from search bar
 Hide awards
 Hide community highlights
 Hide community menu badge
+Hide crosspost
 Hide post view counts
 Hide prominent search bar
 Hide share count
@@ -20,4 +28,10 @@ Hide user flairs
 Make system navigation bar transparent
 Open external links directly
 Remove ads and telemetry
+Remove internet permission
+Remove screenshot detection
+Replace Google Maps API key
 Sanitize share links
+Spoof Advertising ID
+Spoof Firebase certificate hash
+Spoof signature verification
