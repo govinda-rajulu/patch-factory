@@ -115,7 +115,10 @@ class Observer:
     # The provider watch baselines were recorded with "-x -u", which omits patches that
     # declare no package (universal ones such as FTL "Remove Ads"). Name checks pass
     # flags=() to see every patch the build can apply (29 Sep 2026).
-    def __init__(self, root, work, flags=("-x", "-u")):
+    # W10 (9 Oct 2026, #102): the watch drops "-u" too. With it, 15 included universal names
+    # (Reddit 7, MX Player 4, ES File 3, Photos 1) looked "gone" while those apps built fine.
+    # Baselines recorded with "-u" are re-seeded from the first run without it.
+    def __init__(self, root, work, flags=("-x",)):
         self.root, self.work, self.flags = root, work, tuple(flags)
         self.patcher, self.cache = None, {}
 

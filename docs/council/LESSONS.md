@@ -231,3 +231,15 @@ Tags: evidence
 GitHub prints each step's `run:` text before its output, so a grep for a notice name also finds
 the command that prints it. The W8 RESULT's key lines picked up echoed script lines as
 noise. Skip the echoed block (from `##[group]Run` to `##[endgroup]`) before matching.
+
+### L043 · Read the precondition, then code it
+Tags: evidence, workflows
+GitHub deletes a deployment only when it is inactive. The W9 cleanup read that page and still
+assumed old Pages records were inactive; apply stopped on HTTP 422 after two deletes. A rule
+quoted in research belongs in the code and in a fake that refuses the call without it.
+
+### L044 · A listing flag can hide what the build applies
+Tags: evidence, sources
+L030 found on 29 Sep that `-u` omits universal patches; the watch kept `-u` so old baselines
+stayed comparable, and by 9 Oct 15 included names looked removed while their apps built. A
+known blind spot left in place for consistency keeps misleading; fix it and re-seed.

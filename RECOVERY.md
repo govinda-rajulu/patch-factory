@@ -18,7 +18,9 @@ Verify downloaded bytes, not filenames. Check storage capacity before copying
 large APK collections. Do not place signing material, private environment data,
 chat exports or personal backup locations in public repository files.
 
-The frozen `truecaller-v26.10.6` release and `src/patches/_attic/` are retained.
+One Truecaller (owner, 9 Oct 2026): `tc-combo` (bufferk, paresh and binarymend together) is the only
+Truecaller build. The old standalone `truecaller-v26.10.6` release is a retired app and goes
+with the next cleanup. `src/patches/_attic/` is retained.
 A frozen APK is a historical recovery option, not proof that Android will accept
 a downgrade or preserve sessions. No backup location or restore success is
 asserted by this document.

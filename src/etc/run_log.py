@@ -17,6 +17,8 @@ import re
 import sys
 
 STAMP = re.compile(r'^\ufeff?\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z ?')
+# Colour codes: a real ESC, or the two characters "^[" that gh writes in its place (W10).
+COLOUR = re.compile(r'(?:\x1b|\^\[)\[[0-9;]*m')
 
 
 def split(line):
@@ -47,7 +49,7 @@ def key_lines(text, patterns, limit=80):
     out = []
     for job, step, body in output_lines(text):
         if any(p in body for p in patterns):
-            out.append((step + ' | ' if step else '') + body.strip())
+            out.append((step + ' | ' if step else '') + COLOUR.sub('', body).strip())
             if len(out) >= limit:
                 break
     return out

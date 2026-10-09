@@ -37,7 +37,7 @@ Read the current files; these are pointers, not copies.
 - ES File and MX Player exclude APK Junk Cleanup, Remove Duplicate Graphics and Remove Languages
   in each ftl bundle (`docs/review/RESOURCE-DECISION-2026-09-19.md`).
 - Remove Debug Info is quarantined: mitigated, not proved fixed upstream.
-- SonyLIV/ZEE5 and standalone Truecaller are retired; frozen `truecaller-v26.10.6` is protected.
+- SonyLIV/ZEE5 and standalone Truecaller are retired. Since 9 Oct 2026 the only Truecaller is `tc-combo`; the standalone `truecaller-v26.10.6` release is removed by cleanup.
   `src/patches/_attic` stays.
 - Extras are not fallback candidates. Provider age is advisory, never a kill switch.
 - Configured, applied, approved and published are four different states. Approval is not completion.

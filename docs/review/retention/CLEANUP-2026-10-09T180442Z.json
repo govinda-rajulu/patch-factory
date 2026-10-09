@@ -1,0 +1,70 @@
+{
+ "repo": "govinda-rajulu/patch-factory",
+ "token": "33c8fa6aee71414a",
+ "releases": [
+  {
+   "tag": "key-mapper-v4.2.1-b20260907",
+   "release_id": 383861944,
+   "name": "key-mapper-v4.2.1-b20260907",
+   "published_at": "2026-09-07T06:08:03Z",
+   "commit": "e51970b9af788b4acada18481904ca031b4caf4d",
+   "assets": [
+    {
+     "name": "key-mapper-v4.2.1-arm64-v8a.apk",
+     "size": 8884872,
+     "digest": "sha256:6c42134784b0b76b659fd7766d99e844c677671ccf5ab9c931881db16e3163ca"
+    }
+   ]
+  }
+ ],
+ "tags": [
+  {
+   "tag": "key-mapper-v4.2.1-b20260907",
+   "commit": "e51970b9af788b4acada18481904ca031b4caf4d"
+  }
+ ],
+ "deployments": [
+  {
+   "id": 6933848860,
+   "environment": "github-pages",
+   "created_at": "2026-10-08T11:06:35Z",
+   "sha": "be8aaa44fbb5bb80a167af107056b581166097e0",
+   "ref": "main",
+   "task": "deploy"
+  }
+ ],
+ "kept_deployments": [
+  {
+   "id": 6967369141,
+   "created_at": "2026-10-09T17:50:39Z",
+   "sha": "a2c2ab2774f456e26a773fa6cc9e292d7b0dd57d"
+  },
+  {
+   "id": 6962149696,
+   "created_at": "2026-10-09T13:41:55Z",
+   "sha": "6c3a626a48e7486464559bc856bd4bae0fe3270e"
+  },
+  {
+   "id": 6961628261,
+   "created_at": "2026-10-09T13:17:00Z",
+   "sha": "eebbb279dcc5ffaeb58f9824a4acdb02ce4a8c46"
+  },
+  {
+   "id": 6958578915,
+   "created_at": "2026-10-09T10:34:36Z",
+   "sha": "2eccc4caf7d21855cc9a46f3e7d806143fedda96"
+  },
+  {
+   "id": 6957465983,
+   "created_at": "2026-10-09T09:31:58Z",
+   "sha": "1e08ef0256f2008f404447b69930f8b33d68db0b"
+  }
+ ],
+ "branches": [
+  {
+   "name": "packet/w9",
+   "sha": "6bfc08e93c0b10950d9578fe6de59d77f1e1811e",
+   "restore": "git push origin 6bfc08e93c0b10950d9578fe6de59d77f1e1811e:refs/heads/packet/w9"
+  }
+ ]
+}

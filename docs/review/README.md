@@ -4,7 +4,7 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **9 October 2026** for packet W9 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
+Last indexed **9 October 2026** for packets W9 and W10 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
@@ -19,6 +19,7 @@ Last indexed **9 October 2026** for packet W9 (retention receipts indexed in `re
 | [OPEN-WORK.md](OPEN-WORK.md) | Open, partial and deferred work. Newest checkpoint first. |
 | [AUDIT-5S-2026-09-27.md](AUDIT-5S-2026-09-27.md) | Repository hygiene audit: what was sorted, corrected, and left for an owner decision. |
 | [AUDIT-MICRO-2026-09-27.md](AUDIT-MICRO-2026-09-27.md) | Line-level security and logic audit: signing-secret scope, no runtime installs, silent failures; issue #27/#35/#5 decisions. |
+| [PROVIDERS-2026-10-09.md](PROVIDERS-2026-10-09.md) | Every app's providers and alternatives from the community index, new and removed names, the watch's missing universal patches (#102), one Truecaller, owner calls open for W11. Read first for patch work. |
 | [PROVIDER-DELTAS-2026-09.md](PROVIDER-DELTAS-2026-09.md) | Upstream patch-name changes waiting for owner classification. |
 
 ## Decisions and gates

@@ -23,6 +23,9 @@ class OperationalDocs(unittest.TestCase):
                        'not a retrievable backup','Do not rotate the key','exact cleanup preview',
                        'truecaller-v26.10.6','whole source run'):
             self.assertIn(phrase,text)
+        # W10: one Truecaller; the standalone release is no longer protected.
+        self.assertIn('`tc-combo` (bufferk, paresh and binarymend together) is the only',text)
+        self.assertNotIn('release and `src/patches/_attic/` are retained',text)
         for phrase in ('turn Play Protect scanning off','Uninstall freely',
                        '3-4 phone verifications','ONE copy today','max_patch_age_days` is 60'):
             self.assertNotIn(phrase,text)

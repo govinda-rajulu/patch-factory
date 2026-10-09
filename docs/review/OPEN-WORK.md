@@ -1,6 +1,22 @@
 # Open work
 
-## Current checkpoint: 9 October 2026, late night (packet W9)
+## Current checkpoint: 9 October 2026, past midnight (packet W10)
+
+W9 merged (#167, main `a2c2ab27`). W10 (one pull request): cleanup marks Pages records inactive
+first and removes retired apps' releases (one Truecaller: `tc-combo`), the watch lists universal
+patches (#102), colour codes out of key lines, provider review. Record:
+[SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W10), [PROVIDERS-2026-10-09.md](PROVIDERS-2026-10-09.md). Open, in order:
+
+1. Owner runs `pf-w10.py`, uploads its logs zip, then the printed cleanup apply line (it removes
+ `truecaller-v26.10.6`, old Pages records and the merged packet branches).
+2. **W11**: re-seed all 22 provider baselines from the W10 watch artifact; apply the owner's calls
+ in PROVIDERS-2026-10-09 (Facebook provider, YouTube defaults, optional names); copy the W10
+ cleanup receipt; close #102.
+3. Phone-test Amazon Music (throwaway account only) and LinkedIn.
+4. **W12**: S2 publisher pins, APKPure store step-down, Plan-path step-down, onboarding gpt
+ parser, openskip handbook copy of the W5 to W10 lessons by its own PR.
+
+## Earlier checkpoint: 9 October 2026, late night (packet W9)
 
 W8 merged (#166); Amazon Music 26.36.1 and LinkedIn 4.1.1255.1 built. W9 (one pull request):
 records, routine cleanup (releases, tags, Pages deployments, merged packet branches), old
