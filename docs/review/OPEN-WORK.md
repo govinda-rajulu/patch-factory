@@ -1,6 +1,20 @@
 # Open work
 
-## Current checkpoint: 9 October 2026, evening (packet W7)
+## Current checkpoint: 9 October 2026, night (packet W8)
+
+W7 merged (#164, main `eebbb279`); LinkedIn stepped down to 4.1.1255.1 by itself and built.
+W8 (one pull request): Amazon Music's any-version backfill reads the APK with the SDK reader;
+one Validate run per packet branch. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md)
+(W7 results and W8). Open, in order:
+
+1. Owner runs the W8 controller (merge, then Manual Patch `amazonmusic` on the store's newest).
+ If that version needs a newer Android, the store-listing step-down runs for the first time.
+2. Phone-test Amazon Music (throwaway account only) and LinkedIn.
+3. Retire the old `release_retention.py` preview in the release action.
+4. #102 provider watch with and without `-u` (open, tracked); #142 closes after the owner reads it.
+5. Then the W7 list below from item 3.
+
+## Earlier checkpoint: 9 October 2026, evening (packet W7)
 
 W7 (one pull request on top of W6 #163): version step-down for apps above the phone cap,
 any-version providers take the store's newest, Amazon Music and LinkedIn unpinned, short MicroG

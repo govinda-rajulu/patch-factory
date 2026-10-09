@@ -6,7 +6,15 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
 
-## 9 Oct 2026, evening (packet W7; start here)
+## 9 Oct 2026, night (packet W8; start here)
+
+- **Main** `eebbb279` (W7 #164 merged). Branches: `main`, `status` only. Packet W8 is one pull
+ request: any-version backfill through the SDK reader, Validate push runs on `main` only.
+- **Live**: LinkedIn stepped down 4.1.1258 to 4.1.1255.1 by itself (run 37935850580). Amazon
+ Music stopped at the version backfill (run 37935814660); its 26.34.0 build from W6 stays.
+- **Next**: the W8 controller's RESULT; then OPEN-WORK 9 Oct (W8).
+
+## 9 Oct 2026, evening (packet W7)
 
 - **Base** W6 (#163, head `3e14e809`) plus packet W7 (one pull request). The owner runs one
  controller, `pf-w7.py`: merge #163, push and merge W7 after its checks, dispatch Manual Patch

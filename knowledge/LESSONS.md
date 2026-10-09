@@ -109,6 +109,15 @@ This file keeps only what fits in neither.
 - A hand-raised version pin is a symptom. Pick the newest the provider supports, step down
  from the phone cap, and keep pins only where a human chose an exact build.
 
+## 9 Oct 2026, night (packet W8)
+
+- A fake that always answers proves nothing about a real endpoint's shape. Rehearse log
+ collection with the same command on one real finished run before shipping it.
+- When one of two runs of the same commit fails in a third-party service step and the other
+ passes, retry once, then gate on the pull-request run. Do not run both on packet branches.
+- A tool on PATH in the sandbox may not be on PATH on the runner: use the reader that searches
+ ANDROID_HOME.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of
