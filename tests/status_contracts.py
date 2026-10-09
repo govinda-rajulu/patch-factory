@@ -204,6 +204,30 @@ class Status(unittest.TestCase):
         self.assertIn('Amazon Music', d['headline']['apps'])
         self.assertNotIn('LinkedIn', d['headline']['apps'])
 
+    def test_a_cancel_replaced_by_a_newer_run_is_not_a_failure(self):
+        # W12: "Status page data" cancels its own older run (cancel-in-progress); run
+        # 37982178420 on 9 Oct showed as a red automation although nothing failed.
+        w = world()
+        w[R + '/actions/workflows/2/runs?per_page=5'] = {'workflow_runs': [
+            run(24, '7. Nightly watch', None, status='in_progress', when='2026-10-08T06:30:00Z'),
+            run(23, '7. Nightly watch', 'cancelled', when='2026-10-08T06:20:00Z'),
+            run(22, '7. Nightly watch', 'success', when='2026-10-08T06:10:00Z')]}
+        d = st.build(reader(w), TARGETS, now='2026-10-08T07:00:00Z')
+        nw = [x for x in d['workflows'] if x['file'] == 'watch.yml'][0]
+        self.assertEqual(nw['last']['words'], 'Worked')
+        self.assertNotIn('7. Nightly watch', d['headline']['workflows'])
+        self.assertEqual(len(nw['recent']), 3)
+
+    def test_the_newest_cancel_still_counts(self):
+        # Nothing newer replaced it, so it stays visible.
+        w = world()
+        w[R + '/actions/workflows/2/runs?per_page=5'] = {'workflow_runs': [
+            run(23, '7. Nightly watch', 'cancelled', when='2026-10-08T06:20:00Z'),
+            run(22, '7. Nightly watch', 'success', when='2026-10-08T06:10:00Z')]}
+        w[R + '/actions/runs/23/attempts/1/jobs?per_page=100'] = {'jobs': []}
+        d = st.build(reader(w), TARGETS, now='2026-10-08T07:00:00Z')
+        self.assertIn('7. Nightly watch', d['headline']['workflows'])
+
     def test_failed_reads_are_unknown_never_fine(self):
         r = reader(world(), missing={R + '/releases?per_page=100&page=1'})
         d = st.build(r, TARGETS, now='2026-10-08T07:00:00Z')

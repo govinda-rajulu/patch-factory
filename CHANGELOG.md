@@ -7,8 +7,14 @@ GitHub release carries its own notes (app version, applied patches, provider bun
 Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 
 
+## 2026-10-10
+
+- packet W11: Facebook on HushFacebook 581, provider baselines re-seeded, review correction ([#174](https://github.com/govinda-rajulu/patch-factory/pull/174))
+- packet W10: cleanup fixes, one Truecaller, watch lists universal patches (#102), provider review ([#169](https://github.com/govinda-rajulu/patch-factory/pull/169))
+
 ## 2026-10-09
 
+- packet W9: routine cleanup, retention preview retired, run-log filter, notices, companions ([#167](https://github.com/govinda-rajulu/patch-factory/pull/167))
 - packet W8: any-version backfill through the SDK reader, one Validate run per packet branch ([#166](https://github.com/govinda-rajulu/patch-factory/pull/166))
 - packet W7: version step-down, any-version providers, short MicroG card, schedules table, council and Explore hardening ([#164](https://github.com/govinda-rajulu/patch-factory/pull/164))
 - packet W6: Amazon Music libInit.so marker, build status keyed by app ([#163](https://github.com/govinda-rajulu/patch-factory/pull/163))

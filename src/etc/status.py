@@ -199,6 +199,11 @@ def runs_of(reader, wf, n):
     return rows
 
 
+def superseded(runs, i):
+    """True for a cancelled run when a newer run of the same workflow exists (runs are newest first)."""
+    return runs[i].get('status') == 'completed' and runs[i].get('conclusion') == 'cancelled' and i > 0
+
+
 def jobs_of(reader, run):
     data = reader.get('repos/%s/actions/runs/%d/attempts/%d/jobs?per_page=100' % (REPO, run['id'], run['run_attempt']),
                       'the jobs of run %d' % run['id'])
@@ -294,7 +299,9 @@ def build(reader, targets, now=None):
         runs = runs_of(reader, wf, 10 if path in BUILD_FILES else 5)
         row = {'file': clean(file, 80), 'name': clean(wf.get('name'), 80), 'purpose': PURPOSE.get(file, ''),
                'url': link(WEB + '/actions/workflows/' + file), 'recent': [run_row(r) for r in runs[:5]], 'last': None}
-        done = [r for r in runs if r.get('status') == 'completed']
+        # W12 (10 Oct 2026): a run cancelled while a newer run of the same workflow exists was
+        # replaced (concurrency cancel-in-progress, or cancelled and run again); it is not a failure.
+        done = [r for i, r in enumerate(runs) if r.get('status') == 'completed' and not superseded(runs, i)]
         if done:
             last = run_row(done[0])
             if done[0].get('conclusion') in BAD:
