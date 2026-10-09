@@ -77,6 +77,25 @@ class Cleanup(unittest.TestCase):
                                              'repos/%s/git/refs/tags/adguard-v0.9-b20260801' % cl.REPO,
                                              'repos/%s/git/refs/tags/adguard-v1.1-b20260901' % cl.REPO])
 
+    def test_only_two_newest_per_app_stay_whatever_layout_author_or_marker(self):
+        odd = rel(5, 5)
+        odd['assets'].append({'name': 'microg.apk', 'size': 10, 'id': 9})
+        mine = rel(6, 6)
+        mine['author'] = {'login': 'govinda-rajulu', 'id': 285203866}
+        frozen = rel(7, 7)
+        frozen['body'] = MARK + ' keep forever'
+        other = rel(1, 1, prefix='tc-combo')
+        odd_tag = dict(rel(2, 2), tag_name='v1.0-manual', id=20)
+        self.fake.releases[:] = [odd, mine, frozen, rel(8, 8), rel(9, 9), other, odd_tag]
+        p = self.preview()
+        self.assertEqual([r['tag'] for r in p['releases']],
+                         ['adguard-v1.5-b20260905', 'adguard-v1.6-b20260906', 'adguard-v1.7-b20260907'])
+        kept = {k['tag']: k['reason'] for k in p['kept']}
+        self.assertEqual(kept, {'adguard-v1.8-b20260908': 'two newest of adguard',
+                                'adguard-v1.9-b20260909': 'two newest of adguard',
+                                'tc-combo-v1.1-b20260901': 'two newest of tc-combo',
+                                'v1.0-manual': 'not an app build tag'})
+
     def test_a_new_release_after_preview_changes_the_token(self):
         p = self.preview()
         self.fake.releases.append(rel(4, 4))

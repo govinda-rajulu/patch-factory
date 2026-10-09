@@ -23,3 +23,10 @@ Provider: heyymichii/michii-patches (heyymichii, channel prerelease; bundle: the
 
 ## Decision
 Owner request through "5. Add target" on 2026-10-08; merging the pull request is the approval.
+
+Disabled 2026-10-08 by owner request; releases stay published. Why: 1. Manual Patch run 37769337284 stopped with "needs SDK 32, device is 29". The provider lists only LinkedIn 4.1.1255.1 and 4.1.1258, and the version it picked needs Android 12L; the owner phone is Android 10. Enable again only with a provider that supports a LinkedIn version for SDK 29.
+
+Enabled 2026-10-09 by owner request.
+2026-10-09: enabled again with max_app_version 4.1.1255.1. The provider's newest listed version
+(4.1.1258) needs Android 12L; APKMirror lists 4.1.1255.1 (the second listed version) as Android 10+
+(owner, link in the session record). If the build still says "needs SDK", disable it again.

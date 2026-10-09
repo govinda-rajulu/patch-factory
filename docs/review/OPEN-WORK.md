@@ -1,6 +1,27 @@
 # Open work
 
-## Current checkpoint: 8 October 2026, afternoon (packet W4)
+## Current checkpoint: 9 October 2026 (packet W5, session close)
+
+Done on 8 to 9 Oct outside pull requests: cleanup applied (4 releases, 96 tags; receipt
+`~/work/run-logs/cleanup-receipt-20261009.json` on the owner box); 18 merged branches archived
+(`~/work/pf-archive/patch-factory-branches-20261008T215522Z.bundle`, INDEX line) and deleted.
+W5 (one pull request): LinkedIn pinned to 4.1.1255.1, Amazon Music pinned to 26.34.0, cleanup
+keeps only each app's two newest builds, disabling an app passes the suite. Open, in order:
+
+1. Merge W5. Run `1. Manual Patch` for `linkedin` and `amazonmusic`; phone-test both (Amazon on
+ a throwaway account only). LinkedIn still "needs SDK": disable it (`5. Add target`, disable).
+ Amazon will not install: add `Rename shared permissions`.
+2. Cleanup: run the W5 controller's printed apply command (token changes with every nightly run;
+ a stale token stops with nothing deleted and prints the new one).
+3. "Any"-version providers (Amazon Music): follow the store's newest Android 10 version
+ automatically instead of a hand-raised `max_app_version` (joins S2 version step-down).
+4. Status: a Manual Patch failure of one app marks the whole workflow red until any later
+ Manual Patch works; consider keying build workflows by app only.
+5. Onboarding review gpt seat sometimes returns invalid finding fields; check its parser.
+6. Copy the W5 lessons (knowledge/LESSONS.md, 9 Oct) to openskip's handbook by its own PR.
+7. Then the W4 list below (#102, council `same_site`, free seats, release notes, S2, ...).
+
+## Earlier checkpoint: 8 October 2026, afternoon (packet W4)
 
 W4 (one pull request): Pages Builds and Watch rebuilt on `status.json`, failures listed until
 fixed, MicroG RE six-file card, Obtainium import with icon choice, Amazon Music and LinkedIn,

@@ -117,7 +117,7 @@ class FallbackContracts(unittest.TestCase):
 
     def test_all_14_block_before_network_and_any_output(self):
         doc=fb.policy(self.root)
-        self.assertEqual(len(doc['targets']),TOTAL)
+        self.assertEqual(len(doc['targets']),ENABLED)  # W5: the returned policy is the enabled apps
         before=set(self.root.iterdir())
         with patch.object(fb,'run_checked',side_effect=AssertionError('unexpected network')):
             for ident,row in doc['targets'].items():

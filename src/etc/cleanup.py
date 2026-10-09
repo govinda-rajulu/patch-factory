@@ -4,11 +4,10 @@
     python3 src/etc/cleanup.py preview [--out FILE]
     python3 src/etc/cleanup.py apply --token TOKEN [--receipt FILE]
 
-Obsolete means:
-  * a release src/etc/release_retention.py lists as a candidate: an older dated CI build of an
-    app that still has its two newest releases. Frozen, manual, pre-release, unknown-prefix and
-    marked releases are protected there and never touched here;
-  * that release's tag;
+Obsolete means (owner rule, 9 Oct 2026): everything except each app's two newest builds.
+  * releases are grouped by app (the tag before "-v<version>"); per app the two newest by
+    publication time stay and every older one goes, whatever its layout, author or marker;
+  * the tags of those releases;
   * a build tag (PREFIX-vVERSION-bDIGITS) whose release is already gone.
 Any other tag stays. Apply re-reads GitHub, rebuilds the same list and refuses unless its
 token equals the preview's, so nothing that appeared after the preview can be deleted. Before
@@ -22,9 +21,6 @@ import pathlib
 import re
 import subprocess
 import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-import release_retention as rr  # noqa: E402
 
 REPO = 'govinda-rajulu/patch-factory'
 BUILD_TAG = re.compile(r'^[a-z0-9-]+-v[0-9]+(?:\.[0-9]+)*-b[0-9]{8}(?:[0-9]{26})?$')
@@ -66,15 +62,36 @@ def inventory(run=subprocess.run):
     raise SystemExit('STOP: more than 10000 releases; nothing changed')
 
 
-def plan(releases, tag_map, targets):
-    p = rr.preview(releases, targets, REPO)
+KEEP = 2
+APP_TAG = re.compile(r'^([a-z0-9-]+?)-v[0-9][0-9.]*(?:-b[0-9]+)?$')
+
+
+def newest_first(row):
+    return (str(row.get('published_at') or row.get('created_at') or ''), row['id'])
+
+
+def plan(releases, tag_map, targets=None):
+    groups, kept, rel = {}, [], []
+    for r in releases:
+        m = APP_TAG.match(str(r.get('tag_name') or ''))
+        if not m:
+            kept.append({'tag': r.get('tag_name'), 'reason': 'not an app build tag'})
+            continue
+        groups.setdefault(m[1], []).append(r)
+    for app, rows in sorted(groups.items()):
+        rows.sort(key=newest_first, reverse=True)
+        for i, r in enumerate(rows):
+            if i < KEEP:
+                kept.append({'tag': r['tag_name'], 'reason': 'two newest of ' + app})
+            else:
+                rel.append({'id': r['id'], 'tag': r['tag_name']})
     have = {r['tag_name'] for r in releases}
-    rel = [{'id': c['release_id'], 'tag': c['tag']} for c in p['candidates']]
     gone = sorted(t for t in tag_map if t not in have and BUILD_TAG.match(t))
     drop_tags = sorted({c['tag'] for c in rel if c['tag'] in tag_map} | set(gone))
     body = {'releases': sorted(rel, key=lambda x: x['tag']), 'tags': drop_tags}
     token = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:16]
-    return dict(body, token=token, protected=len(p['protected']), orphan_tags=gone)
+    stay = sorted(kept, key=lambda x: str(x['tag']))
+    return dict(body, token=token, protected=len(stay), kept=stay, orphan_tags=gone)
 
 
 def receipt(releases, tag_map, chosen):
@@ -90,12 +107,15 @@ def receipt(releases, tag_map, chosen):
 
 
 def show(p):
-    print('Cleanup preview: %d release(s) and %d tag(s) to delete; %d release(s) protected.'
+    print('Cleanup preview: %d release(s) and %d tag(s) to delete; %d release(s) kept.'
           % (len(p['releases']), len(p['tags']), p['protected']))
     for r in p['releases']:
         print('  release ' + r['tag'])
     for t in p['tags']:
         print('  tag     ' + t)
+    print('Kept (two newest per app):')
+    for k in p['kept']:
+        print('  keep    %s  (%s)' % (k['tag'], k['reason']))
     print('TOKEN ' + p['token'])
 
 
@@ -106,10 +126,9 @@ def main(argv=None, run=subprocess.run):
     ap.add_argument('--out')
     ap.add_argument('--receipt', default='cleanup-receipt.json')
     a = ap.parse_args(argv)
-    targets = json.loads(pathlib.Path('src/targets.json').read_text(encoding='utf-8'))
     releases = inventory(run)
     tag_map = tags(run)
-    p = plan(releases, tag_map, targets)
+    p = plan(releases, tag_map)
     if a.mode == 'preview':
         show(p)
         if a.out:
