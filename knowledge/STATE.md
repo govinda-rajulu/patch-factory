@@ -4,9 +4,20 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 ## Opening message (copy into every new chat)
 
-patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
+patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
 
-## 10 Oct 2026, 2 AM IST (packet W12; start here)
+## 10 Oct 2026, 2:30 AM IST (handover H12; start here)
+
+- **Main** `9a50d038` (W12 #175) plus handover H12 once merged. W12 proven in CI: YouTube
+ 21.40.161 covers 77 of 77 chosen patches, Instagram 447.0.0.55.81 covers 46 of 46; #102 closed.
+- **Owner decisions 10 Oct**: drop a chosen patch the picked version lacks (name it) instead of
+ failing the build: yes, build it in W13. Amazon Music: the throwaway account was banned.
+- **Phone**: LinkedIn works on the main account. Facebook test on Sunday 11 Oct.
+- **Next**: OPEN-WORK 10 Oct (H12), in order. The Morphe digest goes first: it slipped twice.
+- **Tools**: `docs/review/controllers/` (template, fake GitHub, suite, render). The chat that
+ built W9 to W12 is closed; nothing lives outside the repo.
+
+## 10 Oct 2026, 2 AM IST (packet W12)
 
 - **Main** `a7f1f0af` (W11 #174, merged over the agent review block by owner decision). Facebook
  581.0.0.45.58 on HushFacebook built in run 37981596858: 82 of 82 applied. Cleanup applied.

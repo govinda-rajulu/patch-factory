@@ -1,6 +1,36 @@
 # Open work
 
-## Current checkpoint: 10 October 2026, 2 AM IST (packet W12)
+## Current checkpoint: 10 October 2026, 2:30 AM IST (handover H12)
+
+W12 merged (#175, main `9a50d038`): coverage-first version choice, proven by nonpublishing
+builds (YouTube 77 of 77, Instagram 46 of 46). #102 closed. The W12 cleanup apply stopped on
+a stale token (a Pages deploy landed after the preview); nothing was deleted. H12 records the
+owner's decisions and moves the controller tools into [controllers/README.md](controllers/README.md).
+Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (H12). Open, in order:
+
+1. Owner runs the H12 controller, then the cleanup apply line it prints (merged packet
+ branches, old Pages records).
+2. **W13, Morphe digest first** (it slipped twice): an incremental note from the
+ `MorpheApp/morphe-patches` release notes since the last seen tag (added, renamed or removed
+ patches; version support; fixes to patches we use; Manager entries skipped), kept in a state
+ file so each run reports only what is new.
+3. **W13, drop lost patches** (owner yes, 10 Oct): when the version coverage picks lacks a chosen
+ patch, build without it, name it in the log and the release notes, instead of failing the
+ applied-patch gate. BANNED and CONFIRM still apply; a target may opt out.
+4. **W13, provider fallback**: per-provider version pins (version, version code, dpi) and a
+ next-provider retry after a failed build, so De-Vanced 580 becomes Facebook's fallback. This
+ is an onboarding change: reword the three "server-visible" lines in the Facebook record to
+ the account-risk facts and cite the owner decision (L047), and expect the agent review.
+5. **Amazon Music**: the throwaway account was banned on 10 Oct. Do not move the test to the
+ main account until community reports are checked (Reddit, the provider's issues); the owner
+ decides whether to keep, disable or re-test. The cause (patch or new account) is unknown.
+6. Phone: Facebook on Sunday 11 Oct (read receipts, typing and anonymous stories are on).
+ LinkedIn works on the main account (10 Oct).
+7. Last packet of the series: one Provider watch run on main, then every baseline re-seeded
+ side by side in a baselines-only pull request.
+8. Later: S2 publisher pins, APKPure store step-down, onboarding gpt parser, openskip handbook copy.
+
+## Earlier checkpoint: 10 October 2026, 2 AM IST (packet W12)
 
 W11 merged (#174, main `a7f1f0af`) over the agent review block by owner decision; Facebook 581
 built (82 of 82). Cleanup applied. W12: coverage-first version choice, status page cancel fix,
