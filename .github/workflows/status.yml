@@ -1,7 +1,7 @@
 name: Status page data
 # Packet W2 (8 Oct 2026): the owner could not tell from Pages what recent runs did. After each
 # run of the automations below, src/etc/status.py reads GitHub's own records
-# (GET only) and writes status.json in plain words; docs/status.html shows it. The daily cron
+# (GET only) and writes status.json in plain words; the Builds and Watch tabs of Pages show it. The daily cron
 # only refreshes "updated N ago" on quiet days: every listed run already triggers it. The only write
 # is one file force-pushed to the `status` branch (one commit, no history growth, never main).
 # Pull-request runs are ignored by the script. No checkout of anything but main.

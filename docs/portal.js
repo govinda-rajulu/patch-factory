@@ -191,22 +191,43 @@ function microgChannelBlock(rows,channel){
  const d=el('details');d.append(el('summary','SHA-256 checksums'),el('pre',sums.join('\n')||'Not published for this release.'));box.append(d);
  return box;
 }
+// W7 (owner, 9 Oct 2026): the card is short. It shows the one file the Obtainium panel's
+// choices pick (icon, CPU, channel) and folds every file and checksum away.
+let microgRows=null;
+const MICROG_CPU={auto:'CPU picked by Obtainium (download: Universal)',universal:'Universal','arm64-v8a':'ARM64','armeabi-v7a':'ARMv7'};
+function microgChoice(){return (microgIcon==='noicon'?'No icon':'With icon')+' · '+MICROG_CPU[microgArch]+' · '+(microgChannel==='stable'?'Stable':'Pre-releases too');}
+function microgPickChannel(rows){
+ if(microgChannel!=='prerelease')return 'stable';
+ try{return Date.parse(microgLatest(rows,'prerelease').rel.published_at)>Date.parse(microgLatest(rows,'stable').rel.published_at)?'prerelease':'stable';}catch(e){return 'stable';}
+}
+function microgPick(rows){
+ const box=el('div',undefined,'microg-pick');box.id='microgPick';
+ box.append(el('p','Your choice: '+microgChoice(),'meta'));
+ try{
+  const channel=microgPickChannel(rows),{asset,version,rel}=microgRelease(rows,channel,microgArch==='auto'?'universal':microgArch,microgIcon);
+  const a=el('a','Download '+version+' · '+mb(asset.size),'button primary');a.href=asset.browser_download_url;a.target='_blank';a.rel='noopener noreferrer';a.title=asset.name;
+  box.append(a,el('p',(channel==='stable'?'Stable':'Pre-release')+', '+ago(rel.published_at)+'.','meta'));
+ }catch(e){box.append(el('p',e.message,'meta'));}
+ return box;
+}
+function refreshMicrogPick(){const old=document.getElementById('microgPick');if(old&&microgRows)old.replaceWith(microgPick(microgRows));}
 async function microgCard(root){
  const article=el('article');article.dataset.target='microg';article.dataset.type='upstream';
  const heading=el('div',undefined,'app-title');heading.append(el('h3','MicroG RE'),el('span','Upstream','badge'));article.append(heading);
  article.append(el('p','Needed by YouTube, YouTube Music and Google Photos. Straight from MorpheApp, not rebuilt here.','meta release-facts'));
- article.append(el('p','No icon or With icon: same app, the icon only changes whether it shows in your app drawer. ARM64 fits most phones.','meta release-facts'));
  try{
-  const rows=await read(MICROG_API+'?per_page=100');
-  const stable=microgChannelBlock(rows,'stable');article.append(stable);
+  const rows=await read(MICROG_API+'?per_page=100');microgRows=rows;
+  article.append(microgPick(rows));
   try{article.dataset.published=microgLatest(rows,'stable').rel.published_at;}catch(e){}
   let newer=false;try{newer=Date.parse(microgLatest(rows,'prerelease').rel.published_at)>Date.parse(microgLatest(rows,'stable').rel.published_at);}catch(e){}
-  if(newer)article.append(microgChannelBlock(rows,'prerelease'));
-  const notes=microgLatest(rows,newer?'prerelease':'stable');
-  releaseNotes(article,notes.rel.body,['Release notes from MorpheApp.']);
-  const more=el('p',undefined,'meta');more.append(link('All MicroG RE releases',MICROG_WEB+'/releases','upstream'));article.append(more);
+  const all=el('details',undefined,'app-details');all.append(el('summary','All six files and SHA-256 checksums'));
+  all.append(el('p','No icon or With icon: same app, the icon only changes whether it shows in your app drawer. ARM64 fits most phones.','meta'));
+  all.append(microgChannelBlock(rows,'stable'));
+  if(newer)all.append(microgChannelBlock(rows,'prerelease'));
+  const more=el('p',undefined,'meta');more.append(link('All MicroG RE releases and notes',MICROG_WEB+'/releases','upstream'));all.append(more);
+  article.append(all);
  }catch(e){article.append(el('p','MicroG RE releases unavailable: '+e.message,'notice'));}
- const details=el('details');details.append(el('summary','Installing and updating'),
+ const details=el('details',undefined,'app-details');details.append(el('summary','Installing and updating'),
  el('p','Install MicroG RE before the Google apps. Updating keeps its data. Do not uninstall it to switch between icon and no-icon: both are the same app, install the other file over it.'),
  el('p','Pre-releases are tested less. The page shows one only when it is newer than the stable release; Stable + dev prereleases can show the same version when stable is newest.'));
  article.append(details);root.append(article);
@@ -217,7 +238,7 @@ async function microgCard(root){
 async function changeMicrogChannel(value){
  need(['stable','prerelease'].includes(value),'Unknown MicroG channel');
  microgChannel=value;$('microgChannel').value=value;
- resetImport();$('prepareImport').disabled=false;
+ refreshMicrogPick();resetImport();$('prepareImport').disabled=false;
  $('importMessage').textContent='MicroG choice changed. Prepare the import again; tracked apps are unchanged until you confirm in Obtainium.';
 }
 function clearImportLinks(){
@@ -650,13 +671,13 @@ $('prepareImport').addEventListener('click',prepareImport);$('pack').addEventLis
  resetImport();$('prepareImport').disabled=false;$('includeMicrog').parentElement.hidden=$('pack').value==='custom';
 });
 $('microgChannel').addEventListener('change',()=>changeMicrogChannel($('microgChannel').value));
-$('microgArch').addEventListener('change',()=>{need(['auto','universal','arm64-v8a','armeabi-v7a'].includes($('microgArch').value),'Unknown architecture');microgArch=$('microgArch').value;resetImport();$('prepareImport').disabled=false;});
-$('microgIcon').addEventListener('change',()=>{need(['icon','noicon'].includes($('microgIcon').value),'Unknown icon choice');microgIcon=$('microgIcon').value;resetImport();$('prepareImport').disabled=false;});
+$('microgArch').addEventListener('change',()=>{need(['auto','universal','arm64-v8a','armeabi-v7a'].includes($('microgArch').value),'Unknown architecture');microgArch=$('microgArch').value;refreshMicrogPick();resetImport();$('prepareImport').disabled=false;});
+$('microgIcon').addEventListener('change',()=>{need(['icon','noicon'].includes($('microgIcon').value),'Unknown icon choice');microgIcon=$('microgIcon').value;refreshMicrogPick();resetImport();$('prepareImport').disabled=false;});
 $('includeMicrog').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
 $('collapseImport').addEventListener('click',()=>{$('importPanel').open=false;$('importPanel').querySelector('summary').focus();});
 $('resetChoices').addEventListener('click',()=>{
  resetImport();$('pack').value='all';$('includeMicrog').checked=true;$('includeObtainium').checked=false;$('includeMicrog').parentElement.hidden=false;
- $('microgChannel').value='stable';microgChannel='stable';$('microgArch').value='universal';microgArch='universal';$('microgIcon').value='icon';microgIcon='icon';$('prepareImport').disabled=false;
+ $('microgChannel').value='stable';microgChannel='stable';$('microgArch').value='universal';microgArch='universal';$('microgIcon').value='icon';microgIcon='icon';refreshMicrogPick();$('prepareImport').disabled=false;
  $('importMessage').textContent='Page choices reset. No tracked or installed apps were changed.';
  if(tab==='apps')render();
 });

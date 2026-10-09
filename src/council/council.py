@@ -145,10 +145,13 @@ _OPENER = urllib.request.build_opener(_NoRedirect)
 
 
 def same_site(url, location):
-    """A redirect may keep the key only on https and the same registrable domain."""
+    """A redirect may keep the key only on https, the exact same host and the same port.
+
+    W7 (lead from 8 Oct 2026): a two-label match let a provider redirect keep the key on any
+    other host of the same domain, for example any *.googleapis.com."""
     a, b = urllib.parse.urlsplit(url), urllib.parse.urlsplit(location)
-    site = lambda h: '.'.join((h or '').lower().split('.')[-2:])
-    return b.scheme == 'https' and bool(b.hostname) and site(a.hostname) == site(b.hostname)
+    return (b.scheme == 'https' and bool(b.hostname) and (a.hostname or '').lower() == b.hostname.lower()
+            and a.port == b.port)
 
 
 def http(method, url, headers, body=None, timeout=90):

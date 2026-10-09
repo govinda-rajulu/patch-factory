@@ -21,6 +21,7 @@ PIN=$(jq -r '.pin // ""' <<<"$T")
 NOW=$(date +%s)
 echo "=== resolving $ID ($PKG) ==="
 bn=""; bv=""; bc=0; bd=0; bm=""; bh=""; bt=""
+an=""; am=""; ah=""; at=""
 n=$(jq '.candidates | length' <<<"$T")
 for i in $(seq 0 $((n-1))); do
   C=$(jq -c ".candidates[$i]" <<<"$T")
@@ -57,7 +58,12 @@ for i in $(seq 0 $((n-1))); do
     echo "   --- end PATCHER OUTPUT"
   fi
   if [ -z "$VL" ] && { [ -z "$MAXVER" ] || [ "$MAXVER" = "null" ]; }; then
-    echo "   - $NAME: no max_app_version to fall back on - cannot pick a version"; continue
+    # W7: the provider lists no version (its patches say any version). It wins only when
+    # no candidate names a version; the build then takes the store's newest and steps
+    # down when that needs a newer Android than the cap. The applied-patch gate decides.
+    echo "  - $NAME: any app version, the store's newest, ${AGE}d ago"
+    if [ -z "$an" ]; then an="$NAME"; am="$MPP"; ah="$HASH"; at="$TAG"; fi
+    continue
   fi
   [ -z "$VL" ] && { echo "   - $NAME: successful bundle read but no version parsed; using configured ceiling $MAXVER, applicability remains unverified until patching"; VL="$MAXVER 0"; }
   [ -z "$VL" ] && { echo "  - $NAME: no support for $PKG"; continue; }
@@ -78,6 +84,7 @@ for i in $(seq 0 $((n-1))); do
   fi
   [ "$w" = 1 ] && { bn="$NAME"; bv="$VER"; bc="${CNT:-0}"; bd="$PSEC"; bm="$MPP"; bh="$HASH"; bt="$TAG"; }
 done
+if [ -z "$bn" ] && [ -n "$an" ]; then bn="$an"; bv=""; bc=0; bm="$am"; bh="$ah"; bt="$at"; fi
 [ -z "$bn" ] && { echo "RESULT: no viable provider"; exit 1; }
 echo "WINNER=$bn"; echo "VERSION=$bv"; echo "PATCHES=$bc"; echo "MPP=$bm"
 echo "MPP_SHA256=$bh"; echo "BUNDLE_TAG=$bt"

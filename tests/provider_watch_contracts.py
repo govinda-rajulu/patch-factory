@@ -229,7 +229,7 @@ class ProviderWatch(unittest.TestCase):
             self.assertEqual(watch.main(), 1)
 
     def test_audit_record_covers_fixed_findings_without_live_claims(self):
-        text = (ROOT / "docs/review/AUDIT-2026-09-26.md").read_text()
+        text = (ROOT / "docs/review/history/AUDIT-2026-09-26.md").read_text()
         for marker in ("PF-BUILD-001", "PF-WIRE-002", "PF-EXPLORE-003", "PF-CI-004",
                        "PORTAL-001", "36173375425", "36173399118"):
             self.assertIn(marker, text)

@@ -483,7 +483,7 @@
     "package": "com.amazon.mp3",
     "apk_name": "amazonmusic",
     "apk_type": "bundle",
-    "max_app_version": "26.34.0",
+    "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
     "pin": null,
@@ -502,7 +502,7 @@
     "poll": true,
     "label": "Amazon Music",
     "source": "apkmirror",
-    "note": "Added 2026-10-08 through 5. Add target.",
+    "note": "Ads skipped, unlimited skips, log upload blocked. Test account only",
     "exclusive": true
   },
   {
@@ -511,7 +511,7 @@
     "package": "com.linkedin.android",
     "apk_name": "linkedin",
     "apk_type": "bundle",
-    "max_app_version": "4.1.1255.1",
+    "max_app_version": null,
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
     "pin": null,
@@ -530,7 +530,7 @@
     "poll": true,
     "label": "LinkedIn",
     "source": "apkmirror",
-    "note": "Added 2026-10-08 through 5. Add target.",
+    "note": "Ads, promoted jobs and tracking removed",
     "exclusive": true
   }
 ]

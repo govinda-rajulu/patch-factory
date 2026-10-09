@@ -54,7 +54,7 @@ tells you not to try.
 
 Run the command and read its output. Do not reason from a filename or a commit message. Every
 serious mistake in this repo's history came from skipping that step, and they are listed at the
-end of `docs/review/REPORT-2026-09-07.md` so you do not repeat them.
+end of `docs/review/history/REPORT-2026-09-07.md` so you do not repeat them.
 
 Facts you may rely on, because they are generated and gated in CI:
 

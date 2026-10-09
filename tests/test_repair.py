@@ -145,7 +145,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=28', result.stdout)  # W6: +1 build runs keyed by app
+        self.assertIn('PORTAL_CONTRACTS_PASS=29', result.stdout)  # W6: build runs keyed by app; W7: short MicroG card
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
@@ -737,6 +737,10 @@ transfer(){
 
     def test_sdk_excessive(self):
         self.assertNotEqual(self.sdk(30).returncode, 0)
+
+    def test_sdk_above_cap_has_its_own_status(self):
+        # W7: status 3 is the only one build.sh may answer with a lower version.
+        self.assertEqual(self.sdk(32).returncode, 3)
 
     def sdk_readers(self, badging='', xmltree='', analyzer=None, badging_rc=0,
                     xmltree_rc=0, analyzer_rc=0, ceiling='29',

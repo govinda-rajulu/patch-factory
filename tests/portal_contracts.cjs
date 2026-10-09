@@ -142,6 +142,14 @@ check('build runs keyed by app: an app-only failure is not a failed automation',
  delete context.document.createElement;
  assert.ok(source.includes("see that app under Builds"));
 });
+check('MicroG card is short: one download for the chosen file, every file folded away',()=>{
+ const card=source.slice(source.indexOf('async function microgCard(root){'),source.indexOf('function clearImportLinks'));
+ assert.ok(card.includes("article.append(microgPick(rows))"));
+ assert.ok(card.includes("el('details',undefined,'app-details');all.append(el('summary','All six files and SHA-256 checksums'))"));
+ assert.ok(card.includes('all.append(microgChannelBlock(rows,\'stable\'))'));
+ assert.ok(!card.includes('article.append(stable)')&&!card.includes('releaseNotes(article'));
+ for(const hook of ["microgChannel=value;$('microgChannel').value=value;\n refreshMicrogPick();","microgArch=$('microgArch').value;refreshMicrogPick();","microgIcon=$('microgIcon').value;refreshMicrogPick();","microgIcon='icon';refreshMicrogPick();"])assert.ok(source.includes(hook),hook);
+});
 check('MicroG card lists every upstream file by icon and CPU, and the toolbar keeps one choice',()=>{
  assert.equal(c.microgName('7.2.1','icon','universal'),'microg-7.2.1.apk');
  assert.equal(c.microgName('7.2.1','noicon','universal'),'microg-7.2.1-noicon.apk');

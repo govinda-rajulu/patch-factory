@@ -1,6 +1,24 @@
 # Open work
 
-## Current checkpoint: 9 October 2026, afternoon (packet W6)
+## Current checkpoint: 9 October 2026, evening (packet W7)
+
+W7 (one pull request on top of W6 #163): version step-down for apps above the phone cap,
+any-version providers take the store's newest, Amazon Music and LinkedIn unpinned, short MicroG
+card, `docs/status.html` deleted, launcher rule in the STATE opening message. Record:
+[SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W7 section). Open, in order:
+
+1. Owner runs the W7 controller (merges #163 and W7, builds Amazon Music and LinkedIn) and
+ uploads its RESULT file. Phone-test both (Amazon on a throwaway account only); if Amazon will
+ not install, add `Rename shared permissions`.
+2. Noise pass from the RESULT inventory: stale open issues, open pull requests, leftover
+ branches, schedules, release counts, cleanup preview.
+3. Retire the old `release_retention.py` preview in the release action (two retention policies print side by side). Store step-down for APKPure-source apps (W7 steps down on APKMirror listings and provider
+ lists only).
+4. Onboarding review gpt seat parser (needs a failing log); openskip handbook copy of the
+ W5 to W7 lessons by its own PR.
+5. Then the W4 list below (#102, council `same_site`, free seats, release notes, S2, ...).
+
+## Earlier checkpoint: 9 October 2026, afternoon (packet W6)
 
 Done since W5 outside pull requests: W5 merged (#162); LinkedIn built (run 37912428867);
 cleanup applied a second time (22 releases, 22 tags; receipt

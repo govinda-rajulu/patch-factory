@@ -2,7 +2,28 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
-## 9 Oct 2026, afternoon (packet W6; start here)
+## Opening message (copy into every new chat)
+
+patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
+
+## 9 Oct 2026, evening (packet W7; start here)
+
+- **Base** W6 (#163, head `3e14e809`) plus packet W7 (one pull request). The owner runs one
+ controller, `pf-w7.py`: merge #163, push and merge W7 after its checks, dispatch Manual Patch
+ for `amazonmusic` and `linkedin`, collect their log lines and a repository inventory. Record:
+ the W7 section of `docs/review/SESSION-2026-10-09.md`.
+- **Versions** (owner design): newest the provider supports, or the store's newest when the
+ provider lists none. Above the phone cap the build steps down, at most 3 lower versions
+ (`src/build/version_steps.sh`, notice `VERSION_STEP_DOWN`). Fixed: `min_sdk_ceiling`,
+ `max_app_version` when set, exact `version_code` pins (no step-down). Amazon Music and LinkedIn
+ have no pins now.
+- **Pages**: the MicroG RE card shows one download for the chosen icon, CPU and channel; all six
+ files and checksums are folded. `docs/status.html` (W4 redirect) deleted.
+- **Also in W7**: council redirect key stays on the exact host; Explore refuses malformed inputs;
+ `docs/SCHEDULES.md` (generated, checked); two old review records moved to `history/`.
+- **Next**: read the controller's RESULT file; OPEN-WORK 9 Oct (W7) list.
+
+## 9 Oct 2026, afternoon (packet W6)
 
 - **Base** main `1e08ef02` (W5 #162 merged). Packet W6 is one pull request on top. Record:
  `docs/review/SESSION-2026-10-09.md`; open items: `docs/review/OPEN-WORK.md` (9 Oct, W6).

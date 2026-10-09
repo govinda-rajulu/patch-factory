@@ -102,6 +102,13 @@ This file keeps only what fits in neither.
 - A per-workflow red light hides which app failed and clears on any other app's success. Key
  build status by app; keep the workflow red only for failures no app owns.
 
+## 9 Oct 2026, evening (packet W7)
+
+- One side effect per if/then, each with its own result line. Chaining push and PR in one `&&`
+ test hides which one happened (wrong call 11).
+- A hand-raised version pin is a symptom. Pick the newest the provider supports, step down
+ from the phone cap, and keep pins only where a human chose an exact build.
+
 ## Standing rules (short form; AGENTS.md is authoritative)
 
 - BANNED and CONFIRM are lowercase substring rules. An exact-match filter once matched 0 of

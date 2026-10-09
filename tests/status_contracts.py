@@ -98,7 +98,8 @@ class Status(unittest.TestCase):
         self.assertEqual(lb['words'], 'Failed')
         self.assertEqual(lb['step'], 'Patch apk')
         self.assertEqual(lb['step_plain'], 'downloading the original app and applying the patches')
-        self.assertTrue(lb['why'][0].startswith('The newest app version needs Android 12 (API 31)'))
+        self.assertTrue(lb['why'][0].startswith('This app version needs Android 12 (API 31)'))
+        self.assertIn('tries up to 3 lower versions', lb['why'][0])
         self.assertFalse(any('exit code' in w for w in lb['why']))
         self.assertTrue(any('[redacted]' in w for w in lb['why']))
         self.assertFalse(any('ghp_' in w for w in lb['why']))
@@ -130,6 +131,10 @@ class Status(unittest.TestCase):
         self.assertEqual(self.d['issues'], [{'title': 'Failing: 2. Check new patch', 'url': WEB + '/issues/200', 'number': 200}])
         self.assertIn('need a look', self.d['headline']['text'])
         self.assertEqual(self.apps['facebook']['android_cap'], {'api': 30, 'version': '11'})
+
+    def test_version_step_down_reads_in_plain_words(self):
+        text = st.plain_reason('VERSION_STEP_DOWN step=1 from=4.1.1258 to=4.1.1255.1 source=provider ceiling=29')
+        self.assertEqual(text, 'Version 4.1.1258 needed a newer Android, so the build tried 4.1.1255.1 instead (step 1 of 3).')
 
     def test_hyphens_survive_cleaning(self):
         # W4: a bare '-' in the character class turned every hyphen into a space.
@@ -207,17 +212,16 @@ class Status(unittest.TestCase):
         self.assertFalse({a['id']: a for a in d['apps']}['reddit']['release_known'])
 
     def test_page_is_read_only_and_never_writes_html(self):
-        # W4: Builds and Watch in docs/portal.js show this data; status.html only redirects there.
+        # W4: Builds and Watch in docs/portal.js show this data. W7: the old status.html
+        # redirect page is gone; the app shelf's #builds and #watch tabs are the only views.
         js = (ROOT / 'docs/portal.js').read_text(encoding='utf-8')
-        html = (ROOT / 'docs/status.html').read_text(encoding='utf-8')
         for bad in ('innerHTML', 'outerHTML', 'insertAdjacentHTML', 'document.write', 'localStorage', 'sessionStorage',
                     'Authorization', 'method:', 'eval(', 'new Function'):
             self.assertNotIn(bad, js, bad)
         self.assertIn("credentials:'omit'", js)
         self.assertIn("u.pathname==='/'+REPO+'/status/status.json'", js)
-        self.assertNotIn('<script', html)
-        self.assertIn('url=./#builds', html)
         self.assertFalse((ROOT / 'docs/status.js').exists())
+        self.assertFalse((ROOT / 'docs/status.html').exists())
 
 
 if __name__ == '__main__':

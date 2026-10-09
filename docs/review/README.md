@@ -4,7 +4,7 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **8 October 2026** for packet W2 (two-step app changes, status page, leads decided). Hygiene record:
+Last indexed **9 October 2026** for packet W7 (two blocked history moves done). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
@@ -63,9 +63,9 @@ Last indexed **8 October 2026** for packet W2 (two-step app changes, status page
 
 | Record | What it holds |
 | --- | --- |
-| [AUDIT-2026-09-26.md](AUDIT-2026-09-26.md) | Post-PR81 audit: archive, wiring, Explore, CI coverage and page fixes; PR53 disposition. |
+| [AUDIT-2026-09-26.md](history/AUDIT-2026-09-26.md) | Post-PR81 audit: archive, wiring, Explore, CI coverage and page fixes; PR53 disposition. |
 | [AUDIT-2026-09-07.md](history/AUDIT-2026-09-07.md) | First repository audit. |
-| [REPORT-2026-09-07.md](REPORT-2026-09-07.md) | Report from the 7 September audit. |
+| [REPORT-2026-09-07.md](history/REPORT-2026-09-07.md) | Report from the 7 September audit. |
 | [SESSION-2026-09-06.md](history/SESSION-2026-09-06.md) | Session record, 6 September. |
 
 ## House rules
