@@ -11,6 +11,7 @@ Last indexed **8 October 2026** for packet W2 (two-step app changes, status page
 
 | Read | Why |
 | --- | --- |
+| [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | 9 Oct afternoon: packet W6 (Amazon Music `libInit.so` marker, build status keyed by app, second cleanup). Read first. |
 | [SESSION-2026-10-08.md](SESSION-2026-10-08.md) | 8 Oct session: packet W2 (two-step app changes, plain status page, MicroG shipped where needed, silent failures, onboarding gate, tooling watch, leads decided). Read first. |
 | [SESSION-2026-10-07.md](SESSION-2026-10-07.md) | 6-7 Oct session: packets R to V2, council desk #154, cleanup, findings, wrong calls, coverage limits. Read first. |
 | [HANDOVER-2026-09-26.md](history/HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |

@@ -80,6 +80,9 @@ LIVE = {'in_progress': 'Running now', 'queued': 'Waiting to start', 'waiting': '
 BAD = {'failure', 'timed_out', 'startup_failure', 'action_required', 'cancelled'}
 # A failure stays listed until a later run of the same workflow or app works (owner, 8 Oct 2026).
 # Age is shown, never used to hide it. STALE_DAYS only words the label.
+# Build workflows are keyed by app (W6, 9 Oct 2026): when every failed job of a build run is
+# one app's "Patch <id>" job, that app's own row carries the failure until that app builds,
+# and the workflow row is marked per_app instead of counting as a failed automation.
 STALE_DAYS = 14
 
 
@@ -278,6 +281,7 @@ def build(reader, targets, now=None):
     out = {'schema': 1, 'generated_at': now, 'repo': REPO, 'apps': [], 'workflows': [], 'issues': [], 'problems': reader.problems}
     wfs = (reader.get('repos/%s/actions/workflows?per_page=100' % REPO, 'the workflow list') or {}).get('workflows') or []
     build_jobs = {}
+    enabled_ids = {t['id'] for t in targets if t.get('enabled')}
     for wf in sorted(wfs, key=lambda w: str(w.get('name'))):
         if wf.get('state') != 'active' or not isinstance(wf.get('id'), int):
             continue
@@ -291,9 +295,12 @@ def build(reader, targets, now=None):
             last = run_row(done[0])
             if done[0].get('conclusion') in BAD:
                 last['jobs'] = []
-                for j in jobs_of(reader, done[0]):
-                    if j.get('conclusion') not in BAD:
-                        continue
+                failed = [j for j in jobs_of(reader, done[0]) if j.get('conclusion') in BAD]
+                hits = [JOB_RX.search(str(j.get('name') or '')) for j in failed]
+                if path in BUILD_FILES and failed and all(hits) and all(m[1] in enabled_ids for m in hits):
+                    last['per_app'] = True
+                    last['apps'] = sorted({m[1] for m in hits})
+                for j in failed:
                     step, plain = failed_step(j)
                     last['jobs'].append({'name': clean(j.get('name'), 120), 'step': step, 'step_plain': plain,
                                          'why': reasons(reader, j['id']) if isinstance(j.get('id'), int) else [],
@@ -343,7 +350,8 @@ def build(reader, targets, now=None):
             continue
         out['issues'].append({'title': title, 'url': link(i.get('html_url')), 'number': i.get('number')})
     bad_apps = [a['label'] for a in out['apps'] if a['last_build'] and a['last_build']['result'] in BAD]
-    bad_wfs = [w['name'] for w in out['workflows'] if w['last'] and w['last']['result'] in BAD]
+    bad_wfs = [w['name'] for w in out['workflows'] if w['last'] and w['last']['result'] in BAD
+               and not w['last'].get('per_app')]
     confirm = [w['name'] for w in out['workflows'] if w['last'] and w['last'].get('changed_since')]
     if out['problems']:
         head = 'Partly unknown: some GitHub reads failed (listed at the bottom).'

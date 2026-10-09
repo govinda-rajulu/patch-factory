@@ -206,6 +206,13 @@ def packaged_data(output, source, name):
         # Only this exact shape, whole member, byte-identical to the patcher input.
         evidence.update(format='literal-text-release-' + header[8:].decode('ascii'),
                         executable_elf=False)
+    elif (name.rsplit('/', 1)[-1] == 'libInit.so' and info.file_size == len(header)
+          and re.fullmatch(rb'[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}', header)):
+        # Amazon Music's libInit.so is a 6-byte dotted version marker: 4.6.14 (26.34.0,
+        # run 37912474736, 9 Oct 2026). Only this file name and exact shape, the whole
+        # member, byte-identical to the patcher input.
+        evidence.update(format='literal-text-version-' + header.decode('ascii'),
+                        executable_elf=False)
     elif header.startswith(b'dex\n'):
         with output.open(name) as stream:
             blob = stream.read(MAX_MEMBER_BYTES + 1)
