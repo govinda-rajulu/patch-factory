@@ -48,12 +48,5 @@ runs:
         echo "::warning::APK publication may have succeeded; shadow receipt is NOT verified. Do not rebuild or overwrite to force a baseline."
         echo "Shadow publication receipt unavailable. Published APK status and baseline evidence are separate." >> "$GITHUB_STEP_SUMMARY"
 
-    - name: Preview retention (no deletion)
-      shell: bash
-      env:
-        GH_TOKEN: ${{ github.token }}
-        RETENTION_PREFIX: ${{ steps.meta.outputs.prefix }}
-      run: |
-        python3 src/etc/release_retention.py --repo "$GITHUB_REPOSITORY" \
-          --prefix "$RETENTION_PREFIX" --output retention-preview.json \
-          --summary "$GITHUB_STEP_SUMMARY"
+    # W9 (9 Oct 2026): the old per-publish retention preview is retired. One policy, one tool:
+    # src/etc/cleanup.py preview, then apply with its token (each app keeps its two newest builds).

@@ -11,3 +11,5 @@ first. Nothing here is current; `knowledge/STATE.md` and `../OPEN-WORK.md` are.
 | [SESSION-2026-09-06.md](SESSION-2026-09-06.md) | Session record, 6 September |
 | [REPORT-2026-09-07.md](REPORT-2026-09-07.md) | Report from the 7 September audit (moved 9 Oct, W7; AGENTS.md points here) |
 | [AUDIT-2026-09-26.md](AUDIT-2026-09-26.md) | Post-PR81 audit (moved 9 Oct, W7; its contract reads it here) |
+| [AGENT-2026-09.md](AGENT-2026-09.md) | Was `docs/AGENT.md`: the September plan for coding agents (Jules, Gemini CLI). Model and quota claims dated; moved 9 Oct, W9 |
+| [AGENT-SETUP-2026-09.md](AGENT-SETUP-2026-09.md) | Was `docs/AGENT-SETUP.md`: click-by-click agent setup from September; moved 9 Oct, W9 (its contract reads it here). Current agent rules: `AGENTS.md`, `knowledge/handbook/FREE-LLM-AGENTS.md` |

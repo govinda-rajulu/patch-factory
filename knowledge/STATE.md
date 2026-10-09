@@ -6,7 +6,18 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
 
-## 9 Oct 2026, night (packet W8; start here)
+## 9 Oct 2026, late night (packet W9; start here)
+
+- **Main** `6c3a626a` (W8 #166). Amazon Music 26.36.1 (run 37938683390) and LinkedIn 4.1.1255.1
+ (run 37935850580, step-down) built; phone tests pending.
+- **W9** (one pull request, controller `pf-w9.py`): records, `cleanup.py` for releases, tags,
+ Pages deployments (keep 5) and merged packet branches; retention preview retired; `run_log.py`;
+ agent docs to history; notices in `docs/guide.md`; companions folded; #142 closed.
+- **Housekeeping is routine now**: `python3 src/etc/cleanup.py preview`, then
+ `apply --token`; receipts go to `docs/review/retention/`.
+- **Next**: the W9 RESULT; then OPEN-WORK 9 Oct (W9): W10 patches and providers, W11 S2.
+
+## 9 Oct 2026, night (packet W8)
 
 - **Main** `eebbb279` (W7 #164 merged). Branches: `main`, `status` only. Packet W8 is one pull
  request: any-version backfill through the SDK reader, Validate push runs on `main` only.

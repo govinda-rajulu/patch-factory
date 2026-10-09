@@ -1,5 +1,7 @@
 # Using Patch Factory
 
+This guide is the one home for what the site, imports and updates mean (W9, 9 Oct 2026). The page, README and release notes keep one short line each and link here. Safety boundaries: [SECURITY.md](../SECURITY.md); cleanup and recovery: [RECOVERY.md](../RECOVERY.md).
+
 ## Start with the download
 
 The [app shelf](https://govinda-rajulu.github.io/patch-factory/) shows the newest eligible published APK for each app, its publication time, and a concise change summary; the full original release notes stay on the linked GitHub release page. “Recent upload” means recently published bytes, not necessarily a newer app version. The release archive is history, not one global “latest app.”

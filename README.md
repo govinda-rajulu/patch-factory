@@ -12,11 +12,8 @@ checks the finished output, and publishes a separate signed release per build.
 | [Review desk](docs/review/README.md)
 
 The generated table below is the configured patched-app inventory. Morphe MicroG
-RE is an optional upstream companion, not another patched target. The site
-offers stable or stable-plus-dev tracking, with Universal as the default and
-explicit MicroG architecture choices. Standard Obtainium self-update is also
-opt-in; it does not migrate the F-Droid package.
-Neither importing a catalog nor refreshing the site changes installed apps.
+RE is an optional upstream companion, not another patched target; import choices
+and what they do are in the [guide](docs/guide.md#obtainium).
 
 ## Builds and releases
 
@@ -76,9 +73,7 @@ Equal applied names do not mean equal provider code, options or defaults.
 
 The generated Obtainium imports currently extract **APPVERSION only**, not
 BUILDID. A patch-only rebuild therefore does not guarantee an update notification.
-Catalog import is not subscription or automatic settings migration. Confirm
-tracking changes in Obtainium; do not uninstall or bypass Android protections.
-See the [guide](docs/guide.md) for optional MicroG and selected-app imports.
+Import behavior: the [guide](docs/guide.md#obtainium).
 
 ## Selection and source decisions
 
@@ -108,13 +103,8 @@ The Add target workflow and related tools need a separate cross-consumer schema
 review before their disabled-target behavior can be treated as a complete
 onboarding contract. Do not enable a target merely because scaffolding exists.
 
-**Rebuild first, cleanup last.** Preserve working releases until replacements
-and recovery copies are verified. `src/etc/release_retention.py` is GET-only and
-preview-only: it protects the newest two dated releases per prefix plus frozen,
-manual, unknown and ambiguous records. Recognizing evidence assets is not
-verification of their contents or deletion authority. Review exact release and
-asset identities before any separately approved cleanup; tags, run artifacts,
-branches and local folders are distinct scopes.
+**Rebuild first, cleanup last.** Preserve working releases until replacements are
+verified. Cleanup policy, tool and boundaries: [RECOVERY.md](RECOVERY.md#cleanup-boundaries).
 
 <!-- STATE:GENERATED - edit src/targets.json, not this block -->
 

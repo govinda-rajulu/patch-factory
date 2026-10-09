@@ -7,8 +7,16 @@ GitHub release carries its own notes (app version, applied patches, provider bun
 Packet context lives in `knowledge/STATE.md` and `docs/review/`.
 
 
+## 2026-10-09
+
+- packet W8: any-version backfill through the SDK reader, one Validate run per packet branch ([#166](https://github.com/govinda-rajulu/patch-factory/pull/166))
+- packet W7: version step-down, any-version providers, short MicroG card, schedules table, council and Explore hardening ([#164](https://github.com/govinda-rajulu/patch-factory/pull/164))
+- packet W6: Amazon Music libInit.so marker, build status keyed by app ([#163](https://github.com/govinda-rajulu/patch-factory/pull/163))
+- packet W5: LinkedIn and Amazon Music version pins, keep two newest builds, disable path, session records ([#162](https://github.com/govinda-rajulu/patch-factory/pull/162))
+
 ## 2026-10-08
 
+- packet W4: plain Builds and Watch, failures kept until fixed, MicroG RE files, Amazon Music and LinkedIn, cleanup ([#160](https://github.com/govinda-rajulu/patch-factory/pull/160))
 - packet W3: silent failures made loud, changelog reads merge commits, status workflow contract ([#159](https://github.com/govinda-rajulu/patch-factory/pull/159))
 - packet W2: two-step app changes, plain status page, MicroG where needed, onboarding gate ([#158](https://github.com/govinda-rajulu/patch-factory/pull/158))
 

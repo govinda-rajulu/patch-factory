@@ -6,7 +6,6 @@ import github_bundle as bundle
 import github_patcher as patcher
 import extra_bundle as extra
 sys.path.insert(0,str(ROOT/'src/etc'))
-import release_retention as retention
 import build_identity
 
 class Transport(unittest.TestCase):
@@ -360,194 +359,6 @@ class ExtraTransport(unittest.TestCase):
   s=(ROOT/'src/build/fetch_bundle.sh').read_text();self.assertIn('exec python3',s);self.assertNotIn('curl -sSL',s)
   build=(ROOT/'src/build/build.sh').read_text();self.assertIn('printf',build);self.assertIn('fetch_bundle.sh "$EH" "$EID" "$ECH"',build)
 
-class Retention(unittest.TestCase):
- def setUp(self):
-  self.repo='owner/repo';self.targets=[{'id':'app','tag_prefix':'app'},{'id':'other','tag_prefix':'other'}]
- def row(self,n,prefix='app',day=None,**values):
-  date=day or ('202609'+str(n).zfill(2));tag=prefix+'-v1.0-b'+date
-  row={'id':n,'tag_name':tag,'html_url':'https://github.com/'+self.repo+'/releases/tag/'+tag,
-       'published_at':'2026-09-10T00:00:00Z','draft':False,'prerelease':False,
-       'body':retention.CI_MARKER,'assets':[{'name':prefix+'-v1.0-arm64-v8a.apk','size':2000000}]}
-  row.update(values);return row
- def plan(self,rows,prefix=None):return retention.preview(rows,self.targets,self.repo,prefix)
- def test_two_newest_protected(self):
-  p=self.plan([self.row(n) for n in range(1,5)])
-  self.assertEqual([r['release_id'] for r in p['candidates']],[1,2])
-  self.assertFalse(p['deletion_authorized']);self.assertEqual(p['candidate_asset_count'],2)
- def test_per_prefix_not_global(self):
-  p=self.plan([self.row(n) for n in range(1,4)]+[self.row(n+10,prefix='other',day='2026090'+str(n)) for n in range(1,4)])
-  self.assertEqual({r['release_id'] for r in p['candidates']},{1,11})
- def test_input_order_does_not_change_fingerprint(self):
-  rows=[self.row(n) for n in range(1,5)]
-  self.assertEqual(self.plan(rows)['fingerprint'],self.plan(rows[::-1])['fingerprint'])
- def test_empty_inventory_is_empty_preview_not_delete_all(self):
-  p=self.plan([]);self.assertEqual(p['candidate_count'],0);self.assertEqual(p['protected'],[])
- def test_one_release_kept(self):
-  self.assertEqual(self.plan([self.row(1)])['candidate_count'],0)
- def test_frozen_tag_protected(self):
-  r=self.row(1,tag_name='truecaller-v26.10.6')
-  self.assertIn('frozen',self.plan([r])['protected'][0]['reason'])
- def test_manual_suffixless_tag_protected(self):
-  p=self.plan([self.row(1,tag_name='app-v1.0')]);self.assertEqual(p['candidate_count'],0)
- def test_unknown_prefix_protected(self):
-  p=self.plan([self.row(1,prefix='unknown')]);self.assertEqual(p['candidate_count'],0)
- def test_old_manual_dated_entry_protected(self):
-  p=self.plan([self.row(1,body='Manually uploaded'),self.row(2),self.row(3)])
-  self.assertEqual(p['candidate_count'],0)
- def test_keep_marker_protected(self):
-  for marker in ['frozen','manual','keep forever','do not delete','retention: keep']:
-   p=self.plan([self.row(1,body=retention.CI_MARKER+' '+marker),self.row(2),self.row(3)])
-   self.assertEqual(p['candidate_count'],0)
- def test_draft_and_prerelease_protected(self):
-  for field in ['draft','prerelease']:
-   p=self.plan([self.row(1,**{field:True}),self.row(2),self.row(3)])
-   self.assertEqual(p['candidate_count'],0)
- def test_unexpected_assets_protected(self):
-  p=self.plan([self.row(1,assets=[]),self.row(2),self.row(3)])
-  self.assertEqual(p['candidate_count'],0)
- def test_wrong_apk_version_protected(self):
-  p=self.plan([self.row(1,assets=[{'name':'app-v2.0-arm64-v8a.apk','size':2000000}]),self.row(2),self.row(3)])
-  self.assertEqual(p['candidate_count'],0)
- def test_prefix_filter_preserves_other_apps(self):
-  p=self.plan([self.row(n) for n in range(1,4)],prefix='other');self.assertEqual(p['candidate_count'],0)
- def test_invalid_calendar_date_protected(self):
-  p=self.plan([self.row(1,day='20260231')]);self.assertEqual(p['candidate_count'],0)
- def test_missing_timestamp_refuses_partial_plan(self):
-  with self.assertRaises(ValueError):self.plan([self.row(1,published_at=None)])
- def test_duplicate_inventory_refused(self):
-  with self.assertRaisesRegex(ValueError,'duplicate'):self.plan([self.row(1),self.row(1)])
- def test_unknown_filter_refused(self):
-  with self.assertRaises(ValueError):self.plan([],prefix='unknown')
- def test_bad_url_refused(self):
-  with self.assertRaises(ValueError):self.plan([self.row(1,html_url='https://evil.invalid/')])
- def test_pagination_reads_beyond_first_hundred(self):
-  first=[self.row(n,day='20260901') for n in range(1,101)]
-  with patch.object(retention.subprocess,'run',side_effect=[subprocess.CompletedProcess([],0,stdout=json.dumps(first)),subprocess.CompletedProcess([],0,stdout=json.dumps([self.row(101,day='20260902')]))]) as m:
-   rows=retention.inventory(self.repo);self.assertEqual(len(rows),101);self.assertEqual(m.call_count,2)
- def test_second_page_failure_no_partial_success(self):
-  with patch.object(retention.subprocess,'run',side_effect=[subprocess.CompletedProcess([],0,stdout=json.dumps([self.row(n,day='20260901') for n in range(1,101)])),subprocess.CompletedProcess([],22,stdout='')]):
-   with self.assertRaisesRegex(ValueError,'no partial'):retention.inventory(self.repo)
- def test_api_error_object_refused(self):
-  with patch.object(retention.subprocess,'run',return_value=subprocess.CompletedProcess([],0,stdout='{\"message\":\"error\"}')):
-   with self.assertRaises(ValueError):retention.inventory(self.repo)
- def test_no_delete_command_in_planner_or_release_action(self):
-  action=(ROOT/'.github/actions/release/action.yml').read_text()
-  self.assertNotIn('gh release delete',action);self.assertNotIn('--cleanup-tag',action)
-  self.assertIn('Preview retention (no deletion)',action);self.assertIn('release_retention.py',action)
-  source=(ROOT/'src/etc/release_retention.py').read_text()
-  self.assertNotIn("'DELETE'",source);self.assertNotIn('gh release delete',source)
- def test_summary_is_preview_not_authorization(self):
-  s=retention.summary(self.plan([self.row(n) for n in range(1,4)]))
-  self.assertIn('Nothing deleted',s);self.assertIn('Approval is required separately',s)
-
-class ModernRetention(unittest.TestCase):
- def setUp(self):
-  self.repo='owner/repo'
-  self.targets=[{'id':'app','tag_prefix':'app','apk_name':'app'}]
- def row(self,n,structured=True,qualified=False):
-  import base64
-  tag='app-v1.0-b202609'+str(n).zfill(2)
-  apk='app-v1.0-arm64-v8a.apk'
-  info=dict(schema=1,target='app',version='1.0',source='a'*40,sha256='b'*64,
-            signer='c'*64,package='io.example.app',tag=tag,provider='fixture',
-            bundle='1.0',apk=apk,label='Fixture',arch='arm64-v8a',patches=['Hide ads'],
-            min_sdk=29,bytes=2000000)
-  body=('[pf-release-v1]: # "'+base64.b64encode(json.dumps(info).encode()).decode()+'"'
-        if structured else retention.CI_MARKER)
-  names=[apk,'pf-publication-v1-app.json']+(['pf-qualified-v1-app.json'] if qualified else [])
-  assets=[{'id':n*10+i+1,'name':name,'size':2000000 if i==0 else 1024,'state':'uploaded',
-           'digest':'sha256:'+'b'*64,'browser_download_url':'https://github.com/'+self.repo+'/releases/download/'+tag+'/'+name}
-          for i,name in enumerate(names)]
-  return dict(id=n,tag_name=tag,html_url='https://github.com/'+self.repo+'/releases/tag/'+tag,
-              published_at='2026-09-19T00:00:00Z',draft=False,prerelease=False,
-              author={'login':'github-actions[bot]','id':41898282},body=body,assets=assets)
- def plan(self,old):
-  return retention.preview([old,self.row(2),self.row(3)],self.targets,self.repo)
- def protected(self,row):
-  plan=self.plan(row);self.assertEqual(plan['candidate_count'],0)
-  self.assertEqual(len(plan['protected']),3)
- def test_structured_receipt_candidate_is_review_only(self):
-  p=self.plan(self.row(1))
-  self.assertEqual(p['candidate_count'],1);self.assertEqual(p['candidate_asset_count'],2)
-  self.assertEqual(p['candidates'][0]['metadata_shape'],'structured-apk-with-evidence')
-  self.assertFalse(p['deletion_authorized']);self.assertEqual(p['mode'],'preview-only')
-  self.assertIn('not fetched or verified',p['limits'])
- def test_structured_qualified_metadata_candidate(self):
-  p=self.plan(self.row(1,qualified=True))
-  self.assertEqual(p['candidate_asset_count'],3)
- def test_legacy_receipt_recognized_without_inventing_qualification(self):
-  p=self.plan(self.row(1,structured=False))
-  self.assertEqual(p['candidates'][0]['metadata_shape'],'legacy-apk-with-evidence')
- def test_newest_two_still_kept(self):
-  p=self.plan(self.row(1))
-  self.assertEqual({r['release_id'] for r in p['protected']},{2,3})
- def test_unknown_asset_is_protected(self):
-  r=self.row(1);r['assets'][1]['name']='unexpected.json';self.protected(r)
- def test_wrong_target_receipt_protected(self):
-  r=self.row(1);r['assets'][1]['name']='pf-publication-v1-other.json';self.protected(r)
- def test_qualified_without_receipt_protected(self):
-  r=self.row(1,qualified=True);r['assets'].pop(1);self.protected(r)
- def test_duplicate_name_protected(self):
-  r=self.row(1);r['assets'].append(dict(r['assets'][1],id=999));self.protected(r)
- def test_duplicate_asset_id_protected(self):
-  r=self.row(1);r['assets'][1]['id']=r['assets'][0]['id'];self.protected(r)
- def test_wrong_asset_url_protected(self):
-  r=self.row(1);r['assets'][0]['browser_download_url']='https://example.invalid/file';self.protected(r)
- def test_unuploaded_asset_protected(self):
-  r=self.row(1);r['assets'][1]['state']='new';self.protected(r)
- def test_empty_evidence_protected(self):
-  r=self.row(1);r['assets'][1]['size']=0;self.protected(r)
- def test_oversized_evidence_protected(self):
-  r=self.row(1);r['assets'][1]['size']=2097153;self.protected(r)
- def test_bad_digest_protected(self):
-  r=self.row(1);r['assets'][1]['digest']='md5:wrong';self.protected(r)
- def test_summary_apk_digest_mismatch_protected(self):
-  r=self.row(1);r['assets'][0]['digest']='sha256:'+'a'*64;self.protected(r)
- def test_summary_apk_size_mismatch_protected(self):
-  r=self.row(1);r['assets'][0]['size']+=1;self.protected(r)
- def test_missing_structured_apk_digest_protected(self):
-  r=self.row(1);r['assets'][0]['digest']=None;self.protected(r)
- def test_legacy_missing_digest_stays_metadata_only(self):
-  r=self.row(1,structured=False);r['assets'][0]['digest']=None
-  self.assertEqual(self.plan(r)['candidate_count'],1)
- def test_malformed_marker_never_legacy_fallback(self):
-  r=self.row(1);r['body']=retention.CI_MARKER+'\n[pf-release-v1]: # "not-json"';self.protected(r)
- def test_duplicate_marker_protected(self):
-  r=self.row(1);r['body']+='\n'+r['body'];self.protected(r)
- def test_wrong_publisher_protected(self):
-  r=self.row(1);r['author']['id']=1;self.protected(r)
- def test_structured_single_apk_not_legacy_laundered(self):
-  r=self.row(1);r['assets'].pop();r['body']+='\n'+retention.CI_MARKER;self.protected(r)
- def test_keep_marker_precedes_new_shape(self):
-  r=self.row(1);r['body']+='\nretention: keep';self.protected(r)
- def test_non_object_asset_protected(self):
-  r=self.row(1);r['assets'][1]=None;self.protected(r)
- def test_missing_asset_inventory_refuses(self):
-  r=self.row(1);r['assets']=None
-  with self.assertRaises(ValueError):self.plan(r)
- def test_asset_metadata_changes_fingerprint(self):
-  r=self.row(1);before=self.plan(r)['fingerprint']
-  r['assets'][1]['digest']='sha256:'+'d'*64
-  self.assertNotEqual(before,self.plan(r)['fingerprint'])
- def test_release_body_changes_fingerprint(self):
-  r=self.row(1);before=self.plan(r)['fingerprint']
-  r['body']+='\nAdditional public note.'
-  self.assertNotEqual(before,self.plan(r)['fingerprint'])
- def test_asset_id_changes_fingerprint(self):
-  r=self.row(1);before=self.plan(r)['fingerprint']
-  r['assets'][1]['id']=11111
-  self.assertNotEqual(before,self.plan(r)['fingerprint'])
- def test_rows_reordered_same_inventory_fingerprint(self):
-  rows=[self.row(i) for i in range(1,4)]
-  a=retention.preview(rows,self.targets,self.repo)
-  b=retention.preview(rows[::-1],self.targets,self.repo)
-  self.assertEqual(a['inventory_fingerprint'],b['inventory_fingerprint'])
-  self.assertEqual(a['fingerprint'],b['fingerprint'])
- def test_no_network_in_metadata_classification(self):
-  with patch.object(retention.subprocess,'run',side_effect=AssertionError('network forbidden')):
-   self.assertEqual(self.plan(self.row(1))['candidate_count'],1)
-
-
 class BuildIdentityTests(unittest.TestCase):
  def setUp(self):
   import datetime
@@ -617,28 +428,16 @@ class BuildIdentityTests(unittest.TestCase):
   regex=r'-v([0-9.]+)-b[0-9]+$'
   tags=['app-v1.0'+self.suffix(GITHUB_RUN_ATTEMPT=str(n)) for n in [1,2]]
   self.assertNotEqual(*tags);self.assertEqual(*[re.search(regex,t)[1] for t in tags])
- def test_retention_mixed_old_new(self):
-  fixture=Retention();fixture.setUp()
-  rows=[fixture.row(1),fixture.row(2),fixture.row(3)]
-  for r,a in zip(rows,[None,'1','2']):
-   if a:
-    r['tag_name']='app-v1.0'+self.suffix(GITHUB_RUN_ATTEMPT=a)
-    r['html_url']='https://github.com/owner/repo/releases/tag/'+r['tag_name']
-  p=fixture.plan(rows);self.assertEqual([x['release_id'] for x in p['candidates']],[1])
- def test_retention_orders_reruns_numerically(self):
-  fixture=Retention();fixture.setUp();rows=[]
-  for n in [9,10,11]:
-   tag='app-v1.0'+self.suffix(GITHUB_RUN_ATTEMPT=str(n))
-   rows.append(fixture.row(n,tag_name=tag,html_url='https://github.com/owner/repo/releases/tag/'+tag))
-  self.assertEqual([x['release_id'] for x in fixture.plan(rows)['candidates']],[9])
- def test_retention_bad_long_id_protected(self):
-  fixture=Retention();fixture.setUp()
-  tag='app-v1.0-b20260910'+'0'*26
-  self.assertEqual(fixture.plan([fixture.row(1,tag_name=tag)])['candidate_count'],0)
  def test_release_action_refuses_updates_and_upload_failures(self):
   s=(ROOT/'.github/actions/release/action.yml').read_text()
   self.assertIn('allowUpdates: false',s);self.assertIn('replacesArtifacts: false',s)
   self.assertIn('artifactErrorsFailBuild: true',s);self.assertIn('commit: ${{ github.sha }}',s)
+ def test_release_action_has_one_retention_policy(self):
+  # W9: the old preview printed a second, older policy after every publish; cleanup.py is the only one.
+  s=(ROOT/'.github/actions/release/action.yml').read_text()
+  self.assertNotIn('release_retention',s);self.assertNotIn('Preview retention',s)
+  self.assertFalse((ROOT/'src/etc/release_retention.py').exists())
+  self.assertIn('src/etc/cleanup.py preview',s)
  def test_build_generates_identity_not_date_only(self):
   s=(ROOT/'src/build/build.sh').read_text();self.assertIn('python3 src/build/build_identity.py',s)
   self.assertNotIn('echo "-b$(date -u +%Y%m%d)"',s)
