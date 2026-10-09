@@ -1,6 +1,24 @@
 # Open work
 
-## Current checkpoint: 10 October 2026 (packet W11)
+## Current checkpoint: 10 October 2026, 2 AM IST (packet W12)
+
+W11 merged (#174, main `a7f1f0af`) over the agent review block by owner decision; Facebook 581
+built (82 of 82). Cleanup applied. W12: coverage-first version choice, status page cancel fix,
+CHANGELOG, #102 closed. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W12). Open, in order:
+
+1. Owner runs `pf-w12.py` (push, Validate, two nonpublishing builds on the packet branch that must
+ print a COVERAGE line, merge) and uploads its logs. Phone-test Facebook.
+2. **W13**: per-provider version pins (version code, dpi) and provider fallback after a failed
+ build, so De-Vanced 580 becomes Facebook's fallback (an onboarding change: reword the three
+ "server-visible" lines in `onboarding/facebook.md` to the account-risk facts and cite the owner
+ decision); lost patches dropped by name instead of failing the gate, if the owner wants it;
+ the incremental Morphe digest from the `MorpheApp/morphe-patches` release notes.
+3. Last packet of the series: one Provider watch run on main, then every baseline re-seeded side
+ by side in a baselines-only pull request, so no baseline notices remain.
+4. Phone-test Amazon Music (throwaway account only) and LinkedIn.
+5. Later: S2 publisher pins, APKPure store step-down, onboarding gpt parser, openskip handbook copy.
+
+## Earlier checkpoint: 10 October 2026 (packet W11)
 
 W10 merged (#169, main `7838a4ce`), cleanup applied (one Truecaller). W11: 22 baselines
 re-seeded, Facebook on HushFacebook 581 (82 patches), repository-case hint, review correction.

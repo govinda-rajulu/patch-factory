@@ -6,7 +6,17 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
 
-## 10 Oct 2026, 1 AM IST (packet W11; start here)
+## 10 Oct 2026, 2 AM IST (packet W12; start here)
+
+- **Main** `a7f1f0af` (W11 #174, merged over the agent review block by owner decision). Facebook
+ 581.0.0.45.58 on HushFacebook built in run 37981596858: 82 of 82 applied. Cleanup applied.
+- **W12** (`pf-w12.py`): coverage-first version choice in `resolve.sh` (`src/build/coverage.py`;
+ any doubt keeps the newest), proven by two nonpublishing builds on the packet branch before the
+ merge; the status page ignores a cancel replaced by a newer run; CHANGELOG; #102 closed.
+- **Next**: W13 (per-provider pins and provider fallback, De-Vanced for Facebook, Facebook record
+ wording, Morphe digest), then the last packet re-seeds every baseline side by side.
+
+## 10 Oct 2026, 1 AM IST (packet W11)
 
 - **Main** `7838a4ce` (W10 #169). Cleanup applied: standalone Truecaller release gone.
 - **W11** (`pf-w11.py`): baselines re-seeded; Facebook on `SysAdminDoc/HushFacebook` 581.0.0.45.58

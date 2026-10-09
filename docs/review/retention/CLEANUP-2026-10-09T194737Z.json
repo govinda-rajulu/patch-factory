@@ -1,0 +1,80 @@
+{
+ "repo": "govinda-rajulu/patch-factory",
+ "token": "c66c4c9520736d7a",
+ "releases": [
+  {
+   "tag": "facebook-v490.0.0.63.82-b2026092100000000035571131023000001",
+   "release_id": 392753561,
+   "name": "facebook-v490.0.0.63.82-b2026092100000000035571131023000001",
+   "published_at": "2026-09-21T07:10:11Z",
+   "commit": "90b7717a417e4c420f6d717d4ee3563d0c8e56dd",
+   "assets": [
+    {
+     "name": "facebook-v490.0.0.63.82-arm64-v8a.apk",
+     "size": 162834617,
+     "digest": "sha256:dc6f05136684bb3bc97228d161f8ba041402a0ea5cccad631ca5b76a653fc141"
+    },
+    {
+     "name": "pf-publication-v1-facebook.json",
+     "size": 1063,
+     "digest": "sha256:002cdd52e24a098f885fb6e7fa8fd926ce6de7a79c9dc7595c52e7022f922df7"
+    },
+    {
+     "name": "pf-qualified-v1-facebook.json",
+     "size": 2691,
+     "digest": "sha256:b7884f76d0873d0f9f2ee34a3c9f629f50d5b9f9221916d9de9510eedd835930"
+    }
+   ]
+  }
+ ],
+ "tags": [
+  {
+   "tag": "facebook-v490.0.0.63.82-b2026092100000000035571131023000001",
+   "commit": "90b7717a417e4c420f6d717d4ee3563d0c8e56dd"
+  }
+ ],
+ "deployments": [
+  {
+   "id": 6958578915,
+   "environment": "github-pages",
+   "created_at": "2026-10-09T10:34:36Z",
+   "sha": "2eccc4caf7d21855cc9a46f3e7d806143fedda96",
+   "ref": "main",
+   "task": "deploy"
+  }
+ ],
+ "kept_deployments": [
+  {
+   "id": 6969427003,
+   "created_at": "2026-10-09T19:38:40Z",
+   "sha": "a7f1f0afadee21c75db96231f18e484d542692b1"
+  },
+  {
+   "id": 6968229348,
+   "created_at": "2026-10-09T18:35:01Z",
+   "sha": "7838a4ce62bc5bf7a61a4525adef1ede87c87145"
+  },
+  {
+   "id": 6967369141,
+   "created_at": "2026-10-09T17:50:39Z",
+   "sha": "a2c2ab2774f456e26a773fa6cc9e292d7b0dd57d"
+  },
+  {
+   "id": 6962149696,
+   "created_at": "2026-10-09T13:41:55Z",
+   "sha": "6c3a626a48e7486464559bc856bd4bae0fe3270e"
+  },
+  {
+   "id": 6961628261,
+   "created_at": "2026-10-09T13:17:00Z",
+   "sha": "eebbb279dcc5ffaeb58f9824a4acdb02ce4a8c46"
+  }
+ ],
+ "branches": [
+  {
+   "name": "packet/w11",
+   "sha": "2ea1690ceb773549c504d910876fead1caa892fa",
+   "restore": "git push origin 2ea1690ceb773549c504d910876fead1caa892fa:refs/heads/packet/w11"
+  }
+ ]
+}

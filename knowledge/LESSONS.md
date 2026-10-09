@@ -147,3 +147,5 @@ This file keeps only what fits in neither.
 - `channel: prerelease` on a provider with zero prereleases fails; resolve.sh falls back to
   stable. Compare the two command lines before blaming a parser.
 - Launchers are never rerun after a PUSH phase; paste the RESULT instead.
+- The newest version a provider lists is not always the one with the most of our patches;
+  choose by coverage, break ties by newest, and keep the old rule when the listing is in doubt (W12).

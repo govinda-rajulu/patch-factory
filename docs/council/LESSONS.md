@@ -253,3 +253,14 @@ Explore of `SysAdminDoc/Hushfacebook` failed at the exact repository check; GitH
 Tags: sources, evidence
 The community index ties a patch to an app either per patch or once per bundle (`targetApps`).
 Counting only one shape hid the strongest Facebook and Instagram bundles. Read every shape before ranking.
+
+### L047 · Describe the risk, not the rule
+Tags: onboarding, evidence
+The W11 Facebook record labelled three patches "server-visible behaviour", rule 1's own words,
+and four seats blocked on that phrase. Write what the patch does and who decided; expect a block
+when a record names a rule, and say so before the controller runs.
+
+### L048 · A cancel replaced by a newer run is not a failure
+Tags: status, automation
+"Status page data" cancels its own older run (cancel-in-progress) and the page listed that as a
+failing automation. Skip a cancelled run when a newer run of the same workflow exists.

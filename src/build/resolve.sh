@@ -20,7 +20,7 @@ MAXAGE=$(jq -r '.max_patch_age_days // 60' <<<"$T")
 PIN=$(jq -r '.pin // ""' <<<"$T")
 NOW=$(date +%s)
 echo "=== resolving $ID ($PKG) ==="
-bn=""; bv=""; bc=0; bd=0; bm=""; bh=""; bt=""
+bn=""; bv=""; bc=0; bd=0; bm=""; bh=""; bt=""; bf=-1
 an=""; am=""; ah=""; at=""
 n=$(jq '.candidates | length' <<<"$T")
 for i in $(seq 0 $((n-1))); do
@@ -74,15 +74,29 @@ for i in $(seq 0 $((n-1))); do
   else
     VER=$(awk '{print $1}' <<<"$VL" | sort -V | tail -1)
   fi
+  # W12 (owner design 10 Oct 2026): the version where most of OUR chosen patches apply wins,
+  # the newest breaks a tie. Any doubt keeps the newest version, exactly as before.
+  COV=$(python3 src/build/coverage.py "$JAR" "$MPP" "$PKG" "$ID" "$NAME" "$MAXVER" <<<"$VL"); CRC=$?
+  PICK=$(sed -n 's/^COVERAGE_PICK=//p' <<<"$COV" | head -1)
+  if [ "$CRC" -eq 0 ] && [ -n "$PICK" ]; then
+    grep -E '^COVERAGE(_LOST)? ' <<<"$COV"
+    VER="$PICK"
+    CV=$(sed -n 's/^COVERAGE_COVERED=//p' <<<"$COV" | head -1); CT=$(sed -n 's/^COVERAGE_TOTAL=//p' <<<"$COV" | head -1)
+    CF=$(( CV * 1000000 / CT ))
+  else
+    echo "::notice::COVERAGE_UNAVAILABLE $NAME: $(sed -n 's/^COVERAGE_UNAVAILABLE //p' <<<"$COV" | head -1 | tr -cd 'A-Za-z0-9 ._:%-'); newest version kept"
+    CF=-1
+  fi
   CNT=$(awk -v v="$VER" '$1==v {print $2}' <<<"$VL" | head -1)
   echo "  - $NAME: app $VER, ${CNT:-0} patches, ${AGE}d ago"
   w=0
   if [ -z "$bv" ]; then w=1
+  elif [ "$CF" -ge 0 ] && [ "$bf" -ge 0 ] && [ "$CF" -ne "$bf" ]; then [ "$CF" -gt "$bf" ] && w=1
   elif [ "$VER" != "$bv" ] && [ "$(printf '%s\n%s\n' "$bv" "$VER" | sort -V | tail -1)" = "$VER" ]; then w=1
   elif [ "$VER" = "$bv" ] && [ "${CNT:-0}" -gt "$bc" ]; then w=1
   elif [ "$VER" = "$bv" ] && [ "${CNT:-0}" -eq "$bc" ] && [ "$PSEC" -gt "$bd" ]; then w=1
   fi
-  [ "$w" = 1 ] && { bn="$NAME"; bv="$VER"; bc="${CNT:-0}"; bd="$PSEC"; bm="$MPP"; bh="$HASH"; bt="$TAG"; }
+  [ "$w" = 1 ] && { bf="$CF"; bn="$NAME"; bv="$VER"; bc="${CNT:-0}"; bd="$PSEC"; bm="$MPP"; bh="$HASH"; bt="$TAG"; }
 done
 if [ -z "$bn" ] && [ -n "$an" ]; then bn="$an"; bv=""; bc=0; bm="$am"; bh="$ah"; bt="$at"; fi
 [ -z "$bn" ] && { echo "RESULT: no viable provider"; exit 1; }
