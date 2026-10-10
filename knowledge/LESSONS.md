@@ -156,4 +156,5 @@ This file keeps only what fits in neither.
 - A fallback provider must never compete with the primary on coverage (W13, L051).
 - A daily bot that pushes to main must pause while a packet branch exists, or controllers stop
   with MAIN_MOVED (W13 Selection watch).
-
+- A Python wrapper around a bash build resets SIGPIPE; under pipefail, `cmd | grep -q` then fails
+  with 141. Keep the step's signals and avoid early-exit readers in checks (W13, L052).

@@ -11,13 +11,17 @@ result line. Phases:
   gate      gh logged in; live main is BASE (or the packet is already merged)
   clone     fresh stamped clone; the packet tree from the embedded bundle, checked by tree id,
             committed on BASE with a fixed author and date (same commit id on a rerun)
-  push      new branch BRANCH (only if absent; a different head there stops)
-  pr        open the pull request (only if none)
+  push      new branch BRANCH (only if absent; a different head there stops). With PARENT set
+            (a fix on top of a pushed packet), BRANCH at PARENT is fast-forwarded instead
+  pr        open the pull request (only if none); after a fast-forward, wait until the open
+            pull request from BRANCH shows the new head
   validate  wait for CHECKS on the packet head (and OPTIONAL checks when they appear);
             any that fails stops before merge
   smoke     one nonpublishing Manual Patch per entry in SMOKE on BRANCH ("app", or
             "app/provider" to build one provider with its own pins); each must work and print
-            a COVERAGE line (not COVERAGE_UNAVAILABLE), or nothing merges
+            a COVERAGE line (not COVERAGE_UNAVAILABLE), or nothing merges. Entries also in
+            SMOKE_ADVISORY (fallback providers) are recorded as NOTE when they fail, never
+            blocking: a broken fallback breaks nothing that works today
   merge     merge commit guarded by the head sha; the merge tree must be the packet tree
   close     for each issue in CLOSE: one marked comment, then close
   pages     wait until GitHub Pages has deployed the merge, so the cleanup preview below
@@ -50,6 +54,7 @@ REPO = 'govinda-rajulu/patch-factory'
 BASE = os.environ.get('PF_BASE', '9a50d03870140e4a4e51484551b93c65265446c8')  # live main, full sha
 BASE_TREE = '53dc55fb41fedeb7b49a1ecc82ab3b266f9644d4'  # the tree the packet was built on
 PREREQ = 'a7f1f0afadee21c75db96231f18e484d542692b1'  # bundle prerequisite, an ancestor of BASE
+PARENT = os.environ.get('PF_PARENT', BASE)  # parent of the packet commit: BASE, or a pushed packet head to fast-forward
 HEAD = ''
 TREE = '@@TREE@@'
 BRANCH = 'packet/' + PACKET
@@ -62,6 +67,7 @@ CHECKS = ('Validate targets and scripts',)
 OPTIONAL = ('Onboarding record', 'Agent review (required for onboarding)')
 ADVISORY = ()       # check names waited for and recorded, never blocking
 SMOKE = ()          # "app" or "app/provider" entries to build without publishing on BRANCH
+SMOKE_ADVISORY = ()  # SMOKE entries whose failure is recorded (NOTE), never blocking
 CLOSE = ()          # (issue number, closing comment) pairs, done after the merge
 PRECHECKS = ()      # (api path, field, expected value, why) read in gate; a mismatch stops
 CLEANUP_APPLY = False  # apply the cleanup preview at once (PF_CLEANUP=keep skips)
@@ -193,13 +199,17 @@ def clone():
         code, out, err = run(c, cwd=CLONE)
         if code != 0:
             stop('clone', ' '.join(c[:3]) + ' failed: ' + err.decode('utf-8', 'replace')[:200])
+    if PARENT != BASE:
+        ok, _, _ = run(['git', 'merge-base', '--is-ancestor', BASE, PARENT], cwd=CLONE)
+        if ok != 0:
+            stop('clone', 'parent %s is not a descendant of the base %s; nothing changed' % (PARENT[:12], BASE[:12]))
     _, t, _ = run(['git', 'rev-parse', 'refs/pf/%s^{tree}' % PACKET], cwd=CLONE)
     if t.decode().strip() != TREE:
         stop('clone', 'packet tree is %s, expected %s' % (t.decode().strip()[:12], TREE[:12]))
     name, mail = WHO.split(' <')
     env = dict(os.environ, GIT_AUTHOR_NAME=name, GIT_AUTHOR_EMAIL=mail.rstrip('>'), GIT_AUTHOR_DATE=WHEN,
                GIT_COMMITTER_NAME=name, GIT_COMMITTER_EMAIL=mail.rstrip('>'), GIT_COMMITTER_DATE=WHEN)
-    r = subprocess.run(['git', 'commit-tree', TREE, '-p', BASE, '-m', MESSAGE], cwd=CLONE, env=env, capture_output=True)
+    r = subprocess.run(['git', 'commit-tree', TREE, '-p', PARENT, '-m', MESSAGE], cwd=CLONE, env=env, capture_output=True)
     HEAD = r.stdout.decode().strip()
     if r.returncode != 0 or len(HEAD) != 40:
         stop('clone', 'commit-tree failed: ' + r.stderr.decode('utf-8', 'replace')[:200])
@@ -207,7 +217,8 @@ def clone():
     if code != 0:
         stop('clone', 'checkout of the packet head failed: ' + err.decode('utf-8', 'replace')[:200])
     R['head'] = HEAD
-    say('clone', 'OK', 'packet head %s (tree %s) on base %s' % (HEAD[:12], TREE[:12], BASE[:12]))
+    say('clone', 'OK', 'packet head %s (tree %s) on base %s%s' % (HEAD[:12], TREE[:12], BASE[:12],
+        (', after the pushed head %s' % PARENT[:12]) if PARENT != BASE else ''))
 
 
 def push():
@@ -218,12 +229,14 @@ def push():
     if have == HEAD:
         say('push', 'SKIP', 'branch %s already at the packet head' % BRANCH)
         return
-    if have:
-        stop('push', 'branch %s exists at %s, not the packet head. Nothing pushed.' % (BRANCH, have[:12]))
+    ff = bool(have) and PARENT != BASE and have == PARENT
+    if have and not ff:
+        stop('push', 'branch %s exists at %s, not the packet head%s. Nothing pushed.'
+             % (BRANCH, have[:12], (' or its parent %s' % PARENT[:12]) if PARENT != BASE else ''))
     code, out, err = run(['git', 'push', '-q', REMOTE, '%s:refs/heads/%s' % (HEAD, BRANCH)], cwd=CLONE, timeout=300)
     if code != 0:
         stop('push', 'git push failed: ' + err.decode('utf-8', 'replace')[:200])
-    say('push', 'OK', 'pushed %s to %s (new branch)' % (HEAD[:12], BRANCH))
+    say('push', 'OK', 'pushed %s to %s (%s)' % (HEAD[:12], BRANCH, ('fast-forward from %s' % PARENT[:12]) if ff else 'new branch'))
 
 
 def open_pr():
@@ -231,6 +244,21 @@ def open_pr():
     if pr:
         say('pr', 'SKIP', 'pull request #%d already exists' % pr['number'])
         return pr
+    if PARENT != BASE:
+        # After a fast-forward GitHub moves the open pull request a little later; wait for it.
+        end = time.time() + 300
+        while True:
+            rows = must('repos/%s/pulls?state=open&head=govinda-rajulu:%s&per_page=20' % (REPO, BRANCH), 'pr')
+            mine = [p for p in rows if (p.get('head') or {}).get('ref') == BRANCH]
+            if not mine:
+                break
+            pr = find_pr('pr')
+            if pr:
+                say('pr', 'OK', 'pull request #%d now shows the packet head %s' % (pr['number'], HEAD[:12]))
+                return pr
+            if time.time() > end:
+                stop('pr', 'open pull request #%d from %s did not move to %s in 300 s. Nothing merged.' % (mine[0]['number'], BRANCH, HEAD[:12]))
+            time.sleep(max(POLL, 1) if POLL else 0)
     body = BODY % dict(tree=TREE[:12], script=SELF.name, smoke=', '.join(SMOKE) or 'none')
     pr = must('repos/%s/pulls' % REPO, 'pr', 'POST', dict(title=TITLE, head=BRANCH, base='main', body=body))
     say('pr', 'OK', 'opened #%d' % pr['number'], url=pr.get('html_url'))
@@ -323,13 +351,20 @@ def smoke():
                 stop('smoke', '%s: dispatch failed: %s. Nothing merged.' % (t, (err or out).decode('utf-8', 'replace')[:200]))
             say('smoke', 'OK', '%s: dispatched a nonpublishing Manual Patch on %s' % (t, BRANCH))
         end = time.time() + BUILD_WAIT
+        soft = t in SMOKE_ADVISORY
         while True:
             r = smoke_runs().get(t)
             if r and r.get('status') == 'completed':
                 break
             if time.time() > end:
+                if soft:
+                    R['smoke'][t] = dict(run=(r or {}).get('id'), conclusion='unfinished', advisory=True)
+                    say('smoke', 'NOTE', '%s: advisory, no finished run after %d s (not blocking)' % (t, BUILD_WAIT))
+                    break
                 stop('smoke', '%s: no finished run after %d s. Nothing merged.' % (t, BUILD_WAIT))
             time.sleep(POLL)
+        if not (r and r.get('status') == 'completed'):
+            continue
         log = LOGS / ('smoke-%s-%s.log' % (t.replace('/', '-'), r['id']))
         run([GH, 'run', 'view', str(r['id']), '--repo', REPO, '--log'], timeout=300, out=log)
         text = log.read_bytes().decode('utf-8', 'replace') if log.exists() else ''
@@ -339,16 +374,23 @@ def smoke():
         app, _, provider = t.partition('/')
         won = [l.split('Z ', 1)[-1].strip() for l in text.splitlines() if 'ATTEMPTS_OK ' in l and 'echo' not in l]
         dropped = [l.split('Z ', 1)[-1].strip() for l in text.splitlines() if 'PATCH_DROPPED ' in l and 'echo' not in l and 'print(' not in l]
+        failed = [l.split('Z ', 1)[-1].strip()[:300] for l in text.splitlines() if 'ATTEMPT_FAILED ' in l and 'echo' not in l and 'print(' not in l]
         R['smoke'][t] = dict(run=r['id'], conclusion=r.get('conclusion'), url=r.get('html_url'), coverage=cov[:4],
-                             lost=lost[:20], unavailable=doubt[:4], attempts=won[-1:], dropped=dropped[:20])
+                             lost=lost[:20], unavailable=doubt[:4], attempts=won[-1:], dropped=dropped[:20], failed=failed[:4],
+                             advisory=soft)
         save()
+        why = None
         if r.get('conclusion') != 'success':
-            stop('smoke', '%s: run %s ended %s: %s. Nothing merged; the log is kept.' % (t, r['id'], r.get('conclusion'), r.get('html_url')))
-        if doubt or not cov:
-            stop('smoke', '%s: run %s worked but the resolver %s. Nothing merged; the log is kept.'
-                 % (t, r['id'], 'could not read the listing: ' + doubt[0] if doubt else 'printed no COVERAGE line'))
-        if provider and not any((', winner %s' % provider) in w for w in won):
-            stop('smoke', '%s: run %s worked but not with provider %s (%s). Nothing merged.' % (t, r['id'], provider, (won or ['no ATTEMPTS_OK line'])[-1]))
+            why = 'run %s ended %s: %s%s' % (r['id'], r.get('conclusion'), r.get('html_url'), ('; ' + failed[-1]) if failed else '')
+        elif doubt or not cov:
+            why = 'run %s worked but the resolver %s' % (r['id'], 'could not read the listing: ' + doubt[0] if doubt else 'printed no COVERAGE line')
+        elif provider and not any((', winner %s' % provider) in w for w in won):
+            why = 'run %s worked but not with provider %s (%s)' % (r['id'], provider, (won or ['no ATTEMPTS_OK line'])[-1])
+        if why and soft:
+            say('smoke', 'NOTE', '%s: advisory, %s (not blocking; the log is kept)' % (t, why))
+            continue
+        if why:
+            stop('smoke', '%s: %s. Nothing merged; the log is kept.' % (t, why))
         say('smoke', 'OK', '%s: run %s worked; %s%s' % (t, r['id'], cov[-1], ('; dropped %d' % len(dropped)) if dropped else ''))
 
 

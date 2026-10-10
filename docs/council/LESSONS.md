@@ -281,3 +281,9 @@ Tags: selection, providers
 A fallback candidate with 3 of 3 patches beats a primary with 82 of 83 on coverage. Mark it
 fallback: true so resolve.sh skips it; it builds only after the primary build fails (W13).
 
+### L052 · A wrapper changes the signals
+Tags: build, ci
+W13's first Instagram smoke failed both attempts at "zip has no AndroidManifest.xml" on a good
+133 MB APK. An Actions step runs with SIGPIPE ignored; Python's subprocess resets it, so
+`unzip -l | grep -q` under pipefail died with 141 once grep stopped reading. Keep the step's
+signals (`restore_signals=False`) and name the zip entry instead of piping into `grep -q`.

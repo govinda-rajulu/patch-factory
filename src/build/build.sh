@@ -185,7 +185,8 @@ SZ=$(wc -c < "./download/$APK_NAME.apk")
 green_log "[+] downloaded $SZ bytes"
 [ "$SZ" -gt 1000000 ] || { red_log "[-] only $SZ bytes, download did not complete"; head -c 200 "./download/$APK_NAME.apk"; exit 1; }
 unzip -l "./download/$APK_NAME.apk" > /dev/null 2>&1 || { red_log "[-] not a zip, apkmirror served an error page or the wrong variant"; head -c 200 "./download/$APK_NAME.apk"; exit 1; }
-unzip -l "./download/$APK_NAME.apk" | grep -q AndroidManifest.xml || { red_log "[-] zip has no AndroidManifest.xml, not an apk"; exit 1; }
+# Name the entry instead of piping into grep -q: no early pipe close, no SIGPIPE (L052).
+unzip -l "./download/$APK_NAME.apk" AndroidManifest.xml > /dev/null 2>&1 || { red_log "[-] zip has no AndroidManifest.xml, not an apk"; exit 1; }
 PKG_SEEN=""
 if command -v aapt2 > /dev/null 2>&1; then
   PKG_SEEN=$(aapt2 dump packagename "./download/$APK_NAME.apk" 2>/dev/null | head -1)

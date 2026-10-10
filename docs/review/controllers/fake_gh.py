@@ -5,7 +5,7 @@ Covers what packet.tmpl.py and src/etc/cleanup.py call: auth, branches, commits,
 check runs, Manual Patch dispatch/runs/jobs/logs, issues, deployments and their statuses,
 releases. Knobs in the state file: checks{name: conclusion}, extra_checks[], smoke{app:
 conclusion}, smoke_log{app: line}, issues{n: state}, pages_state, main, license{repo: spdx},
-flows{workflow file: conclusion}. W13: provider dispatch input and run names (display_title),
+flows{workflow file: conclusion}, pulls[] (a seeded open pull request follows its branch). W13: provider dispatch input and run names (display_title),
 cleanup apply calls, and the pf-t1 flows (any workflow file, status.json, targets.json).
 """
 import json, os, sys, pathlib, subprocess as sp
@@ -71,6 +71,9 @@ m, p = (a[2], a[3]) if a[1] == '-X' else ('GET', a[1])
 f = {}
 for i, x in enumerate(a):
     if x in ('-f', '-F'): k, v = a[i + 1].split('=', 1); f[k] = v
+for pr in st['pulls']:  # like GitHub: an open pull request follows its branch (state seeds may name a prior head)
+    if not pr.get('merged_at') and pr.get('head', {}).get('ref'):
+        pr['head']['sha'] = git('rev-parse', 'refs/heads/' + pr['head']['ref']) or pr['head']['sha']
 if p.startswith(R + 'branches/main'): out({'commit': {'sha': st['main']}})
 if p.startswith(R + 'git/commits/'): out({'tree': {'sha': git('rev-parse', p.split('/')[-1] + '^{tree}')}})
 if p.startswith(R + 'pulls?state=all'): out(st['pulls'])
@@ -84,7 +87,7 @@ if p.startswith(R + 'pulls/%d/merge' % NUM) and m == 'PUT':
     tree = st.get('merge_tree') or pr['head']['sha'] + '^{tree}'
     c = sp.run(['git', '-C', st['origin'], 'commit-tree', tree, '-p', st['main'], '-p', pr['head']['sha'], '-m', 'Merge'],
                env=env, capture_output=True, text=True).stdout.strip()
-    git('update-ref', 'refs/heads/main', c); st['main'] = c; pr['merged_at'] = 'now'; pr['merge_commit_sha'] = c
+    git('update-ref', 'refs/heads/main', c); st['main'] = c; pr['merged_at'] = 'now'; pr['merge_commit_sha'] = c; pr['state'] = 'closed'
     out({'merged': True, 'sha': c})
 if p.startswith(R + 'pulls/%d' % NUM): out(st['pulls'][0])
 if '/check-runs' in p:
@@ -134,6 +137,6 @@ if p.startswith(R + 'deployments'): out([{'id': 9000 + i, 'environment': 'github
 if p.startswith(R + 'branches'):
     rows = git('for-each-ref', '--format=%(refname:short) %(objectname)', 'refs/heads').split('\n')
     out([{'name': x.split()[0], 'commit': {'sha': x.split()[1]}} for x in rows if x] if 'page=1' in p else [])
-if p.startswith(R + 'pulls?state=open'): out([])
+if p.startswith(R + 'pulls?state=open'): out([x for x in st['pulls'] if not x.get('merged_at') and ('head=' not in p or p.split('head=')[1].split('&')[0].endswith(':' + x['head']['ref']))])
 if p.startswith(R + 'compare/'): print('behind'); save(); sys.exit(0)
 fail('fake gh: unhandled %s %s' % (m, p))

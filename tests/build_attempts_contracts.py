@@ -87,6 +87,39 @@ class Attempts(unittest.TestCase):
         rc, out = self.run_it(FAIL='a')
         self.assertEqual((rc, out['attempts']), (3, '1'))
 
+    def test_build_keeps_sigpipe_ignored(self):
+        """L052: the wrapper must not reset SIGPIPE; a plain Actions step has it ignored."""
+        (self.r / 'src/build/build.sh').write_text(
+            '#!/bin/bash\necho "[+] winner=a (o/r) app=1"\n'
+            'm=$(sed -n "s/^SigIgn:[[:space:]]*//p" /proc/$$/status)\n'
+            'if [ $(( 0x$m & 0x1000 )) -ne 0 ]; then exit 0; fi\necho "[-] SIGPIPE not ignored"; exit 9\n')
+        rc, out = self.run_it()
+        self.assertEqual((rc, out['attempts']), (0, '1'))  # attempt 1 itself, not a fallback
+
+    def test_zip_checks_do_not_pipe_into_grep_q(self):
+        """L052: an entry check that pipes unzip into grep -q fails with 141 when SIGPIPE is default."""
+        import re
+        for rel in ('src/build/build.sh', 'src/build/utils.sh'):
+            text = (ROOT / rel).read_text(encoding='utf-8')
+            self.assertEqual(re.findall(r'unzip -l[^\n|]*\|\s*grep -q', text), [], rel)
+
+    def test_manifest_check_passes_on_a_large_manifest_first_zip(self):
+        import zipfile
+        apk = self.r / 'big.apk'
+        with zipfile.ZipFile(apk, 'w') as z:
+            z.writestr('AndroidManifest.xml', 'x')
+            for i in range(6000):
+                z.writestr('res/long_resource_name_%05d.xml' % i, '')
+        line = next(l for l in (ROOT / 'src/build/build.sh').read_text().splitlines()
+                    if 'AndroidManifest.xml' in l and l.startswith('unzip -l'))
+        line = line.replace('"./download/$APK_NAME.apk"', '"%s"' % apk)
+        # default SIGPIPE (Python resets it for children): the old pipe form exits 141 here
+        r = subprocess.run(['bash', '-c', 'set -uo pipefail; red_log() { echo "$*"; }; ' + line + '; echo PASS'],
+                           capture_output=True, text=True)
+        self.assertIn('PASS', r.stdout, r.stdout + r.stderr)
+        old = subprocess.run(['bash', '-c', 'set -uo pipefail; unzip -l "%s" | grep -q AndroidManifest.xml' % apk])
+        self.assertEqual(old.returncode, 141)
+
     def test_plan_order(self):
         t = dict(id='x', candidates=[dict(name='p1'), dict(name='f', fallback=True), dict(name='p2')])
         self.assertEqual(build_attempts.plan(t, ''), [None, 'p1', 'p2', 'f'])

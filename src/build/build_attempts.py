@@ -79,8 +79,10 @@ def view(root, ident, name, original):
 
 def attempt(root, ident, env, log):
     winner, reason = None, None
+    # restore_signals=False: build.sh keeps SIGPIPE ignored, as in a plain Actions step. Python's
+    # default resets it, and `unzip -l | grep -q` under pipefail then dies with 141 (W13 smoke, L052).
     with subprocess.Popen(['bash', 'src/build/build.sh', ident], cwd=root, env=env, stdout=subprocess.PIPE,
-                          stderr=subprocess.STDOUT) as p, open(log, 'wb') as out:
+                          stderr=subprocess.STDOUT, restore_signals=False) as p, open(log, 'wb') as out:
         for raw in p.stdout:
             sys.stdout.buffer.write(raw)
             sys.stdout.flush()

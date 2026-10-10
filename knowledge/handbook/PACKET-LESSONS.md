@@ -38,3 +38,5 @@ repositories; each copy arrives by that repository's own pull request.
 - Promise only what the packet ships. Cutting promised scope needs the owner's yes.
 - A handover names what it could not cover, and why.
 - Before a session ends, the tools it built go into the repository too.
+- Wrapping a shell step changes its environment, signals included: under pipefail, `cmd | grep -q`
+  fails with 141 once SIGPIPE is default. Test checks with the wrapper, not only alone.

@@ -8,8 +8,10 @@ HushGram), 10. Selection watch (removals, baselines, waiting patches, release di
 better-provider line), pf-t1 in `controllers/`, Instagram and Amazon Music list fixes, Facebook
 "Share sheet items". Record: [SESSION-2026-10-10.md](SESSION-2026-10-10.md). Open, in order:
 
-1. Owner runs `pf-w13` (it also applies the cleanup and runs pf-t1), then uploads its logs folder
-   and the pf-t1 logs folder. Read every FINDING line and the first Selection watch issue.
+1. Owner runs `pf-w13b` (fast-forwards packet/w13 with the SIGPIPE fix, L052; the first run
+   stopped at the Instagram smoke), which also applies the cleanup and runs pf-t1, then uploads
+   its logs folder and the pf-t1 logs folder. Read every FINDING line, every smoke NOTE (fallback
+   smokes are advisory) and the first Selection watch issue.
 2. Facebook phone test Sunday 11 Oct (read receipts, typing, anonymous stories, Share sheet items).
 3. Amazon Music: decide keep, disable or re-test; check community reports first; never the main
    account until then.

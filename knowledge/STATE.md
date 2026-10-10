@@ -12,7 +12,9 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 - **W13**: lost patches dropped by name (`lost_patches.py`), provider fallback with per-provider
  pins (`build_attempts.py`; Facebook De-Vanced 580, Instagram HushGram), 10. Selection watch
  daily 07:41 IST, pf-t1 in `docs/review/controllers/`. Record `docs/review/SESSION-2026-10-10.md`.
-- **Next**: OPEN-WORK "packet W13", in order: the pf-w13 RESULT and pf-t1 findings first.
+- **First run** stopped at the Instagram smoke (SIGPIPE under the Python wrapper, L052); fixed in
+ W13 commit 2 on the same #178 (`pf-w13b`).
+- **Next**: OPEN-WORK "packet W13", in order: the pf-w13b RESULT and pf-t1 findings first.
 
 ## 10 Oct 2026, 2:30 AM IST (handover H12)
 
