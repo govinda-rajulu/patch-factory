@@ -33,10 +33,11 @@ def build():
     poll=[t for t in en if t.get('poll')]
     rows=[]
     for t in sorted(en,key=lambda x:(x.get('label') or x['id']).lower()):
-        prov=[c['name'] for c in (t.get('candidates') or [])]+[e['name'] for e in (t.get('extra_bundles') or [])]
+        prov=[c['name'] for c in (t.get('candidates') or []) if not c.get('fallback')]+[e['name'] for e in (t.get('extra_bundles') or [])]
+        back=[c['name'] for c in (t.get('candidates') or []) if c.get('fallback')]
         rows.append('| %s | `%s` | `%s` | %s | %s | %s |'%(
             t.get('label') or t['id'], t['id'], t.get('tag_prefix') or t['id'],
-            t.get('source') or 'apkmirror', ' + '.join(prov),
+            t.get('source') or 'apkmirror', ' + '.join(prov)+(' (fallback: %s)'%', '.join(back) if back else ''),
             'yes' if t.get('poll') else 'no'))
     crons=polls(); cron=crons[0]
     q=sh("grep -vc '^#' src/patches/QUARANTINE 2>/dev/null") or '0'

@@ -15,10 +15,11 @@ AUTH=()
 # A pinned target builds only from its pin (resolve.sh skips the rest), so an unpinned
 # candidate publishing must not trigger a rebuild: on 28 Sep 2026 hoo-dles dev releases
 # rebuilt the rushiranpise-pinned AdGuard four times with identical inputs.
+# W13: a fallback candidate (fallback: true) publishing never triggers a build either.
 NEWEST=0; NEWEST_WHO=""; UNKNOWN=0
 PIN=$(jq -r '.pin // ""' <<<"$T")
 [ -n "$PIN" ] && echo "$ID: pinned to $PIN; other candidates cannot trigger a build"
-srcs=$(jq -r '(.pin // "") as $pin | [(.candidates[] | select($pin == "" or .name == $pin) | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name}),
+srcs=$(jq -r '(.pin // "") as $pin | [(.candidates[] | select(($pin == "" and (.fallback // false) != true) or .name == $pin) | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name}),
               ((.extra_bundles // [])[] | {h:(.host//"github"), p:(.project_id//"-"), o:.owner, r:.repo, n:.name})]
              | .[] | [.n,.h,.p,.o,.r] | @tsv' <<<"$T")
 if [ -n "$PIN" ] && ! jq -e --arg p "$PIN" 'any(.candidates[]; .name == $p)' <<<"$T" >/dev/null; then
@@ -66,8 +67,8 @@ MS=$(date -d "$MINE" +%s)
 # poll.sh used to compare provider dates against my newest release only, so a change
 # to include/exclude lists or an options file never triggered a rebuild. It does now.
 CFGP=$(jq -r --arg id "$ID" '.[] | select(.id==$id) | (.pin // "") as $pin
-       | [ ((.candidates // [])[] | select($pin == "" or .name == $pin) | "src/patches/" + .patch_dir),
-           ((.candidates // [])[] | select($pin == "" or .name == $pin) | "src/options/" + .options + ".json"),
+       | [ ((.candidates // [])[] | select(($pin == "" and (.fallback // false) != true) or .name == $pin) | "src/patches/" + .patch_dir),
+           ((.candidates // [])[] | select(($pin == "" and (.fallback // false) != true) or .name == $pin) | "src/options/" + .options + ".json"),
            ((.extra_bundles // [])[] | select(.patch_dir) | "src/patches/" + .patch_dir) ]
        | unique | .[]' src/targets.json)
 CFGD=""

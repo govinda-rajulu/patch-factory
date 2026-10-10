@@ -629,13 +629,13 @@ get_apkpure() {
 	# Preserve the original signed container for qualified alternate verification.
 	if [[ "${PF_APK_RAW_ONLY:-0}" == "1" ]]; then return 0; fi
 	if [[ "$pkg_type" == "bundle" ]]; then
-		if unzip -l "./download/$base_apk" 2>/dev/null | grep -q '\.apk$'; then
+		if unzip -l "./download/$base_apk" '*.apk' > /dev/null 2>&1; then
 			green_log "[+] Merge splits apk to standalone apk"
 			if ! java -jar $APKEditor m -i "./download/$apk_name.xapk" -o "./download/$apk_name.apk" > /dev/null 2>&1; then
 				red_log "[-] Failed to merge $apk_name.xapk to standalone apk"
 				return 1
 			fi
-		elif unzip -l "./download/$base_apk" 2>/dev/null | grep -q 'AndroidManifest.xml'; then
+		elif unzip -l "./download/$base_apk" AndroidManifest.xml > /dev/null 2>&1; then
 			green_log "[+] File is already a standalone APK, renaming"
 			mv "./download/$base_apk" "./download/$apk_name.apk"
 		else

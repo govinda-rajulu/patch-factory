@@ -140,6 +140,22 @@ class Reviewer(unittest.TestCase):
         with self.assertRaises(ValueError):
             onboard_review.check_answer(answer('other'), 'c1', 'manifest')
 
+    def test_small_model_slips_keep_the_seat(self):
+        # W13: capitalised verdict/severity, extra keys and an over-long issue no longer fail the seat.
+        obj = {'canary': 'c1', 'verdict': 'Block', 'summary': 's' * 600, 'findings': [
+            dict(severity='High', item='x', issue='y' * 900, quote='Unlock premium', rule='1'),
+            dict(severity='high', item='x'),
+            'not a finding']}
+        a = onboard_review.check_answer(obj, 'c1', '"Unlock premium"')
+        self.assertEqual(a['verdict'], 'block')
+        self.assertEqual(len(a['findings']), 1)
+        self.assertEqual(a['findings'][0]['severity'], 'high')
+        self.assertEqual(len(a['findings'][0]['issue']), 400)
+        self.assertEqual(a['malformed'], 2)
+        self.assertTrue(a['counted'])
+        with self.assertRaises(ValueError):
+            onboard_review.check_answer(dict(obj, verdict='maybe'), 'c1', 'x')
+
     def test_quorum_and_majority_block(self):
         def row(verdict, counted=True):
             return {'answer': {'verdict': verdict, 'counted': counted}}

@@ -65,23 +65,37 @@ def check_answer(obj, canary, haystack):
         raise ValueError('keys')
     if obj['canary'] != canary:
         raise ValueError('canary')
+    # W13: small-model slips ("Block", "High", extra keys, an over-long issue) no longer throw the
+    # whole seat away; a finding that still does not fit is dropped and counted as malformed.
+    if isinstance(obj.get('verdict'), str):
+        obj = dict(obj, verdict=obj['verdict'].strip().lower())
+    if isinstance(obj.get('summary'), str) and len(obj['summary']) > 500:
+        obj = dict(obj, summary=obj['summary'][:497] + '...')
     if obj['verdict'] not in VERDICTS or not council.short(obj['summary'], 500):
         raise ValueError('verdict or summary')
     f = obj['findings']
-    if not isinstance(f, list) or len(f) > 8:
+    if not isinstance(f, list):
         raise ValueError('findings')
-    kept, dropped = [], 0
-    for x in f:
-        if not isinstance(x, dict) or set(x) != {'severity', 'item', 'quote', 'issue'}:
-            raise ValueError('finding keys')
+    kept, dropped, malformed = [], 0, 0
+    for x in f[:8]:
+        if not isinstance(x, dict) or not {'severity', 'item', 'quote', 'issue'} <= set(x):
+            malformed += 1
+            continue
+        x = {k: x[k] for k in ('severity', 'item', 'quote', 'issue')}
+        if isinstance(x['severity'], str):
+            x['severity'] = x['severity'].strip().lower()
+        for k, n in (('item', 200), ('issue', 400)):
+            if isinstance(x[k], str) and len(x[k]) > n:
+                x[k] = x[k][:n - 3] + '...'
         if x['severity'] not in SEVERITIES or not council.short(x['item'], 200) \
                 or not council.short(x['issue'], 400) or not council.short(x['quote'], 300):
-            raise ValueError('finding fields')
+            malformed += 1
+            continue
         if x['quote'] in haystack:
             kept.append(x)
         else:
             dropped += 1
-    obj = dict(obj, findings=kept, dropped=dropped)
+    obj = dict(obj, findings=kept, dropped=dropped + malformed, malformed=malformed)
     obj['counted'] = obj['verdict'] == 'approve' or bool(kept)
     return obj
 

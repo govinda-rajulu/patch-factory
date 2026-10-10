@@ -123,9 +123,9 @@ that leaves this block stale, so it cannot drift.
 | AdGuard | `adguard` | `adguard` | apkmirror | rushiranpise + hoo-dles | yes |
 | Amazon Music | `amazonmusic` | `amazonmusic` | apkmirror | rookieenough | yes |
 | ES File Explorer | `esfile` | `es-file` | apkmirror | ftl | yes |
-| Facebook | `facebook` | `facebook` | apkmirror | hushfacebook | yes |
+| Facebook | `facebook` | `facebook` | apkmirror | hushfacebook (fallback: derevanced) | yes |
 | Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise | yes |
-| Instagram | `instagram` | `instagram` | apkpure | piko + brosssh | yes |
+| Instagram | `instagram` | `instagram` | apkpure | piko + brosssh (fallback: hushgram) | yes |
 | JioHotstar | `hotstar` | `hotstar` | apkmirror | chiggi | yes |
 | Key Mapper | `keymapper` | `key-mapper` | apkpure | lain | yes |
 | LinkedIn | `linkedin` | `linkedin` | apkmirror | heyymichii | yes |

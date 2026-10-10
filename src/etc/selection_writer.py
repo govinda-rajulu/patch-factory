@@ -81,7 +81,9 @@ def apply_decisions(root, decisions):
             continue
         for candidate in t['candidates']:
             requested = []
-            for b in [candidate] + t.get('extra_bundles', []):
+            # W13: a candidate's overrides may replace the extra bundles it is built with.
+            extras = (candidate.get('overrides') or {}).get('extra_bundles', t.get('extra_bundles', []))
+            for b in [candidate] + extras:
                 d = b['patch_dir']
                 requested += state[d][0] if d in state else lines(root / 'src/patches' / d / 'include-patches')
             if len(requested) != len(set(requested)):

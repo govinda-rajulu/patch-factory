@@ -264,8 +264,10 @@ class Identity(unittest.TestCase):
         self.assertEqual(identity.check_input_variant({'version_code':'475019268'},meta),'MATCH 475019268')
         self.assertEqual(identity.check_input_variant({},meta),'NOT PINNED')
         fb=[t for t in json.loads((self.r/'src/targets.json').read_text()) if t['id']=='facebook'][0]
-        # W11 (10 Oct 2026): HushFacebook is checked against 581.0.0.45.58 build 475215365 (arm64, 320-640dpi).
-        self.assertEqual((fb['arch'],fb['dpi'],fb['version_code'],fb['max_app_version']),('arm64-v8a','320-640dpi','475215365','581.0.0.45.58'))
+        # W13 (10 Oct 2026): Hushfacebook 0.9.0 supports only 582.0.0.50.54; build 475417104 (arm64, 320-640dpi, Android 11+).
+        self.assertEqual((fb['arch'],fb['dpi'],fb['version_code'],fb['max_app_version']),('arm64-v8a','320-640dpi','475417104','582.0.0.50.54'))
+        de=[c for c in fb['candidates'] if c['name']=='derevanced'][0]
+        self.assertEqual((de['fallback'],de['overrides']['version_code'],de['overrides']['max_app_version']),(True,'475019344','580.0.0.51.74'))
         build=(self.r/'src/build/build.sh').read_text()
         self.assertIn('get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"',build)
         self.assertIn('artifact_identity.py input-variant "$ID"',build)

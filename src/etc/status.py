@@ -55,6 +55,7 @@ PURPOSE = {
     'status.yml': 'Writes the data for this page.',
     'council.yml': 'Agent council: scheduled audits posted on the council desk issue.',
     'keepalive.yml': 'Keeps scheduled automations from being paused by GitHub.',
+    'selection-watch.yml': 'Selection watch: drops patch names providers stopped offering, lists new ones for you, digests provider releases.',
 }
 STEP = {
     'Set up job': 'GitHub starting the job',

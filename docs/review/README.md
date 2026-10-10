@@ -4,14 +4,15 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
+Last indexed **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
 
 | Read | Why |
 | --- | --- |
-| [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | 9 to 10 Oct: packets W6 to W12 and handover H12 (W12: coverage-first version choice; H12: owner decisions, phone tests, controller toolkit). Before that, 9 Oct: packets W6 to W9 (W9: routine cleanup, retention preview retired, run-log filter, notices). Earlier: packet W6 (Amazon Music `libInit.so` marker, build status keyed by app, second cleanup). Read first. |
+| [SESSION-2026-10-10.md](SESSION-2026-10-10.md) | 10 Oct: packet W13 (lost patches dropped by name, provider fallback, Selection watch, pf-t1). Read first. |
+| [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | 9 to 10 Oct: packets W6 to W12 and handover H12 (W12: coverage-first version choice; H12: owner decisions, phone tests, controller toolkit). Before that, 9 Oct: packets W6 to W9 (W9: routine cleanup, retention preview retired, run-log filter, notices). Earlier: packet W6 (Amazon Music `libInit.so` marker, build status keyed by app, second cleanup). |
 | [SESSION-2026-10-08.md](SESSION-2026-10-08.md) | 8 Oct session: packet W2 (two-step app changes, plain status page, MicroG shipped where needed, silent failures, onboarding gate, tooling watch, leads decided). Read first. |
 | [SESSION-2026-10-07.md](SESSION-2026-10-07.md) | 6-7 Oct session: packets R to V2, council desk #154, cleanup, findings, wrong calls, coverage limits. Read first. |
 | [HANDOVER-2026-09-26.md](history/HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |

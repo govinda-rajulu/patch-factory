@@ -29,6 +29,9 @@ for i in $(seq 0 $((n-1))); do
   REPO=$(jq -r '.repo' <<<"$C"); CH=$(jq -r '.channel' <<<"$C")
   if [ -n "$PIN" ] && [ "$PIN" != "null" ] && [ "$NAME" != "$PIN" ]; then
     echo "  - $NAME: skipped (pinned to $PIN)"; continue; fi
+  # W13: a fallback candidate never competes; build_attempts.py pins it after a failed build.
+  if { [ -z "$PIN" ] || [ "$PIN" = "null" ]; } && [ "$(jq -r '.fallback // false' <<<"$C")" = "true" ]; then
+    echo "  - $NAME: fallback only (built when the primary build fails)"; continue; fi
   FETCH=$(python3 src/build/github_bundle.py "$OWNER" "$REPO" "$CH" "$RESOLVE_DIR/$OWNER-$REPO") || exit 2
   PUB=$(jq -r '.published_at' <<<"$FETCH")
   MPP=$(jq -r '.path' <<<"$FETCH")

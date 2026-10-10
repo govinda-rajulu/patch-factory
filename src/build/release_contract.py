@@ -76,10 +76,21 @@ def verify(root, ident):
     require(applied and applied == d['applied_patch_names'], 'applied-patch metadata differs from verified report')
     for name in applied:
         one_line(name, 'applied patch')
+    optional = {}
+    for key in ('dropped', 'fallback'):
+        if (root / 'release' / ('.' + key)).exists():
+            optional[key] = read_text(root, 'release/.' + key)
+    dropped = [line.removeprefix('- ').strip() for line in optional.get('dropped', '').splitlines() if line.strip()]
+    for name in dropped:
+        one_line(name, 'dropped patch')
     fields = {'version': version, 'prefix': prefix, 'suffix': suffix, 'tag': prefix+'-v'+version+suffix,
               'apkname': apk.name, 'apkpath': relative, 'sha256': output['sha256'],
               'sizemb': format(output['bytes']/1048576, '.1f'), 'provider': provider,
               'patchver': patchver, 'aplist': '\n'.join('- '+name for name in applied)}
+    if dropped:
+        fields['dropped'] = '\n'.join(dropped)
+    if optional.get('fallback'):
+        fields['fallback'] = one_line(optional['fallback'], 'fallback')
     summary = release_notes.snapshot(fields, d, t)
     fields['summary'] = json.dumps(summary, sort_keys=True)
     fields['notes'] = release_notes.render(summary)

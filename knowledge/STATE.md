@@ -6,7 +6,18 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
 
-## 10 Oct 2026, 2:30 AM IST (handover H12; start here)
+## 10 Oct 2026, evening IST (packet W13; start here)
+
+- **Main** `e42b06d8` (H12 #176) plus W13 once merged. Owner pre-approved W13, merge included.
+- **W13**: lost patches dropped by name (`lost_patches.py`), provider fallback with per-provider
+ pins (`build_attempts.py`; Facebook De-Vanced 580, Instagram HushGram), 10. Selection watch
+ daily 07:41 IST, pf-t1 in `docs/review/controllers/`. Record `docs/review/SESSION-2026-10-10.md`.
+- **First run** stopped at the Instagram smoke (SIGPIPE under the Python wrapper, L052); fixed in
+ W13 commit 2 (`pf-w13b`). Run 2 stopped at the Amazon Music smoke; commit 3 keeps brosssh
+ patches the --force patcher applies and accepts any-version smokes (L053, `pf-w13c`).
+- **Next**: OPEN-WORK "packet W13", in order: the pf-w13c RESULT and pf-t1 findings first.
+
+## 10 Oct 2026, 2:30 AM IST (handover H12)
 
 - **Main** `9a50d038` (W12 #175) plus handover H12 once merged. W12 proven in CI: YouTube
  21.40.161 covers 77 of 77 chosen patches, Instagram 447.0.0.55.81 covers 46 of 46; #102 closed.

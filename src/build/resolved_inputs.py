@@ -35,6 +35,7 @@ def need(ok, message):
 # from targets.json names, version digits and fixed words, never upstream text.
 RESOLVER_SUMMARY = tuple(re.compile(p) for p in (
     r" - [a-z0-9-]+: skipped \(pinned to [a-z0-9-]+\)",
+    r" - [a-z0-9-]+: fallback only \(built when the primary build fails\)",
     r" - [a-z0-9-]+: DISQUALIFIED \(no releases\)",
     r" - [a-z0-9-]+: nothing <= [0-9]+(?:[.][0-9]+)*",
     r" - [a-z0-9-]+: no max_app_version to fall back on - cannot pick a version",

@@ -269,3 +269,28 @@ failing automation. Skip a cancelled run when a newer run of the same workflow e
 Tags: automation, retention
 The W12 preview ran before GitHub Pages deployed the merge; the deploy changed the newest five
 records and the apply refused the old token. Wait for the merge's own Pages deployment, then preview.
+
+### L050 · An always-on patch leaves the list
+Tags: selection, providers
+piko 3.10.0-dev.14 made two Instagram patches always-on and took their names off its list; the
+include file still named them and every Instagram build would have failed. A name the bundle no
+longer offers is dropped by name, capped, and reported (W13); never fail a whole app for it.
+
+### L051 · Fallbacks never compete
+Tags: selection, providers
+A fallback candidate with 3 of 3 patches beats a primary with 82 of 83 on coverage. Mark it
+fallback: true so resolve.sh skips it; it builds only after the primary build fails (W13).
+
+### L052 · A wrapper changes the signals
+Tags: build, ci
+W13's first Instagram smoke failed both attempts at "zip has no AndroidManifest.xml" on a good
+133 MB APK. An Actions step runs with SIGPIPE ignored; Python's subprocess resets it, so
+`unzip -l | grep -q` under pipefail died with 141 once grep stopped reading. Keep the step's
+signals (`restore_signals=False`) and name the zip entry instead of piping into `grep -q`.
+
+### L053 · Predict only what the tool enforces
+Tags: selection, ci
+W13 dropped 4 working brosssh Instagram patches (Hide ads among them) because the bundle lists
+Instagram 439 only; the patcher runs with --force and W12 had applied them on 447. The smoke
+gate also wanted a COVERAGE line an any-version provider never prints. A pre-check must be no
+stricter than the step it predicts; read a success run's log before writing the gate.

@@ -9,7 +9,7 @@ permissions:
   contents: read
 on:
   workflow_run:
-    workflows: ["1. Manual Patch", "2. Check new patch", "3. Validate", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "9. Batch Patch", "Tooling watch", "Onboarding review"]
+    workflows: ["1. Manual Patch", "2. Check new patch", "3. Validate", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "9. Batch Patch", "Tooling watch", "Onboarding review", "10. Selection watch"]
     types: [completed]
   schedule:
     - cron: "53 2 * * *"  # 08:23 IST daily
