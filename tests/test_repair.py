@@ -1083,6 +1083,13 @@ transfer(){
                 continue  # disabled apps are never built (W5)
             for c in t['candidates']:
                 with self.subTest(target=t['id'], candidate=c['name']):
+                    # W13: a candidate is built with its own overrides (build_attempts.py view).
+                    import importlib.util
+                    spec = importlib.util.spec_from_file_location('pf_preflight', ROOT / 'src/etc/preflight.py')
+                    pre = importlib.util.module_from_spec(spec); spec.loader.exec_module(pre)
+                    view = [dict(x, **pre.effective(x, c)) if x['id'] == t['id'] else x for x in targets]
+                    (self.r / 'src/targets.json').write_text(json.dumps(view, indent=2) + '\n')
+                    t = next(x for x in view if x['id'] == t['id'])
                     text = self.prepare_bundles(t, c)
                     args = patcher.command(self.r, t['id'], c['name'], {'KEYSTORE_PASS': 'dummy', 'KEYSTORE_ALIAS': 'fixture'})
                     sel = text.split('SEL=', 1)[1].strip()

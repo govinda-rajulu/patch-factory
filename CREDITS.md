@@ -23,8 +23,10 @@ as code or APKs to copy.
 | Amazon Music | rookieenough | https://github.com/RookieEnough/De-Vanced |
 | ES File Explorer | ftl | https://github.com/BlazeFTL/FTL-Patches |
 | Facebook | hushfacebook | https://github.com/SysAdminDoc/HushFacebook |
+| Facebook | derevanced | https://github.com/RookieEnough/De-Vanced |
 | Google Photos | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | Instagram | piko | https://github.com/crimera/piko |
+| Instagram | hushgram | https://github.com/SysAdminDoc/HushGram |
 | Instagram | brosssh | https://github.com/brosssh/morphe-patches |
 | JioHotstar | chiggi | https://github.com/durgesh0505/chiggi_morphe_patches |
 | Key Mapper | lain | https://github.com/kiraio-moe/Lain-Patches |

@@ -1,6 +1,30 @@
 # Open work
 
-## Current checkpoint: 10 October 2026, 2:30 AM IST (handover H12)
+## Current checkpoint: 10 October 2026, evening IST (packet W13)
+
+H12 merged (#176, main `e42b06d8`). W13 (one pull request, owner pre-approved): lost patches
+dropped by name, provider fallback with per-provider pins (Facebook De-Vanced 580, Instagram
+HushGram), 10. Selection watch (removals, baselines, waiting patches, release digest incl. Morphe,
+better-provider line), pf-t1 in `controllers/`, Instagram and Amazon Music list fixes, Facebook
+"Share sheet items". Record: [SESSION-2026-10-10.md](SESSION-2026-10-10.md). Open, in order:
+
+1. Owner runs `pf-w13` (it also applies the cleanup and runs pf-t1), then uploads its logs folder
+   and the pf-t1 logs folder. Read every FINDING line and the first Selection watch issue.
+2. Facebook phone test Sunday 11 Oct (read receipts, typing, anonymous stories, Share sheet items).
+3. Amazon Music: decide keep, disable or re-test; check community reports first; never the main
+   account until then.
+4. New patches: decide each one the Selection watch issue lists ("5. Add target", action patch).
+5. Revisit HushGram as Instagram primary after HushGram 0.1 and the HushFacebook phone test.
+6. Next packet: seed `src/build/PUBLISHERS.json` from the PUBLISHER_CERT lines pf-t1 collected,
+   then pinned packages refuse a re-signed download.
+7. Only if an APKPure app becomes any-version: APKPure store step-down.
+
+Closed by W13: onboarding parser hardening, openskip handbook copy (mirror phase), Facebook 582,
+H12 cleanup (fresh preview and apply in the controller), Morphe digest, drop lost
+patches, provider fallback, Facebook record reword, better-provider line, pf-t1 commit, baselines
+re-seed (now daily, by the Selection watch).
+
+## Earlier checkpoint: 10 October 2026, 2:30 AM IST (handover H12)
 
 W12 merged (#175, main `9a50d038`): coverage-first version choice, proven by nonpublishing
 builds (YouTube 77 of 77, Instagram 46 of 46). #102 closed. The W12 cleanup apply stopped on

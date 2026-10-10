@@ -227,7 +227,7 @@
     "package": "com.facebook.katana",
     "apk_name": "facebook",
     "apk_type": "bundle",
-    "max_app_version": "581.0.0.45.58",
+    "max_app_version": "582.0.0.50.54",
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 30,
     "pin": null,
@@ -241,17 +241,32 @@
         "options": "hushfacebook",
         "owner": "SysAdminDoc",
         "repo": "HushFacebook"
+      },
+      {
+        "name": "derevanced",
+        "host": "github",
+        "channel": "prerelease",
+        "patch_dir": "facebook-derevanced",
+        "options": "derevanced",
+        "owner": "RookieEnough",
+        "repo": "De-Vanced",
+        "fallback": true,
+        "overrides": {
+          "max_app_version": "580.0.0.51.74",
+          "version_code": "475019344",
+          "dpi": "240-640dpi"
+        }
       }
     ],
     "tag_prefix": "facebook",
     "arch": "arm64-v8a",
     "dpi": "320-640dpi",
-    "version_code": "475215365",
+    "version_code": "475417104",
     "poll": true,
     "source": "apkmirror",
     "any_version": false,
     "label": "Facebook",
-    "note": "Ads, sponsored posts and tracking removed, downloads added. On 10 Oct 2026 moved to Facebook 581.0.0.45.58 with Hushfacebook (85 patches, 82 used), which replaces De-Vanced."
+    "note": "Ads, sponsored posts and tracking removed, downloads added. Facebook 582.0.0.50.54 with Hushfacebook 0.9.0 (86 patches; it supports only 582). De-Vanced on Facebook 580.0.0.51.74 is the fallback when a Hushfacebook build fails."
   },
   {
     "id": "instagram",
@@ -273,6 +288,19 @@
         "options": "piko",
         "owner": "crimera",
         "repo": "piko"
+      },
+      {
+        "name": "hushgram",
+        "host": "github",
+        "channel": "prerelease",
+        "patch_dir": "instagram-hushgram",
+        "options": "hushgram",
+        "owner": "SysAdminDoc",
+        "repo": "HushGram",
+        "fallback": true,
+        "overrides": {
+          "extra_bundles": []
+        }
       }
     ],
     "tag_prefix": "instagram",
@@ -290,7 +318,7 @@
       }
     ],
     "label": "Instagram",
-    "note": "Ads, tracking and suggested content removed."
+    "note": "Ads, tracking and suggested content removed. HushGram is the fallback when a piko build fails."
   },
   {
     "id": "reddit",

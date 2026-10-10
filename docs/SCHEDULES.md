@@ -7,6 +7,7 @@ Times are IST (UTC + 5:30). GitHub may start a scheduled run late, sometimes by 
 | --- | --- | --- | --- |
 | 05:53 | daily | 2. Check new patch (`ci.yml`) | Quick poll: builds only the apps whose providers changed. |
 | 07:11 | daily | 7. Nightly watch (`watch.yml`) | Nightly watch: one report on the repository and every provider. |
+| 07:41 | daily | 10. Selection watch (`selection-watch.yml`) | Selection watch: drops patch names providers stopped offering, lists new ones for you, digests provider releases. |
 | 08:23 | daily | Status page data (`status.yml`) | Writes status.json for the Pages Builds and Watch tabs. |
 | 08:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
 | 09:59 | daily | Tooling watch (`tooling-watch.yml`) | Checks the pinned build tools for new versions, pre-releases included. |

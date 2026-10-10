@@ -269,3 +269,15 @@ failing automation. Skip a cancelled run when a newer run of the same workflow e
 Tags: automation, retention
 The W12 preview ran before GitHub Pages deployed the merge; the deploy changed the newest five
 records and the apply refused the old token. Wait for the merge's own Pages deployment, then preview.
+
+### L050 · An always-on patch leaves the list
+Tags: selection, providers
+piko 3.10.0-dev.14 made two Instagram patches always-on and took their names off its list; the
+include file still named them and every Instagram build would have failed. A name the bundle no
+longer offers is dropped by name, capped, and reported (W13); never fail a whole app for it.
+
+### L051 · Fallbacks never compete
+Tags: selection, providers
+A fallback candidate with 3 of 3 patches beats a primary with 82 of 83 on coverage. Mark it
+fallback: true so resolve.sh skips it; it builds only after the primary build fails (W13).
+

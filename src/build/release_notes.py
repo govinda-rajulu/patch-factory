@@ -32,6 +32,13 @@ def checked(doc):
         raise ValueError('invalid applied patch list')
     if any(not isinstance(x, str) or not x or len(x) > 500 or any(ord(c) < 32 for c in x) for x in doc['patches']):
         raise ValueError('invalid applied patch name')
+    # W13: optional. Lost patches the build went without, and a fallback provider note.
+    if 'dropped' in doc and (not isinstance(doc['dropped'], list) or len(doc['dropped']) > 200 or any(
+            not isinstance(x, str) or not x or len(x) > 500 or any(ord(c) < 32 for c in x) for x in doc['dropped'])):
+        raise ValueError('invalid dropped patch list')
+    if 'fallback' in doc and (not isinstance(doc['fallback'], str) or not doc['fallback'] or len(doc['fallback']) > 1000
+                              or any(ord(c) < 32 for c in doc['fallback'])):
+        raise ValueError('invalid fallback note')
     if type(doc.get('min_sdk')) is not int or not 0 < doc['min_sdk'] < 100:
         raise ValueError('invalid Android minimum')
     if type(doc.get('bytes')) is not int or doc['bytes'] <= 1000000:
@@ -47,7 +54,12 @@ def checked(doc):
 
 
 def snapshot(fields, report, target):
-    return checked(dict(schema=1, target=report['target'], label=target.get('label', report['target']),
+    extra = {}
+    if fields.get('dropped'):
+        extra['dropped'] = fields['dropped'].splitlines()
+    if fields.get('fallback'):
+        extra['fallback'] = fields['fallback']
+    return checked(dict(extra, schema=1, target=report['target'], label=target.get('label', report['target']),
                         tag=fields['tag'], version=fields['version'],
                         package=report['manifest']['package'], min_sdk=report['manifest']['min_sdk'],
                         arch=report['architecture']['classification'], provider=fields['provider'],
@@ -191,7 +203,13 @@ def works_on(current):
 def render(current, previous=None, reason='Previous-release comparison not requested in this nonpublishing check.'):
     checked(current)
     guide = WEB + '/blob/' + current['source'] + '/docs/guide.md'
-    lines = ['## What changed', *('- ' + text(x) for x in changes(current, previous)), '',
+    notes = []
+    if current.get('fallback'):
+        notes.append(current['fallback'] + '.')
+    if current.get('dropped'):
+        notes.append('Built without ' + str(len(current['dropped'])) + ' chosen patch(es) the provider no longer offers: '
+                     + '; '.join(current['dropped']) + '.')
+    lines = ['## What changed', *('- ' + text(x) for x in notes + changes(current, previous)), '',
              text(reason), '', '## Release summary', '',
              '| Detail | Value |', '| --- | --- |']
     values = [('App', current['label']), ('App version', current['version']),

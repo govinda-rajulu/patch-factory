@@ -129,7 +129,7 @@ class Nightly(unittest.TestCase):
             match = n.re.match(r'^name: ([0-9]+)\. ', path.read_text())
             if match:
                 numbers.append(int(match[1]))
-        self.assertEqual(sorted(numbers), list(range(1,10)))
+        self.assertEqual(sorted(numbers), list(range(1,11)))
         self.assertTrue((ROOT/'.github/workflows/batch-patch.yml').read_text().startswith('name: 9. Batch Patch\n'))
         self.assertTrue((ROOT/'.github/workflows/agent-watch.yml').read_text().startswith('name: 6. Provider watch\n'))
 

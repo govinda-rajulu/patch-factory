@@ -16,6 +16,10 @@ New releases share a structured summary between GitHub release notes and the she
 
 Older releases remain unchanged. Their original notes are displayed; missing comparable history is labeled unknown. Comparison data is publisher-reported metadata, not an independently signed attestation or authority to skip builds. GitHub-source release notes are available to clients such as Obtainium, but client display and Android behavior are not tested by this website.
 
+## Dropped patches and fallback providers
+
+Since packet W13 (10 Oct 2026) a build no longer fails when its provider stops offering a chosen patch: it builds without it and says so. Release notes then start with "Built without N chosen patch(es) the provider no longer offers: ..."; the build log has one `PATCH_DROPPED` notice per name. More than three, or more than a quarter of the chosen patches, still fails the build. When a build fails, the next provider of that app builds instead, with its own app version (Facebook: De-Vanced on 580; Instagram: HushGram). Its release notes start with "Built with fallback provider ..."; the log has `PROVIDER_FALLBACK`, and every attempt prints `ATTEMPT` and `ATTEMPTS_OK` or `ATTEMPTS_FAILED`. Manual Patch's `provider` box builds one provider on purpose. The daily Selection watch removes such names from the lists and keeps one issue, "Selection watch", with new patches waiting for a decision and every provider's release notes.
+
 ## Obtainium
 
 Expand **Track with Obtainium**, choose All apps or Select only, prepare the configuration and confirm inside Obtainium. All apps includes every configured patched app; MicroG is opt-in. Select only offers patched apps and MicroG together. **Include Obtainium self-update** adds the standard GitHub Obtainium companion to either flow; in Select only, you must also select its row after preparing the list. This is for `dev.imranr.obtainium`, not the F-Droid package `dev.imranr.obtainium.fdroid`. It does not replace or migrate an F-Droid installation.

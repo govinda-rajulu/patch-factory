@@ -55,6 +55,7 @@ if [ "${PF_RESOLVED_READY:-false}" = "true" ]; then
   PDIR=$(jq -r '.patch_dir' <<<"$C")
   OPTS=$(jq -r '.options' <<<"$C")
   green_log "[+] using checked Plan patcher and bundle bytes; no second download"
+  green_log "[+] winner=$WINNER (checked Plan) app=$RVER patches=$PDIR options=$OPTS"
 else
 PATCHER_META=$(python3 src/build/github_patcher.py .) || { red_log "[-] patcher download verification failed"; exit 1; }
 echo "PATCHER_VERIFIED $PATCHER_META"
@@ -205,6 +206,8 @@ else
   green_log "[+] package confirmed $PKG_SEEN"
 fi
 green_log "[+] apk verified"
+# S2 (W13): the store download's original publisher certificate; pinned packages must match.
+python3 src/build/publisher_cert.py "$ID" || { red_log "[-] publisher certificate is not the pinned one - refusing"; exit 1; }
 if [ -n "$(jq -r '.version_code // ""' <<<"$T")" ]; then
  python3 src/build/artifact_identity.py input-variant "$ID" || { red_log "[-] wrong store variant for $ID - refusing to patch"; exit 1; }
 fi
@@ -241,6 +244,18 @@ echo "::notice::VERSION_STEP_DOWN step=$STEP from=$version to=${NEXT%% *} source
 rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME"
 RVER="${NEXT%% *}"; ANYVER=false; lock_version=""; prefer_version=""
 done
+# --- 5b. lost patches (W13, owner yes 10 Oct 2026): a chosen patch this bundle no longer
+# offers for this app version is dropped by name instead of failing the build ----------
+rm -f ./.dropped
+python3 src/build/lost_patches.py prune "$ID" "$WINNER" "$version"; LP=$?
+if [ "$LP" -ne 0 ]; then red_log "[-] too many chosen patches lost (or strict_patches) - refusing"; exit 1; fi
+if [ -s ./.dropped ]; then
+  SELO=$(bash ./src/build/selections.sh "$ID" "$WINNER") || { red_log "[-] selections.sh failed after dropping lost patches"; exit 1; }
+  WANT_E=$(sed -n 's/^WANT=//p' <<<"$SELO")
+  SEL=$(sed -n 's/^SEL=//p' <<<"$SELO")
+  if [ "$EXCL" = "true" ]; then excludePatches=" --exclusive$SEL"; else excludePatches="$SEL"; fi
+  yellow_log "[!] building without $(wc -l < ./.dropped) lost patch(es); now expecting $WANT_E"
+fi
 python3 src/build/artifact_identity.py capture-inputs "$ID" "$WINNER" || exit 1
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
@@ -269,15 +284,23 @@ for i in 0; do
  if [ -s ./.requested ]; then
    cut -f2 ./.requested | sed 's/[[:space:]]*$//' | sort -u > /tmp/requested.txt
    MISS=$(comm -23 /tmp/requested.txt /tmp/applied.txt)
+   NACC=0
    if [ -n "$MISS" ]; then
-     red_log "[-] requested but NOT applied ($(printf '%s\n' "$MISS" | wc -l)) - refusing to release:"
-     printf '%s\n' "$MISS" | sed 's/^/  - /'
-     grep "Skipping disabled" /tmp/patch.log | head -40
-     exit 1
+     printf '%s\n' "$MISS" > /tmp/missing.txt
+     if python3 src/build/lost_patches.py accept "$ID" /tmp/missing.txt; then
+       NACC=$(printf '%s\n' "$MISS" | wc -l)
+       yellow_log "[!] $NACC requested patch(es) not applied; named as lost, build continues"
+     else
+       red_log "[-] requested but NOT applied ($(printf '%s\n' "$MISS" | wc -l)) - refusing to release:"
+       printf '%s\n' "$MISS" | sed 's/^/  - /'
+       grep "Skipping disabled" /tmp/patch.log | head -40
+       exit 1
+     fi
+   else
+     green_log "[+] all $(wc -l < /tmp/requested.txt) requested patches applied"
    fi
-   green_log "[+] all $(wc -l < /tmp/requested.txt) requested patches applied"
  fi
- if [ "$EXCL" = "true" ] && [ "$AP" -lt "$WANT_E" ]; then
+ if [ "$EXCL" = "true" ] && [ "$AP" -lt "$((WANT_E - ${NACC:-0}))" ]; then
    red_log "[-] applied $AP distinct but include list says $WANT_E - refusing to release"
    grep "Skipping disabled" /tmp/patch.log | head -30; exit 1
  fi
@@ -300,6 +323,9 @@ done
 BUILD_SUFFIX=$(python3 src/build/build_identity.py) || { red_log "[-] unique build identity unavailable"; exit 1; }
 printf '%s\n' "$BUILD_SUFFIX" > ./release/.tagsuffix
 echo "${PV:-unknown}" > ./release/.patchver
+if [ -s ./.dropped ]; then
+  awk -F'\t' '{print "- " $2 " (" $3 ")"}' ./.dropped > ./release/.dropped
+fi
 PROV=""
 for M in ./*.mpp ./extra/*.mpp; do
   [ -f "$M" ] || continue

@@ -21,3 +21,4 @@ Owner request through "5. Add target" on 2026-10-08.
 version to pick (Manual Patch run 37769298585: "no max_app_version to fall back on"). 26.34.0 is
 APKMirror's newest, universal, Android 10+ (read 2026-10-09). Raise it by hand until the build
 follows the store's newest Android 10 version itself (OPEN-WORK).
+2026-10-10 (packet W13): the throwaway account was banned. As decided on 2026-10-08, "Unlock Unlimited" and "Unlimited track skipping" are removed before anyone signs in with a real account. Skip ads and Prevent log upload stay. The cause (patch or new account) is unknown; do not move the test to the main account without a fresh decision.
