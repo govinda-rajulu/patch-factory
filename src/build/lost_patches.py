@@ -7,8 +7,11 @@ patches always-on and took their names off its list; every Instagram build then 
 
   lost_patches.py prune ID WINNER VERSION   before the inputs are captured: reads each
       bundle's listing (the same list-patches call coverage.py uses) and removes, in this
-      runner's checkout only, every include name the bundle does not offer, or offers only
-      for other app versions. Writes ./.dropped (bundle TAB name TAB reason).
+      runner's checkout only, every include name the bundle does not offer at all. Writes
+      ./.dropped (bundle TAB name TAB reason). A name listed only for other app versions
+      stays: the patcher runs with --force and applies it (brosssh lists Instagram 439 only,
+      and W12 applied all of it on 447; W13 smoke 2 wrongly dropped 4, L053). The applied-
+      patch gate after patching still catches a patch that really does not apply.
   lost_patches.py accept ID FILE            after patching: FILE holds requested names the
       patcher did not apply. Accepts them as dropped, or refuses.
 Refuses (exit 4, so build_attempts.py can try the next provider) when the target sets
@@ -91,7 +94,8 @@ def prune(root, ident, winner, version, listing=coverage.listing_text):
             if v is None:
                 plan.append((name, inc, line, n, 'the bundle no longer offers it'))
             elif version and v['versions'] is not None and version not in v['versions']:
-                plan.append((name, inc, line, n, 'not offered for app ' + version))
+                print('::notice::PATCH_VERSION_UNLISTED %s: %s lists %s, building %s; kept (--force applies it)'
+                      % (name, n, ', '.join(sorted(v['versions']))[:120] or 'no version', version))
     if not plan and unread:
         return 0
     if not plan:

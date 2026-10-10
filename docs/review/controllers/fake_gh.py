@@ -5,7 +5,7 @@ Covers what packet.tmpl.py and src/etc/cleanup.py call: auth, branches, commits,
 check runs, Manual Patch dispatch/runs/jobs/logs, issues, deployments and their statuses,
 releases. Knobs in the state file: checks{name: conclusion}, extra_checks[], smoke{app:
 conclusion}, smoke_log{app: line}, issues{n: state}, pages_state, main, license{repo: spdx},
-flows{workflow file: conclusion}, pulls[] (a seeded open pull request follows its branch). W13: provider dispatch input and run names (display_title),
+flows{workflow file: conclusion}, smoke_extra{app: [lines]}, pulls[] (a seeded open pull request follows its branch). W13: provider dispatch input and run names (display_title),
 cleanup apply calls, and the pf-t1 flows (any workflow file, status.json, targets.json).
 """
 import json, os, sys, pathlib, subprocess as sp
@@ -62,6 +62,8 @@ if a[:2] == ['run', 'view']:
     won = st.get('smoke_winner', {}).get(key, r.get('provider') or 'p')
     for t in r['target'].split(','):
         job = 'Patch ' + t if r.get('wf') == 'manual-patch.yml' else 'build (%s) / Patch %s' % (t, t)
+        for extra in st.get('smoke_extra', {}).get(key, []):
+            print('%s\tPatch apk\t2026-10-10T00:00:00.0Z %s' % (job, extra))
         print('%s\tPatch apk\t2026-10-10T00:00:00.1Z %s' % (job, line))
         print('%s\tPatch apk\t2026-10-10T00:00:00.2Z ATTEMPTS_OK %s: attempt 1 of 1, winner %s' % (job, t, won))
     save(); sys.exit(0)

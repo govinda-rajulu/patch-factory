@@ -287,3 +287,10 @@ W13's first Instagram smoke failed both attempts at "zip has no AndroidManifest.
 133 MB APK. An Actions step runs with SIGPIPE ignored; Python's subprocess resets it, so
 `unzip -l | grep -q` under pipefail died with 141 once grep stopped reading. Keep the step's
 signals (`restore_signals=False`) and name the zip entry instead of piping into `grep -q`.
+
+### L053 · Predict only what the tool enforces
+Tags: selection, ci
+W13 dropped 4 working brosssh Instagram patches (Hide ads among them) because the bundle lists
+Instagram 439 only; the patcher runs with --force and W12 had applied them on 447. The smoke
+gate also wanted a COVERAGE line an any-version provider never prints. A pre-check must be no
+stricter than the step it predicts; read a success run's log before writing the gate.

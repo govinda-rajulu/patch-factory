@@ -40,3 +40,4 @@ repositories; each copy arrives by that repository's own pull request.
 - Before a session ends, the tools it built go into the repository too.
 - Wrapping a shell step changes its environment, signals included: under pipefail, `cmd | grep -q`
   fails with 141 once SIGPIPE is default. Test checks with the wrapper, not only alone.
+- A pre-check must be no stricter than the step it predicts. Read a past success log first.

@@ -13,8 +13,9 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
  pins (`build_attempts.py`; Facebook De-Vanced 580, Instagram HushGram), 10. Selection watch
  daily 07:41 IST, pf-t1 in `docs/review/controllers/`. Record `docs/review/SESSION-2026-10-10.md`.
 - **First run** stopped at the Instagram smoke (SIGPIPE under the Python wrapper, L052); fixed in
- W13 commit 2 on the same #178 (`pf-w13b`).
-- **Next**: OPEN-WORK "packet W13", in order: the pf-w13b RESULT and pf-t1 findings first.
+ W13 commit 2 (`pf-w13b`). Run 2 stopped at the Amazon Music smoke; commit 3 keeps brosssh
+ patches the --force patcher applies and accepts any-version smokes (L053, `pf-w13c`).
+- **Next**: OPEN-WORK "packet W13", in order: the pf-w13c RESULT and pf-t1 findings first.
 
 ## 10 Oct 2026, 2:30 AM IST (handover H12)
 

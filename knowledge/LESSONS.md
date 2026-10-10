@@ -158,3 +158,5 @@ This file keeps only what fits in neither.
   with MAIN_MOVED (W13 Selection watch).
 - A Python wrapper around a bash build resets SIGPIPE; under pipefail, `cmd | grep -q` then fails
   with 141. Keep the step's signals and avoid early-exit readers in checks (W13, L052).
+- A pre-check stricter than the tool it predicts removes working parts (W13 dropped 4 brosssh patches
+  the --force patcher applies). Check a past success log before writing a gate (W13, L053).

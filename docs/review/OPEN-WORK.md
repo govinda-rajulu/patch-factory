@@ -8,8 +8,9 @@ HushGram), 10. Selection watch (removals, baselines, waiting patches, release di
 better-provider line), pf-t1 in `controllers/`, Instagram and Amazon Music list fixes, Facebook
 "Share sheet items". Record: [SESSION-2026-10-10.md](SESSION-2026-10-10.md). Open, in order:
 
-1. Owner runs `pf-w13b` (fast-forwards packet/w13 with the SIGPIPE fix, L052; the first run
-   stopped at the Instagram smoke), which also applies the cleanup and runs pf-t1, then uploads
+1. Owner runs `pf-w13c` (fast-forwards packet/w13 with commit 3: brosssh patches kept, any-version
+   smoke rule, L053; run 1 stopped on SIGPIPE, L052, run 2 at the Amazon Music smoke), which
+   also applies the cleanup and runs pf-t1, then uploads
    its logs folder and the pf-t1 logs folder. Read every FINDING line, every smoke NOTE (fallback
    smokes are advisory) and the first Selection watch issue.
 2. Facebook phone test Sunday 11 Oct (read receipts, typing, anonymous stories, Share sheet items).
@@ -17,7 +18,8 @@ better-provider line), pf-t1 in `controllers/`, Instagram and Amazon Music list 
    account until then.
 4. New patches: decide each one the Selection watch issue lists ("5. Add target", action patch).
 5. Revisit HushGram as Instagram primary after HushGram 0.1 and the HushFacebook phone test.
-6. Next packet: seed `src/build/PUBLISHERS.json` from the PUBLISHER_CERT lines pf-t1 collected,
+6. Next packet: seed `src/build/PUBLISHERS.json` from the PUBLISHER_CERT lines pf-t1 collected
+   (4 already in SESSION-2026-10-10 "Second live run"),
    then pinned packages refuse a re-signed download.
 7. Only if an APKPure app becomes any-version: APKPure store step-down.
 

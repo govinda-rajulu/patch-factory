@@ -19,7 +19,8 @@ result line. Phases:
             any that fails stops before merge
   smoke     one nonpublishing Manual Patch per entry in SMOKE on BRANCH ("app", or
             "app/provider" to build one provider with its own pins); each must work and print
-            a COVERAGE line (not COVERAGE_UNAVAILABLE), or nothing merges. Entries also in
+            a COVERAGE line (not COVERAGE_UNAVAILABLE; an any-version provider prints its "any
+            app version" line and PATCHES_ALL_OFFERED instead), or nothing merges. Entries also in
             SMOKE_ADVISORY (fallback providers) are recorded as NOTE when they fail, never
             blocking: a broken fallback breaks nothing that works today
   merge     merge commit guarded by the head sha; the merge tree must be the packet tree
@@ -369,6 +370,12 @@ def smoke():
         run([GH, 'run', 'view', str(r['id']), '--repo', REPO, '--log'], timeout=300, out=log)
         text = log.read_bytes().decode('utf-8', 'replace') if log.exists() else ''
         cov = [l.split('Z ', 1)[-1].strip() for l in text.splitlines() if 'COVERAGE ' in l and ' covers ' in l and 'echo' not in l]
+        # An any-version provider has no version list, so no COVERAGE line (Amazon Music, W13
+        # smoke 2, L053): its resolver line stands in, with every chosen patch offered.
+        anyv = [l.split('Z ', 1)[-1].strip() for l in text.splitlines() if ": any app version, the store's newest" in l and 'echo' not in l]
+        offered = [l for l in text.splitlines() if 'PATCHES_ALL_OFFERED' in l and 'print(' not in l]
+        if not cov and anyv and offered:
+            cov = ['ANY_VERSION ' + anyv[-1].lstrip('- ')]
         lost = [l.split('Z ', 1)[-1].strip() for l in text.splitlines() if 'COVERAGE_LOST ' in l and 'echo' not in l]
         doubt = [l.split('Z ', 1)[-1].strip() for l in text.splitlines() if 'COVERAGE_UNAVAILABLE ' in l and 'echo' not in l and 'sed ' not in l]
         app, _, provider = t.partition('/')

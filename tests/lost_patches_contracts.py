@@ -49,13 +49,25 @@ class Lost(unittest.TestCase):
         self.assertEqual(self.inc.read_bytes(), before)
         self.assertFalse((self.r / '.dropped').exists())
 
-    def test_absent_and_wrong_version_are_dropped_by_name(self):
+    def test_absent_is_dropped_by_name_other_version_is_kept(self):
+        # L053: the patcher runs with --force, so a name listed for another version still applies
         rc = self.run_prune([(n, ()) for n in 'ABCDFG'] + [('H', ('1.0',))])
         self.assertEqual(rc, 0)
-        self.assertEqual(self.inc.read_bytes(), b'# comment\nA\nB\nC\nD\nF\nG\n')
+        self.assertEqual(self.inc.read_bytes(), b'# comment\nA\nB\nC\nD\nF\nG\nH\n')
         rows = (self.r / '.dropped').read_text().splitlines()
-        self.assertEqual([r.split('\t')[1] for r in rows], ['E', 'H'])
-        self.assertIn('not offered for app 2.0', rows[1])
+        self.assertEqual([r.split('\t')[1] for r in rows], ['E'])
+        self.assertIn('no longer offers', rows[0])
+
+    def test_every_name_on_another_version_drops_nothing(self):
+        # W13 smoke 2: brosssh lists Instagram 439 only; the build is 447
+        before = self.inc.read_bytes()
+        rc = self.run_prune([(n, ('439.0',)) for n in 'ABCDEFGH'], version='447.0')
+        self.assertEqual(rc, 0)
+        self.assertEqual(self.inc.read_bytes(), before)
+        self.assertFalse((self.r / '.dropped').exists())
+
+    def test_patcher_runs_with_force(self):
+        self.assertIn("'--force'", (ROOT / 'src/build/patch_target.py').read_text(encoding='utf-8'))
 
     def test_any_version_build_skips_the_version_test(self):
         rc = self.run_prune([(n, ('1.0',)) for n in 'ABCDEFGH'], version='')
