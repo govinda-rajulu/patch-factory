@@ -22,6 +22,8 @@ def redact(text, env):
     text = re.sub(r'\x1b\[[0-9;]*[A-Za-z]', '', text)
     return text
 
+PATCH_ROW = re.compile(r'^  (?:[A-Z]{3}|   )  \S')  # namecheck rows: tag (BAN, CFM or blank) and a patch name
+
 def analyze(text, rc, setup_ok, targets, env):
     safe = redact(text, env)
     reasons = []
@@ -30,7 +32,15 @@ def analyze(text, rc, setup_ok, targets, env):
     if not setup_ok: reasons.append('patcher setup failed or did not complete')
     if not markers_ok: reasons.append('missing or duplicate final report result')
     if not safe.strip(): reasons.append('empty report')
-    if re.search(r'(?im)^.*(?:UNVERIFIED|unreadable|skipping|returned nothing).*$', safe):
+    # Patch names are data, not reader messages: "Unlimited track skipping" made every run
+    # UNKNOWN after W13 listed it as unused (W14, L055). Drop patch rows and the names after
+    # "~~ ...: " before looking for the reader's own words.
+    msgs = []
+    for line in safe.splitlines():
+        if PATCH_ROW.match(line):
+            continue
+        msgs.append(line.split(': ', 1)[0] if line.startswith('~~ ') else line)
+    if re.search(r'(?i)(?:UNVERIFIED|unreadable|skipping|returned nothing)', '\n'.join(msgs)):
         reasons.append('legacy reader reported incomplete inputs')
     if not isinstance(targets, list) or not targets or any(not isinstance(t,dict) for t in targets):
         reasons.append('target coverage inventory unavailable')

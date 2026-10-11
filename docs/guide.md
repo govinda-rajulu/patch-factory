@@ -18,9 +18,11 @@ Older releases remain unchanged. Their original notes are displayed; missing com
 
 ## Dropped patches and fallback providers
 
-Since packet W13 (10 Oct 2026) a build no longer fails when its provider stops offering a chosen patch: it builds without it and says so. Release notes then start with "Built without N chosen patch(es) the provider no longer offers: ..."; the build log has one `PATCH_DROPPED` notice per name. More than three, or more than a quarter of the chosen patches, still fails the build. When a build fails, the next provider of that app builds instead, with its own app version (Facebook: De-Vanced on 580; Instagram: HushGram). Its release notes start with "Built with fallback provider ..."; the log has `PROVIDER_FALLBACK`, and every attempt prints `ATTEMPT` and `ATTEMPTS_OK` or `ATTEMPTS_FAILED`. Manual Patch's `provider` box builds one provider on purpose. The daily Selection watch removes such names from the lists and keeps one issue, "Selection watch", with new patches waiting for a decision and every provider's release notes.
+Since packet W13 (10 Oct 2026) a build no longer fails when its provider stops offering a chosen patch: it builds without it and says so. Release notes then start with "Built without N chosen patch(es) the provider no longer offers: ..."; the build log has one `PATCH_DROPPED` notice per name. More than three, or more than a quarter of the chosen patches, still fails the build. When a build fails, the next provider of that app builds instead, with its own app version (Facebook: De-Vanced on 580; Instagram: HushGram). Its release notes start with "Built with fallback provider ..."; the log has `PROVIDER_FALLBACK`, and every attempt prints `ATTEMPT` and `ATTEMPTS_OK` or `ATTEMPTS_FAILED`. Manual Patch's `provider` box builds one provider on purpose. The daily Selection watch removes such names from the lists and keeps one issue, "Selection watch", with new patches waiting for a decision and every provider's release notes. In apps without an include list (YouTube, YouTube Music) a new patch already ships by the provider's default; the issue lists it once with the line to drop it. Reminders in `src/etc/reminders.json` (for example "HushGram reached 0.1") show under "Needs you" once a provider reaches the named version.
 
 ## Obtainium
+
+No Obtainium yet? The shelf's **Obtainium** card downloads it straight from its upstream releases: the standard flavor (`dev.imranr.obtainium`, the one the self-update entry tracks), Universal by default, ARM64 and ARMv7 under the card with SHA-256 checksums. Install it, then use **Track with Obtainium**.
 
 Expand **Track with Obtainium**, choose All apps or Select only, prepare the configuration and confirm inside Obtainium. All apps includes every configured patched app; MicroG is opt-in. Select only offers patched apps and MicroG together. **Include Obtainium self-update** adds the standard GitHub Obtainium companion to either flow; in Select only, you must also select its row after preparing the list. This is for `dev.imranr.obtainium`, not the F-Droid package `dev.imranr.obtainium.fdroid`. It does not replace or migrate an F-Droid installation.
 
@@ -32,9 +34,16 @@ Importing a matching tracked app may replace its tracking settings. Unselected a
 
 ## Install and update
 
-Check the APK's package, minimum Android API, architecture, size and SHA-256. Patched downloads use ARM64 naming; an APK may contain no native libraries. The configured CI signing certificate is checked, not the original publisher or your installed app's certificate. CI success is not a phone test.
+Check the APK's package, minimum Android API, architecture, size and SHA-256 against the release's **Download evidence**. Patched downloads use ARM64 naming; an APK may contain no native libraries. Prefer an in-place update when Android permits it. A matching key/package does not guarantee data preservation or rollback; MicroG data and signer compatibility need the same care. What CI does and does not check: [About these builds](#about-these-builds).
 
-Prefer an in-place update when Android permits it. A matching key/package does not guarantee data preservation or rollback. Do not uninstall, clear app data or disable device protections just to force an update. MicroG data and signer compatibility need the same care.
+## About these builds
+
+The one home for the checks, limits and safety lines every release used to repeat (W14, 11 Oct 2026). Release notes and the page link here.
+
+- **CI checks** APK identity, the declared minimum Android API, native payloads, applied patch names and the configured signing certificate.
+- **Not checked**: builds are not phone-tested by this pipeline. The CI signing certificate is not proof of original-publisher authenticity or installed-app compatibility.
+- **Updates**: a new build is not necessarily a new app version. Obtainium may not offer a same-version patch-only rebuild as an update.
+- **Never needed**: No automatic uninstall, import migration or device-protection bypass is required or recommended. Do not uninstall, clear app data or disable device protections just to force an update.
 
 ## Reading status
 

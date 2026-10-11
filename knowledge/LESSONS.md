@@ -160,3 +160,8 @@ This file keeps only what fits in neither.
   with 141. Keep the step's signals and avoid early-exit readers in checks (W13, L052).
 - A pre-check stricter than the tool it predicts removes working parts (W13 dropped 4 brosssh patches
   the --force patcher applies). Check a past success log before writing a gate (W13, L053).
+- A store's universal upload serves an arm64 target; a version no store serves steps down like an
+  SDK miss (W14, L054).
+- A detector must skip data lines (patch names) before matching message words (W14, L055).
+- A proposal in a review doc is not work: turn it into an OPEN-WORK item with a packet the day it lands, or decline it in writing (W14, L056).
+- Every hand list of workflows (failure issues, status refresh, purposes) needs a test against the workflow files (W14, L057).

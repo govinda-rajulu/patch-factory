@@ -1,6 +1,32 @@
 # Open work
 
-## Current checkpoint: 10 October 2026, evening IST (packet W13)
+## Current checkpoint: 11 October 2026, evening IST (packet W14)
+
+W13 merged (#178, main `45ff17ba`); cleanup and the openskip handbook copy (#107) done. W14: Reddit
+(universal APKMirror row, store-miss step-down), Nightly false UNKNOWN, Selection watch ranking,
+open-mode names and reminders, publisher pins seeded, agent review drops findings on excluded
+names, status reasons, two new patches decided, one home for repeated release and page text
+(old notes tidied), Obtainium card, automation lists wired, agent spec and fix lane. Record: [SESSION-2026-10-11.md](SESSION-2026-10-11.md).
+Open, in order:
+
+1. Owner runs `pf-w14` (smokes Reddit, Facebook, Amazon Music, YouTube, Instagram; merge; cleanup;
+   release tidy; openskip handbook update; pf-t1), then uploads its logs folder and the pf-t1 logs
+   folder. Expect Reddit 2026.40.0 by SDK step-down.
+2. First council audit after W14: read its "Proposed fixes" and the `council-fixes` artifact;
+   take good ones into the next packet with a test, decline the rest in writing (L056).
+3. Facebook phone test on the 582 build (read receipts, typing, anonymous stories, Share sheet items).
+4. Amazon Music: decide keep, disable or re-test; check community reports first; never the main
+   account until then.
+5. Reddit publisher pin once a build reads it (pf-t1 after W14 collects it; next packet).
+6. Waits on providers, automated: HushGram 0.1 (reminder in the Selection watch issue), APKPure
+   store step-down only if an APKPure app becomes any-version.
+
+Closed by W14: Reddit 2026.41.0 store miss, Nightly UNKNOWN on patch names, ranking shapes and
+fallbacks, S2 pins (16 packages), agent review false blocks on excluded names, new patches
+(Force system font stays, Unlock app icons excluded), open-mode waiting, HushGram reminder, CLUTTER-2026-10-07 §2 and the notice part of §3
+(repeated text), Obtainium download, workflow wiring gaps (3), agents without spec or fixes.
+
+## Earlier checkpoint: 10 October 2026, evening IST (packet W13)
 
 H12 merged (#176, main `e42b06d8`). W13 (one pull request, owner pre-approved): lost patches
 dropped by name, provider fallback with per-provider pins (Facebook De-Vanced 580, Instagram

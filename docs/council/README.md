@@ -47,6 +47,12 @@ error still stops the seat. GitHub Models retired on 30 Jul 2026, so no seat use
   `src/council/shards.json`, read at the dispatched commit and reviewed in parts of at most
   70000 characters with [AUDIT.md](AUDIT.md). One comment per shard on the chosen issue, edited
   on a rerun. Running every shard on one issue is a whole-repository audit.
+  Since W14 (11 Oct 2026) each seat is trained by [AGENT-SPEC.md](AGENT-SPEC.md) and also
+  reads the newest `knowledge/STATE.md` entry and the current OPEN-WORK checkpoint. A finding may
+  carry a one-line `replacement`; it applies only when the quoted line occurs once and the file
+  still parses (Python and JSON in the council step; shell and JavaScript in the next step,
+  which has no keys). Applied fixes are listed under "Proposed fixes" and kept as the run
+  artifact `council-fixes`. Nothing is committed or pushed: a fix enters only by packet.
 - **Triage** (mode `triage`, input `issue`): every other open issue, 6 per call, judged `close`,
   `keep` or `owner` with [TRIAGE.md](TRIAGE.md). A verdict must cite a run id, an issue or PR
   number, or a repository path; uncited verdicts are dropped. One table on the chosen issue.

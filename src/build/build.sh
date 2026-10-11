@@ -176,8 +176,23 @@ if [ "$GA" -ne 0 ]; then
   try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$SRC" "$RVER" "$ANYVER" "$ARCH" "$DPI"; GA=$?
 fi
 if [ "$GA" -ne 0 ]; then
-  python3 src/build/source_fallback.py "$ID" "$RVER" || { red_log "[-] primary and qualified fallback unavailable for $PKG"; exit 1; }
-  version="$RVER"
+  if python3 src/build/source_fallback.py "$ID" "$RVER"; then
+    version="$RVER"
+  else
+    # W14 (L054): no store serves this version (yet). Like the SDK step-down below, try
+    # the next lower version the provider supports, at most PF_MAX_STEPS times; never
+    # for any-version targets or an exact version_code pin.
+    if [ -z "$RVER" ] || [ "$ANYVER" = "true" ] || [ -n "$(jq -r '.version_code // ""' <<<"$T")" ] || [ "$STEP" -ge "$PF_MAX_STEPS" ]; then
+      red_log "[-] primary and qualified fallback unavailable for $PKG"; exit 1
+    fi
+    set +u; NEXT=$(pf_next_version "$PKG" "$RVER" "$MAXVER"); NRC=$?; set -u
+    if [ "$NRC" -ne 0 ] || [ -z "$NEXT" ]; then red_log "[-] primary and qualified fallback unavailable for $PKG, and no lower version (status $NRC)"; exit 1; fi
+    STEP=$((STEP+1))
+    echo "::notice::VERSION_STEP_DOWN step=$STEP from=$RVER to=${NEXT%% *} source=${NEXT#* } reason=store"
+    rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME.xapk" "./download/$APK_NAME"
+    RVER="${NEXT%% *}"; lock_version=""; prefer_version=""
+    continue
+  fi
 fi
 fi
 [ -f "./download/$APK_NAME.apk" ] || { red_log "[-] ./download/$APK_NAME.apk missing"; exit 1; }

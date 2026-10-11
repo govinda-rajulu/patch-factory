@@ -98,6 +98,17 @@ class Steps(unittest.TestCase):
             self.assertIn(phrase, loop)
         self.assertLess(BUILD.index('source ./src/build/version_steps.sh'), BUILD.index('STEP=0\nwhile :; do'))
 
+    def test_store_miss_steps_down_inside_the_same_rules(self):
+        # W14 (L054): neither store served Reddit 2026.41.0; try the next lower supported version
+        loop = BUILD[BUILD.index('STEP=0\nwhile :; do'):BUILD.index('# --- 5. sdk gate')]
+        miss = loop[loop.index('python3 src/build/source_fallback.py'):]
+        for phrase in ('[ -z "$RVER" ]', '[ "$ANYVER" = "true" ]', ".version_code // \"\"", '[ "$STEP" -ge "$PF_MAX_STEPS" ]',
+                       'pf_next_version "$PKG" "$RVER" "$MAXVER"', 'reason=store', 'STEP=$((STEP+1))', 'continue'):
+            self.assertIn(phrase, miss)
+        self.assertLess(miss.index('[ "$STEP" -ge "$PF_MAX_STEPS" ]'), miss.index('continue'))
+        r = subprocess.run(['bash', '-n', str(ROOT / 'src/build/build.sh')], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+
     def test_check_sdk_says_above_cap_with_its_own_status(self):
         text = (ROOT / 'src/build/check_sdk.sh').read_text()
         self.assertIn('Set max_app_version in src/targets.json."\n  # Status 3', text)

@@ -531,7 +531,12 @@ class Council(unittest.TestCase):
         self.assertIn('          PF_QUESTION: ${{ inputs.question }}\n', wf)
         self.assertIn('          PF_SHARD: ${{ inputs.shard }}\n', wf)
         self.assertIn('    timeout-minutes: 50\n', wf)
-        self.assertEqual(wf.count('run:'), 1)
+        self.assertEqual(wf.count('run:'), 2)  # W14: + the fix check, after the council step
+        check = wf.split('- name: Check proposed fixes', 1)[1].split('- name: Keep proposed fixes', 1)[0]
+        self.assertNotIn('env:', check)
+        self.assertNotIn('secrets.', check)
+        self.assertIn('run: bash src/council/check_fixes.sh council-out/fixes.patch\n', check)
+        self.assertLess(wf.index('python3 src/council/council.py'), wf.index('- name: Check proposed fixes'))
         self.assertIn('\n          python3 src/council/council.py\n', wf)
         self.assertIn('if [ ! -f src/council/council.py ]; then', wf)
         self.assertNotIn('secrets: inherit', wf)

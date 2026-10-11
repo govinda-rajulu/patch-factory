@@ -851,7 +851,8 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertIn('## Release summary', fields['notes'])
         self.assertNotIn('## This download', fields['notes'])
         self.assertIn('/blob/' + 'a'*40 + '/docs/guide.md', fields['notes'])
-        self.assertIn('not proof of original-publisher', fields['notes'])
+        self.assertIn('/docs/guide.md#about-these-builds', fields['notes'])
+        self.assertNotIn('not proof of original-publisher', fields['notes'])
         action = (ROOT/'.github/actions/release/action.yml').read_text()
         self.assertIn('body: ${{ steps.meta.outputs.notes }}', action)
         self.assertIn('allowUpdates: false', action)
@@ -976,8 +977,14 @@ class ReleaseContractTests(unittest.TestCase):
         older = dict(current, signer='d'*64, tag='fixture-v4.2.1-b20260909')
         body = notes.render(current, older, 'Fixture comparison')
         self.assertIn('Signing certificate changed', body)
-        self.assertIn('No automatic uninstall', body)
-        self.assertIn('Same-version patch-only update delivery', body)
+        # W14: the safety and limits text lives once in the guide; the notes link to it.
+        self.assertIn('/docs/guide.md#about-these-builds)', body)
+        for gone in ('## Checks and limitations', '## Help and stable information', 'No automatic uninstall', 'Not phone-tested'):
+            self.assertNotIn(gone, body)
+        guide = (pathlib.Path(__file__).resolve().parents[1] / 'docs/guide.md').read_text(encoding='utf-8')
+        about = guide.split('\n## About these builds\n', 1)[1].split('\n## ', 1)[0]
+        for kept in ('No automatic uninstall', 'not phone-tested', 'not necessarily a new app version', 'signing certificate'):
+            self.assertIn(kept, about)
         self.assertEqual(notes.decode(body,current['tag'],'fixture')['signer'],current['signer'])
 
     def test_apk_changed_after_identity(self):

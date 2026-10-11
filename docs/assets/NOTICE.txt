@@ -109,6 +109,10 @@ microg.png
   source: owner-supplied MicroG RE icon, https://downloadr2.apkmirror.com/wp-content/uploads/2024/04/MicroG_round.png (uploaded in chat 8 October 2026)
   licence: none recorded; mark of the MicroG RE project, shown only to identify the upstream companion (docs/review/ICON-PROVENANCE.md)
   tile: resized from the owner's 512 px PNG to 128 px in packet W4; sha256 e2904b347a5dfbc7fd4f923d545a5a04e327612314ec1ffc02900f5eca84ac25
+obtainium.svg
+  source: Obtainium upstream icon, https://github.com/ImranR98/Obtainium/blob/main/assets/graphics/icon.svg (fetched 11 October 2026, packet W14)
+  licence: Obtainium is GPL-3.0; the icon is the project's mark, shown only to identify the upstream app
+  file: unchanged bytes, 4239 bytes, git blob 091d8253af3ef7a6333c6a0b147f41d570dca964
 logos/linkedin.png
   source: owner-supplied Google Play icon for LinkedIn (com.linkedin.android), uploaded in chat 8 October 2026
   licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)

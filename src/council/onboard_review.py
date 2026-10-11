@@ -59,7 +59,19 @@ def instructions():
     return council.prompt('ONBOARD.md')
 
 
-def check_answer(obj, canary, haystack):
+def not_shipped(m):
+    """Patch names the change only excludes or removes (W14): a finding that quotes just one of
+    them blames the review for a patch that does not ship (PR #178: six "banned" findings
+    quoted exclude-list names)."""
+    off, on = set(), set()
+    for row in m.get('patch_changes') or []:
+        for k in ('added_exclude', 'removed_include'):
+            off |= {n for n in row.get(k) or [] if isinstance(n, str)}
+        on |= {n for n in row.get('added_include') or [] if isinstance(n, str)}
+    return frozenset(off - on)
+
+
+def check_answer(obj, canary, haystack, excluded=frozenset()):
     """Validated answer with only the findings whose quote is in the manifest."""
     if not isinstance(obj, dict) or set(obj) != {'canary', 'verdict', 'summary', 'findings'}:
         raise ValueError('keys')
@@ -76,7 +88,7 @@ def check_answer(obj, canary, haystack):
     f = obj['findings']
     if not isinstance(f, list):
         raise ValueError('findings')
-    kept, dropped, malformed = [], 0, 0
+    kept, dropped, malformed, unshipped = [], 0, 0, 0
     for x in f[:8]:
         if not isinstance(x, dict) or not {'severity', 'item', 'quote', 'issue'} <= set(x):
             malformed += 1
@@ -91,16 +103,18 @@ def check_answer(obj, canary, haystack):
                 or not council.short(x['issue'], 400) or not council.short(x['quote'], 300):
             malformed += 1
             continue
-        if x['quote'] in haystack:
+        if x['quote'].strip().strip('"') in excluded:
+            unshipped += 1
+        elif x['quote'] in haystack:
             kept.append(x)
         else:
             dropped += 1
-    obj = dict(obj, findings=kept, dropped=dropped + malformed, malformed=malformed)
+    obj = dict(obj, findings=kept, dropped=dropped + malformed, malformed=malformed, unshipped=unshipped)
     obj['counted'] = obj['verdict'] == 'approve' or bool(kept)
     return obj
 
 
-def ask_seat(seat, system, user, env, canary, haystack):
+def ask_seat(seat, system, user, env, canary, haystack, excluded=frozenset()):
     row = {'seat': seat['id'], 'provider': seat['provider'], 'model': '', 'status': '', 'answer': None}
     if not env.get(council.PROVIDERS[seat['provider']]['key']):
         row['status'] = 'SKIPPED_NO_KEY'
@@ -129,7 +143,7 @@ def ask_seat(seat, system, user, env, canary, haystack):
             found = []
         for obj in found:
             try:
-                row['answer'] = check_answer(obj, canary, haystack)
+                row['answer'] = check_answer(obj, canary, haystack, excluded)
                 row['status'] = 'OK'
                 return row
             except ValueError as e:
@@ -174,6 +188,8 @@ def render(rows, ok, why, m):
             lines.append('- %s `%s`: %s (quote: "%s")' % (f['severity'], f['item'], f['issue'], f['quote'][:160]))
         if a.get('dropped'):
             lines.append('- %d finding(s) dropped: quote not found in the manifest' % a['dropped'])
+        if a.get('unshipped'):
+            lines.append('- %d finding(s) dropped: they quote a patch this change excludes or removes' % a['unshipped'])
     for p in m.get('problems') or []:
         lines.append('- deterministic: ' + p)
     return '\n'.join(lines) + '\n'
@@ -211,7 +227,8 @@ def main(env=os.environ):
     system = instructions()
     user = 'Canary for this run: %s\n%s%s' % (canary, data, '\n(manifest cut at %d characters)' % PACK_LIMIT if cut else '')
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
-        rows = list(pool.map(lambda s: ask_seat(s, system, user, env, canary, raw[:PACK_LIMIT]), seats))
+        off = not_shipped(m)
+        rows = list(pool.map(lambda s: ask_seat(s, system, user, env, canary, raw[:PACK_LIMIT], off), seats))
     ok, why = decide(rows, not m.get('problems'))
     body = render(rows, ok, why, m)
     print(body)

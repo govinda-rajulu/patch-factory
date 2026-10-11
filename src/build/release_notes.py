@@ -200,6 +200,10 @@ def works_on(current):
         rows.append('- MicroG requirement unknown: src/targets.json was unreadable when these notes were written.')
     return rows
 
+ABOUT = 'About these builds: what CI checks, its limits and install help'
+ABOUT_ANCHOR = 'about-these-builds'
+
+
 def render(current, previous=None, reason='Previous-release comparison not requested in this nonpublishing check.'):
     checked(current)
     guide = WEB + '/blob/' + current['source'] + '/docs/guide.md'
@@ -222,11 +226,7 @@ def render(current, previous=None, reason='Previous-release comparison not reque
     lines += ['', '## Applied patches (' + str(len(current['patches'])) + ')',
               '<details>', '<summary>All applied patch names</summary>', '',
               *('- ' + text(name) for name in current['patches']),
-              '', '</details>', '', '## Checks and limitations',
-              '- CI checked APK identity, declared minimum Android API, native payloads, applied patch names and its configured signing certificate.',
-              '- Not phone-tested by this pipeline; not proof of original-publisher authenticity or installed-app compatibility.',
-              '- Same-version patch-only update delivery in Obtainium remains limited. New build does not necessarily mean a new app version.',
-              '', '## Download evidence', 'File: `' + current['apk'] + '`',
+              '', '</details>', '', '## Download evidence', 'File: `' + current['apk'] + '`',
               'SHA-256: `' + current['sha256'] + '`',
               'CI signing certificate SHA-256: `' + current['signer'] + '`',
               '[Build source](' + WEB + '/tree/' + current['source'] + ')']
@@ -238,9 +238,9 @@ def render(current, previous=None, reason='Previous-release comparison not reque
         lines.append('[Previous app release](' + WEB + '/releases/tag/' + previous['tag'] + ')')
         if not previous.get('legacy') and previous['source'] != current['source']:
             lines.append('[Source comparison](' + WEB + '/compare/' + previous['source'] + '...' + current['source'] + ')')
-    lines += ['', '## Help and stable information',
-              '[Install, updates, source types and status meanings](' + guide + ')',
-              'No automatic uninstall, import migration or device-protection bypass is required or recommended.',
+    # W14 (owner, 11 Oct 2026): checks, limits and install help live once, in docs/guide.md
+    # "About these builds"; every release links there instead of repeating them.
+    lines += ['', '[' + ABOUT + '](' + guide + '#' + ABOUT_ANCHOR + ')',
               '', '[pf-release-v1]: # "' + base64.b64encode(json.dumps(current, sort_keys=True, separators=(',', ':')).encode()).decode() + '"']
     body = '\n'.join(lines) + '\n'
     if len(body.encode()) > 120000:

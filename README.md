@@ -56,8 +56,8 @@ UNKNOWN, not unchanged.
    conditions pass. A separate follow-up qualifies eligible publication receipts
    only after the **whole source workflow succeeds**.
 
-This is not an Android installation test, an original-publisher authenticity
-proof, or a complete reproducibility/semantic-fingerprint system.
+What CI does not prove (phone install, original publisher, reproducibility):
+[About these builds](docs/guide.md#about-these-builds).
 
 ## Release identity and Obtainium
 

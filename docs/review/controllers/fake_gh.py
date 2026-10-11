@@ -7,6 +7,7 @@ releases. Knobs in the state file: checks{name: conclusion}, extra_checks[], smo
 conclusion}, smoke_log{app: line}, issues{n: state}, pages_state, main, license{repo: spdx},
 flows{workflow file: conclusion}, smoke_extra{app: [lines]}, pulls[] (a seeded open pull request follows its branch). W13: provider dispatch input and run names (display_title),
 cleanup apply calls, and the pf-t1 flows (any workflow file, status.json, targets.json).
+W14: release_bodies{id: body} and release edits (PATCH --input); tidy_mangle makes an edit come back different.
 """
 import json, os, sys, pathlib, subprocess as sp
 S = pathlib.Path(os.environ['FAKE_STATE'])
@@ -134,7 +135,12 @@ if p.startswith(R + 'deployments') and 'sha=' in p:
     st['pages_polls'] = st.get('pages_polls', 0) + 1
     out([{'id': 7000}] if sha == st['main'] and st['pages_polls'] > 1 and st.get('pages_state') != 'never' else [])
 if p.startswith(R + 'deployments/7000/statuses'): out([{'state': st.get('pages_state', 'success')}])
-if p.startswith(R + 'releases'): out([{'id': 1, 'tag_name': 'adguard-v1.0-b20260901', 'published_at': '2026-09-01T00:00:00Z', 'assets': []}] if 'page=1' in p else [])
+if p.startswith(R + 'releases/') and m == 'PATCH':  # W14 release_tidy apply: --input FILE with {"body": ...}
+    rid = p[len(R + 'releases/'):]; body = json.loads(pathlib.Path(a[a.index('--input') + 1]).read_text())['body']
+    st.setdefault('release_bodies', {})[rid] = body; st.setdefault('release_edits', []).append(rid)
+    out({'id': int(rid), 'body': body if not st.get('tidy_mangle') else body + 'x'})
+if p.startswith(R + 'releases'): out([{'id': 1, 'tag_name': 'adguard-v1.0-b20260901', 'published_at': '2026-09-01T00:00:00Z', 'assets': [],
+                                       'body': st.get('release_bodies', {}).get('1', 'Patch provider(s): x')}] if 'page=1' in p else [])
 if p.startswith(R + 'deployments'): out([{'id': 9000 + i, 'environment': 'github-pages', 'created_at': '2026-10-0%dT00:00:00Z' % i, 'sha': 'a' * 40} for i in range(1, 8)] if 'page=1' in p else [])
 if p.startswith(R + 'branches'):
     rows = git('for-each-ref', '--format=%(refname:short) %(objectname)', 'refs/heads').split('\n')

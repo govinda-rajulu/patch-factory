@@ -8,6 +8,7 @@ const RAW='https://raw.githubusercontent.com/'+REPO+'/main/';
 const MICROG_WEB='https://github.com/MorpheApp/MicroG-RE';
 const MICROG_API='https://api.github.com/repos/MorpheApp/MicroG-RE/releases';
 const OBTAINIUM_WEB='https://github.com/ImranR98/Obtainium';
+const OBTAINIUM_API='https://api.github.com/repos/ImranR98/Obtainium/releases';
 const $=id=>document.getElementById(id);
 let tab='apps',generation=0,importGeneration=0,pollTimer=null;
 let targets=null,importBlob=null,customApps=[];
@@ -21,7 +22,7 @@ const GROUPS=[
  ['tools','Everyday essentials',['adguard','photos','truecaller-combo','esfile','edge','keymapper']]
 ];
 function appGroup(id){
- if(id==='microg')return ['tools','Everyday essentials',[]];
+ if(id==='microg'||id==='obtainium')return ['tools','Everyday essentials',[]];
  return GROUPS.find(g=>g[2].includes(id))||['other','More apps',[]];
 }
 const cache=new Map();
@@ -33,7 +34,7 @@ function ago(v){const t=Date.parse(v);if(!Number.isFinite(t))return 'time unknow
 function when(v){const d=date(v);return d?d.toLocaleString(): 'Date unknown';}
 function safeLink(url,kind='repo'){
  try{const u=new URL(url);if(u.protocol!=='https:'||u.hostname!=='github.com'||u.port||u.username||u.password)return null;
- if(kind==='upstream')return u.href===MICROG_WEB+'/releases'?u.href:null;
+ if(kind==='upstream')return u.href===MICROG_WEB+'/releases'||u.href===OBTAINIUM_WEB+'/releases'?u.href:null;
  const prefix='/'+REPO+'/';if(!u.pathname.startsWith(prefix))return null;
  if(kind==='download'&&!u.pathname.startsWith(prefix+'releases/download/'))return null;
  if(kind==='run'&&!new RegExp('^/'+REPO+'/actions/runs/[0-9]+(?:/job/[0-9]+)?$').test(u.pathname))return null;
@@ -45,7 +46,8 @@ async function read(url,ttl=30000){
  u.origin==='https://api.github.com'&&u.pathname.startsWith('/repos/'+REPO+'/')||
  u.origin==='https://raw.githubusercontent.com'&&u.pathname.startsWith('/'+REPO+'/main/')||
  u.origin==='https://raw.githubusercontent.com'&&u.pathname==='/'+REPO+'/status/status.json'||
- u.origin==='https://api.github.com'&&u.pathname==='/repos/MorpheApp/MicroG-RE/releases'),'Unsupported data source');
+ u.origin==='https://api.github.com'&&u.pathname==='/repos/MorpheApp/MicroG-RE/releases'||
+ u.origin==='https://api.github.com'&&u.pathname==='/repos/ImranR98/Obtainium/releases'),'Unsupported data source');
  const existing=cache.get(url);if(existing&&Date.now()-existing.at<ttl)return existing.data;
  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),25000);
  try{const r=await fetch(url,{headers:{Accept:'application/vnd.github+json'},credentials:'omit',cache:'no-store',signal:ctrl.signal});
@@ -234,6 +236,51 @@ async function microgCard(root){
  const channelButton=el('button','Open Obtainium import settings');channelButton.type='button';
  channelButton.addEventListener('click',()=>{$('importPanel').open=true;$('microgIcon').focus();$('importPanel').scrollIntoView({block:'center'});});
  article.append(channelButton);
+}
+// W14 (owner, 11 Oct 2026): Obtainium itself, straight from its upstream releases, so nobody
+// has to find it elsewhere before importing. Standard flavor only (package dev.imranr.obtainium):
+// docs/obtainium-self.json tracks that flavor, so a self-update never switches flavors.
+const OBTAINIUM_ARCHES=[['universal','Universal (recommended)','any phone, biggest file'],['arm64-v8a','ARM64','most phones'],['armeabi-v7a','ARMv7','older 32-bit phones']];
+function obtainiumName(arch){need(OBTAINIUM_ARCHES.some(x=>x[0]===arch),'Unknown Obtainium architecture');return arch==='universal'?'app-release.apk':'app-'+arch+'-release.apk';}
+function obtainiumRelease(rows,arch='universal'){
+ need(Array.isArray(rows),'Obtainium release list unreadable');
+ const candidates=rows.filter(r=>r&&!r.draft&&r.prerelease===false&&typeof r.tag_name==='string'&&/^v[0-9]+(?:[.][0-9]+)*$/.test(r.tag_name));
+ candidates.sort((a,b)=>(Date.parse(b.published_at)||0)-(Date.parse(a.published_at)||0));
+ need(candidates.length>0,'No stable Obtainium release in the newest 100');
+ const rel=candidates[0],name=obtainiumName(arch);
+ need(rel.html_url===OBTAINIUM_WEB+'/releases/tag/'+encodeURIComponent(rel.tag_name),'Upstream release URL mismatch');
+ const assets=Array.isArray(rel.assets)?rel.assets.filter(a=>a&&a.name===name):[];
+ need(assets.length===1,name+' missing from '+rel.tag_name);
+ const a=assets[0];
+ need(a.state==='uploaded'&&Number.isSafeInteger(a.size)&&a.size>1000000&&a.browser_download_url===OBTAINIUM_WEB+'/releases/download/'+encodeURIComponent(rel.tag_name)+'/'+name,'Upstream APK identity mismatch');
+ return {rel,asset:a,version:rel.tag_name.slice(1)};
+}
+async function obtainiumCard(root){
+ const article=el('article');article.dataset.target='obtainium';article.dataset.type='upstream';
+ const heading=el('div',undefined,'app-title');heading.append(el('h3','Obtainium'),el('span','Upstream','badge'));article.append(heading);
+ article.append(el('p','Install it first, then import your apps with Track with Obtainium. Straight from ImranR98, not rebuilt here.','meta release-facts'));
+ try{
+  const rows=await read(OBTAINIUM_API+'?per_page=100'),{asset,version,rel}=obtainiumRelease(rows,'universal');
+  article.dataset.published=rel.published_at;
+  const box=el('div',undefined,'microg-pick'),a=el('a','Download '+version+' · '+mb(asset.size),'button primary');
+  a.href=asset.browser_download_url;a.target='_blank';a.rel='noopener noreferrer';a.title=asset.name;
+  box.append(a,el('p','Universal, stable, '+ago(rel.published_at)+'.','meta'));article.append(box);
+  const all=el('details',undefined,'app-details');all.append(el('summary','Every CPU file and SHA-256 checksums'));
+  const grid=el('div',undefined,'variant-grid'),sums=[];
+  for(const [arch,label,hint] of OBTAINIUM_ARCHES){
+   const rowHead=el('span',undefined,'variant-row');rowHead.append(el('strong',label),el('small',hint));grid.append(rowHead);
+   try{const {asset:f}=obtainiumRelease(rows,arch),b=el('a','Download · '+mb(f.size),'button');b.href=f.browser_download_url;b.target='_blank';b.rel='noopener noreferrer';b.title=f.name;grid.append(b);
+    if(/^sha256:[a-f0-9]{64}$/.test(f.digest||''))sums.push(f.name+'  '+f.digest.slice(7));}
+   catch(e){grid.append(el('span','Not in this release','meta'));}
+  }
+  all.append(grid);
+  const d=el('details');d.append(el('summary','SHA-256 checksums'),el('pre',sums.join('\n')||'Not published for this release.'));all.append(d);
+  const more=el('p',undefined,'meta');more.append(link('All Obtainium releases and notes',OBTAINIUM_WEB+'/releases','upstream'));all.append(more);
+  article.append(all);
+ }catch(e){article.append(el('p','Obtainium releases unavailable: '+e.message,'notice'));}
+ const next=el('button','Next: import apps');next.type='button';
+ next.addEventListener('click',()=>{$('importPanel').open=true;$('pack').focus();$('importPanel').scrollIntoView({block:'center'});});
+ article.append(next);root.append(article);
 }
 async function changeMicrogChannel(value){
  need(['stable','prerelease'].includes(value),'Unknown MicroG channel');
@@ -424,6 +471,7 @@ async function appsPanel(root){
  if(rows.length>1){const d=el('details');d.append(el('summary',(rows.length-1)+' older releases'));for(const r of rows.slice(1)) {const p=el('p');p.append(link(r.tag.version+' · '+buildMeta(r),r.rel.html_url));d.append(p);}article.append(d);}
  root.append(article);
  }
+ await obtainiumCard(root);
  await microgCard(root);
  return releaseResult.error?'Partial data: patched release availability unknown.':'Patched inventory checked: '+releaseResult.rows.length+' releases. Upstream channel checked separately.';
 }
@@ -466,8 +514,8 @@ const STATUS=RAW.replace('/main/','/status/')+'status.json';
 const BAD_RUN=new Set(['failure','timed_out','startup_failure','action_required','cancelled']);
 const STALE_DAYS=14,STALE_DATA_HOURS=26;
 const BUILD_FLOWS=['1. Manual Patch','2. Check new patch','9. Batch Patch'];
-const WATCH_FLOWS=['6. Provider watch','7. Nightly watch','8. Community watch','Tooling watch'];
-const WATCH=[['agent-watch.yml','6. Provider watch','provider watch:'],['community-watch.yml','8. Community watch','community: index changed for apps you build'],['watch.yml','7. Nightly watch','watch: repo and provider status']];
+const WATCH_FLOWS=['6. Provider watch','7. Nightly watch','8. Community watch','Tooling watch','10. Selection watch'];
+const WATCH=[['agent-watch.yml','6. Provider watch','provider watch:'],['community-watch.yml','8. Community watch','community: index changed for apps you build'],['watch.yml','7. Nightly watch','watch: repo and provider status'],['selection-watch.yml','10. Selection watch','Selection watch']];
 function daysOld(v){const t=Date.parse(v);return Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/86400000)):null;}
 // W6: a build run whose only failures are app jobs is keyed by app; the app row carries it.
 function unresolved(row){return !!row&&BAD_RUN.has(row.result)&&!row.per_app;}
@@ -600,7 +648,7 @@ function organizePanel(root,activeTab){
   if(heading){
    const monogram=el('span',article.querySelector('h3')?.textContent.trim().slice(0,1)||'A','app-monogram');
    monogram.setAttribute('aria-hidden','true');
-   if(LOGOS.has(id)||id==='microg'){const logo=el('img',undefined,'app-logo');logo.src=id==='microg'?'assets/microg.png':'assets/logos/'+id+'.png';logo.alt='';logo.width=40;logo.height=40;logo.decoding='async';logo.addEventListener('error',()=>{logo.remove();monogram.classList.remove('has-logo');});monogram.textContent='';monogram.classList.add('has-logo');monogram.append(logo);}
+   if(LOGOS.has(id)||id==='microg'||id==='obtainium'){const logo=el('img',undefined,'app-logo');logo.src=id==='microg'?'assets/microg.png':id==='obtainium'?'assets/obtainium.svg':'assets/logos/'+id+'.png';logo.alt='';logo.width=40;logo.height=40;logo.decoding='async';logo.addEventListener('error',()=>{logo.remove();monogram.classList.remove('has-logo');});monogram.textContent='';monogram.classList.add('has-logo');monogram.append(logo);}
    heading.prepend(monogram);
   }
   const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta')&&!n.classList.contains('channel-status'));
@@ -645,7 +693,7 @@ function filterApps(){
  $('appCount').textContent=shown+' app'+(shown===1?'':'s');
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,microgLatest,microgName,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,reportIdentity,reportBinding,checkCompleteness};
+window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,obtainiumRelease,obtainiumName,microgConfig,microgRelease,microgLatest,microgName,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,reportIdentity,reportBinding,checkCompleteness};
 const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
 const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
 search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});

@@ -53,6 +53,7 @@ whole answer budget thinking (7 Oct 2026: four seats failed that way, see LESSON
 | M: issue hygiene | mode `triage` | `issue` (where the table goes) | close, keep or owner per open issue, cited |
 | health | mode `probe` | none | which seats answer, in the run summary |
 | rotation | schedule, 03:17 and 15:17 UTC | none (desk issue in seats.json) | one audit shard per run, triage on Monday mornings, on the desk |
+| fix lane (W14) | inside every audit | none | one-line fixes that apply and parse, as artifact `council-fixes`; never pushed |
 
 Run heavy jobs one at a time. On 7 Oct 2026 eleven audit shards dispatched together ran the free
 tiers out (most seats busy); the schedule exists so that never happens again.

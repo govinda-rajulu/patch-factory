@@ -34,7 +34,8 @@ JOB_RX = re.compile(r'(?:^|/ )Patch ([a-z0-9][a-z0-9-]*)$')
 TAG_RX = re.compile(r'^([a-z0-9-]+)-v([0-9]+(?:\.[0-9]+)*)-b([0-9]+)$')
 MARKER = re.compile(r'(?m)^\[pf-release-v1\]: # "([A-Za-z0-9+/=]+)"[ \t]*$')
 TOKEN = re.compile(r'\b(?:gh[pousr]_[A-Za-z0-9_]{10,}|github_pat_[A-Za-z0-9_]{10,}|AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9_-]{20,})')
-NOISE = re.compile(r'^(Process completed with exit code \d+\.?|The job was canceled because .*|The operation was canceled\.?)$')
+NOISE = re.compile(r'^(Process completed with exit code \d+\.?|The job was canceled because .*|The operation was canceled\.?'
+                   r'|No files were found with the provided path: .*)$')
 ANDROID = {21: '5.0', 22: '5.1', 23: '6', 24: '7.0', 25: '7.1', 26: '8.0', 27: '8.1', 28: '9', 29: '10', 30: '11',
            31: '12', 32: '12L', 33: '13', 34: '14', 35: '15', 36: '16'}
 
@@ -55,6 +56,7 @@ PURPOSE = {
     'status.yml': 'Writes the data for this page.',
     'council.yml': 'Agent council: scheduled audits posted on the council desk issue.',
     'keepalive.yml': 'Keeps scheduled automations from being paused by GitHub.',
+    'qualify-baselines.yml': 'Qualifies the build evidence of published releases once the whole build run worked.',
     'selection-watch.yml': 'Selection watch: drops patch names providers stopped offering, lists new ones for you, digests provider releases.',
 }
 STEP = {
@@ -176,7 +178,9 @@ def failed_step(job):
 def reasons(reader, job_id, cap=3):
     rows = reader.get('repos/%s/check-runs/%s/annotations?per_page=50' % (REPO, job_id), 'the error lines of job %s' % job_id)
     out = []
-    for a in rows or []:
+    # W14: errors first; Reddit's page led with an upload-artifact warning, not the store miss.
+    rows = sorted([a for a in rows or [] if isinstance(a, dict)], key=lambda a: a.get('annotation_level') != 'failure')
+    for a in rows:
         if a.get('annotation_level') not in ('failure', 'warning'):
             continue
         msg = clean(a.get('message'), 400)
