@@ -41,6 +41,18 @@ class Nightly(unittest.TestCase):
             _,d=n.analyze(message+'\nreport mode=full fail=0\n',0,True,TARGETS,ENV)
             self.assertEqual(d['status'],'UNKNOWN')
 
+    def test_patch_names_never_read_as_reader_messages(self):
+        # W14 (L055): "Unlimited track skipping" in the unused list made every run UNKNOWN
+        text = ('=== amazonmusic/amazonmusic-rookieenough  using 2 of 6\n  BAN  Clone app\n'
+                '       Unlimited track skipping\n  CFM  Skipping intro unreadable UNVERIFIED\n'
+                '~~ x/y exclude not offered by provider: Skipping ads returned nothing\n'
+                'checked=24 dirs_with_missing_names=0 not_checked=0\nreport mode=full fail=0\n')
+        _,d=n.analyze(text,0,True,TARGETS,ENV)
+        self.assertEqual((d['status'], d['reasons']), ('PARTIAL', []))
+        # the reader's own words still count, also on a "~~" line before the names
+        _,d=n.analyze('~~ x/y unreadable: Hide ads\nreport mode=full fail=0\n',0,True,TARGETS,ENV)
+        self.assertEqual(d['status'],'UNKNOWN')
+
     def test_zero_exit_labels_remaining_coverage_gaps(self):
         targets=[dict(TARGETS[0],extra_bundles=[{'host':'gitlab'}])]
         _,d=n.analyze('report mode=full fail=0\n',0,True,targets,ENV)

@@ -5,7 +5,7 @@ tools. Added 10 Oct 2026 (packet H12) from the W9 to W12 controllers, which all 
 
 | File | What it is |
 | --- | --- |
-| `packet.tmpl.py` | The controller. Fill the CONFIG block; the build step fills the TREE and BUNDLE placeholders. Phases: gate (with PRECHECKS), clone, push, pr, validate (ADVISORY checks recorded, never blocking), smoke (`app` or `app/provider`; SMOKE_ADVISORY entries record NOTE, never block), merge, close, pages, preview, cleanup (CLEANUP_APPLY), t1 (RUN_T1). |
+| `packet.tmpl.py` | The controller. Fill the CONFIG block; the build step fills the TREE and BUNDLE placeholders. Phases: gate (with PRECHECKS), clone, push, pr, validate (ADVISORY checks recorded, never blocking), smoke (`app` or `app/provider`; SMOKE_ADVISORY entries record NOTE, never block), merge, close, pages, preview, cleanup (CLEANUP_APPLY), tidy (TIDY, W14: old release notes lose the repeated blocks; backup in the logs), mirror (MIRROR), t1 (RUN_T1). |
 | `fake_gh.py` | A fake `gh` with a git-backed origin, for rehearsal. Knobs are listed at its top. |
 | `rehearse.sh` | Runs a built controller against `fake_gh.py` in a throwaway world. A fix on top of a pushed packet: set PARENT in the controller; rehearse with `PRIOR_TREE=<old tree> PRIOR_BRANCH=packet/<name>` (and `PRIOR_MOVED=1` for the stop case). |
 | `suite.sh` | Local copy of 3. Validate's offline steps. Run one instance at a time. |

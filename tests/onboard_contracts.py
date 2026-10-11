@@ -156,6 +156,19 @@ class Reviewer(unittest.TestCase):
         with self.assertRaises(ValueError):
             onboard_review.check_answer(dict(obj, verdict='maybe'), 'c1', 'x')
 
+    def test_findings_on_excluded_or_removed_names_do_not_count(self):
+        # W14: PR #178's codestral seat blocked on six exclude-list names
+        m = {'patch_changes': [{'target': 'instagram', 'patch_dir': 'p', 'added_include': ['Hide ads'],
+                                'removed_include': ['Unlock Unlimited'], 'added_exclude': ['Spoof location', 'Hide ads'],
+                                'removed_exclude': []}]}
+        off = onboard_review.not_shipped(m)
+        self.assertEqual(off, {'Unlock Unlimited', 'Spoof location'})
+        hay = json.dumps(m)
+        a = onboard_review.check_answer(answer('c1', 'block', ['Spoof location', 'Unlock Unlimited']), 'c1', hay, off)
+        self.assertEqual((a['findings'], a['unshipped'], a['counted']), ([], 2, False))
+        a = onboard_review.check_answer(answer('c1', 'block', ['Hide ads']), 'c1', hay, off)
+        self.assertEqual([f['quote'] for f in a['findings']], ['Hide ads'])
+
     def test_quorum_and_majority_block(self):
         def row(verdict, counted=True):
             return {'answer': {'verdict': verdict, 'counted': counted}}

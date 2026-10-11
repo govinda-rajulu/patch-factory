@@ -161,12 +161,15 @@ async function main(){
   const watches=[
    ['agent-watch.yml','6. Provider watch'],
    ['watch.yml','7. Nightly watch'],
-   ['community-watch.yml','8. Community watch']
+   ['community-watch.yml','8. Community watch'],
+   ['tooling-watch.yml','Tooling watch'],
+   ['selection-watch.yml','10. Selection watch'],
+   ['keepalive.yml','Keepalive']
   ];
   const hook=source.match(/workflows: (\[[^\n]+\])/);
   assert.ok(hook);
   const names=JSON.parse(hook[1]);
-  assert.equal(names.length,8);assert.equal(new Set(names).size,8);
+  assert.equal(names.length,11);assert.equal(new Set(names).size,11);  // W14: + Tooling watch, Selection watch, Keepalive
   for(const [file,name] of watches){
    assert.ok(names.includes(name));
    assert.ok(fs.readFileSync(path.join(ROOT,'.github/workflows',file),'utf8').startsWith('name: '+name+'\n'));

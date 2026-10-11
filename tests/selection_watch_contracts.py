@@ -64,6 +64,26 @@ class Watch(unittest.TestCase):
         again = self.collect({'instagram/piko': {'remove': ['Copy comment'], 'add': ['Brand new']}}, state)
         self.assertEqual([w['name'] for w in again['waiting'] if w['provider'] == 'piko'], ['Brand new'])
 
+    def test_open_mode_new_name_ships_by_default_and_never_waits(self):
+        # W14: YouTube (no include list) waited on Force system font, which already ships
+        p = self.collect({'youtube/morphe': {'add': ['Brand new open patch']}})
+        self.assertEqual([w['name'] for w in p['waiting'] if w['target'] == 'youtube'], [])
+        self.assertEqual([w['name'] for w in p['defaults']], ['Brand new open patch'])
+        text = (self.out / 'report.md').read_text()
+        self.assertIn("## New in open-mode apps (1)", text)
+        self.assertIn('patches `-Brand new open patch`', text)
+        self.assertNotIn('youtube/morphe', json.loads((self.out / 'state.json').read_text())['pending'].__repr__())
+
+    def test_reminder_fires_on_the_provider_version(self):
+        # W14: "revisit HushGram as primary after 0.1" became a reminder, not a memory
+        rows = [dict(repo='SysAdminDoc/HushGram', at_least='0.1.0', say='revisit')]
+        (self.r / 'src/etc/reminders.json').write_text(json.dumps(rows))
+        self.assertEqual(sw.reminders(self.r, {'SysAdminDoc/HushGram': 'v0.0.9'}), [])
+        self.assertEqual(sw.reminders(self.r, {'SysAdminDoc/HushGram': 'v0.1.0'}), ['SysAdminDoc/HushGram v0.1.0: revisit'])
+        self.assertEqual(len(sw.reminders(self.r, {'SysAdminDoc/HushGram': 'v1.2'})), 1)
+        committed = json.loads((ROOT / 'src/etc/reminders.json').read_text())
+        self.assertTrue(any(r['repo'] == 'SysAdminDoc/HushGram' for r in committed))
+
     def test_mass_loss_is_blocked_not_removed(self):
         inc = sw.lines(self.r / 'src/patches/instagram-piko/include-patches')
         p = self.collect({'instagram/piko': {'remove': inc[:20]}})
@@ -88,6 +108,16 @@ class Watch(unittest.TestCase):
     def test_ranking_line_per_enabled_app(self):
         rank = sw.ranking(self.r, json.loads((self.r / 'src/targets.json').read_text()))
         self.assertTrue(any(r.startswith('instagram: ') for r in rank))
+
+    def test_ranking_reads_both_shapes_and_skips_fallbacks(self):
+        # W13 pf-t1: Facebook showed the fallback De-Vanced as "now" and HushFacebook offering 0
+        rank = sw.ranking(self.r, json.loads((self.r / 'src/targets.json').read_text()))
+        fb = [r for r in rank if r.startswith('facebook: ')][0]
+        self.assertIn('now SysAdminDoc/Hushfacebook', fb)
+        self.assertNotIn('De-Vanced', fb)
+        self.assertNotIn('(0 offered', fb)
+        ig = [r for r in rank if r.startswith('instagram: ')][0]
+        self.assertNotIn('HushGram', ig)
 
 
 if __name__ == '__main__':

@@ -66,11 +66,13 @@ def esc(value, limit=200):
     return provider_watch.display(value)
 
 
-def plan_names(root, rows, observed, pending):
-    """Edits and findings from one observation per provider row."""
+def plan_names(root, rows, observed, pending, open_targets=frozenset()):
+    """Edits and findings from one observation per provider row. A new name in an open-mode
+    app (no exclusive include list) already ships by the provider's default: it is reported
+    once under its own heading and never waits (W14: YouTube's Force system font waited)."""
     banned, confirm = rules(root, 'BANNED'), rules(root, 'CONFIRM')
     today = datetime.date.today().isoformat()
-    edits, baselines, findings, waiting, blocked = {}, {}, [], [], []
+    edits, baselines, findings, waiting, blocked, defaults = {}, {}, [], [], [], []
     for row in rows:
         key = row['target'] + '/' + row['name']
         names = observed.get(key)
@@ -101,12 +103,17 @@ def plan_names(root, rows, observed, pending):
         for k in [k for k in pending if k.startswith(key + '|') and (k.split('|', 1)[1] in decided or k.split('|', 1)[1] not in offered)]:
             pending.pop(k)
         for n in sorted(offered - decided):
+            if row['target'] in open_targets:
+                pending.pop(key + '|' + n, None)
+                if before and n not in before:
+                    defaults.append(dict(target=row['target'], provider=row['name'], name=n, tag=tag(n, banned, confirm)))
+                continue
             if key + '|' + n not in pending and before and n not in before:
                 pending[key + '|' + n] = today
             if key + '|' + n in pending:
                 waiting.append(dict(target=row['target'], provider=row['name'], patch_dir=row['patch_dir'], name=n,
                                     tag=tag(n, banned, confirm), since=pending[key + '|' + n]))
-    return dict(edits=edits, baselines=baselines, findings=findings, waiting=waiting, blocked=blocked)
+    return dict(edits=edits, baselines=baselines, findings=findings, waiting=waiting, blocked=blocked, defaults=defaults)
 
 
 def gh_json(path):
@@ -116,7 +123,7 @@ def gh_json(path):
     return json.loads(r.stdout or b'null')
 
 
-def digest(repos, chosen, seen, reader=gh_json):
+def digest(repos, chosen, seen, reader=gh_json, tags=None):
     """Releases newer than the last seen one, per repo; first sight shows only the newest."""
     out = []
     for repo in repos:
@@ -130,12 +137,34 @@ def digest(repos, chosen, seen, reader=gh_json):
         new = [r for r in rels if last and r['published_at'] > last] if last else rels[:1]
         if rels:
             seen[repo] = rels[0]['published_at']
+            if tags is not None:
+                tags[repo] = rels[0].get('tag_name', '')
         for r in new[:5]:
             body = (r.get('body') or '').splitlines()
             keep = [l.strip(' -*#\t') for l in body if KEYWORDS.search(l) or any(c in l for c in chosen)]
             out.append(dict(repo=repo, tag=r.get('tag_name', ''), date=r['published_at'][:10], url=r.get('html_url', ''),
                             prerelease=bool(r.get('prerelease')), lines=[l for l in keep if l][:12]))
     return out
+
+
+def version_key(tag):
+    return tuple(int(x) for x in re.findall(r'\d+', tag or '')[:4])
+
+
+def reminders(root, tags):
+    """Owner reminders that fire on a provider version (W14): each entry in
+    src/etc/reminders.json says {"repo", "at_least", "say"}; it shows every day once the
+    repo's newest release reaches at_least, until the entry is removed."""
+    try:
+        rows = json.loads((root / 'src/etc/reminders.json').read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return ['reminders file unreadable']
+    due = []
+    for r in rows if isinstance(rows, list) else []:
+        tag = tags.get(r.get('repo', ''))
+        if tag and version_key(tag) >= version_key(r.get('at_least', '')):
+            due.append('%s %s: %s' % (r['repo'], tag, r.get('say', '')))
+    return due
 
 
 def ranking(root, targets):
@@ -152,21 +181,33 @@ def ranking(root, targets):
         for p in bundle.get('patches') or []:
             k = p.get('compatiblePackagesKey', p.get('compatibilityKey'))
             pk = comp[k] if isinstance(k, int) and 0 <= k < len(comp) else None
-            if pk is None or any(isinstance(x, dict) and x.get('packageName') == package for x in pk):
+            # Two shapes in the index: [{"packageName": ...}] and {"package": [versions]} (W13:
+            # the second, HushFacebook's, read as offering nothing). None or empty: any app.
+            if isinstance(pk, dict):
+                pkgs = set(pk)
+            elif isinstance(pk, list):
+                pkgs = {x.get('packageName') for x in pk if isinstance(x, dict)} | {x for x in pk if isinstance(x, str)}
+            else:
+                pkgs = set()
+            if not pkgs or package in pkgs:
                 names.append(p.get('name') or '')
         return [n for n in names if n]
     out = []
     for t in targets:
         if not t.get('enabled'):
             continue
-        mine = {('%s/%s' % (c.get('owner'), c.get('repo'))).lower(): c for c in t['candidates'] + t.get('extra_bundles', [])}
+        # Current = what builds today (primary candidates and extra bundles). A fallback is
+        # neither current nor an alternative (W13: De-Vanced showed as Facebook's "now").
+        mine = {('%s/%s' % (c.get('owner'), c.get('repo'))).lower(): c for c in t['candidates'] + t.get('extra_bundles', [])
+                if not c.get('fallback')}
+        spare = {('%s/%s' % (c.get('owner'), c.get('repo'))).lower() for c in t['candidates'] if c.get('fallback')}
         chosen = set()
         for c in t['candidates'] + t.get('extra_bundles', []):
             if not c.get('fallback'):
                 chosen |= {l.split('|', 1)[0] for l in lines(root / 'src/patches' / c['patch_dir'] / 'include-patches')}
         rows = []
         for b in index.get('bundles') or []:
-            if t['package'] not in (b.get('targetApps') or []):
+            if t['package'] not in (b.get('targetApps') or []) or (b.get('repo') or '').lower() in spare:
                 continue
             names = offers(b, t['package'])
             rows.append(dict(repo=b.get('repo', ''), total=len(names), overlap=len(chosen & set(names)),
@@ -186,7 +227,7 @@ def ranking(root, targets):
     return out
 
 
-def report(p, dig, rank, run_url):
+def report(p, dig, rank, run_url, due=()):
     L = ['# Selection watch', '', run_url, '',
          'Removed names are ones the provider no longer offers; builds already go without them. '
          'Nothing is ever added here: new patches wait for you.', '']
@@ -195,11 +236,18 @@ def report(p, dig, rank, run_url):
         L.append('- `%s` (%s): %s' % (esc(d), esc(e['provider']), ', '.join('`%s`' % esc(x) for x in e['include'])))
     L += ['', '## Needs you']
     L += ['- ' + esc(b, 2000) for b in p['blocked']] or ['- nothing blocked']
+    L += ['- Reminder: ' + esc(d, 600) for d in due]
     L += ['', '## New patches waiting for your call (%d)' % len(p['waiting'])]
     for w in p['waiting'][:80]:
         L.append('- %s%s / %s: `%s` (since %s). Add: "5. Add target", action patch, id `%s`, patches `%s`; skip: patches `-%s`'
                  % ('**%s** ' % w['tag'] if w['tag'] else '', esc(w['target']), esc(w['provider']), esc(w['name']), w['since'],
                     esc(w['target']), esc(w['name']), esc(w['name'])))
+    if p.get('defaults'):
+        L += ['', "## New in open-mode apps (%d): they already ship by the provider's default" % len(p['defaults'])]
+        for w in p['defaults'][:80]:
+            L.append('- %s%s / %s: `%s`. Drop it: "5. Add target", action patch, id `%s`, patches `-%s`'
+                     % ('**%s** ' % w['tag'] if w['tag'] else '', esc(w['target']), esc(w['provider']), esc(w['name']),
+                        esc(w['target']), esc(w['name'])))
     L += ['', '## Provider releases since the last run']
     for d in dig:
         if d.get('error'):
@@ -231,20 +279,23 @@ def collect(root, out, observe, reader=gh_json, state_text=None, identity=None):
             observed[row['target'] + '/' + row['name']] = list(observe(row)['names'])
         except Exception:
             pass
-    p = plan_names(root, rows, observed, state['pending'])
+    p = plan_names(root, rows, observed, state['pending'], frozenset(t['id'] for t in targets if not t.get('exclusive')))
     chosen = set()
     for row in rows:
         chosen |= {l.split('|', 1)[0] for l in lines(root / 'src/patches' / row['patch_dir'] / 'include-patches')}
     repos = sorted({'%s/%s' % (r['owner'], r['repo']) for r in rows if r['host'] == 'github'} | {MORPHE})
-    dig = digest(repos, chosen, state['releases'], reader)
+    state.setdefault('tags', {})
+    dig = digest(repos, chosen, state['releases'], reader, state['tags'])
+    due = reminders(root, state['tags'])
+    p['reminders'] = due
     rank = ranking(root, targets)
     run_url = (identity or {}).get('run_url', '')
-    text = report(p, dig, rank, run_url)
+    text = report(p, dig, rank, run_url, due)
     out.mkdir(parents=True, exist_ok=True)
     (out / 'plan.json').write_text(json.dumps(p, indent=1, sort_keys=True) + '\n', encoding='utf-8')
     (out / 'state.json').write_text(json.dumps(state, indent=1, sort_keys=True) + '\n', encoding='utf-8')
     (out / 'report.md').write_text(text, encoding='utf-8')
-    changed = bool(p['edits'] or p['blocked'] or p['waiting'] or any(not d.get('error') for d in dig))
+    changed = bool(p['edits'] or p['blocked'] or p['waiting'] or p['defaults'] or due or any(not d.get('error') for d in dig))
     (out / 'changed').write_text('1\n' if changed else '0\n', encoding='utf-8')
     print('SELECTION_WATCH removed=%d blocked=%d waiting=%d releases=%d baselines=%d unread=%d'
           % (len(p['edits']), len(p['blocked']), len(p['waiting']), len([d for d in dig if not d.get('error')]),

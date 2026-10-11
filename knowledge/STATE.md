@@ -6,7 +6,18 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
 
-## 10 Oct 2026, evening IST (packet W13; start here)
+## 11 Oct 2026, evening IST (packet W14; start here)
+
+- **Main** `45ff17ba` (W13 #178) plus bot commits (`c1a38b1d`), plus W14 once merged.
+- **W14**: Reddit (APKMirror universal row, store-miss step-down, L054), Nightly false UNKNOWN on
+ patch names (L055), Selection watch ranking, open-mode names and reminders (`src/etc/reminders.json`),
+ publisher pins for 16 packages, agent review ignores findings on excluded names, status reasons;
+ one home for repeated text (guide "About these builds", old notes tidied by `release_tidy.py`),
+ Obtainium card, automation lists tested (L057), council trained by `docs/council/AGENT-SPEC.md`
+ with a fix lane (artifact `council-fixes`, never pushed). Record `docs/review/SESSION-2026-10-11.md`.
+- **Next**: OPEN-WORK "packet W14", in order: the pf-w14 RESULT and pf-t1 findings first.
+
+## 10 Oct 2026, evening IST (packet W13)
 
 - **Main** `e42b06d8` (H12 #176) plus W13 once merged. Owner pre-approved W13, merge included.
 - **W13**: lost patches dropped by name (`lost_patches.py`), provider fallback with per-provider

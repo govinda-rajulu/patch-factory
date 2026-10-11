@@ -91,7 +91,21 @@ jobs:
           PF_NOTE: ${{ inputs.note }}
           PF_QUESTION: ${{ inputs.question }}
           PF_SHARD: ${{ inputs.shard }}
+          PF_FIXES: council-out/fixes.patch
         run: |
           # The PR that adds the council runs this against a base without it: nothing to do.
           if [ ! -f src/council/council.py ]; then echo "council code is not on the base commit yet"; exit 0; fi
           python3 src/council/council.py
+      # W14 fix lane: proposed one-line fixes from an audit, checked on a scratch copy with no
+      # model keys and no token, then kept as a run artifact. Nothing is committed or pushed.
+      - name: Check proposed fixes (no keys, nothing pushed)
+        if: always() && hashFiles('council-out/fixes.patch') != ''
+        run: bash src/council/check_fixes.sh council-out/fixes.patch
+      - name: Keep proposed fixes
+        if: always() && hashFiles('council-out/fixes.patch') != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: council-fixes
+          path: council-out/
+          retention-days: 14
+          if-no-files-found: ignore

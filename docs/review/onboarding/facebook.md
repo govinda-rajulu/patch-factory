@@ -97,6 +97,7 @@ Not included (exclude list):
 - Install beside Meta's apps: gives the app another package name, so Obtainium and in-place updates of com.facebook.katana stop; the intent of the BANNED package-name rule.
 - Disable Play Store updates: once installed, a build without it cannot install over it (the provider says so).
 - Start on x86 devices: the phone is ARM64; nothing to gain.
+- Unlock app icons: new in Hushfacebook 0.10.0 (11 Oct 2026); it opens the app icons Facebook keeps for its paid Facebook Plus, a paid-feature unlock the review rules keep out. Assistant's call 11 Oct 2026 (owner left new-patch calls to the assistant, packet W14).
 
 ## Risks
 - Hide read receipts, Hide typing indicator and View stories anonymously hold back signals Facebook normally receives, so Facebook can notice them and an account could be warned or limited. Owner decision: include them and test on the phone (Sunday 11 Oct 2026); drop them if the account shows warnings.

@@ -294,3 +294,27 @@ W13 dropped 4 working brosssh Instagram patches (Hide ads among them) because th
 Instagram 439 only; the patcher runs with --force and W12 had applied them on 447. The smoke
 gate also wanted a COVERAGE line an any-version provider never prints. A pre-check must be no
 stricter than the step it predicts; read a success run's log before writing the gate.
+
+### L054 · A store row can be wider than the filter
+Tags: build, stores
+Reddit 2026.41.0 came as one APKMirror row, "universal 120-640dpi", and APKPure had no link yet;
+the arm64 filter found nothing and the build died with no fallback. A universal row serves an
+arm64 target, and a version no store serves steps down like an SDK miss (W14).
+
+### L055 · Data is not a message
+Tags: watch, ci
+Nightly watch went UNKNOWN because its "incomplete reader" regex matched the patch name
+"Unlimited track skipping". A detector reads only the lines its producer writes as messages;
+names and other data are excluded first (W14).
+
+### L056 · A plan in a review doc is not work
+Tags: docs, review
+CLUTTER-2026-10-07 named every repeated notice and a home for each; nothing was done for four
+days and the owner had to ask again. A review's proposals become OPEN-WORK items with a packet,
+or are declined in writing, on the day the review lands (W14).
+
+### L057 · A hand list must match the workflows
+Tags: workflows, watch
+Three scheduled workflows never opened a failure issue and one had no purpose line, because
+notify-failure, status.yml and status.py PURPOSE are hand lists. tests/automation_contracts.py
+compares each list with .github/workflows (W14).

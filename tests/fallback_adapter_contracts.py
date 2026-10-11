@@ -16,12 +16,12 @@ ROOT=Path(__file__).resolve().parents[1]
 
 
 class AdapterProcessContracts(unittest.TestCase):
-    def case(self,store,kind,alternate,fail=False,missing=False):
+    def case(self,store,kind,alternate,fail=False,missing=False,extra=None,row=''):
         tmp=tempfile.TemporaryDirectory(prefix='pf-real-adapter-');self.addCleanup(tmp.cleanup)
         root=Path(tmp.name)
         shutil.copytree(ROOT/'src',root/'src',ignore=shutil.ignore_patterns('__pycache__'))
         target={'id':'fixture','enabled':True,'package':'com.reddit.frontpage','apk_name':'fixture',
-                'apk_type':kind,'source':store,'min_sdk_ceiling':29}
+                'apk_type':kind,'source':store,'min_sdk_ceiling':29,**(extra or {})}
         (root/'src/targets.json').write_text(json.dumps([target]))
         mappings={'apkpure':{'com.reddit.frontpage':{'download_url':'https://apkpure.com/reddit/com.reddit.frontpage/download'}},
                   'apkmirror':{'com.reddit.frontpage':{'list_url':'https://www.apkmirror.com/uploads/?appcategory=reddit','org':'redditinc','name':'reddit'}}}
@@ -41,6 +41,7 @@ import json,os,sys
 sys.stdin.read()
 s=sys.argv[1]
 if s=='h5.appRowTitle a.fontBlack json{}': print(json.dumps([{'text':'Reddit 2026.38.0','href':'/apk/redditinc/reddit/reddit-2026-38-0-release/'}]))
+elif s=='div.variants-table' and os.environ.get('FIXTURE_ROW'): print(os.environ['FIXTURE_ROW'])
 elif s=='div.variants-table': print('<div class="table-row"><span class="apkm-badge">'+('BUNDLE' if os.environ['FIXTURE_KIND']=='bundle' else 'APK')+'</span><a class="accent_color" href="/variant/">variant</a></div>')
 elif s=='a.downloadButton attr{href}': print('/step/?forcebaseapk=true' if os.environ['FIXTURE_KIND']=='apk' else '/step/')
 elif s=='a#download-link attr{href}': print('/binary?token=FAKE_SECRET')
@@ -77,7 +78,7 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
 '''}
         for name,text in programs.items():p=bin/name;p.write_text(text);p.chmod(0o755)
         env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],FIXTURE_KIND=kind,
-                 FIXTURE_FAIL='1' if fail else '0',FIXTURE_MISSING='1' if missing else '0')
+                 FIXTURE_FAIL='1' if fail else '0',FIXTURE_MISSING='1' if missing else '0',FIXTURE_ROW=row)
         script='source_alternate.sh' if alternate else 'source_download.sh'
         args=['bash','src/build/'+script,'fixture','2026.38.0']+([store] if alternate else [])
         p=subprocess.run(args,cwd=root,env=env,capture_output=True,text=True,timeout=20)
@@ -101,6 +102,19 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
                     rows=list((r/'download').iterdir());self.assertEqual(len(rows),1)
                     self.assertEqual(rows[0].read_bytes(),(r/'original.fixture').read_bytes())
                     self.assertFalse((r/'java.calls').exists())
+
+    def test_universal_upload_matches_an_arm64_target(self):
+        # W14 (L054): Reddit 2026.41.0 on APKMirror has one row, BUNDLE universal 120-640dpi
+        row=('<div class="table-row"><span class="apkm-badge">BUNDLE</span> <div class="table-cell">universal</div>'
+             ' <div class="table-cell">120-640dpi</div><a class="accent_color" href="/variant/">variant</a></div>')
+        r,p=self.case('apkmirror','bundle',False,extra={'arch':'arm64-v8a','dpi':'480-640dpi'},row=row)
+        self.assertEqual(p.returncode,0,p.stdout+p.stderr)
+        self.assertIn('Arch fallback: arm64-v8a -> universal',p.stdout+p.stderr)
+        # a row for another ABI only is still refused on APKMirror (the other store then answers)
+        other=row.replace('universal','armeabi-v7a')
+        r,p=self.case('apkmirror','bundle',False,extra={'arch':'arm64-v8a','dpi':'480-640dpi'},row=other)
+        self.assertNotIn('Arch fallback',p.stdout+p.stderr)
+        self.assertIn('Could not find variant',p.stdout+p.stderr)
 
     def test_real_primary_bundle_still_calls_existing_merger(self):
         for store in ('apkmirror','apkpure'):

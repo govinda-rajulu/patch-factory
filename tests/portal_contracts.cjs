@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,ago,isOld,headline,reportIdentity,reportBinding,checkCompleteness};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,obtainiumRelease,obtainiumName,ago,isOld,headline,reportIdentity,reportBinding,checkCompleteness};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 const ENABLED=targets.filter(t=>t.enabled===true).length; // W4: counts follow src/targets.json
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
@@ -204,5 +204,21 @@ check('brand tiles are local, provenance-recorded target logos and the monogram 
  const off=new Set(targets.filter(t=>!t.enabled).map(t=>t.id+'.png')),files=fs.readdirSync(path.join(root,'docs/assets/logos')).filter(f=>!off.has(f)).sort();assert.deepEqual(files,ids.map(i=>i+'.png').sort());// W5: a disabled app keeps its logo file, off the page
  for(const id of ids){assert.ok(known.has(id),id);const b=fs.readFileSync(path.join(root,'docs/assets/logos',id+'.png'));assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.ok(b.length<65536,id);assert.ok(notice.includes('logos/'+id+'.png'),id);assert.ok(prov.includes('`'+id+'`'),id);}
  assert.ok(source.includes(":'assets/logos/'+id+'.png'"));assert.ok(source.includes("monogram.classList.remove('has-logo')"));assert.ok(!/logo\.src=['"]https?:/.test(source));assert.ok(!/<img[^>]+src="https?:/i.test(html));
+});
+check('Obtainium card offers the standard upstream flavor only, with exact identities and its own icon',()=>{
+ const web='https://github.com/ImranR98/Obtainium',files=['app-release.apk','app-arm64-v8a-release.apk','app-armeabi-v7a-release.apk','app-x86_64-release.apk','app-release.apk.sha256','app-fdroid-release.apk','app-arm64-v8a-fdroid-release.apk'];
+ function rel(tag,pre,day){return {tag_name:tag,prerelease:pre,draft:false,published_at:day,html_url:web+'/releases/tag/'+tag,assets:files.map(name=>({name,state:'uploaded',size:name.endsWith('.apk')?25392248:65,digest:'sha256:'+'a'.repeat(64),browser_download_url:web+'/releases/download/'+tag+'/'+name}))};}
+ const stable=rel('v1.6.14',false,'2026-08-29T06:46:24Z'),pre=rel('v1.7.0-beta',true,'2026-10-01T00:00:00Z');
+ for(const [arch,name] of [['universal','app-release.apk'],['arm64-v8a','app-arm64-v8a-release.apk'],['armeabi-v7a','app-armeabi-v7a-release.apk']]){
+  const r=c.obtainiumRelease([pre,stable],arch);assert.equal(r.asset.name,name);assert.equal(r.version,'1.6.14');assert.ok(!/fdroid/.test(r.asset.name));}
+ assert.throws(()=>c.obtainiumName('x86'));assert.throws(()=>c.obtainiumRelease([pre],'universal'));
+ for(const mutate of [r=>r.assets.push(r.assets[0]),r=>r.assets[0].browser_download_url+='?x',r=>r.html_url=web+'/releases/tag/other',r=>r.assets[0].state='new',r=>r.assets[0].size=10,r=>r.tag_name='nightly'])
+  {const x=structuredClone(stable);mutate(x);assert.throws(()=>c.obtainiumRelease([x],'universal'));}
+ assert.equal(c.appGroup('obtainium')[0],'tools');assert.equal(c.safeLink(web+'/releases','upstream'),web+'/releases');assert.equal(c.safeLink(web+'/releases/tag/v1','upstream'),null);
+ assert.ok(source.includes("id==='obtainium'?'assets/obtainium.svg'"));assert.ok(source.includes(' await obtainiumCard(root);\n await microgCard(root);'));
+ const svg=fs.readFileSync(path.join(root,'docs/assets/obtainium.svg'));assert.equal(svg.length,4239);
+ assert.equal(require('crypto').createHash('sha1').update('blob '+svg.length+'\0').update(svg).digest('hex'),'091d8253af3ef7a6333c6a0b147f41d570dca964');
+ assert.ok(!/<script|\son[a-z]+\s*=|href="(?!#)/i.test(svg.toString()));
+ const notice=fs.readFileSync(path.join(root,'docs/assets/NOTICE.txt'),'utf8');assert.ok(notice.includes('obtainium.svg')&&notice.includes('091d8253af3ef7a6333c6a0b147f41d570dca964'));
 });
 console.log('PORTAL_CONTRACTS_PASS='+count);

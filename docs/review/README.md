@@ -11,7 +11,8 @@ Last indexed **10 October 2026** for packets W9 to W12 and handover H12 (control
 
 | Read | Why |
 | --- | --- |
-| [SESSION-2026-10-10.md](SESSION-2026-10-10.md) | 10 Oct: packet W13 (lost patches dropped by name, provider fallback, Selection watch, pf-t1). Read first. |
+| [SESSION-2026-10-11.md](SESSION-2026-10-11.md) | 11 Oct: W13 results, packet W14 (Reddit universal and store step-down, Nightly false UNKNOWN, ranking, reminders, publisher pins, agent review, one home for repeated text and release tidy, Obtainium card, automation wiring, agent spec and fix lane). Read first. |
+| [SESSION-2026-10-10.md](SESSION-2026-10-10.md) | 10 Oct: packet W13 (lost patches dropped by name, provider fallback, Selection watch, pf-t1). |
 | [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | 9 to 10 Oct: packets W6 to W12 and handover H12 (W12: coverage-first version choice; H12: owner decisions, phone tests, controller toolkit). Before that, 9 Oct: packets W6 to W9 (W9: routine cleanup, retention preview retired, run-log filter, notices). Earlier: packet W6 (Amazon Music `libInit.so` marker, build status keyed by app, second cleanup). |
 | [SESSION-2026-10-08.md](SESSION-2026-10-08.md) | 8 Oct session: packet W2 (two-step app changes, plain status page, MicroG shipped where needed, silent failures, onboarding gate, tooling watch, leads decided). Read first. |
 | [SESSION-2026-10-07.md](SESSION-2026-10-07.md) | 6-7 Oct session: packets R to V2, council desk #154, cleanup, findings, wrong calls, coverage limits. Read first. |
@@ -36,7 +37,7 @@ Last indexed **10 October 2026** for packets W9 to W12 and handover H12 (control
 | [controllers/](controllers/) | How packets reach the owner: the controller template, a fake GitHub for rehearsal, the local suite and the headless render. | Current tool |
 | [onboarding/](onboarding/) | Onboarding records: one per target for every new app, provider or patch name; rules and template in its README. | Current gate |
 | [AUDIT-COUNCIL-2026-10-06.md](AUDIT-COUNCIL-2026-10-06.md) | All 84 findings of the first council audit, each checked at `d2060b82`: 33 confirmed, 6 unclear, 45 refuted. | Leads |
-| [CLUTTER-2026-10-07.md](CLUTTER-2026-10-07.md) | Plan to consolidate Pages, release notes and this desk, with every test-pinned phrase. | Plan, not done |
+| [CLUTTER-2026-10-07.md](CLUTTER-2026-10-07.md) | Plan to consolidate Pages, release notes and this desk, with every test-pinned phrase. | §2 and the notice part of §3 done in W14 (SESSION-2026-10-11 item 10); §1 retention and §4 desk archive still a plan |
 | [LEADS-2026-10-08.md](LEADS-2026-10-08.md) | Every open audit and desk lead with a decision: keep, fixed in W2, or later with its evidence. | Current decision |
 
 ## APK source admissions

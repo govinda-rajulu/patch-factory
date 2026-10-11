@@ -73,7 +73,8 @@ CLOSE = ()          # (issue number, closing comment) pairs, done after the merg
 PRECHECKS = ()      # (api path, field, expected value, why) read in gate; a mismatch stops
 CLEANUP_APPLY = False  # apply the cleanup preview at once (PF_CLEANUP=keep skips)
 RUN_T1 = False      # run docs/review/controllers/pf-t1.py on the merge at the end
-MIRROR = None       # (W13) dict(repo, files, manifest, anchor, branch, title): copy files from the
+TIDY = False        # (W14) src/etc/release_tidy.py on the merge: preview, then apply with a backup in the logs
+MIRROR = None       # (W13) dict(repo, files, manifest, anchor, branch, title[, replaces]): copy files from the
                     # merged tree into another repository of the owner by ITS OWN pull request
 PAGES_WAIT = int(os.environ.get('PF_PAGES_WAIT', '900'))
 BUNDLE = '@@BUNDLE@@'
@@ -493,9 +494,38 @@ def cleanup(merge_sha):
     return True
 
 
+def tidy(merge_sha):
+    """W14: strip the blocks every old release repeated (now one link to the guide). The old
+    bodies go to release-tidy-backup.json in the logs before the first edit; the tool re-reads
+    every release afterwards. A rerun finds nothing left to change."""
+    if already('tidy', merge_sha):
+        return True
+    if not TIDY or os.environ.get('PF_TIDY') == 'keep':
+        say('tidy', 'SKIP', 'release notes not tidied here')
+        return True
+    code, out, err = run([sys.executable, 'src/etc/release_tidy.py', 'preview', '--out', str(LOGS / 'release-tidy-preview.json')],
+                         cwd=CLONE, timeout=900, out=LOGS / 'release-tidy-preview.txt')
+    text = out.decode('utf-8', 'replace').strip()
+    if code != 0 or not text.startswith('TIDY '):
+        say('tidy', 'FAIL', 'preview: ' + (text or err.decode('utf-8', 'replace'))[-300:] + ' (nothing edited)')
+        return False
+    code, out, err = run([sys.executable, 'src/etc/release_tidy.py', 'apply', '--backup', str(LOGS / 'release-tidy-backup.json'),
+                          '--receipt', str(LOGS / 'release-tidy-receipt.json')], cwd=CLONE, timeout=3600, out=LOGS / 'release-tidy-apply.txt')
+    last = (out.decode('utf-8', 'replace').strip().splitlines() or [err.decode('utf-8', 'replace')[-300:]])[-1]
+    R['tidy'] = dict(preview=text, applied=last)
+    if code != 0:
+        say('tidy', 'FAIL', 'apply: ' + last + ' (old bodies are in release-tidy-backup.json)')
+        return False
+    mark('tidy', merge_sha)
+    say('tidy', 'OK', text + ' / ' + last)
+    return True
+
+
 def mirror(merge_sha):
     """Copy the exact merged bytes into MIRROR['repo'] by its own pull request; merge it when its
-    checks pass. Refuses when a target file exists with other bytes or the manifest anchor moved."""
+    checks pass. Refuses when a target file exists with other bytes or the manifest anchor moved.
+    W14: MIRROR['replaces'] = {file: sha256 of the copy that repository holds now} allows an
+    update of exactly that copy; its manifest line is then replaced in place."""
     if not MIRROR or already('mirror', merge_sha):
         return True
     m, repo = MIRROR, MIRROR['repo']
@@ -507,9 +537,10 @@ def mirror(merge_sha):
         if code != 0:
             say('mirror', 'FAIL', 'clone of %s failed: %s' % (repo, err.decode('utf-8', 'replace')[:200]))
             return False
+        repl = m.get('replaces') or {}
         for f in m['files']:
             new, old = (CLONE / f).read_bytes(), dest / f
-            if old.exists() and old.read_bytes() != new:
+            if old.exists() and old.read_bytes() != new and hashlib.sha256(old.read_bytes()).hexdigest() != repl.get(f):
                 say('mirror', 'FAIL', '%s already has %s with other bytes; nothing pushed' % (repo, f))
                 return False
             old.parent.mkdir(parents=True, exist_ok=True)
@@ -519,6 +550,16 @@ def mirror(merge_sha):
         theirs = theirs_path.read_bytes().decode('utf-8')
         add = [l for l in mine if any(l.startswith(f.rsplit('/', 1)[-1] + '\t') for f in m['files'])]
         need = [l for l in add if l not in theirs.splitlines()]
+        rows = theirs.splitlines()
+        for l in list(need):
+            key = l.split('\t', 1)[0] + '\t'
+            hit = [i for i, r in enumerate(rows) if r.startswith(key)]
+            if hit and any(f.rsplit('/', 1)[-1] + '\t' == key for f in repl):
+                rows[hit[0]] = l
+                need.remove(l)
+        if rows != theirs.splitlines():
+            theirs = '\n'.join(rows) + '\n'
+            theirs_path.write_bytes(theirs.encode('utf-8'))
         if need:
             if not theirs.endswith('\n') or not theirs.splitlines()[-1].startswith(m['anchor']):
                 say('mirror', 'FAIL', '%s manifest does not end with the %r line; nothing pushed' % (repo, m['anchor']))
@@ -534,7 +575,7 @@ def mirror(merge_sha):
                 say('mirror', 'FAIL', '%s failed: %s' % (' '.join(c[:2]), r.stderr.decode('utf-8', 'replace')[:200]))
                 return False
         pr = must('repos/%s/pulls' % repo, 'mirror', 'POST', dict(title=m['title'], head=m['branch'], base='main',
-                  body='Copied byte for byte from patch-factory %s by %s. Owner pre-approved, 10 Oct 2026.' % (merge_sha[:12], SELF.name)))
+                  body='Copied byte for byte from patch-factory %s by %s. Owner pre-approved series (10 Oct 2026).' % (merge_sha[:12], SELF.name)))
         say('mirror', 'OK', '%s: opened #%d' % (repo, pr['number']))
     if not pr.get('merged_at'):
         head = pr['head']['sha']
@@ -618,9 +659,10 @@ def main():
     deployed = pages(R['merge'])
     previewed = preview()
     cleaned = previewed and cleanup(R['merge'])
+    tidied = tidy(R['merge'])
     mirrored = mirror(R['merge'])
     tested = t1(R['merge'])
-    return finish(deployed and previewed and cleaned and mirrored and tested)
+    return finish(deployed and previewed and cleaned and tidied and mirrored and tested)
 
 
 if __name__ == '__main__':

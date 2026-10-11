@@ -61,6 +61,8 @@ def world():
         R + '/actions/runs/12/attempts/1/jobs?per_page=100': {'jobs': [
             job(201, 'build (youtube) / Patch youtube', 'success', when='2026-10-07T06:10:00Z')]},
         R + '/check-runs/101/annotations?per_page=50': [
+            {'annotation_level': 'warning', 'message': 'No files were found with the provided path: shadow-evidence/*.json. No artifacts will be uploaded.'},
+            {'annotation_level': 'warning', 'message': 'a later warning'},
             {'annotation_level': 'failure', 'message': 'needs SDK 31, device is 29. Set max_app_version in src/targets.json.'},
             {'annotation_level': 'failure', 'message': 'Process completed with exit code 1.'},
             {'annotation_level': 'failure', 'message': 'leaked ghp_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123 here'}],
@@ -103,6 +105,8 @@ class Status(unittest.TestCase):
         self.assertFalse(any('exit code' in w for w in lb['why']))
         self.assertTrue(any('[redacted]' in w for w in lb['why']))
         self.assertFalse(any('ghp_' in w for w in lb['why']))
+        # W14: errors before warnings, upload-artifact noise dropped
+        self.assertFalse(any('No files were found' in w for w in lb['why']))
 
     def test_skipped_check_does_not_hide_the_last_real_build(self):
         y = self.apps['youtube']

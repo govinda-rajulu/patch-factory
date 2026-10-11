@@ -428,7 +428,17 @@ get_apk() {
 	for try_type in "${type_attempts[@]}"; do
 		local filtered_rows
 		filtered_rows=$(echo "$rows" | grep -iP "apkm-badge[^>]*>\s*$try_type\s*<")
-		[[ -n "$arch" ]] && filtered_rows=$(echo "$filtered_rows" | grep -i "$arch")
+		if [[ -n "$arch" ]]; then
+			local arch_rows
+			arch_rows=$(echo "$filtered_rows" | grep -i -- "$arch")
+			# A universal (or noarch) upload carries every ABI; the build keeps arm64 only.
+			# Reddit 2026.41.0 ships one row, "universal 120-640dpi" (W14, L054).
+			if [[ -z "$arch_rows" ]]; then
+				arch_rows=$(echo "$filtered_rows" | grep -iwE 'universal|noarch')
+				[[ -n "$arch_rows" ]] && yellow_log "[!] Arch fallback: $arch -> universal"
+			fi
+			filtered_rows="$arch_rows"
+		fi
 		[[ -n "$minver" ]] && filtered_rows=$(echo "$filtered_rows" | grep -i "$minver")
 
 		if [[ -n "$dpi" ]]; then

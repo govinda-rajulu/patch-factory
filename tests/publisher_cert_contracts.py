@@ -42,6 +42,16 @@ class Publisher(unittest.TestCase):
         self.assertEqual(pc.check(self.r, 'x', {}, self.signer('a' * 64)), 0)
         self.assertEqual(pc.check(self.r, 'x', {}, self.signer('b' * 64)), 1)
 
+    def test_committed_pins_are_well_formed(self):
+        # W14: seeded from the PUBLISHER_CERT lines CI read on 10 Oct 2026 (SESSION-2026-10-11)
+        import re
+        pins = json.loads((ROOT / 'src/build/PUBLISHERS.json').read_text(encoding='utf-8'))
+        packages = {t['package'] for t in json.loads((ROOT / 'src/targets.json').read_text(encoding='utf-8'))}
+        self.assertGreaterEqual(len(pins), 16)
+        for pkg, certs in pins.items():
+            self.assertIn(pkg, packages)
+            self.assertTrue(certs and all(re.fullmatch('[0-9a-f]{64}', c) for c in certs), pkg)
+
     def test_unreadable_passes(self):
         self.pins({'com.x': ['a' * 64]})
         def bad(root, apk, env):

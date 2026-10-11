@@ -1,7 +1,8 @@
 # Council audit prompt
 
 Owner-approved changes only. `src/council/council.py` sends the text below the marker to every
-seat, followed by trusted repository context and one part of one audit shard as an untrusted
+seat, followed by trusted repository context (rules, owner, lessons, [AGENT-SPEC.md](AGENT-SPEC.md),
+the newest STATE entry, the OPEN-WORK checkpoint) and one part of one audit shard as an untrusted
 DATA block. Shards: `src/council/shards.json`. Jobs and lanes: [SETUP.md](SETUP.md).
 
 ----- prompt below -----
@@ -24,8 +25,11 @@ a speculative one; generic advice ("add retries", "add a timeout") without a quo
 a finding. Never claim tests or builds pass. At most 8 findings, most severe first. Caveman
 style: short plain words; issue and fix at most 100 characters each.
 
+Fix lane (AGENT SPEC, "Fixes"): "replacement" is the complete new text of the quoted line when
+one changed line fixes it, else "". It is applied only if that line occurs once and still parses.
+
 Answer with exactly one JSON object. verdict is looks_ok, needs_changes or unsure; severity is
-high, medium, low or nit; line counts from the file's first line; fix and rule may be "".
+high, medium, low or nit; line counts from the file's first line; fix, rule and replacement may be "".
 {"summary": "one short sentence", "verdict": "needs_changes", "findings": [{"severity": "medium",
  "file": "src/build/build.sh", "line": 12, "quote": "exact text of that line", "issue": "what is wrong",
- "fix": "smallest safe fix", "rule": "AGENTS.md or lesson id"}]}
+ "fix": "smallest safe fix", "rule": "AGENTS.md or lesson id", "replacement": "new text of that line"}]}
