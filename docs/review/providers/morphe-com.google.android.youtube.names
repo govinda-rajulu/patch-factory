@@ -16,6 +16,7 @@ Clone app
 Copy text
 Copy video link
 Custom branding
+Custom font
 Custom player overlay opacity
 DeArrow
 Disable DRC audio
@@ -40,7 +41,6 @@ Enable debugging
 Exit fullscreen mode
 Force fullscreen landscape
 Force original audio
-Force system font
 Fullscreen video scale
 GmsCore support
 Hide Shorts components
