@@ -51,7 +51,7 @@ jobs:
       - name: Preserve shadow Plan evidence
         if: always()
         continue-on-error: true
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: shadow-plan-${{ github.run_id }}-${{ github.run_attempt }}
           path: shadow-evidence/plan.json
@@ -97,7 +97,7 @@ jobs:
       - name: Preserve exact target dependency packet
         # Unbuilt targets retain the JSON observation, not duplicated large JARs.
         if: contains(fromJSON(needs.plan.outputs.matrix).target, matrix.target)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: resolved-inputs-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: resolved-inputs/
@@ -116,7 +116,7 @@ jobs:
         run: python3 src/build/source_inputs.py prepare "$TARGET"
       - name: Preserve prepared APK only for the unchanged legacy build matrix
         if: steps.source_resolve.outcome == 'success' && contains(fromJSON(needs.plan.outputs.matrix).target, matrix.target)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: source-inputs-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: source-inputs/
@@ -138,7 +138,7 @@ jobs:
         run: python3 src/build/source_inputs.py observe "$TARGET"
       - name: Preserve every resolution observation or explicit unknown
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: source-observation-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: source-observation/
@@ -146,7 +146,7 @@ jobs:
           retention-days: 30
       - name: Preserve every dependency resolution observation or explicit unknown
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: resolved-observation-${{ matrix.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: resolved-observation/
@@ -170,7 +170,7 @@ jobs:
           persist-credentials: false
       - name: Download this attempt's small observations only
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: resolved-observation-*-${{ github.run_id }}-${{ github.run_attempt }}
           path: dependency-observations/
@@ -181,7 +181,7 @@ jobs:
         run: python3 src/build/dependency_observation.py aggregate
       - name: Retain the bounded comparison report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: dependency-report-${{ github.run_id }}-${{ github.run_attempt }}
           path: dependency-report/report.json
@@ -190,7 +190,7 @@ jobs:
       - name: Download this attempt's source observations only
         if: always()
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: source-observation-*-${{ github.run_id }}-${{ github.run_attempt }}
           path: source-observations/
@@ -201,7 +201,7 @@ jobs:
         run: python3 src/build/source_report.py
       - name: Retain bounded source coverage report
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: source-report-${{ github.run_id }}-${{ github.run_attempt }}
           path: source-report/report.json
