@@ -11,7 +11,7 @@ class OperationalDocs(unittest.TestCase):
 
     def test_readme_identity_and_delivery_limits(self):
         text=self.text('README.md')
-        for phrase in ('PREFIX-vAPPVERSION-bBUILDID','APPVERSION only','whole source workflow succeeds',
+        for phrase in ('PREFIX-vAPPVERSION-bBUILDID','APPVERSION-bBUILDID','APPVERSION only','whole source workflow succeeds',
                        'shadow evidence','publish=false','Rebuild first, cleanup last'):
             self.assertIn(phrase,text)
         self.assertNotIn('PREFIX-vAPPVERSION-bYYYYMMDD',text)

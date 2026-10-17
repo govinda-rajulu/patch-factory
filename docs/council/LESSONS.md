@@ -318,3 +318,15 @@ Tags: workflows, watch
 Three scheduled workflows never opened a failure issue and one had no purpose line, because
 notify-failure, status.yml and status.py PURPOSE are hand lists. tests/automation_contracts.py
 compares each list with .github/workflows (W14).
+
+### L058 · A title is not an identity
+Tags: workflows, notify
+notify-failure compared run.name with the workflow name, but run.name is the run-name
+("Batch Patch: youtube"), so real failures were refused as out of scope from W13 on. Scope is the
+workflow path plus the workflow record (getWorkflow: id, path, name); branch runs are skipped (W15).
+
+### L059 · A fallback must not publish below the primary
+Tags: build, release
+De-Vanced Facebook 580 (3 patches) published four times, 11 to 16 Oct, over Hushfacebook 582
+(82 patches): nothing compared versions before publishing. release_contract.py refuses any app
+version below the newest published one; a fallback is never published without the inventory (W15).

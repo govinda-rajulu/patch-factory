@@ -9,7 +9,7 @@ const execute=new Function('github','context','core',`return (async()=>{${code}}
 const repo='govinda-rajulu/patch-factory',head='a'.repeat(40);
 const base={id:42,run_attempt:2,head_sha:head,status:'completed',conclusion:'failure',
  repository:{full_name:repo},head_repository:{full_name:repo},head_branch:'main',
- name:'9. Batch Patch',path:'.github/workflows/batch-patch.yml',event:'workflow_dispatch'};
+ name:'9. Batch Patch',path:'.github/workflows/batch-patch.yml',event:'workflow_dispatch',workflow_id:7};
 const marker=`<!-- pf-failure:v2:${repo}:42:2:${head} -->`;
 const standing=`<!-- pf-failing:v3:${repo}:.github/workflows/batch-patch.yml -->`;
 const bot={login:'github-actions[bot]'};
@@ -23,6 +23,7 @@ function fixture(change={}){
  if(change.issues)issues=change.issues;
  const api=async(name,args,fn)=>{state.calls.push({name,args});if(change.fail===name)throw Error('fixture API failure');return {data:fn()};};
  const github={rest:{actions:{
+  getWorkflow:a=>api('workflow',a,()=>change.workflow||{id:a.workflow_id,path:trigger.path,name:trigger.name}),
   getWorkflowRunAttempt:a=>api('attempt',a,()=>run),
   getWorkflowRun:a=>api('current',a,()=>current),
   listJobsForWorkflowRunAttempt:a=>api('jobs',a,()=>{
@@ -112,7 +113,7 @@ async function main(){
    await refuses({setup:({jobs})=>Object.assign(jobs[0],patch)});
  });
  await test('API failures propagate with no issue writes',async()=>{
-  for(const fail of ['attempt','jobs','issues','current'])await refuses({fail});
+  for(const fail of ['workflow','attempt','jobs','issues','current'])await refuses({fail});
  });
  await test('posting failure is not reported as success',async()=>{
   const f=fixture({fail:'create'});await assert.rejects(f.run());assert.equal(f.state.info.length,0);
@@ -134,10 +135,9 @@ async function main(){
   const f=fixture({setup:({jobs,trigger,run,current})=>{
    jobs[0].name='@everyone [click](https://evil.invalid) <script> ghp_SECRET123';
    jobs[0].steps.push({number:3,status:'completed',conclusion:'failure',name:'Second failure'});
-   for(const r of [trigger,run,current])r.head_branch='@maintainer\nbranch';
   }});
   await f.run();const b=f.state.created[0].body;
-  assert.ok(!b.includes('@everyone'));assert.ok(!b.includes('@maintainer'));
+  assert.ok(!b.includes('@everyone'));
   assert.ok(!b.includes('[click]('));assert.ok(!b.includes('<script>'));assert.ok(!b.includes('ghp_SECRET123'));
   assert.ok(b.includes('Step 2:'));assert.ok(b.includes('Step 3:'));
  });
@@ -221,6 +221,27 @@ async function main(){
  await test('a human-authored or doubled failing issue blocks automatic writes',async()=>{
   await refuses({issues:[{id:5,number:60,state:'open',body:standing+'\nx',user:{login:'someone'}}]});
   await refuses({issues:[{id:5,number:60,state:'open',body:standing,user:bot},{id:6,number:61,state:'open',body:standing,user:bot}]});
+ });
+ await test('W15: a run-name title still notifies under the workflow name',async()=>{
+  const f=fixture({workflow:{id:7,path:'.github/workflows/batch-patch.yml',name:'9. Batch Patch'},
+   setup:({trigger,run,current})=>{for(const r of [trigger,run,current])r.name='Batch Patch: youtube';}});
+  await f.run();assert.equal(f.state.created.length,1);assert.equal(f.state.created[0].title,'Failing: 9. Batch Patch');
+  assert.ok(f.state.created[0].body.includes('## 9. Batch Patch: failure'));
+ });
+ await test('W15: wrong workflow record, id or path refuses',async()=>{
+  for(const workflow of [{id:8,path:'.github/workflows/batch-patch.yml',name:'9. Batch Patch'},
+   {id:7,path:'.github/workflows/ci.yml',name:'9. Batch Patch'},{id:7,path:'.github/workflows/batch-patch.yml',name:'Notify on failure'}])
+   await refuses({workflow});
+  await refuses({setup:({run})=>run.workflow_id=8});
+  for(const workflow_id of [0,undefined,'7'])await refuses({setup:({trigger})=>trigger.workflow_id=workflow_id});
+ });
+ await test('W15: branch runs read and write nothing, and the skip line is sanitised',async()=>{
+  for(const conclusion of ['failure','success']){
+   const f=fixture({setup:({trigger})=>Object.assign(trigger,{head_branch:'@maintainer\npacket/w15',conclusion})});
+   await f.run();assert.equal(f.state.calls.length,0);
+   assert.equal(f.state.info.length,1);assert.ok(f.state.info[0].startsWith('Skipped: '));
+   assert.ok(!f.state.info[0].includes('@maintainer'));assert.ok(!f.state.info[0].includes('\n'));
+  }
  });
  console.log('NOTIFY_CONTRACTS_PASS='+count);
 }

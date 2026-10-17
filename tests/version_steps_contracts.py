@@ -92,11 +92,23 @@ class Steps(unittest.TestCase):
     def test_build_loop_keeps_the_fixed_rules(self):
         self.assertIn('PF_MAX_STEPS=3', STEPS)
         loop = BUILD[BUILD.index('STEP=0\nwhile :; do'):BUILD.index('python3 src/build/artifact_identity.py capture-inputs')]
-        for phrase in ('if [ "$SDK_RC" -ne 3 ]; then', 'no step-down"; exit 1; fi',
+        for phrase in ('if [ "$SDK_RC" -ne 3 ]; then', 'no step-down"; fi',
                        'pins an exact version_code, so no step-down', 'if [ "$STEP" -ge "$PF_MAX_STEPS" ]',
                        'echo "::notice::VERSION_STEP_DOWN step=$STEP', 'RVER="${NEXT%% *}"; ANYVER=false', '# --- 4b.'):
             self.assertIn(phrase, loop)
         self.assertLess(BUILD.index('source ./src/build/version_steps.sh'), BUILD.index('STEP=0\nwhile :; do'))
+
+    def test_above_cap_warns_and_only_the_last_try_errors(self):
+        # W15: check_sdk.sh warns (a step-down may still build); build.sh's give-up is the error.
+        sdk = (ROOT / 'src/build/check_sdk.sh').read_text(encoding='utf-8')
+        self.assertIn('echo "::warning::needs SDK $MIN, device is $CEIL;', sdk)
+        self.assertNotIn('::error::needs SDK', sdk)
+        self.assertIn('exit 3', sdk)
+        loop = BUILD[BUILD.index('# --- 5. sdk gate'):BUILD.index('STEP=$((STEP+1))', BUILD.index('# --- 5. sdk gate'))]
+        self.assertEqual(loop.count('sdk_fail "'), 4)
+        self.assertEqual(loop.count('exit 1'), 1)  # only the non-SDK failure of check_sdk.sh
+        self.assertLess(BUILD.index('sdk_fail() {'), BUILD.index('STEP=0\nwhile :; do'))
+        self.assertIn('echo "::error::needs SDK above the device cap $CEIL: $1.', BUILD)
 
     def test_store_miss_steps_down_inside_the_same_rules(self):
         # W14 (L054): neither store served Reddit 2026.41.0; try the next lower supported version

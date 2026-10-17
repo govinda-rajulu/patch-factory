@@ -1,7 +1,7 @@
 # Facebook (facebook)
 
 Package: com.facebook.katana
-Source APK: https://www.apkmirror.com/apk/facebook-2/facebook/facebook-582-0-0-50-54-release/ (arm64-v8a, 320-640dpi, Android 11+, version code 475417104, read 10 Oct 2026; the build pins that code and refuses any other). Until W13: 581.0.0.45.58, version code 475215365.
+Source APK: https://www.apkmirror.com/apk/facebook-2/facebook/facebook-583-0-0-39-55-release/ (arm64-v8a, 480-640dpi, Android 11+, version code 475614366, BUNDLE, read 17 Oct 2026; the build pins that code and refuses any other). W15 (17 Oct 2026): Hushfacebook v0.14.0 (16 Oct, its release notes: "targets Facebook 583.0.0.39.55 only ... build 475614366 for 64-bit phones", 91 patches). Until W15: 582.0.0.50.54, version code 475417104; until W13: 581.0.0.45.58, version code 475215365.
 Provider: SysAdminDoc/HushFacebook (licence: GPL-3.0, bundle: the one .mpp asset of the newest stable release, v0.8.0 on 8 Oct 2026; channel: stable). GitHub spells the repository HushFacebook; the community index says Hushfacebook.
 Provider: RookieEnough/De-Vanced (fallback only, packet W13; licence: GPL-3.0, the same repository the Amazon Music record cites; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Built only when a Hushfacebook build fails, on Facebook 580.0.0.51.74 (version code 475019344, 240-640dpi): its own pins, so the 581 pins above stay Hushfacebook's. Patches: src/patches/facebook-derevanced (Disable all ads, Disable analytics and telemetry, Messenger install compatibility; Change package name excluded).
 
@@ -91,7 +91,11 @@ Names exactly as the patcher listed them in Explore run 37976702866 (issue #173)
 - View stories anonymously: the poster does not see the view; Facebook can notice and could limit the account. Owner decision 10 Oct 2026: on, for the phone test (same behaviour in piko Instagram without problems)
 - Hide suggested stories: owner, 10 Oct 2026: every Hushfacebook patch except three
 - Stop update prompts: owner, 10 Oct 2026: every Hushfacebook patch except three
-- Share sheet items: new in Hushfacebook (86 patches, 10 Oct 2026); it changes the app's own share sheet on the phone, nothing Facebook receives. Owner left the call to the assistant on 10 Oct 2026; on, so Sunday's phone test covers the full set. If the name differs in the provider's list, the build drops it by name (W13) and the Selection watch reports it.
+- Share sheet items: new in Hushfacebook (86 patches, 10 Oct 2026); it changes the app's own share sheet on the phone, nothing Facebook receives. Owner left the call to the assistant on 10 Oct 2026
+- Hide carrier data banners: new in Hushfacebook 0.14.0 (17 Oct 2026, packet W15); hides the Facebook Flex Data mode and Free mode bars on the phone, nothing Facebook receives. Owner rule 10 Oct 2026: every Hushfacebook patch except the excluded ones
+- Skip silent parts: new in Hushfacebook 0.14.0 (W15); local playback only, its switch starts off. Owner rule 10 Oct 2026: every Hushfacebook patch except the excluded ones
+- Upload Stories in HD: new in Hushfacebook 0.14.0 (W15); asks Facebook's own high upload quality for your Story videos (Facebook's servers pick the final quality), switch starts off. Owner rule 10 Oct 2026: every Hushfacebook patch except the excluded ones
+- Frame step: offered by Hushfacebook since the 16 Oct bundle (Selection watch #182, waiting since then); local playback control. Owner rule 10 Oct 2026: every Hushfacebook patch except the excluded ones; on, so Sunday's phone test covers the full set. If the name differs in the provider's list, the build drops it by name (W13) and the Selection watch reports it.
 
 Not included (exclude list):
 - Install beside Meta's apps: gives the app another package name, so Obtainium and in-place updates of com.facebook.katana stop; the intent of the BANNED package-name rule.

@@ -44,7 +44,7 @@ check('labels allow hyphens but refuse controls and empty strings',()=>{
  for(const value of ['',null,'bad\nname','bad\tname','bad\u0000name','bad\u001fname','bad\u007fname'])assert.equal(c.plain(value),false);
 });
 check('ordinary import binds package and all reviewed tracking settings',()=>{
- for(const mutate of [d=>d.apps[0].id='other.valid.package',d=>d.apps[0].preferredApkIndex=2,d=>{const s=JSON.parse(d.apps[0].additionalSettings);s.trackOnly=true;d.apps[0].additionalSettings=JSON.stringify(s)},d=>{const s=JSON.parse(d.apps[0].additionalSettings);s.versionExtractionRegEx='.*';d.apps[0].additionalSettings=JSON.stringify(s)}]){
+ for(const mutate of [d=>d.apps[0].id='other.valid.package',d=>d.apps[0].preferredApkIndex=2,d=>{const s=JSON.parse(d.apps[0].additionalSettings);s.trackOnly=true;d.apps[0].additionalSettings=JSON.stringify(s)},d=>{const s=JSON.parse(d.apps[0].additionalSettings);s.versionExtractionRegEx='.*';d.apps[0].additionalSettings=JSON.stringify(s)},d=>{const s=JSON.parse(d.apps[0].additionalSettings);s.versionDetection=true;d.apps[0].additionalSettings=JSON.stringify(s)},d=>{const s=JSON.parse(d.apps[0].additionalSettings);s.versionExtractionRegEx='-v([0-9.]+)-b[0-9]+$';d.apps[0].additionalSettings=JSON.stringify(s)}]){
   const d=structuredClone(pack);mutate(d);assert.throws(()=>c.validateImport(d,targets));
  }
 });

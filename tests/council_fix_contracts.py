@@ -74,9 +74,9 @@ class FixLane(unittest.TestCase):
         fixes, patch = council.propose_fixes([
             group('a.py', 'return 1', 'return 2', seats=('gpt', 'gemini')),   # applies, indentation kept
             group('a.py', 'x = 2', 'x = 3'),                                   # twice in the file
-            group('b.json', '{"a": 1}', '{"a": 1,}'),                          # would not parse
+            group('b.json', '{"a": 1}', '{"a": 1,}', seats=('gpt', 'codestral')),  # would not parse
             group('c.sh', 'set -uo pipefail', 'set -uo pipefail || true'),     # weakens a check
-            group('c.sh', 'echo hi', 'echo hello'),                            # applies; shell checked by the step
+            group('c.sh', 'echo hi', 'echo hello', seats=('gpt', 'nemotron')), # applies; shell checked by the step
             group('d.yml', 'a: 1', 'a: 2'),                                    # no checker for yml
             group('../x.py', 'a', 'b'), group('a.py', 'return 1', ''),         # outside the repo; no replacement
         ])
@@ -95,7 +95,8 @@ class FixLane(unittest.TestCase):
         self.assertIn('council-fixes', text)
 
     def test_check_step_applies_to_a_scratch_copy_only(self):
-        _, patch = council.propose_fixes([group('c.sh', 'echo hi', 'echo hello'), group('a.py', 'return 1', 'return 2')])
+        two = ('gpt', 'gemini')
+        _, patch = council.propose_fixes([group('c.sh', 'echo hi', 'echo hello', two), group('a.py', 'return 1', 'return 2', two)])
         subprocess.run(['git', 'init', '-q'], cwd=self.tmp, check=True)
         (self.tmp / 'council-out').mkdir()
         (self.tmp / 'council-out/fixes.patch').write_text(patch)
@@ -112,6 +113,21 @@ class FixLane(unittest.TestCase):
         r = subprocess.run(['bash', str(ROOT / 'src/council/check_fixes.sh')], cwd=self.tmp, capture_output=True, text=True)
         self.assertIn('SYNTAX FAIL c.sh', r.stdout)
         self.assertEqual(r.returncode, 0)
+
+
+    def test_w15_guards_shebang_owner_decisions_and_one_seat(self):
+        (self.tmp / 'e.sh').write_text('#!/bin/bash\n# owner decision 10 Oct: keep lost patches named\necho keep\necho other\necho third\necho fourth\necho fifth\n')
+        two = ('gpt', 'gemini')
+        fixes, patch = council.propose_fixes([
+            group('e.sh', '#!/bin/bash', 'mkdir -p x', two),
+            group('e.sh', 'echo keep', 'echo refuse', two),
+            group('e.sh', 'echo fifth', 'echo 5', ('gpt', 'gpt')),
+            group('e.sh', 'echo fifth', 'echo five', two)])
+        self.assertEqual([f['status'] for f in fixes],
+                         ['refused: changes the shebang', 'refused: the line carries a recorded owner decision',
+                          'words only: one seat proposed it; a fix needs two seats', 'applies; syntax checked in the run step'])
+        self.assertIn('+echo five', patch)
+        self.assertNotIn('mkdir', patch)
 
 
 if __name__ == '__main__':

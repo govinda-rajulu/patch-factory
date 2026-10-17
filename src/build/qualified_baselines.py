@@ -187,8 +187,11 @@ def finalize(root, env, api=None, upload=None):
             need(shadow.tag_commit(api, release["tag_name"]) == source["head_sha"], "source commit differs")
             qualify(api, release, ident, source["path"], root, upload)
             results.append({"target": ident, "state": "QUALIFIED"})
-        except (ValueError, KeyError, TypeError, OSError, subprocess.SubprocessError):
-            results.append({"target": ident, "state": "UNKNOWN"})
+        except (ValueError, KeyError, TypeError, OSError, subprocess.SubprocessError) as error:
+            # W15: the reason is kept. Four red runs (11 to 17 Oct) said only "incomplete".
+            reason = re.sub(r"[^A-Za-z0-9 .,:;/_()-]", " ", (type(error).__name__ + ": " + str(error)))[:200]
+            print("::warning::qualification %s UNKNOWN: %s" % (ident, reason), file=sys.stderr)
+            results.append({"target": ident, "state": "UNKNOWN", "reason": reason})
     shadow.write(root, "shadow-qualified/result.json",
                  {"source_run": source["id"], "source_attempt": source["run_attempt"],
                   "targets": results, "scope": "published receipts from exact source attempt only",

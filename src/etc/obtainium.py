@@ -37,8 +37,12 @@ def entry(p):
       "fallbackToOlderReleases": True,
       "filterReleaseTitlesByRegEx": "^" + p + "-v[0-9.]+-b[0-9]+$",
       "apkFilterRegEx": "arm64-v8a[.]apk$",
-      "versionExtractionRegEx": "-v([0-9.]+)-b[0-9]+$",
+      # W15 (17 Oct 2026): the version Obtainium tracks is APPVERSION-bBUILDID, and it does not
+      # reconcile with the version Android reports, so a same-version patch-only rebuild shows
+      # as an update (Obtainium source: version_service.dart, apps_provider_updates.dart).
+      "versionExtractionRegEx": "-v([0-9.]+-b[0-9]+)$",
       "matchGroupToUse": "1",
+      "versionDetection": False,
       "trackOnly": False,
       "appName": LABELS[p],
     }

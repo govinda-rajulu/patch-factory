@@ -119,6 +119,10 @@ def plain_reason(text):
                 'The build tries up to 3 lower versions by itself; this shows only when none fitted. '
                 'Fix: set max_app_version for this app in src/targets.json.' % (
                     ANDROID.get(int(m[1]), '?'), m[1], ANDROID.get(int(m[2]), '?'), m[2]))
+    m = re.search(r'needs SDK above the device cap (\d+): (.{1,200}?)\. Set max_app_version', text)
+    if m:  # W15: build.sh's one SDK give-up error (check_sdk.sh only warns now)
+        return ('No version this app could use fits the phone cap here, Android %s (API %s): %s. '
+                'Fix: set max_app_version for this app in src/targets.json.' % (ANDROID.get(int(m[1]), '?'), m[1], m[2]))
     m = re.search(r'VERSION_STEP_DOWN step=(\d+) from=([0-9.]+) to=([0-9.]+)', text)
     if m:
         return 'Version %s needed a newer Android, so the build tried %s instead (step %s of 3).' % (m[2], m[3], m[1])

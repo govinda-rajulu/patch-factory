@@ -1056,6 +1056,9 @@ def audit_parts(files, part_chars=None, file_max=None):
 # Nothing is committed or pushed: a person takes a fix into a packet and runs the gates.
 FIX_TYPES = ('.py', '.json', '.sh', '.js', '.cjs')
 FIX_REFUSE = re.compile(r'\|\|\s*true\b|continue-on-error|write-all|--no-verify|set \+e\b')
+# W15 (desk #154, 11 to 17 Oct): "applies" was given to a shebang swapped for mkdir and to a line
+# that reversed an owner decision. A recorded decision, near the line, is the owner's to change.
+FIX_DECISION = re.compile(r'(?i)\bowner\b|\bdecision|\bL0[0-9]{2}\b')
 
 
 def syntax_ok(rel, text):
@@ -1103,6 +1106,15 @@ def propose_fixes(found):
             fix['status'] = 'words only: quoted line found %d times' % len(hits)
             continue
         i, old = hits[0], lines[hits[0]]
+        if old.startswith('#!'):
+            fix['status'] = 'refused: changes the shebang'
+            continue
+        if FIX_DECISION.search('\n'.join(lines[max(0, i - 3):i + 1])):
+            fix['status'] = 'refused: the line carries a recorded owner decision'
+            continue
+        if len(set(g['seats'])) < 2:
+            fix['status'] = 'words only: one seat proposed it; a fix needs two seats'
+            continue
         indent = old[:len(old) - len(old.lstrip())]
         line = new if new[:1].isspace() or not indent else indent + new
         if line == old:

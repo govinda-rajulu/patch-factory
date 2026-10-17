@@ -121,8 +121,8 @@ def choose_previous(rows, current):
         return {'tag': tag, 'version': version, 'legacy': True}, 'Previous release lacks comparable structured patch metadata.'
 
 
-def previous_release(current):
-    """Optional GET-only history read. Errors become explicit UNKNOWN, not no change."""
+def inventory():
+    """Every release (GET only, at most 20 pages of 100), or None when the read is incomplete."""
     env = {key: os.environ[key] for key in ('PATH', 'HOME') if key in os.environ}
     token = os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN')
     if token:
@@ -143,10 +143,48 @@ def previous_release(current):
                 ids.add(row['id'])
             rows.extend(batch)
             if len(batch) < 100:
-                return choose_previous(rows, current)
+                return rows
         raise ValueError('incomplete inventory')
     except (OSError, ValueError, TypeError, subprocess.TimeoutExpired):
+        return None
+
+
+def previous_release(current, rows=False):
+    """Optional GET-only history read. Errors become explicit UNKNOWN, not no change."""
+    if rows is False:
+        rows = inventory()
+    try:
+        if rows is None:
+            raise ValueError('unavailable inventory')
+        return choose_previous(rows, current)
+    except (ValueError, TypeError):
         return None, 'Previous-release comparison unavailable. This does not mean nothing changed.'
+
+
+def _vkey(version):
+    return tuple(int(x) for x in version.split('.'))
+
+
+def publish_guard(current, rows, fallback):
+    """W15 (17 Oct 2026, L059): never publish an app version below the newest published release
+    of the same app. Android refuses a lower versionCode over an installed build, and the shelf
+    would show it as the newest (De-Vanced Facebook 580 with 3 patches went out four times over
+    Hushfacebook 582 with 82, 11 to 16 Oct). A fallback build is never published blind: no
+    readable inventory, no fallback release. Returns the refusal reason, or None."""
+    if rows is None:
+        return 'release inventory unreadable, so a fallback build is not published blind' if fallback else None
+    prefix = current['tag'].split('-v' + current['version'] + '-b', 1)[0]
+    best = None
+    for row in rows:
+        if not isinstance(row, dict) or row.get('draft') or row.get('prerelease'):
+            continue
+        match = re.fullmatch(re.escape(prefix) + r'-v([0-9]+(?:[.][0-9]+)*)-b[0-9]+', str(row.get('tag_name', '')))
+        if match and (best is None or _vkey(match[1]) > _vkey(best)):
+            best = match[1]
+    if best is not None and _vkey(current['version']) < _vkey(best):
+        return ('app %s is older than the published %s; a phone cannot update to it and the shelf would show it as newest'
+                % (current['version'], best))
+    return None
 
 
 def changes(current, previous):

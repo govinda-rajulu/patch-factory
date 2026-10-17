@@ -71,8 +71,10 @@ date-only releases remain historical entries. Release notes show available
 version/patch/source differences; absent comparable metadata stays unknown.
 Equal applied names do not mean equal provider code, options or defaults.
 
-The generated Obtainium imports currently extract **APPVERSION only**, not
-BUILDID. A patch-only rebuild therefore does not guarantee an update notification.
+Since W15 (17 Oct 2026) the generated Obtainium imports track **APPVERSION-bBUILDID**
+with version detection off, so a patch-only rebuild of the same app version shows as an
+update. Imports made before W15 tracked APPVERSION only: import the JSON again once
+(it replaces the tracking settings of matching apps), then install each app once.
 Import behavior: the [guide](docs/guide.md#obtainium).
 
 ## Selection and source decisions

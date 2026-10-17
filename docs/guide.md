@@ -42,7 +42,7 @@ The one home for the checks, limits and safety lines every release used to repea
 
 - **CI checks** APK identity, the declared minimum Android API, native payloads, applied patch names and the configured signing certificate.
 - **Not checked**: builds are not phone-tested by this pipeline. The CI signing certificate is not proof of original-publisher authenticity or installed-app compatibility.
-- **Updates**: a new build is not necessarily a new app version. Obtainium may not offer a same-version patch-only rebuild as an update.
+- **Updates**: a new build is not necessarily a new app version. Since 17 Oct 2026 the import tracks the build id too, so Obtainium offers a same-version patch-only rebuild as an update. Imported before then? Import the JSON once more (it replaces the tracking settings of matching apps), then install each app once.
 - **Never needed**: No automatic uninstall, import migration or device-protection bypass is required or recommended. Do not uninstall, clear app data or disable device protections just to force an update.
 
 ## Reading status
