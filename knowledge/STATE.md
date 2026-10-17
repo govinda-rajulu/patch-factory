@@ -4,9 +4,21 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 ## Opening message (copy into every new chat)
 
-patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover.
+patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 11 Oct 2026, evening IST (packet W14; start here)
+## 17 Oct 2026, night IST (packets W15 and H15; start here)
+
+- **Main** `8148af78` (W15 #187, tree `dfacad0c`) plus H15 (records) once merged, plus bot commits.
+- **W15**: publish guard (L059), Facebook 583.0.0.39.55 on Hushfacebook 0.14.0 (pin 475614366;
+  the downloader picks the row with the pinned code, L060), Obtainium tracks APPVERSION-bBUILDID
+  with version detection off (owner re-imports once), notify identity by workflow record and main
+  only (L058), Dependabot bump applied and the hardcoded-sha test fixed, Reddit pin, SDK warnings,
+  baseline reasons, council fix-lane guard (two seats), Nemotron 3.5 Super VL. Records:
+  `docs/review/SESSION-2026-10-17.md`, `docs/review/WIP-W15-2026-10-17.md`.
+- **Rules (owner, 17 Oct, L061)**: nothing is suppressed; "impossible" is not a finding.
+- **Next**: OPEN-WORK 17 Oct, in order: pf-t1 logs, Facebook 583 publish, then cleanup.
+
+## 11 Oct 2026, evening IST (packet W14)
 
 - **Main** `45ff17ba` (W13 #178) plus bot commits (`c1a38b1d`), plus W14 once merged.
 - **W14**: Reddit (APKMirror universal row, store-miss step-down, L054), Nightly false UNKNOWN on

@@ -169,3 +169,4 @@ This file keeps only what fits in neither.
 - A fallback never publishes below the newest published version of its app (W15, L059).
 - Long controllers run under nohup; a Cloud Shell disconnect killed pf-w14 mid-run (W15).
 - With an exact version_code pin, choose the store row by that code, not by dpi text (W15, L060).
+- Never suppress a signal (Dependabot, failures, warnings, findings); "impossible" is not a finding: record what was tried, keep it open (owner rule 17 Oct, L061).

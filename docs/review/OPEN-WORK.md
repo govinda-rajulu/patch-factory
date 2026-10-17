@@ -1,6 +1,44 @@
 # Open work
 
-## Current checkpoint: 11 October 2026, evening IST (packet W14)
+## Current checkpoint: 17 October 2026, night IST (packets W15 and H15)
+
+W15 merged (#187, main `8148af78`): publish guard (L059), Facebook 583 on Hushfacebook 0.14.0,
+Obtainium tracks the build id, notify identity (L058), Dependabot bump applied and its test fixed,
+Reddit pin, SDK warnings, baseline reasons kept, council fix-lane guard, Nemotron 3.5 Super VL,
+pinned code picks the store row (L060), telegram_dl removed; 7 stale issues closed. H15: this
+record. Records: [SESSION-2026-10-17.md](SESSION-2026-10-17.md), [WIP-W15-2026-10-17.md](WIP-W15-2026-10-17.md). Open, in order:
+
+1. Done 17 Oct: pf-t1 RESULT OK, 0 findings, 17 of 17 apps built; Facebook 583 published (run
+   39055575670). Next: read the Selection watch issue and community issue #189 (new index report).
+2. Cleanup: apply only after Facebook 583 is installed on the phone (the two newest Facebook builds
+   are now 583 and the De-Vanced 580 of 16 Oct, so an apply deletes the three Hushfacebook 582
+   releases). Then take a fresh preview and apply it. Until then the merged
+   packet/w15 and packet/h15 branches stay, and the Selection watch pauses its daily commit
+   ("SELECTION_APPLY paused": by design, a controller's base must hold). Not a failure; the
+   apply (or deleting those two merged branches) resumes it.
+3. Phone: Obtainium, import the JSON once more, install each app once; confirm the next same-version
+   rebuild shows as an update. Facebook 583 test (Hush 0.14 switches start off).
+4. Auto-adopt (owner ask 17 Oct): Selection watch adds new names to include-patches by rule (not
+   BANNED/CONFIRM, no paid-unlock words, not in exclude-patches, which is the owner veto);
+   risky names still wait. Then provider discovery and onboarding by pull request (agents never merge).
+5. Diagnose (none reproduced in pf-t1 on 17 Oct, all 17 apps built; keep open until a cause is
+   read, L061): Photos APKMirror transfer failure (run 38643057188); PUBLISHER_CERT_UNREADABLE on
+   Telegram and Facebook (apksigner exit 1; a pinned package should fail closed, decide); LinkedIn
+   exit 1 after step-down (run 38141783331; now builds 4.1.1261); council lead
+   version_steps.sh:37; Qualify baselines reason on its next run.
+6. Council: probe that Nemotron 3.5 Super VL is served; read the first fix-lane output under the
+   two-seat rule (L056, L061).
+7. Decisions waiting: 27 HushGram names (Instagram fallback), LinkedIn "Material You", YouTube
+   "Feed card layout"; TDL_BACKUP secret (code removed W15; owner deletes the secret in Settings).
+8. A primary that steps down below a published version is now refused (L059); to allow it the owner
+   deletes the higher release first.
+9. Unknown status, carried: onboarding gpt seat parser, free council seats, Edge APKPure refusal,
+   agent runner pilot, portal SRI, PR53, F05/F06, ES File logo; CLUTTER-2026-10-07 sections 1, 3
+   (stale text) and 4.
+10. Dependabot: weekly on Mondays; its pull requests are tested and merged or answered in writing,
+    never ignored (L061).
+
+## Earlier checkpoint: 11 October 2026, evening IST (packet W14)
 
 W13 merged (#178, main `45ff17ba`); cleanup and the openskip handbook copy (#107) done. W14: Reddit
 (universal APKMirror row, store-miss step-down), Nightly false UNKNOWN, Selection watch ranking,
