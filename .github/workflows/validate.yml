@@ -177,14 +177,14 @@ jobs:
       # Small synthetic files only. No APK, signing secrets, dispatch or API writes.
       # These steps are part of the existing mandatory Validate check, not advisory.
       - name: Exercise setup-java v6 with Temurin
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
           java-version: '21'
       - name: Verify Temurin Java major
         run: java -XshowSettings:properties -version 2>&1 | grep -Eq 'java.specification.version = 21$'
       - name: Exercise setup-java v6 with Zulu
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: zulu
           java-version: '21'
