@@ -40,6 +40,7 @@ SRC=$(jq -r '.source // "apkmirror"' <<<"$T")
 ANYVER=$(jq -r '.any_version // false' <<<"$T")
 ARCH=$(jq -r '.arch // ""' <<<"$T")
 DPI=$(jq -r '.dpi // ""' <<<"$T")
+PF_PIN_CODE=$(jq -r '.version_code // ""' <<<"$T")  # W15: get_apk picks the row with this code
 PREFIX=$(jq   -r '.tag_prefix // .id'   <<<"$T")
 EXCL=$(jq -r '.exclusive // false' <<<"$T")
 green_log "[+] target=$ID package=$PKG apk=$APK_NAME tagprefix=$PREFIX"

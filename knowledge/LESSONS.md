@@ -168,3 +168,4 @@ This file keeps only what fits in neither.
 - A display title is not an identity: check the record behind it (path, id), not the run name (W15, L058).
 - A fallback never publishes below the newest published version of its app (W15, L059).
 - Long controllers run under nohup; a Cloud Shell disconnect killed pf-w14 mid-run (W15).
+- With an exact version_code pin, choose the store row by that code, not by dpi text (W15, L060).

@@ -452,6 +452,16 @@ get_apk() {
 			fi
 			filtered_rows="$dpi_filtered"
 		fi
+		# W15 (17 Oct 2026): an exact version_code pin picks the row carrying that code. Facebook 583
+		# asked for 480-640dpi, got 475614280 (480dpi), not the pinned 475614366 (smoke 39052486239).
+		if [[ -n "${PF_PIN_CODE:-}" ]]; then
+			local code_rows
+			code_rows=$(echo "$rows" | grep -iP "apkm-badge[^>]*>\s*$try_type\s*<" | grep -w -- "$PF_PIN_CODE")
+			if [[ -n "$code_rows" ]]; then
+				filtered_rows="$code_rows"
+				green_log "[+] variant row carries the pinned version code $PF_PIN_CODE"
+			fi
+		fi
 
 		variant_href=$(echo "$filtered_rows" | grep -oP 'accent_color[^>]*href="\K[^"]+' | head -1)
 		if [[ -n "$variant_href" ]]; then

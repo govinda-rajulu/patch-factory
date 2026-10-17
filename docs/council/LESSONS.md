@@ -330,3 +330,9 @@ Tags: build, release
 De-Vanced Facebook 580 (3 patches) published four times, 11 to 16 Oct, over Hushfacebook 582
 (82 patches): nothing compared versions before publishing. release_contract.py refuses any app
 version below the newest published one; a fallback is never published without the inventory (W15).
+
+### L060 · A dpi string is not a variant
+Tags: build, store
+Facebook 583 asked APKMirror for arm64 480-640dpi and got build 475614280 (480dpi), not the
+pinned 475614366. The identity gate refused it; the downloader now picks the row that carries the
+pinned version code (W15).
