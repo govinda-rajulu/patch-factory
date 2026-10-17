@@ -23,7 +23,7 @@ jobs:
         run: python3 src/etc/community_watch.py collect
       - name: Preserve inputs and full report before delivery
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: community-watch-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/community-watch-${{ github.run_id }}-${{ github.run_attempt }}/
@@ -39,7 +39,7 @@ jobs:
         run: python3 src/etc/community_watch.py advance
       - name: Preserve delivery receipt and final phase status
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: community-watch-delivery-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/community-watch-${{ github.run_id }}-${{ github.run_attempt }}/

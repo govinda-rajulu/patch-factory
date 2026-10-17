@@ -70,5 +70,20 @@ class Automations(unittest.TestCase):
                 self.assertIn('`%s`' % file, table)
 
 
+class ActionPins(unittest.TestCase):
+    def test_no_test_hardcodes_an_action_commit(self):
+        """W15: Dependabot moves action pins weekly; a test holding one exact sha failed every
+        bump (Validate #404 on PR #185). Tests match the shape ([0-9a-f]{40}), never the value."""
+        bad = []
+        for f in sorted((ROOT / 'tests').glob('*.py')) + sorted((ROOT / 'tests').glob('*.cjs')):
+            for n, line in enumerate(f.read_text(encoding='utf-8').splitlines(), 1):
+                if re.search(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[0-9a-f]{40}', line):
+                    bad.append('%s:%d' % (f.name, n))
+        self.assertEqual(bad, [])
+
+    def test_dependabot_asks_for_no_missing_label(self):
+        self.assertNotIn('labels:', (ROOT / '.github/dependabot.yml').read_text(encoding='utf-8'))
+
+
 if __name__ == '__main__':
     unittest.main()

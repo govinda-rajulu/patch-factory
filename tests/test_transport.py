@@ -432,12 +432,16 @@ class BuildIdentityTests(unittest.TestCase):
     for suffix in ['-b20260910',self.suffix()]:
      tag=prefix+'-v1.2.3'+suffix
      self.assertIsNotNone(re.fullmatch(settings['filterReleaseTitlesByRegEx'],tag))
-     self.assertEqual(re.search(settings['versionExtractionRegEx'],tag).group(int(settings['matchGroupToUse'])),'1.2.3')
- def test_tag_uniqueness_does_not_fix_obtainium_version_equality(self):
+     self.assertEqual(re.search(settings['versionExtractionRegEx'],tag).group(int(settings['matchGroupToUse'])),'1.2.3'+suffix)
+    self.assertIs(settings['versionDetection'],False)
+ def test_same_version_rebuilds_track_as_different_versions(self):
+  # W15: was "tag uniqueness does not fix Obtainium version equality"; the tracked version now
+  # carries BUILDID, so two builds of app 1.0 are two versions to Obtainium.
   import re
-  regex=r'-v([0-9.]+)-b[0-9]+$'
+  settings=json.loads(json.loads((ROOT/'docs/obtainium.json').read_text())['apps'][0]['additionalSettings'])
   tags=['app-v1.0'+self.suffix(GITHUB_RUN_ATTEMPT=str(n)) for n in [1,2]]
-  self.assertNotEqual(*tags);self.assertEqual(*[re.search(regex,t)[1] for t in tags])
+  found=[re.search(settings['versionExtractionRegEx'],t)[1] for t in tags]
+  self.assertNotEqual(*found);self.assertTrue(all(v.startswith('1.0-b') for v in found))
  def test_release_action_refuses_updates_and_upload_failures(self):
   s=(ROOT/'.github/actions/release/action.yml').read_text()
   self.assertIn('allowUpdates: false',s);self.assertIn('replacesArtifacts: false',s)

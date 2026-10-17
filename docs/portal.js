@@ -90,11 +90,11 @@ function validateImport(data,ts){
  const packageId=target.installed_package||target.package;
  need(app.id===packageId,'Import package does not match this target');
  need(typeof app.additionalSettings==='string'&&app.additionalSettings.length<10000,'Invalid app filters');const settings=JSON.parse(app.additionalSettings);
- need(settings&&Object.keys(settings).every(k=>['includePrereleases','fallbackToOlderReleases','filterReleaseTitlesByRegEx','apkFilterRegEx','versionExtractionRegEx','matchGroupToUse','trackOnly','appName'].includes(k)),'Unreviewed tracking settings; use reviewed JSON import instead');
+ need(settings&&Object.keys(settings).every(k=>['includePrereleases','fallbackToOlderReleases','filterReleaseTitlesByRegEx','apkFilterRegEx','versionExtractionRegEx','matchGroupToUse','versionDetection','trackOnly','appName'].includes(k)),'Unreviewed tracking settings; use reviewed JSON import instead');
  need(settings.filterReleaseTitlesByRegEx==='^'+(target.tag_prefix||target.id)+'-v[0-9.]+-b[0-9]+$','Unexpected release filter');
  need(settings.apkFilterRegEx==='arm64-v8a[.]apk$'&&settings.fallbackToOlderReleases===true&&settings.includePrereleases===false,'Unexpected APK/release policy');
- need(settings.versionExtractionRegEx==='-v([0-9.]+)-b[0-9]+$'&&settings.matchGroupToUse==='1'&&settings.trackOnly===false&&settings.appName===app.name,'Unexpected version/import policy');
- need(Object.keys(settings).length===8&&app.preferredApkIndex===0&&app.author==='govinda-rajulu'&&JSON.stringify(app.categories)==='["patch-factory"]','Unexpected import identity/settings');
+ need(settings.versionExtractionRegEx==='-v([0-9.]+-b[0-9]+)$'&&settings.matchGroupToUse==='1'&&settings.versionDetection===false&&settings.trackOnly===false&&settings.appName===app.name,'Unexpected version/import policy');
+ need(Object.keys(settings).length===9&&app.preferredApkIndex===0&&app.author==='govinda-rajulu'&&JSON.stringify(app.categories)==='["patch-factory"]','Unexpected import identity/settings');
  need(!Object.keys(settings).some(k=>/token|password|secret|credential/i.test(k)),'Credentials not permitted in import');
  need(Object.keys(app).every(k=>['id','url','author','name','categories','preferredApkIndex','additionalSettings'].includes(k)),'Unsupported import field');
  }

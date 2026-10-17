@@ -116,6 +116,21 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
         self.assertNotIn('Arch fallback',p.stdout+p.stderr)
         self.assertIn('Could not find variant',p.stdout+p.stderr)
 
+    def test_pinned_version_code_picks_its_own_row(self):
+        # W15: two arm64 rows both match the dpi text; the pin (version_code) decides, not row order.
+        row=lambda code,href:('<div class="table-row"><span class="apkm-badge">BUNDLE</span> <span>%s</span>'
+             ' <div class="table-cell">arm64-v8a</div> <div class="table-cell">480-640dpi</div>'
+             '<a class="accent_color" href="/%s/">variant</a></div>' % (code,href))
+        rows=row('475614280','wrong')+'\n'+row('475614366','pinned')
+        r,p=self.case('apkmirror','bundle',False,extra={'arch':'arm64-v8a','dpi':'480-640dpi','version_code':'475614366'},row=rows)
+        self.assertEqual(p.returncode,0,p.stdout+p.stderr)
+        self.assertIn('variant row carries the pinned version code 475614366',p.stdout+p.stderr)
+        pages=(r/'page.calls').read_text()
+        self.assertIn('https://www.apkmirror.com/pinned/',pages)
+        self.assertNotIn('https://www.apkmirror.com/wrong/',pages)
+        r,p=self.case('apkmirror','bundle',False,extra={'arch':'arm64-v8a','dpi':'480-640dpi'},row=rows)
+        self.assertNotIn('pinned version code',p.stdout+p.stderr)
+
     def test_real_primary_bundle_still_calls_existing_merger(self):
         for store in ('apkmirror','apkpure'):
             with self.subTest(store=store):

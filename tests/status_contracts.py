@@ -252,5 +252,13 @@ class Status(unittest.TestCase):
         self.assertFalse((ROOT / 'docs/status.html').exists())
 
 
+class SdkReason(unittest.TestCase):
+    def test_w15_give_up_line_reads_plainly(self):
+        text = st.plain_reason('needs SDK above the device cap 30: SDK ceiling 30 still exceeded after 3 lower version(s). Set max_app_version in src/targets.json.')
+        self.assertIn('API 30', text)
+        self.assertIn('still exceeded after 3 lower version(s)', text)
+        self.assertIn('Fix: set max_app_version', text)
+
+
 if __name__ == '__main__':
     unittest.main()

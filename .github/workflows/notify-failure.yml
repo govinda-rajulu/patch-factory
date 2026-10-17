@@ -55,11 +55,23 @@ jobs:
                 "Foreign or missing repository identity");
               need(typeof run.head_sha === "string" && /^[0-9a-f]{40}$/.test(run.head_sha), "Invalid source commit");
               need(run.status === "completed" && (failures.has(run.conclusion) || run.conclusion === "success"), "Run is not a completed failure or success");
-              need(permitted.get(run.path) === run.name, "Workflow path/name outside notification scope");
+              // W15 (L058): run.name is the run-name ("Batch Patch: youtube"), not the workflow name.
+              // A title is not an identity: scope is the path here, the workflow record below.
+              need(permitted.has(run.path) && id(run.workflow_id), "Workflow path outside notification scope");
               need(["workflow_dispatch", "schedule", "push", "workflow_call"].includes(run.event),
                 "Unexpected triggering event; no privileged report");
             }
             identity(trigger);
+            // W15: packet and other branch runs are the controller's business; failures there
+            // opened issues that only a green run on the same branch could close.
+            if (trigger.head_branch !== "main") {
+              core.info("Skipped: " + label(trigger.head_branch || "(none)") + " is not main; no issue written.");
+              return;
+            }
+            const flow = (await github.rest.actions.getWorkflow({ owner: O, repo: R, workflow_id: trigger.workflow_id })).data;
+            need(flow && flow.id === trigger.workflow_id && flow.path === trigger.path &&
+              flow.name === permitted.get(trigger.path), "Workflow record outside notification scope");
+            const flowName = permitted.get(trigger.path);
             // Read this exact attempt, never the latest jobs of a later rerun.
             const run = (await github.rest.actions.getWorkflowRunAttempt({
               owner: O, repo: R, run_id: trigger.id, attempt_number: trigger.run_attempt
@@ -67,6 +79,7 @@ jobs:
             identity(run);
             need(run.id === trigger.id && run.run_attempt === trigger.run_attempt &&
               run.head_sha === trigger.head_sha && run.path === trigger.path &&
+              run.workflow_id === trigger.workflow_id &&
               run.name === trigger.name && run.conclusion === trigger.conclusion &&
               run.head_branch === trigger.head_branch && run.event === trigger.event,
               "Event and exact-attempt record disagree");
@@ -142,7 +155,7 @@ jobs:
             need(finished, "Jobs exceeded complete-inventory bound");
             const failed = jobs.filter(j => failures.has(j.conclusion) || ["cancelled", "stale"].includes(j.conclusion));
             const lines = [
-              marker, `## ${label(run.name)}: ${run.conclusion}`,
+              marker, `## ${flowName}: ${run.conclusion}`,
               `[Run ${run.id}, attempt ${run.run_attempt}](${runURL}) on \`${run.head_sha}\`, ${label(run.head_branch || "(none)")}, ${run.event}.`,
               `Job inventory: ${jobs.length}/${expected}. Failed or interrupted jobs: ${failed.length}.`,
               `Skipped: ${jobs.filter(j => j.conclusion === "skipped").length}; neutral: ${jobs.filter(j => j.conclusion === "neutral").length}.`,
@@ -200,7 +213,7 @@ jobs:
             await still();
             const result = await github.rest.issues.create({
               owner: O, repo: R,
-              title: `Failing: ${label(run.name)}`,
+              title: `Failing: ${flowName}`,
               body: standing + "\n" + body + "\n\nNext failures of this workflow add a comment here; its next green run closes this issue."
             });
             need(id(result.data.number), "Issue creation not confirmed; inspect before retry");

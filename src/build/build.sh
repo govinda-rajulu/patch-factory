@@ -40,6 +40,7 @@ SRC=$(jq -r '.source // "apkmirror"' <<<"$T")
 ANYVER=$(jq -r '.any_version // false' <<<"$T")
 ARCH=$(jq -r '.arch // ""' <<<"$T")
 DPI=$(jq -r '.dpi // ""' <<<"$T")
+PF_PIN_CODE=$(jq -r '.version_code // ""' <<<"$T")  # W15: get_apk picks the row with this code
 PREFIX=$(jq   -r '.tag_prefix // .id'   <<<"$T")
 EXCL=$(jq -r '.exclusive // false' <<<"$T")
 green_log "[+] target=$ID package=$PKG apk=$APK_NAME tagprefix=$PREFIX"
@@ -158,6 +159,8 @@ green_log "[+] extra -p flags:$EXTRA_P"
 
 # --- 4. apk ----------------------------------------------------------------
 # Steps 4 and 5 repeat only when the APK needs a newer Android than the cap (W7).
+# W15: the one error line of an SDK give-up (check_sdk.sh only warns).
+sdk_fail() { echo "::error::needs SDK above the device cap $CEIL: $1. Set max_app_version in src/targets.json."; red_log "[-] $1"; exit 1; }
 STEP=0
 while :; do
 if [ "${PF_SOURCE_READY:-false}" = "true" ]; then
@@ -250,11 +253,11 @@ fi
 bash ./src/build/check_sdk.sh "./download/$APK_NAME.apk" "$CEIL"; SDK_RC=$?
 if [ "$SDK_RC" -eq 0 ]; then break; fi
 if [ "$SDK_RC" -ne 3 ]; then red_log "[-] SDK ceiling $CEIL exceeded"; exit 1; fi
-if [ "${PF_SOURCE_READY:-false}" = "true" ]; then red_log "[-] SDK ceiling $CEIL exceeded by the exact prepared APK; no step-down"; exit 1; fi
-if [ -n "$(jq -r '.version_code // ""' <<<"$T")" ]; then red_log "[-] SDK ceiling $CEIL exceeded; $ID pins an exact version_code, so no step-down"; exit 1; fi
-if [ "$STEP" -ge "$PF_MAX_STEPS" ]; then red_log "[-] SDK ceiling $CEIL still exceeded after $STEP lower version(s); set max_app_version"; exit 1; fi
+if [ "${PF_SOURCE_READY:-false}" = "true" ]; then sdk_fail "SDK ceiling $CEIL exceeded by the exact prepared APK; no step-down"; fi
+if [ -n "$(jq -r '.version_code // ""' <<<"$T")" ]; then sdk_fail "SDK ceiling $CEIL exceeded; $ID pins an exact version_code, so no step-down"; fi
+if [ "$STEP" -ge "$PF_MAX_STEPS" ]; then sdk_fail "SDK ceiling $CEIL still exceeded after $STEP lower version(s)"; fi
 set +u; NEXT=$(pf_next_version "$PKG" "$version" "$MAXVER"); NRC=$?; set -u
-if [ "$NRC" -ne 0 ] || [ -z "$NEXT" ]; then red_log "[-] SDK ceiling $CEIL exceeded and no lower version to try (status $NRC)"; exit 1; fi
+if [ "$NRC" -ne 0 ] || [ -z "$NEXT" ]; then sdk_fail "SDK ceiling $CEIL exceeded and no lower version to try (status $NRC)"; fi
 STEP=$((STEP+1))
 echo "::notice::VERSION_STEP_DOWN step=$STEP from=$version to=${NEXT%% *} source=${NEXT#* } ceiling=$CEIL"
 rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME"

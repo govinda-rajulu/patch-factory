@@ -113,7 +113,11 @@ def main():
     if '--github-output' in sys.argv[2:]:
         verify_run(fields['suffix'], os.environ)
         summary = json.loads(fields['summary'])
-        previous, reason = release_notes.previous_release(summary)
+        rows = release_notes.inventory()
+        refusal = release_notes.publish_guard(summary, rows, bool(fields.get('fallback')))
+        if refusal:
+            raise ValueError('PUBLISH_REFUSED ' + summary['target'] + ': ' + refusal + '. Nothing was published.')
+        previous, reason = release_notes.previous_release(summary, rows)
         fields['notes'] = release_notes.render(summary, previous, reason)
         dest = pathlib.Path(os.environ['GITHUB_OUTPUT'])
         with dest.open('a') as out:

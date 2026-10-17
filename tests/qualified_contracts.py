@@ -207,7 +207,8 @@ class QualifiedContracts(unittest.TestCase):
             qualified.finalize(self.r, self.event(), self.api, self.uploader)
         self.assertEqual(self.api.rows, old)
         report = json.loads((self.r / "shadow-qualified/result.json").read_text())
-        self.assertEqual(report["targets"], [{"target": "keymapper", "state": "UNKNOWN"}])
+        self.assertEqual(report["targets"], [{"target": "keymapper", "state": "UNKNOWN",
+                                              "reason": "ValueError: qualified baseline: receipt missing/ambiguous"}])
 
     def test_trusted_workflow_does_not_checkout_source_head_or_download_run_artifacts(self):
         text = (self.r / ".github/workflows/qualify-baselines.yml").read_text()

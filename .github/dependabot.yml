@@ -8,7 +8,7 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
-    labels: ["dependencies"]
+    # W15: no labels line; the "dependencies" label never existed, so every PR warned.
     groups:
       # Routine updates travel together; majors are individual reviewable PRs.
       # No ignored majors and no automatic merge. Validate exercises actual refs.
