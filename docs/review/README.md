@@ -12,6 +12,7 @@ Last indexed **10 October 2026** for packets W9 to W12 and handover H12 (control
 | Read | Why |
 | --- | --- |
 | [SESSION-2026-10-11.md](SESSION-2026-10-11.md) | 11 Oct: W13 results, packet W14 (Reddit universal and store step-down, Nightly false UNKNOWN, ranking, reminders, publisher pins, agent review, one home for repeated text and release tidy, Obtainium card, automation wiring, agent spec and fix lane). Read first. |
+| [SESSION-2026-10-17.md](SESSION-2026-10-17.md) | 17 Oct: knowledge bank of the W15 chat (timeline, findings, verified facts, wrong calls 26 to 30, lessons L058 to L061, owner rules). Read first. |
 | [WIP-W15-2026-10-17.md](WIP-W15-2026-10-17.md) | 17 Oct: packet W15 (publish guard, Facebook 583, Obtainium build tracking, notify identity, Dependabot, SDK lines, council guard); what is done and what is open. Read first. |
 | [SESSION-2026-10-10.md](SESSION-2026-10-10.md) | 10 Oct: packet W13 (lost patches dropped by name, provider fallback, Selection watch, pf-t1). |
 | [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | 9 to 10 Oct: packets W6 to W12 and handover H12 (W12: coverage-first version choice; H12: owner decisions, phone tests, controller toolkit). Before that, 9 Oct: packets W6 to W9 (W9: routine cleanup, retention preview retired, run-log filter, notices). Earlier: packet W6 (Amazon Music `libInit.so` marker, build status keyed by app, second cleanup). |

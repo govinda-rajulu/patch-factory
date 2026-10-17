@@ -53,3 +53,8 @@ permission, adds `|| true` or deletes a test is never acceptable.
 
 Style. Caveman: short plain words, no hedging, no praise, no summary of the file. Issue and fix
 at most 100 characters each. At most 8 findings, most severe first.
+
+Never suppress, never "impossible" (owner rule, 17 Oct 2026, L061). Do not propose closing, ignoring,
+skipping or silencing a Dependabot pull request, a failing run, a warning or an issue to make it go
+away. If you cannot find the fix, say what you checked and leave the finding open; a one-character
+fix (an up that should be a down) is still a fix.

@@ -81,6 +81,15 @@ class ActionPins(unittest.TestCase):
                     bad.append('%s:%d' % (f.name, n))
         self.assertEqual(bad, [])
 
+    def test_nothing_is_suppressed(self):
+        """H15 (L061): Dependabot ignores nothing, keeps room for its pull requests, and the agent
+        spec tells every seat never to propose silencing a signal."""
+        dep = (ROOT / '.github/dependabot.yml').read_text(encoding='utf-8')
+        self.assertNotIn('ignore:', dep)
+        self.assertNotIn('open-pull-requests-limit: 0', dep)
+        spec = (ROOT / 'docs/council/AGENT-SPEC.md').read_text(encoding='utf-8')
+        self.assertIn('Never suppress, never "impossible"', spec)
+
     def test_dependabot_asks_for_no_missing_label(self):
         self.assertNotIn('labels:', (ROOT / '.github/dependabot.yml').read_text(encoding='utf-8'))
 

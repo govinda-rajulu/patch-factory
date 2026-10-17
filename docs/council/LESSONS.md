@@ -336,3 +336,10 @@ Tags: build, store
 Facebook 583 asked APKMirror for arm64 480-640dpi and got build 475614280 (480dpi), not the
 pinned 475614366. The identity gate refused it; the downloader now picks the row that carries the
 pinned version code (W15).
+
+### L061 · Never suppress a signal; "impossible" is not a finding
+Tags: review, workflows, agents
+Owner rule, 17 Oct 2026. A Dependabot pull request, failing run, warning, issue or agent finding is
+applied, fixed, or kept open with a written reason; never ignored or closed to make a page green
+(#185 failed for six days because one test hardcoded a sha). An agent that cannot find a fix says
+what it tried and keeps the item open; the fix can be one character (W15).
