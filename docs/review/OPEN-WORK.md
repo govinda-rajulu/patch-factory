@@ -5,7 +5,7 @@
 W15b (one pull request): #188 bump applied and Dependabot covers composites; #141 receipt bound
 and reasons; transfer and merge reasons; pinned certificate fails closed; council probe per model;
 Selection watch auto-adopt by name and description (pull request, never merged by the bot);
-owner's 33 decisions; agent review honours the offline-unlock list; L062 to L064. Record:
+owner's 33 decisions; agent review honours the offline-unlock list; L062 to L065. Record:
 [SESSION-2026-10-20.md](SESSION-2026-10-20.md). Open, in order:
 
 1. Read the W15b RESULT, then the first adopt pull request the Selection watch opens (expect

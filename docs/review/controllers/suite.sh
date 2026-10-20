@@ -1,6 +1,8 @@
 #!/bin/bash
 # Local copy of 3. Validate's offline steps (no shellcheck, no action smoke).
 cd "$1" || exit 9
+# Actions sets these; tests that read them must pin them (W15b validate red 20 Oct, L065).
+export CI=true GITHUB_ACTIONS=true GITHUB_RUN_ID=39474292099 GITHUB_REPOSITORY=govinda-rajulu/patch-factory GITHUB_STEP_SUMMARY=/tmp/suite-summary.md
 F=0
 run(){ if "$@" > /tmp/suite-step.log 2>&1; then echo "PASS $*"; else echo "FAIL $*"; tail -30 /tmp/suite-step.log; F=1; fi; }
 run python3 src/etc/preflight.py

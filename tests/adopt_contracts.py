@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src/etc'))
@@ -102,6 +103,8 @@ class Adopt(unittest.TestCase):
             return subprocess.CompletedProcess(cmd, code, out, 'refused' if code else '')
         return run
 
+    # The branch name carries GITHUB_RUN_ID; Actions sets it, so the test pins it (W15b validate red, 20 Oct).
+    @mock.patch.dict('os.environ', {'GITHUB_RUN_ID': 'T1'})
     def test_one_pull_request_with_reasons_and_checks_started(self):
         self.plan([{'target': 'instagram', 'provider': 'hushgram', 'name': 'Accent color', 'call': 'adopt', 'why': 'rule'},
                    {'target': 'instagram', 'provider': 'hushgram', 'name': 'Install next to Instagram', 'call': 'hold', 'why': 'hold word'}])
@@ -110,11 +113,11 @@ class Adopt(unittest.TestCase):
         self.assertEqual(len(app), 1)
         self.assertEqual(app[0][3:8], ['instagram', '--bundle', 'hushgram', '--patches', 'Accent color'])
         self.assertNotIn('Install next to Instagram', ' '.join(sum(self.calls, [])))
-        self.assertIn(['gh', 'workflow', 'run', 'validate.yml', '--repo', 'o/r', '--ref', 'adopt/2026-10-21-local'], self.calls)
+        self.assertIn(['gh', 'workflow', 'run', 'validate.yml', '--repo', 'o/r', '--ref', 'adopt/2026-10-21-T1'], self.calls)
         self.assertTrue(any(c[:4] == ['gh', 'workflow', 'run', 'onboard-review.yml'] and 'pr=42' in c for c in self.calls))
         self.assertFalse(any('merge' in c for c in self.calls))
         # hushgram is Instagram's fallback, so its test build names the provider; never publishes.
-        self.assertIn(['gh', 'workflow', 'run', 'manual-patch.yml', '--repo', 'o/r', '--ref', 'adopt/2026-10-21-local',
+        self.assertIn(['gh', 'workflow', 'run', 'manual-patch.yml', '--repo', 'o/r', '--ref', 'adopt/2026-10-21-T1',
                        '-f', 'target=instagram', '-f', 'publish=false', '-f', 'provider=hushgram'], self.calls)
 
     def test_waits_while_an_adopt_pull_request_is_open(self):

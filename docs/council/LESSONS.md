@@ -364,3 +364,9 @@ The first auto-adopt rule passed its unit tests and would have adopted 100 of 12
 including four names two bundles of one app both offer (a build abort, AGENTS rule 4) and
 always-on hides like "Hide all stories". Running it over the committed baselines and index
 descriptions found both; a rule is run on the real inventory, and its counts read, before it ships (W15b).
+
+### L065 · Local gates run with the environment Actions sets
+Tags: tests, gates
+The adopt test expected the branch adopt/<date>-local; Actions sets GITHUB_RUN_ID, so 3. Validate went red
+on the W15b pull request while the local suite passed. Tests pin what they read from the environment, and
+suite.sh exports the Actions variables so the local gate sees what the runner sees (W15b, 20 Oct).
