@@ -90,7 +90,11 @@ def qualify(api, release, ident, workflow_path, root, upload=None):
     need(workflow_path in WORKFLOWS, "unexpected source workflow")
     rows = shadow.assets(api, release["id"])
     matches = [a for a in rows if a.get("name") == shadow.receipt_name(ident)]
-    need(len(matches) == 1 and matches[0].get("state") == "uploaded", "receipt missing/ambiguous")
+    # W15b: two causes, two texts. Missing means the publishing run refused or failed to store
+    # it; that run's "publication receipt not stored" warning names why (19 Oct: oversized APK).
+    need(matches, "no publication receipt on the release; the publishing run warning "
+         "publication receipt not stored names the reason")
+    need(len(matches) == 1 and matches[0].get("state") == "uploaded", "receipt ambiguous or not uploaded")
     asset = matches[0]
     receipt = api.asset(asset)
     proof = {}

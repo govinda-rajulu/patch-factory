@@ -6,6 +6,35 @@ Provider: crimera/piko (primary, channel prerelease) with brosssh/morphe-patches
 Provider: SysAdminDoc/HushGram (fallback only; licence: GPL-3.0, checked against the GitHub licence API by the W13 controller before anything is pushed; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Same author as SysAdminDoc/HushFacebook, the Facebook provider.
 
 ## Patches
+- Accent color: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Back leaves Home: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Blur the bars around Reels: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Control taps and volume on Reels: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Find the reel you came from: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Font: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Full screen Reels and Home: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Glass tab bar: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Hide AI-labeled reels: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Hide Follow on feed posts: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Hide Follow on stories: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Hide Notes on profile pictures: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Hide paid partnership Reels: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Hide reels by caption words: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Hide the comment emoji row: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Hide your active status: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- HushGram launch screen: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Long press to zoom: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Profile posts as a list: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Rounded post corners: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Saved on your profile: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Show a reel's exact time: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Show hidden like counts: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Show when someone was last active: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Start feed videos with sound: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Start stories with sound: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Stop background wake-ups: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Tap a feed video to pause it: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Upload stories at full quality: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
 HushGram builds only when a piko build fails (packet W13 provider fallback); piko stays primary. Names as the community index lists them (src/community/bundles.json, 5 Oct 2026 snapshot, 48 HushGram patches), plus three named in HushGram's own CHANGELOG for 0.0.8 (79 patches, Instagram 450.0.0.50.77 only, read 10 Oct 2026). A name a later HushGram renames is dropped by the build and reported by the Selection watch. Each maps a patch the owner already uses with piko or brosssh:
 
 - HushGram settings: the settings screen the other HushGram patches need (piko equivalent: Add settings)
@@ -46,6 +75,7 @@ HushGram builds only when a piko build fails (packet W13 provider fallback); pik
 - View DM photos and videos anonymously: piko equivalent: View DMs anonymously; the opened receipt for view-once media is held back, which Instagram can notice (account risk below)
 
 Not included (exclude list):
+- Install next to Instagram: owner veto, 20 Oct 2026 (installs a second Instagram with its own package name; packet W15b).
 - Change version code: owner, 10 Oct 2026; also matches BANNED.
 - Spoof location: owner, 10 Oct 2026.
 - Start on x86 devices: the phone is ARM64; nothing to gain (same call as Facebook).

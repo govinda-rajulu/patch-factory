@@ -425,8 +425,9 @@ yellow_log(){ :; }; red_log(){ :; }
     def test_stateless_change_keeps_transfer_gates_and_no_session_dependency(self):
         source=(ROOT/'src/build/utils.sh').read_text()
         impl=source[source.index('get_apk() {'):source.index('\nget_apkpure() {')]
-        self.assertIn('if ! wget -q -O "./download/$base_apk"',impl)
-        self.assertIn('"$base_url$final_href"; then',impl)
+        # W15b: the APKMirror transfer is a two-try loop that keeps wget's exit code.
+        self.assertIn('\t\twget -q -O "./download/$base_apk"',impl)
+        self.assertIn('"$base_url$final_href" || wrc=$?',impl)
         pure=source[source.index('get_apkpure() {'):]
         self.assertNotIn('_PF_FS_SESSION',pure)
         for token in ('sessions.create','sessions.destroy','_fs_session_start','_fs_session_close','_get_apk_impl','_PF_FS_SESSION'):
@@ -437,10 +438,13 @@ yellow_log(){ :; }; red_log(){ :; }
         Nonempty controls are transfer evidence only, not validated APKs.
         """
         source = (ROOT / 'src/build/utils.sh').read_text()
-        for store, function, end_anchor in (
-                ('APKMirror', 'get_apk()', '\n\tif [[ "$matched_type" == "BUNDLE" ]]'),
-                ('APKPure', 'get_apkpure()', '\n\tif [[ "$pkg_type" == "bundle" ]]')):
-            begin = source.index('\tif ! wget -q -O "./download/$base_apk"', source.index(function))
+        for store, function, start_anchor, end_anchor in (
+                ('APKMirror', 'get_apk()', '\tlocal wrc=0 try\n', '\n\tif [[ "$matched_type" == "BUNDLE" ]]'),
+                ('APKPure', 'get_apkpure()', '\tif ! wget -q -O "./download/$base_apk"', '\n\tif [[ "$pkg_type" == "bundle" ]]')):
+            fn_start = source.index(function)
+            fn_end = source.index('\n}\n', fn_start)
+            begin = source.index(start_anchor, fn_start)
+            self.assertLess(begin, fn_end, store + ': transfer block must sit inside ' + function)
             end = source.index(end_anchor, begin)
             block = source[begin:end]
             self.assertEqual(block.count('wget -q'), 1)
@@ -450,6 +454,7 @@ yellow_log(){ :; }; red_log(){ :; }
                     command = """
 green_log(){ printf '%s\\n' "$*"; }
 red_log(){ printf '%s\\n' "$*"; }
+pf_wget_meaning(){ echo test; }
 wget(){
   [ "$1" = -q ] || { echo FAKE_SIGNED_URL_LEAK >&2; return 99; }
   printf '%s' "$FIXTURE_BYTES" > "./download/fixture.apk"
@@ -462,15 +467,16 @@ transfer(){
   local cookie_args=()
 """ + block + '\n}\ntransfer\n'
                     result = self.run_cmd(['bash', '-c', command],
-                                          {'FIXTURE_BYTES':payload, 'FIXTURE_EXIT':str(rc)})
+                                          {'FIXTURE_BYTES':payload, 'FIXTURE_EXIT':str(rc), 'PF_TRANSFER_RETRY_WAIT':'0'})
                     self.assertEqual(result.returncode, expected, result.stdout+result.stderr)
                     self.assertEqual('Successfully downloaded' in result.stdout, expected == 0)
                     self.assertNotIn('FAKE_SIGNED_URL_LEAK', result.stdout+result.stderr)
 
     def test_store_failed_transfer_stops_before_conversion(self):
         source = (ROOT / 'src/build/utils.sh').read_text()
-        for function in ('get_apk()', 'get_apkpure()'):
-            start = source.index('\tif ! wget -q',source.index(function))
+        for function, anchor in (('get_apk()', '\tlocal wrc=0 try\n'), ('get_apkpure()', '\tif ! wget -q')):
+            start = source.index(anchor, source.index(function))
+            self.assertLess(start, source.index('\n}\n', source.index(function)), function)
             end = source.index('\n}',start)
             body = source[start:end]
             stop = body.index('return 1')

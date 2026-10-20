@@ -22,8 +22,11 @@ import input_recipe
 import shadow_inputs
 
 DOMAIN = "patch-factory/resolved-dependencies/v1"
-MAX_FILE = 256 * 1024 * 1024
-MAX_TOTAL = 768 * 1024 * 1024
+# W15b (20 Oct 2026, #141): Facebook 583 merged to 301,471,185 bytes on 19 Oct, past the old
+# 256 MiB bound, so shadow preparation refused it and the publication receipt was never stored.
+# GitHub release assets stop at 2 GiB; 1 GiB per file keeps every built app with room.
+MAX_FILE = 1024 * 1024 * 1024
+MAX_TOTAL = 2 * 1024 * 1024 * 1024
 LOCK = "resolved-inputs/lock.json"
 
 

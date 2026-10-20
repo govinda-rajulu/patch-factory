@@ -343,3 +343,30 @@ Owner rule, 17 Oct 2026. A Dependabot pull request, failing run, warning, issue 
 applied, fixed, or kept open with a written reason; never ignored or closed to make a page green
 (#185 failed for six days because one test hardcoded a sha). An agent that cannot find a fix says
 what it tried and keeps the item open; the fix can be one character (W15).
+
+### L062 · A fake must copy the real tool's refusals
+Tags: gates, evidence
+The W15b log script passed its rehearsal and read 0 of 13 logs on the owner's box: real gh refuses
+job logs that hold terminal escape codes unless told to pass them, and the fake gh never refused.
+A rehearsal fake copies the real tool's refusals; a control run of the old script against the
+corrected fake must reproduce the owner's failure before the fix counts (W15b, wrong call 31).
+
+### L063 · An evidence step names its reason
+Tags: evidence, workflows
+Four silent steps hid four different causes behind generic lines: the publication receipt (19 Oct
+Facebook: merged APK past the 256 MiB bound; 11 Oct LinkedIn: plan version differs from the
+stepped-down build), the APKMirror transfer (wget -q), the APKMirror merge (exit not checked) and
+the shadow receipt reason. A step that may fail prints its own reason text; foreign text never (W15b).
+
+### L064 · Measure a rule on real data before it ships
+Tags: selection, gates
+The first auto-adopt rule passed its unit tests and would have adopted 100 of 129 older names,
+including four names two bundles of one app both offer (a build abort, AGENTS rule 4) and
+always-on hides like "Hide all stories". Running it over the committed baselines and index
+descriptions found both; a rule is run on the real inventory, and its counts read, before it ships (W15b).
+
+### L065 · Local gates run with the environment Actions sets
+Tags: tests, gates
+The adopt test expected the branch adopt/<date>-local; Actions sets GITHUB_RUN_ID, so 3. Validate went red
+on the W15b pull request while the local suite passed. Tests pin what they read from the environment, and
+suite.sh exports the Actions variables so the local gate sees what the runner sees (W15b, 20 Oct).

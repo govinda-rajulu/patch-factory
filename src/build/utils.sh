@@ -278,6 +278,15 @@ _cf_get() {
 	_cfb_get "$@"
 }
 
+# wget exit codes (GNU wget manual, "Exit Status").
+pf_wget_meaning() {
+	case "$1" in
+		1) echo generic-error ;; 2) echo parse-error ;; 3) echo file-io-error ;; 4) echo network-failure ;;
+		5) echo ssl-verification-failure ;; 6) echo auth-failure ;; 7) echo protocol-error ;;
+		8) echo server-error-response ;; *) echo unknown ;;
+	esac
+}
+
 get_apk() {
 	local pkg_name=$1 apk_name=$2
 	local pkg_type=${3:-apk} arch=${4:-} dpi=${5:-} minver=${6:-}
@@ -538,12 +547,23 @@ get_apk() {
 		python3 src/build/transfer_diagnostic.py handoff; then
 		yellow_log "[!] Download diagnostic unavailable"
 	fi
-	if ! wget -q -O "./download/$base_apk" \
-		--header="User-Agent: $user_agent" \
-		--referer="$base_url$dl_btn_href" \
-		"${cookie_args[@]}" \
-		--timeout=120 \
-		"$base_url$final_href"; then
+	# W15b (Photos, run 38643057188): wget -q hid why the transfer failed. Print wget's exit
+	# code and its documented meaning (never the URL, headers or cookies), retry once.
+	local wrc=0 try
+	for try in 1 2; do
+		wrc=0
+		wget -q -O "./download/$base_apk" \
+			--header="User-Agent: $user_agent" \
+			--referer="$base_url$dl_btn_href" \
+			"${cookie_args[@]}" \
+			--timeout=120 \
+			"$base_url$final_href" || wrc=$?
+		[[ "$wrc" -eq 0 ]] && break
+		echo "TRANSFER_FAILED store=apkmirror try=$try wget_exit=$wrc meaning=$(pf_wget_meaning "$wrc") bytes=$(stat -c %s "./download/$base_apk" 2>/dev/null || echo 0)"
+		rm -f "./download/$base_apk"
+		[[ "$try" -eq 1 ]] && sleep "${PF_TRANSFER_RETRY_WAIT:-20}"
+	done
+	if [[ "$wrc" -ne 0 ]]; then
 		red_log "[-] APKMirror transfer failed; refusing partial or empty output"
 		return 1
 	fi
@@ -562,7 +582,12 @@ get_apk() {
 			unzip "./download/$base_apk" -d "./download/$(basename "$base_apk" .apkm)" > /dev/null 2>&1
 		else
 			green_log "[+] Merge splits apk to standalone apk"
-			java -jar $APKEditor m -i "./download/$apk_name.apkm" -o "./download/$apk_name.apk" > /dev/null 2>&1
+			python3 src/build/split_list.py "./download/$apk_name.apkm"
+			# W15b: this merge used to ignore its own failure (the APKPure path below never did).
+			if ! java -jar $APKEditor m -i "./download/$apk_name.apkm" -o "./download/$apk_name.apk" > /dev/null 2>&1; then
+				red_log "[-] Failed to merge $apk_name.apkm to standalone apk"
+				return 1
+			fi
 		fi
 	fi
 }
@@ -651,6 +676,7 @@ get_apkpure() {
 	if [[ "$pkg_type" == "bundle" ]]; then
 		if unzip -l "./download/$base_apk" '*.apk' > /dev/null 2>&1; then
 			green_log "[+] Merge splits apk to standalone apk"
+			python3 src/build/split_list.py "./download/$apk_name.xapk"
 			if ! java -jar $APKEditor m -i "./download/$apk_name.xapk" -o "./download/$apk_name.apk" > /dev/null 2>&1; then
 				red_log "[-] Failed to merge $apk_name.xapk to standalone apk"
 				return 1

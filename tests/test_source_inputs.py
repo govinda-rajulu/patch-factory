@@ -147,7 +147,7 @@ class SourceContracts(unittest.TestCase):
         (self.r/'src/build/utils.sh').write_text('mkdir -p release download\ngreen_log(){ :; }\nred_log(){ echo "$1"; }\nyellow_log(){ :; }\nget_patches_key(){ :; }\nget_apk(){ echo SECOND_FETCH; return 91; }\nget_apkpure(){ echo SECOND_FETCH; return 91; }\n')
         self.prepare();(self.r/'download').rename(self.r/'producer-download')
         fakebin=self.r/'fakebin';fakebin.mkdir()
-        py=fakebin/'python3';py.write_text('#!/bin/bash\ncase "$1 $2" in\n"src/build/artifact_identity.py capture-signer") exit 0;;\n"src/build/artifact_identity.py capture-inputs") echo CAPTURE_BOUNDARY; exit 77;;\nesac\nexec '+sys.executable+' "$@"\n');py.chmod(0o755)
+        py=fakebin/'python3';py.write_text('#!/bin/bash\n# W15b: a pinned package with an unreadable certificate now stops; this sandbox has no apksigner,\n# so the certificate check answers like the signer above (publisher_cert_contracts covers the rule).\ncase "$1" in\nsrc/build/publisher_cert.py) echo "PUBLISHER_CERT fake pinned OK"; exit 0;;\nesac\ncase "$1 $2" in\n"src/build/artifact_identity.py capture-signer") exit 0;;\n"src/build/artifact_identity.py capture-inputs") echo CAPTURE_BOUNDARY; exit 77;;\nesac\nexec '+sys.executable+' "$@"\n');py.chmod(0o755)
         aapt=fakebin/'aapt2';aapt.write_text("#!/bin/bash\nif [ \"$2\" = packagename ]; then echo io.github.sds100.keymapper; else echo \"sdkVersion:'29'\"; fi\n");aapt.chmod(0o755)
         env=dict(self.env,PATH=str(fakebin)+':'+os.environ['PATH'],ANDROID_HOME=str(fakebin),PF_RESOLVED_READY='true',PF_SOURCE_READY='true')
         result=subprocess.run(['bash','src/build/build.sh',self.ident],cwd=self.r,env=env,capture_output=True,text=True,timeout=30)

@@ -21,9 +21,12 @@ Daily, after the Nightly watch. Phases:
   apply    applies the planned removals and baselines in this checkout, runs preflight and
            bancheck, and commits them to main (main-writer queue; refuses if main moved;
            waits while any packet/* branch exists, so a packet controller's base holds).
+  adopt    (W15b) new names the src/patches/ADOPT.json rule passes (name AND community-index
+           description) go to ONE pull request with onboarding records; checks are started on
+           it; the bot never merges. Held names wait for the owner with the rule that held them.
   issue    one standing issue "Selection watch": body = latest report; a comment only when
            something changed or waits for the owner.
-Removals only ever take names away; BANNED and CONFIRM are never touched.
+Removals only ever take names away; BANNED, CONFIRM and exclude lists are never touched.
 """
 import datetime
 import json
@@ -66,13 +69,71 @@ def esc(value, limit=200):
     return provider_watch.display(value)
 
 
+def adopt_policy(root):
+    return json.loads((root / 'src/patches/ADOPT.json').read_text(encoding='utf-8'))
+
+
+def index_descriptions(root):
+    """(repo lower, patch name) -> list of (packages, description) from the community index."""
+    path = root / 'src/community/bundles.json'
+    if not path.is_file():
+        return {}
+    d = json.loads(path.read_text(encoding='utf-8'))
+    comp, out = d.get('compatibilities') or [], {}
+    for b in d.get('bundles') or []:
+        for p in b.get('patches') or []:
+            k = p.get('compatiblePackagesKey')
+            cp = comp[k] if isinstance(k, int) and 0 <= k < len(comp) else None
+            pkgs = (set(cp) if isinstance(cp, dict) else {e.get('packageName') for e in cp if isinstance(e, dict)}
+                    if isinstance(cp, list) else set())
+            apps = [a for a in (b.get('targetApps') or []) if isinstance(a, str)]
+            if not pkgs and 0 < len(apps) <= 2:
+                # A bundle built for one app (HushGram; HushTelegram's two Telegram packages)
+                # tags no package per patch; its patches are for that app, not universal.
+                pkgs = set(apps)
+            out.setdefault((str(b.get('repo', '')).lower(), p.get('name')), []).append(
+                (pkgs, str(p.get('description') or '')))
+    return out
+
+
+def classify(policy, descriptions, row, package, name, flag, others=()):
+    """W15b auto-adopt rule. Returns ('adopt', why) or ('hold', why); unsure means hold.
+    others: names other bundles of the same app offer (one name under two bundles aborts)."""
+    if flag == 'BAN':
+        return 'hold', 'matches BANNED'
+    if flag == 'CFM':
+        return 'hold', 'matches CONFIRM: owner decides'
+    if name in others:
+        return 'hold', 'another bundle of this app offers the same name; one bundle per name (AGENTS rule 4)'
+    repo = ('%s/%s' % (row.get('owner', ''), row.get('repo', ''))).lower()
+    entries = descriptions.get((repo, name), [])
+    found = [desc for pkgs, desc in entries if package in pkgs]
+    if not found and any(not pkgs for pkgs, _ in entries):
+        return 'hold', 'universal patch: the index ties it to no app, so it was not written for this one'
+    if not found or not found[0].strip():
+        return 'hold', 'no description in the community index'
+    text = (name + ' ' + found[0]).lower()
+    for w in policy['hold_words']:
+        if w in text:
+            return 'hold', 'hold word "%s"' % w
+    for w in policy['paid_words']:
+        if w in text and row['target'] not in policy['paid_ok_targets']:
+            return 'hold', 'paid word "%s" on an app outside paid_ok_targets' % w
+    words = set(re.findall(r'[a-z]+', text))
+    first = (re.findall(r'[a-z]+', name.lower()) or [''])[0]
+    if (first in policy.get('content_verbs', []) and not any(w in text for w in policy.get('switch_words', []))
+            and not words & set(policy.get('wanted_words', []))):
+        return 'hold', 'changes what the app shows for good: no off switch and no ad, tracking or suggestion target in its description'
+    return 'adopt', 'by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description'
+
+
 def plan_names(root, rows, observed, pending, open_targets=frozenset()):
     """Edits and findings from one observation per provider row. A new name in an open-mode
     app (no exclusive include list) already ships by the provider's default: it is reported
     once under its own heading and never waits (W14: YouTube's Force system font waited)."""
     banned, confirm = rules(root, 'BANNED'), rules(root, 'CONFIRM')
     today = datetime.date.today().isoformat()
-    edits, baselines, findings, waiting, blocked, defaults = {}, {}, [], [], [], []
+    edits, baselines, findings, waiting, blocked, defaults, backlog = {}, {}, [], [], [], [], []
     for row in rows:
         key = row['target'] + '/' + row['name']
         names = observed.get(key)
@@ -112,8 +173,15 @@ def plan_names(root, rows, observed, pending, open_targets=frozenset()):
                 pending[key + '|' + n] = today
             if key + '|' + n in pending:
                 waiting.append(dict(target=row['target'], provider=row['name'], patch_dir=row['patch_dir'], name=n,
-                                    tag=tag(n, banned, confirm), since=pending[key + '|' + n]))
-    return dict(edits=edits, baselines=baselines, findings=findings, waiting=waiting, blocked=blocked, defaults=defaults)
+                                    tag=tag(n, banned, confirm), since=pending[key + '|' + n],
+                                    owner=row.get('owner', ''), repo=row.get('repo', '')))
+            elif before:
+                # W15b (owner, 20 Oct 2026): older names never chosen go through the same rule.
+                backlog.append(dict(target=row['target'], provider=row['name'], patch_dir=row['patch_dir'], name=n,
+                                    tag=tag(n, banned, confirm), since='before watch',
+                                    owner=row.get('owner', ''), repo=row.get('repo', '')))
+    return dict(edits=edits, baselines=baselines, findings=findings, waiting=waiting, blocked=blocked, defaults=defaults,
+                backlog=backlog)
 
 
 def gh_json(path):
@@ -230,18 +298,29 @@ def ranking(root, targets):
 def report(p, dig, rank, run_url, due=()):
     L = ['# Selection watch', '', run_url, '',
          'Removed names are ones the provider no longer offers; builds already go without them. '
-         'Nothing is ever added here: new patches wait for you.', '']
+         'New names that pass src/patches/ADOPT.json go to one pull request the bot never merges; the rest wait for you.', '']
     L += ['## Removed today (%d folder(s))' % len(p['edits'])]
     for d, e in sorted(p['edits'].items()):
         L.append('- `%s` (%s): %s' % (esc(d), esc(e['provider']), ', '.join('`%s`' % esc(x) for x in e['include'])))
     L += ['', '## Needs you']
     L += ['- ' + esc(b, 2000) for b in p['blocked']] or ['- nothing blocked']
     L += ['- Reminder: ' + esc(d, 600) for d in due]
-    L += ['', '## New patches waiting for your call (%d)' % len(p['waiting'])]
-    for w in p['waiting'][:80]:
-        L.append('- %s%s / %s: `%s` (since %s). Add: "5. Add target", action patch, id `%s`, patches `%s`; skip: patches `-%s`'
+    adopt = [w for w in p['waiting'] + p.get('backlog', []) if w.get('call') == 'adopt']
+    L += ['', '## Adopted by rule, pull request opened, never merged by the bot (%d)' % len(adopt)]
+    for w in adopt[:80]:
+        L.append('- %s / %s: `%s`' % (esc(w['target']), esc(w['provider']), esc(w['name'])))
+    held = [w for w in p['waiting'] if w.get('call') != 'adopt']
+    L += ['', '## New patches waiting for your call (%d)' % len(held)]
+    for w in held[:80]:
+        L.append('- %s%s / %s: `%s` (since %s%s). Add: "5. Add target", action patch, id `%s`, patches `%s`; skip: patches `-%s`'
                  % ('**%s** ' % w['tag'] if w['tag'] else '', esc(w['target']), esc(w['provider']), esc(w['name']), w['since'],
+                    '; held: ' + esc(w['why'], 120) if w.get('why') else '',
                     esc(w['target']), esc(w['name']), esc(w['name'])))
+    old_held = [w for w in p.get('backlog', []) if w.get('call') != 'adopt']
+    if old_held:
+        L += ['', '## Older names never chosen, held by the rule (%d)' % len(old_held)]
+        for w in old_held[:80]:
+            L.append('- %s / %s: `%s` (held: %s)' % (esc(w['target']), esc(w['provider']), esc(w['name']), esc(w['why'], 120)))
     if p.get('defaults'):
         L += ['', "## New in open-mode apps (%d): they already ship by the provider's default" % len(p['defaults'])]
         for w in p['defaults'][:80]:
@@ -280,6 +359,16 @@ def collect(root, out, observe, reader=gh_json, state_text=None, identity=None):
         except Exception:
             pass
     p = plan_names(root, rows, observed, state['pending'], frozenset(t['id'] for t in targets if not t.get('exclusive')))
+    # W15b: every waiting name gets an adopt or hold call with its reason.
+    policy, descriptions = adopt_policy(root), index_descriptions(root)
+    packages = {t['id']: t.get('package') for t in targets}
+    for w in p['waiting'] + p['backlog']:
+        others = set()
+        for r in rows:
+            if r['target'] == w['target'] and r['name'] != w['provider']:
+                others |= set(observed.get(r['target'] + '/' + r['name']) or [])
+                others |= {l.split('|', 1)[0] for l in lines(root / 'src/patches' / r['patch_dir'] / 'include-patches')}
+        w['call'], w['why'] = classify(policy, descriptions, w, packages.get(w['target']), w['name'], w['tag'], others)
     chosen = set()
     for row in rows:
         chosen |= {l.split('|', 1)[0] for l in lines(root / 'src/patches' / row['patch_dir'] / 'include-patches')}
@@ -359,6 +448,79 @@ def apply(root, out, runner=git, push=True):
     return 'COMMITTED'
 
 
+def adopt(root, out, repo, runner=None, stamp=None):
+    """W15b: names the rule adopted go to one pull request. The bot never merges it.
+
+    One open adopt pull request at a time; app.py writes the onboarding record (each name
+    with its reason) and runs the repo's gates and generators; Validate and the Onboarding
+    review are started on the branch, because a pull request opened with the workflow token
+    starts no checks by itself (same as "5. Add target")."""
+    run = runner or (lambda cmd, **k: subprocess.run(cmd, cwd=root, capture_output=True, text=True, timeout=600, **k))
+    plan = json.loads((out / 'plan.json').read_text(encoding='utf-8'))
+    picks = [w for w in plan.get('waiting', []) + plan.get('backlog', []) if w.get('call') == 'adopt']
+    if not picks:
+        print('SELECTION_ADOPT nothing adopted today')
+        return 0
+    found = run(['gh', 'pr', 'list', '--repo', repo, '--state', 'open', '--json', 'number,headRefName'])
+    if found.returncode != 0:
+        print('::warning::SELECTION_ADOPT could not list pull requests; nothing opened today')
+        return 1
+    open_adopt = [r for r in json.loads(found.stdout or '[]') if str(r.get('headRefName', '')).startswith('adopt/')]
+    if open_adopt:
+        print('SELECTION_ADOPT waiting: pull request #%s is still open; one at a time' % open_adopt[0]['number'])
+        return 0
+    stamp = stamp or datetime.date.today().isoformat()
+    branch = 'adopt/%s-%s' % (stamp, os.environ.get('GITHUB_RUN_ID', 'local'))
+    groups = {}
+    for w in picks:
+        groups.setdefault((w['target'], w['provider']), []).append(w)
+    for (target, provider), ws in sorted(groups.items()):
+        cmd = ['python3', 'src/etc/app.py', 'patch', target, '--bundle', provider,
+               '--patches', '; '.join(w['name'] for w in ws),
+               '--why', json.dumps({w['name']: w['why'] for w in ws})]
+        r = run(cmd)
+        if r.returncode != 0:
+            print('::warning::SELECTION_ADOPT %s/%s refused by app.py: %s' % (target, provider, (r.stderr or r.stdout)[-300:]))
+            return 1
+    if run(['git', 'diff', '--quiet', '--', '.github']).returncode != 0:
+        print('::error::SELECTION_ADOPT touched a workflow file; nothing pushed')
+        return 1
+    steps = [['git', 'switch', '-c', branch],
+             ['git', 'add', '-A', '--', 'src', 'docs', 'README.md', 'CREDITS.md'],
+             ['git', '-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com',
+              'commit', '-m', 'adopt: %d new name(s) by the Selection watch rule' % len(picks)],
+             ['git', 'push', 'origin', branch]]
+    for cmd in steps:
+        r = run(cmd)
+        if r.returncode != 0:
+            print('::warning::SELECTION_ADOPT %s failed: %s' % (cmd[1], (r.stderr or r.stdout)[-300:]))
+            return 1
+    body = ['Adopted by the Selection watch rule (src/patches/ADOPT.json). The bot never merges this.', '']
+    body += ['- %s / %s: `%s`: %s' % (w['target'], w['provider'], w['name'], w['why']) for w in picks]
+    r = run(['gh', 'pr', 'create', '--repo', repo, '--base', 'main', '--head', branch,
+             '--title', 'adopt: %d new patch name(s), %s' % (len(picks), stamp), '--body', '\n'.join(body)])
+    if r.returncode != 0:
+        print('::warning::SELECTION_ADOPT branch %s pushed; GitHub refused the pull request: %s' % (branch, (r.stderr or '')[-200:]))
+        return 1
+    number = run(['gh', 'pr', 'view', branch, '--repo', repo, '--json', 'number', '--jq', '.number']).stdout.strip()
+    for wf, ref, extra in (('validate.yml', branch, []), ('onboard-review.yml', 'main', ['-f', 'pr=' + number])):
+        if run(['gh', 'workflow', 'run', wf, '--repo', repo, '--ref', ref] + extra).returncode != 0:
+            print('::warning::SELECTION_ADOPT could not start %s for #%s; run it from the Actions tab' % (wf, number))
+    # Validate builds nothing, so each touched app also gets one nonpublishing test build on the
+    # branch (the provider itself when it is not the primary), the same evidence a packet smoke gives.
+    targets = {t['id']: t for t in json.loads((root / 'src/targets.json').read_text(encoding='utf-8'))}
+    for target, provider in sorted(groups):
+        primary = ((targets.get(target) or {}).get('candidates') or [{}])[0].get('name')
+        extra = [] if provider == primary or provider in [b.get('name') for b in targets.get(target, {}).get('extra_bundles', [])] \
+            else ['-f', 'provider=' + provider]
+        cmd = ['gh', 'workflow', 'run', 'manual-patch.yml', '--repo', repo, '--ref', branch,
+               '-f', 'target=' + target, '-f', 'publish=false'] + extra
+        if run(cmd).returncode != 0:
+            print('::warning::SELECTION_ADOPT could not start the test build of %s/%s for #%s' % (target, provider, number))
+    print('SELECTION_ADOPT opened #%s with %d name(s); test builds started for %d app/provider pair(s)' % (number, len(picks), len(groups)))
+    return 0
+
+
 def issue(out, repo):
     body = (out / 'report.md').read_text(encoding='utf-8')[:60000]
     found = subprocess.run(['gh', 'issue', 'list', '--repo', repo, '--state', 'open', '--search', 'in:title "%s"' % TITLE,
@@ -380,9 +542,11 @@ def issue(out, repo):
 
 
 def main(argv):
-    if len(argv) != 1 or argv[0] not in ('collect', 'apply', 'issue'):
-        print('usage: selection_watch.py collect|apply|issue', file=sys.stderr)
+    if len(argv) != 1 or argv[0] not in ('collect', 'apply', 'adopt', 'issue'):
+        print('usage: selection_watch.py collect|apply|adopt|issue', file=sys.stderr)
         return 2
+    if argv[0] == 'adopt':
+        return adopt(ROOT, OUT, os.environ.get('GITHUB_REPOSITORY', 'govinda-rajulu/patch-factory'))
     if argv[0] == 'collect':
         ident = provider_watch.run_identity(os.environ)
         state = os.environ.get('PF_WATCH_STATE_FILE')

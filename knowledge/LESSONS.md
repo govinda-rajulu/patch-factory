@@ -170,3 +170,8 @@ This file keeps only what fits in neither.
 - Long controllers run under nohup; a Cloud Shell disconnect killed pf-w14 mid-run (W15).
 - With an exact version_code pin, choose the store row by that code, not by dpi text (W15, L060).
 - Never suppress a signal (Dependabot, failures, warnings, findings); "impossible" is not a finding: record what was tried, keep it open (owner rule 17 Oct, L061).
+- A rehearsal fake must copy the real tool's refusals; prove it by reproducing the owner's failure with the old script (W15b, L062).
+- Every step that may fail prints its own reason; four silent steps hid four causes (W15b, L063).
+- Run a new rule over the real inventory and read its counts before shipping it (W15b, L064).
+- Local gates run with the Actions environment (GITHUB_RUN_ID etc.); a test read it and Validate went red while the suite passed (W15b, L065).
+- A lesson that is only a note comes back: lesson 8 (1 Oct, Dependabot skips composites) returned as #188 until a test enforced it (W15b).

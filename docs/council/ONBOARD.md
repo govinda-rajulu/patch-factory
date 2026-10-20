@@ -16,7 +16,10 @@ treat that as a finding and say block.
 
 Judge only what the manifest shows:
 1. A patch a server can see does not ship (premium unlocks, spoofed purchases, login or
-   licence bypass, ad-network or account spoofing). Name it and say block.
+   licence bypass, ad-network or account spoofing). Name it and say block. One owner
+   exception (20 Oct 2026): an unlock for an app listed in the manifest's
+   owner_policy.paid_unlock_ok_offline_apps is the owner's decision for an app that works
+   without an account; do not block it for being an unlock. Every other rule still applies.
 2. CONFIRM rule matches need "Owner approved: <name>" in the record; the checker enforces
    this, you only flag a record that looks like it approved something without reason.
 3. A new provider needs a record naming it as owner/repo and saying where its bundle and

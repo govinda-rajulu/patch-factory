@@ -24,7 +24,7 @@ result line. Phases:
             SMOKE_ADVISORY (fallback providers) are recorded as NOTE when they fail, never
             blocking: a broken fallback breaks nothing that works today
   merge     merge commit guarded by the head sha; the merge tree must be the packet tree
-  close     for each issue in CLOSE: one marked comment, then close
+  close     for each issue or pull request in CLOSE: one marked comment, then close
   pages     wait until GitHub Pages has deployed the merge, so the cleanup preview below
             does not go stale a minute later (W12 lesson L049)
   preview   cleanup.py preview; writes the apply line
@@ -175,7 +175,9 @@ def gate():
         bt = (must('repos/%s/git/commits/%s' % (REPO, BASE), 'gate').get('tree') or {}).get('sha')
         if bt != BASE_TREE:
             stop('gate', 'base %s has tree %s, not the tree %s this packet was built on. Nothing changed.' % (BASE[:12], (bt or '')[:12], BASE_TREE[:12]))
-    for path, field, want, why in PRECHECKS:
+    # W15b: prechecks describe the world before the merge (an open #188 the packet closes); a rerun
+    # after the merge skips them, or it would stop on the very change the packet made.
+    for path, field, want, why in (PRECHECKS if not merged else ()):
         got = must(path, 'gate')
         for k in field.split('.'):
             got = (got or {}).get(k) if isinstance(got, dict) else None
@@ -416,7 +418,12 @@ def close_issues():
         else:
             must('repos/%s/issues/%d/comments' % (REPO, number), phase, 'POST', dict(body=mark + '\n\n' + text))
             say(phase, 'OK', 'comment posted on #%d' % number)
-        must('repos/%s/issues/%d' % (REPO, number), phase, 'PATCH', dict(state='closed', state_reason='completed'))
+        if issue.get('pull_request'):
+            # W15b: a pull request (Dependabot #188 applied in a packet) closes through the pulls
+            # endpoint; state_reason belongs to issues only.
+            must('repos/%s/pulls/%d' % (REPO, number), phase, 'PATCH', dict(state='closed'))
+        else:
+            must('repos/%s/issues/%d' % (REPO, number), phase, 'PATCH', dict(state='closed', state_reason='completed'))
         say(phase, 'OK', '#%d closed' % number)
 
 

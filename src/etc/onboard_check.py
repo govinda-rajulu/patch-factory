@@ -78,12 +78,25 @@ def bundles(target):
     return rows
 
 
+def owner_policy(base):
+    """W15b (owner, 20 Oct 2026): apps where a paid unlock is the owner's decision, not a block.
+    Read from the BASE commit only, so a pull request cannot add its own app to the list."""
+    p = Path(base) / 'src/patches/ADOPT.json'
+    try:
+        apps = json.loads(p.read_text(encoding='utf-8')).get('paid_ok_targets', []) if p.is_file() else []
+    except ValueError:
+        apps = []
+    return {'paid_unlock_ok_offline_apps': sorted(a for a in apps if isinstance(a, str)),
+            'source': 'src/patches/ADOPT.json on the base commit'}
+
+
 def manifest(base, head):
     """Everything onboarding-relevant that changed from base to head, as plain data."""
     old = {t.get('id'): t for t in load_targets(base)}
     new = {t.get('id'): t for t in load_targets(head)}
     out = {'new_targets': [], 'enabled_targets': [], 'removed_targets': sorted(set(old) - set(new)),
-           'new_providers': [], 'patch_changes': [], 'records': {}, 'problems': []}
+           'new_providers': [], 'patch_changes': [], 'records': {}, 'problems': [],
+           'owner_policy': owner_policy(base)}
     for tid, t in new.items():
         before = old.get(tid)
         if before is None:

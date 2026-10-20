@@ -8,9 +8,10 @@ the base APK inside download/<apk_name>.apkm or .xapk, or download/<apk_name>.ap
     exactly what this catches.
   * Not pinned yet: prints PUBLISHER_CERT for the log and passes. The next packet seeds
     the pins from these lines (pf-t1 collects them), so no fingerprint comes from a web page.
-An unreadable original prints PUBLISHER_CERT_UNREADABLE and passes, pinned or not: the
-existing package, variant and patcher gates still decide, and a fallback receipt
-(source_fallback.py) already checks its own signer.
+An unreadable original of a PINNED package fails the build (owner, 20 Oct 2026, W15b): on
+14 Oct apksigner refused the Telegram and Facebook downloads with "CHUNKED_SHA256 digest
+mismatch", the file's bytes no longer matched its own signature, and the pin was skipped.
+A package not pinned yet still prints PUBLISHER_CERT_UNREADABLE and passes.
 Usage: publisher_cert.py TARGET_ID
 """
 import json
@@ -54,7 +55,11 @@ def check(root, ident, env, signer=identity.original_signer):
             apk, where = original(root, t, work)
             cert = signer(root, apk, env)['certificate_sha256']
     except Exception as e:  # never hide a mismatch below; only an unreadable original passes
-        print('::notice::PUBLISHER_CERT_UNREADABLE %s: %s' % (t['package'], str(e)[:200] if isinstance(e, ValueError) else type(e).__name__))
+        why = str(e)[:200] if isinstance(e, ValueError) else type(e).__name__
+        if want is not None:
+            print('::error::PUBLISHER_CERT_UNREADABLE %s: %s; the package is pinned, so the build stops' % (t['package'], why))
+            return 1
+        print('::notice::PUBLISHER_CERT_UNREADABLE %s: %s' % (t['package'], why))
         return 0
     if want is None:
         print('::notice::PUBLISHER_CERT %s %s (%s; not pinned yet)' % (t['package'], cert, where))
