@@ -158,7 +158,7 @@ def provider_text(b):
             'licence: the LICENSE file at %s)') % (key, b.get('name'), b.get('channel'), home)
 
 
-def write_record(t, added=(), approved=(), note=None, store=None):
+def write_record(t, added=(), approved=(), note=None, store=None, why=None):
     """Create or extend docs/review/onboarding/<id>.md so the onboarding check can pass."""
     RECORDS.mkdir(parents=True, exist_ok=True)
     p = record_path(t['id'])
@@ -180,7 +180,8 @@ def write_record(t, added=(), approved=(), note=None, store=None):
     rows = []
     for n in added:
         if ('- ' + n + ':') not in text:
-            rows.append('- %s: added %s by owner request' % (n, stamp))
+            reason = (why or {}).get(n) if isinstance(why, dict) else None
+            rows.append('- %s: added %s %s' % (n, stamp, reason or 'by owner request'))
     for n in approved:
         if ('Owner approved: ' + n) not in text:
             rows.append('Owner approved: ' + n)
@@ -383,7 +384,13 @@ def cmd_add(a):
     return msg
 
 
-def selection(t):
+def selection(t, bundle=None):
+    """The primary's folder, or (W15b) the folder of the named candidate or extra bundle."""
+    if bundle:
+        found = [b for b in (t.get('candidates') or []) + (t.get('extra_bundles') or []) if b.get('name') == bundle]
+        if len(found) != 1 or not found[0].get('patch_dir'):
+            raise Refused('%s has no single provider named %r with a patch folder' % (t['id'], bundle))
+        return PATCHES / found[0]['patch_dir']
     c = (t.get('candidates') or [None])[0]
     if not c or not c.get('patch_dir'):
         raise Refused('%s has no primary patch folder' % t['id'])
@@ -393,7 +400,7 @@ def selection(t):
 def cmd_patch(a):
     targets, indent = read_json(TARGETS)
     t = find(targets, a.id)
-    d = selection(t)
+    d = selection(t, getattr(a, 'bundle', None))
     inc, exc = lines_of(d / 'include-patches'), lines_of(d / 'exclude-patches')
     have_inc, have_exc = names_in(d / 'include-patches'), names_in(d / 'exclude-patches')
     changes = split_patches(a.patches)
@@ -427,7 +434,7 @@ def cmd_patch(a):
     approved = screen(added, a.approve_confirm)
     write_lines(d / 'include-patches', inc)
     write_lines(d / 'exclude-patches', exc)
-    write_record(t, [n for n in added if list_mode], approved)
+    write_record(t, [n for n in added if list_mode], approved, why=getattr(a, 'why', None))
     return ['%s (%s): %s' % (t.get('label'), d.name, '; '.join(msg))]
 
 
@@ -535,6 +542,8 @@ def main(argv=None):
     p = sub.add_parser('patch')
     p.add_argument('id')
     p.add_argument('--patches', required=True)
+    p.add_argument('--bundle', help='W15b: provider name (candidate or extra bundle); default the primary')
+    p.add_argument('--why', type=json.loads, help='W15b: JSON {"name": "reason"} written into the record')
     p.add_argument('--approve-confirm', action='store_true')
     for name in ('enable', 'disable', 'remove'):
         sub.add_parser(name).add_argument('id')

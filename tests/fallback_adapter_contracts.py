@@ -78,7 +78,8 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
 '''}
         for name,text in programs.items():p=bin/name;p.write_text(text);p.chmod(0o755)
         env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],FIXTURE_KIND=kind,
-                 FIXTURE_FAIL='1' if fail else '0',FIXTURE_MISSING='1' if missing else '0',FIXTURE_ROW=row)
+                 FIXTURE_FAIL='1' if fail else '0',FIXTURE_MISSING='1' if missing else '0',FIXTURE_ROW=row,
+                 PF_TRANSFER_RETRY_WAIT='0')  # W15b: the APKMirror transfer retries once; no real wait in tests
         script='source_alternate.sh' if alternate else 'source_download.sh'
         args=['bash','src/build/'+script,'fixture','2026.38.0']+([store] if alternate else [])
         p=subprocess.run(args,cwd=root,env=env,capture_output=True,text=True,timeout=20)

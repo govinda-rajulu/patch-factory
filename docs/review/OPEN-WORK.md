@@ -1,6 +1,39 @@
 # Open work
 
-## Current checkpoint: 17 October 2026, night IST (packets W15 and H15)
+## Current checkpoint: 20 October 2026, night IST (packet W15b)
+
+W15b (one pull request): #188 bump applied and Dependabot covers composites; #141 receipt bound
+and reasons; transfer and merge reasons; pinned certificate fails closed; council probe per model;
+Selection watch auto-adopt by name and description (pull request, never merged by the bot);
+owner's 33 decisions; agent review honours the offline-unlock list; L062 to L064. Record:
+[SESSION-2026-10-20.md](SESSION-2026-10-20.md). Open, in order:
+
+1. Read the W15b RESULT, then the first adopt pull request the Selection watch opens (expect
+   about 53 older names, 38 for the HushGram fallback) and its test builds; merge or decline.
+2. W15c combos, one onboarding record and one nonpublishing build each: ES File + rushiranpise
+   (`Unlock VIP Lifetime`); Photos + Akash-Sriram (AMOLED dark theme, Flag manager & Toolkit,
+   Media engine & AI fixes; never DCIM & backup control, Official package name, Custom Morphe
+   branding; rushiranpise's own AMOLED stays unchosen so one bundle owns the name); Instagram +
+   kveld9 (AR Effects Slimmer, Block Crash & Diagnostics, Block Telemetry & Trackers) + dawidd612
+   (Keep DM scroll position); Reddit + Alastor-Kaneki (2 download names); Telegram + HushTelegram,
+   one provider per feature (what we ship stays; Use normal paste stays on rushiranpise; Use
+   registered Maps API key, Telegram API credentials, HushTelegram icon and name, Firebase and
+   UnifiedPush wait). Credits come with each.
+3. W15c Truecaller, measured: a nonpublishing build of today's combo, and one with heval99 as
+   the primary (coverage picks its version); move up only if more chosen names apply. Its
+   `Enable Premium` is an account-app unlock: owner decides.
+4. W15c pf-vault (owner B1, C1): owner creates the private repo and one fine-grained token
+   secret first; then every build's inputs and every published APK are copied there, stored once.
+5. Council: dispatch a probe after W15b; wire a second provider per seat only for models the
+   probe shows SERVED (owner 14a). Nemotron 3.5 Super VL is proven by its PROBE_MODEL line.
+6. Facebook: read the SPLIT lines of the next Facebook build (19 Oct merged APK 301,471,185 B,
+   17 Oct 217,689,153 B); the owner installs after that (F3). Cleanup apply only after that.
+7. Close #188 (applied), #184 and #189 (folded into this review); keep #191 (newest report).
+8. Carried from 17 Oct: Obtainium re-import (owner), TDL_BACKUP secret delete (owner), Amazon
+   Music keep building, never the main account; unknown-status items (agent runner pilot,
+   portal SRI, PR53, F05/F06, ES File logo, CLUTTER sections 1, 3 and 4).
+
+## Earlier checkpoint: 17 October 2026, night IST (packets W15 and H15)
 
 W15 merged (#187, main `8148af78`): publish guard (L059), Facebook 583 on Hushfacebook 0.14.0,
 Obtainium tracks the build id, notify identity (L058), Dependabot bump applied and its test fixed,

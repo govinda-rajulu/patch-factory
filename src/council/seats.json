@@ -10,5 +10,15 @@
     {"id": "codestral", "provider": "mistral", "models": ["mistral-large-latest", "codestral-latest", "mistral-small-latest"], "max_input_chars": 120000, "max_tokens": 4000},
     {"id": "command", "provider": "cohere", "models": ["command-a-reasoning-08-2025", "command-a-03-2025"], "max_input_chars": 120000, "max_tokens": 4000},
     {"id": "groq", "provider": "groq", "models": ["qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b"], "max_input_chars": 20000, "max_tokens": 2000, "reasoning_effort": "none", "jobs": ["ask", "probe"]}
-  ]
+  ],
+  "probe_alternates_note": "W15b (20 Oct 2026): candidate backup models on a second provider, measured one call each by probe mode. None is used by a seat until a probe shows it SERVED and a packet wires it in. These ids are candidates, not facts; the probe table is the fact.",
+  "probe_alternates": {
+    "gpt": [{"provider": "groq", "model": "openai/gpt-oss-120b"}, {"provider": "openrouter", "model": "openai/gpt-oss-120b:free"}],
+    "gemini": [{"provider": "openrouter", "model": "google/gemma-4-31b-it:free"}],
+    "nemotron": [{"provider": "openrouter", "model": "nvidia/nemotron-3-super-120b-a12b:free"}],
+    "open": [{"provider": "nvidia", "model": "nvidia/nemotron-3-nano-30b-a3b"}, {"provider": "groq", "model": "qwen/qwen3.8-27b"}],
+    "codestral": [{"provider": "openrouter", "model": "openrouter/free"}],
+    "command": [{"provider": "openrouter", "model": "openrouter/free"}],
+    "groq": [{"provider": "nvidia", "model": "openai/gpt-oss-20b"}]
+  }
 }

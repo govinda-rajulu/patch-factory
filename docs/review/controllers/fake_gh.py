@@ -8,6 +8,8 @@ conclusion}, smoke_log{app: line}, issues{n: state}, pages_state, main, license{
 flows{workflow file: conclusion}, smoke_extra{app: [lines]}, pulls[] (a seeded open pull request follows its branch). W13: provider dispatch input and run names (display_title),
 cleanup apply calls, and the pf-t1 flows (any workflow file, status.json, targets.json).
 W14: release_bodies{id: body} and release edits (PATCH --input); tidy_mangle makes an edit come back different.
+W15b: prs_as_issues[n]: issue n is a pull request (GET shows pull_request; PATCH with state_reason refused; PATCH pulls/n closes);
+pull_rows{n: object}: GET pulls/n for a pull request other than the packet's (prechecks).
 """
 import json, os, sys, pathlib, subprocess as sp
 S = pathlib.Path(os.environ['FAKE_STATE'])
@@ -128,8 +130,14 @@ if p.startswith(R + 'issues/'):
     iss = st.setdefault('issues', {})
     if '/comments' in p and m == 'GET': out(st.setdefault('comments', {}).get(n, []))
     if '/comments' in p and m == 'POST': st.setdefault('comments', {}).setdefault(n, []).append({'body': f['body']}); out({})
-    if m == 'GET': out({'state': iss.get(n, 'open')})
+    is_pr = int(n) in st.get('prs_as_issues', [])
+    if m == 'GET': out(dict({'state': iss.get(n, 'open')}, **({'pull_request': {'url': 'u'}} if is_pr else {})))
+    if m == 'PATCH' and is_pr and 'state_reason' in f: fail('fake gh: state_reason on pull request #%s (W15b knob prs_as_issues)' % n)
     if m == 'PATCH': iss[n] = f['state']; out({'state': f['state']})
+if p.startswith(R + 'pulls/') and m == 'GET' and p[len(R + 'pulls/'):] in st.get('pull_rows', {}):
+    row = dict(st['pull_rows'][p[len(R + 'pulls/'):]]); row['state'] = st.get('issues', {}).get(p[len(R + 'pulls/'):], row.get('state', 'open')); out(row)
+if p.startswith(R + 'pulls/') and m == 'PATCH' and p[len(R + 'pulls/'):].isdigit() and int(p[len(R + 'pulls/'):]) != NUM:
+    n = p[len(R + 'pulls/'):]; st.setdefault('issues', {})[n] = f['state']; st.setdefault('pr_closes', []).append(n); out({'state': f['state']})
 if p.startswith(R + 'deployments') and 'sha=' in p:
     sha = p.split('sha=')[1].split('&')[0]
     st['pages_polls'] = st.get('pages_polls', 0) + 1

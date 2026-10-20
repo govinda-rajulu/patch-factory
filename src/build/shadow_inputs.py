@@ -545,6 +545,17 @@ def publish_receipt(root, ident, env, api=None, upload=None):
     need(len(after) == 1 and api.asset(after[0]) == receipt, "receipt read-back failed; publication is partial")
     return receipt
 
+REASON = re.compile(r"(?:shadow|source|resolved) inputs: [a-z][A-Za-z0-9 ./()_=,;-]{2,160}|"
+                    r"qualified baseline: [a-z][A-Za-z0-9 ./()_=,;-]{2,160}|"
+                    r"release contract: [a-z][A-Za-z0-9 ./()_=,;-]{2,160}")
+
+
+def public_reason(error):
+    """W15b: this module's and its readers' own need() texts, else only the error type."""
+    text = str(error) if isinstance(error, ValueError) else ""
+    return text if REASON.fullmatch(text) else type(error).__name__
+
+
 def main():
     root, env = Path.cwd(), dict(os.environ)
     mode = sys.argv[1] if len(sys.argv) > 1 else ""
@@ -561,7 +572,7 @@ def main():
         else:
             raise ValueError("unknown shadow mode")
         return 0
-    except (ValueError, KeyError, TypeError, OSError, IndexError, subprocess.TimeoutExpired):
+    except (ValueError, KeyError, TypeError, OSError, IndexError, subprocess.TimeoutExpired) as _error:
         # Retain bounded non-secret failure evidence even when capture/reader
         # validation prevents producing a consumed key.
         try:
@@ -579,6 +590,12 @@ def main():
             pass
         print("::warning::shadow evidence unavailable or invalid; no unchanged/baseline success claimed",
               file=sys.stderr)
+        # W15b (L063): the reason was swallowed, so the 19 Oct Facebook and 11 Oct LinkedIn
+        # receipts failed for two different causes behind one identical line. Own need() texts
+        # only (fixed wording plus sanitized names), never upstream or URL text.
+        print("::warning::%s %s: %s" % ("publication receipt not stored" if mode == "receipt" else "shadow " + (mode or "run"),
+                                         sys.argv[2] if len(sys.argv) > 2 and re.fullmatch(r"[a-z0-9-]+", sys.argv[2]) else "-",
+                                         public_reason(_error)), file=sys.stderr)
         return 1
 
 if __name__ == "__main__":

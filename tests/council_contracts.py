@@ -887,5 +887,38 @@ class Council(unittest.TestCase):
         self.assertLess(len(council.agents_limits()), 4000)
 
 
+
+class ProbeEveryModel(unittest.TestCase):
+    """W15b: probe mode calls every listed model and every candidate backup once, sequentially."""
+    def test_every_model_gets_its_own_line(self):
+        c = council
+        cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
+        for seat_id, alts in cfg['probe_alternates'].items():
+            self.assertIn(seat_id, [s['id'] for s in cfg['seats']])
+            for a in alts:
+                self.assertIn(a['provider'], c.PROVIDERS)
+        calls, printed = [], []
+        seat = {'id': 'nemotron', 'provider': 'nvidia', 'models': ['m1', 'm2'], 'max_input_chars': 100, 'max_tokens': 8000}
+        def fake_complete(seat_, model, system, user, env, retry=True, extra=()):
+            calls.append((seat_['provider'], model, seat_['max_tokens'], retry))
+            if model == 'm2':
+                raise c.ModelMissing('model not served (404)')
+            return '{"ready": true}'
+        old = (c.complete, c.convene, c.available_models, c.summary)
+        try:
+            c.complete = fake_complete
+            c.convene = lambda *a, **k: []
+            c.available_models = lambda provider, env: {'m1'}
+            c.summary = lambda env, text: printed.append(text)
+            c.mode_probe({'NVIDIA_API_KEY': 'k'}, [seat], {'probe_alternates': {'nemotron': [{'provider': 'groq', 'model': 'g1'}]}})
+        finally:
+            c.complete, c.convene, c.available_models, c.summary = old
+        self.assertEqual([(p, m) for p, m, _, _ in calls], [('nvidia', 'm1'), ('nvidia', 'm2')])
+        self.assertTrue(all(t <= 2000 and r is False for _, _, t, r in calls))
+        table = printed[0]
+        self.assertIn('| nemotron | nvidia | m1 | SERVED listed=yes |', table)
+        self.assertIn('| nemotron | nvidia | m2 | MISSING listed=no |', table)
+        self.assertIn('| nemotron | groq | g1 | NO_KEY |', table)
+
 if __name__ == '__main__':
     unittest.main()

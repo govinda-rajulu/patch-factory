@@ -1335,12 +1335,45 @@ def mode_triage(env, seats, cfg):
     return upsert(env, number, MARKER['triage'], body)
 
 
+def probe_model(seat, provider, model, env):
+    """W15b: one tiny call to one model; the status says what that provider did with it."""
+    if not env.get(PROVIDERS[provider]['key']):
+        return 'NO_KEY'
+    ids = available_models(provider, env)
+    listed = 'unknown' if ids is None else ('yes' if model in ids else 'no')
+    probe_seat = dict(seat, provider=provider, max_tokens=min(int(seat.get('max_tokens', 6000)), 2000))
+    try:
+        text = complete(probe_seat, model, 'Reply with JSON only.', 'Reply with exactly {"ready": true}', env, retry=False)
+        status = 'SERVED' if 'ready' in strip_think(text) else 'SERVED_ODD_REPLY'
+    except ModelMissing:
+        status = 'MISSING'
+    except Truncated:
+        status = 'CUT'
+    except Busy:
+        status = 'BUSY'
+    except Refused as e:
+        status = 'REFUSED ' + scrub(str(e), env)[:60]
+    return status + ' listed=' + listed
+
+
 def mode_probe(env, seats, cfg):
     canary = secrets.token_hex(8)
     rows = convene(seats, base_system(canary),
                    'Reply with exactly this JSON object: {"summary": "ready", "verdict": "looks_ok", "findings": []}',
                    env, check_review, canary)
-    summary(env, '\n'.join(['### Council probe', ''] + seat_table(rows)))
+    # W15b (owner ask 20 Oct 2026): the seat probe shows only the FIRST model a seat gets, so
+    # "Nemotron 3.5 Super VL is served" could not be proven while Ultra answered first. Every
+    # listed model, and every candidate backup in cfg probe_alternates, gets its own call, one
+    # at a time (L039). Backups are wired in a later packet only for models measured SERVED.
+    lines = ['', '### Every model', '', '| seat | provider | model | status |', '|---|---|---|---|']
+    for seat in seats:
+        pairs = [(seat['provider'], m) for m in seat['models']]
+        pairs += [(a['provider'], a['model']) for a in cfg.get('probe_alternates', {}).get(seat['id'], [])]
+        for provider, model in pairs:
+            status = probe_model(seat, provider, model, env)
+            print('PROBE_MODEL seat=%s provider=%s model=%s status=%s' % (seat['id'], provider, model, status))
+            lines.append('| %s | %s | %s | %s |' % (seat['id'], provider, clean(model, 80), clean(status, 90)))
+    summary(env, '\n'.join(['### Council probe', ''] + seat_table(rows) + lines))
     return '%d of %d seats ready' % (sum(r['status'] == 'OK' for r in rows), len(rows))
 
 

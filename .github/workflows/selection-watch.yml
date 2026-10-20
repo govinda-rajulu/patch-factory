@@ -3,10 +3,13 @@ name: 10. Selection watch
 # A chosen name the provider no longer offers leaves the include list (builds already go
 # without it), provider name baselines are re-seeded, new patches wait for the owner, and a
 # digest of every provider's releases (Morphe included) lands on one standing issue.
-# Nothing is ever added here. See src/etc/selection_watch.py.
+# W15b: new names the src/patches/ADOPT.json rule passes go to one pull request; the bot never merges. See src/etc/selection_watch.py.
 permissions:
   contents: write
   issues: write
+  # W15b: the adopt step opens one pull request and starts Validate and the Onboarding review on it.
+  pull-requests: write
+  actions: write
 on:
   schedule:
     - cron: "11 2 * * *"  # 07:41 IST daily
@@ -24,7 +27,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Set up Java
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: 'zulu'
           java-version: '21'
@@ -53,6 +56,10 @@ jobs:
           retention-days: 30
       - name: Commit removals and baselines to main
         run: python3 src/etc/selection_watch.py apply
+      - name: Open the adopt pull request (never merged by the bot)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 src/etc/selection_watch.py adopt
       - name: Save the digest state (watch-state branch, never main)
         env:
           GH_TOKEN: ${{ github.token }}

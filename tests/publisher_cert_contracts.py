@@ -1,4 +1,4 @@
-"""S2 publisher pins (packet W13): observe when unpinned, refuse a mismatch, pass unreadable."""
+"""S2 publisher pins (packet W13): observe when unpinned, refuse a mismatch; unreadable fails when pinned (W15b)."""
 import json
 import sys
 import tempfile
@@ -52,11 +52,13 @@ class Publisher(unittest.TestCase):
             self.assertIn(pkg, packages)
             self.assertTrue(certs and all(re.fullmatch('[0-9a-f]{64}', c) for c in certs), pkg)
 
-    def test_unreadable_passes(self):
-        self.pins({'com.x': ['a' * 64]})
+    def test_unreadable_fails_when_pinned_and_passes_when_not(self):
+        # W15b (owner, 20 Oct 2026): a pinned package with an unreadable original stops.
         def bad(root, apk, env):
-            raise ValueError('apksigner unavailable')
+            raise ValueError('apksigner failed (exit 1)')
         self.assertEqual(pc.check(self.r, 'x', {}, bad), 0)
+        self.pins({'com.x': ['a' * 64]})
+        self.assertEqual(pc.check(self.r, 'x', {}, bad), 1)
 
     def test_plain_apk_is_read_directly(self):
         (self.r / 'download/x.apkm').unlink()

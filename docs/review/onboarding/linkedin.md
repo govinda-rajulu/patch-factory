@@ -5,6 +5,7 @@ Source APK: https://www.apkmirror.com/uploads/?appcategory=linkedin-linkedin
 Provider: heyymichii/michii-patches (heyymichii, channel prerelease; bundle: the one .mpp asset of the newest release on that channel; licence: GPL-3.0, the LICENSE file at https://github.com/heyymichii/michii-patches/blob/dev/LICENSE, read 2026-10-08)
 
 ## Patches
+- Material You: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
 - Block tracking: added 2026-10-08 by owner request
 - Disable double-tap like: added 2026-10-08 by owner request
 - Download media: added 2026-10-08 by owner request

@@ -6,7 +6,18 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 17 Oct 2026, night IST (packets W15 and H15; start here)
+## 20 Oct 2026, night IST (packet W15b; start here)
+
+- **Main** `40ad4f61` (H15 #190 plus bot commits) plus W15b once merged.
+- **W15b**: #188 applied (Dependabot covers `.github/actions/*`), #141 fixed (1 GiB bound,
+  receipt reasons, split list), transfer and merge reasons, pinned cert fails closed, council
+  probe per model, Selection watch auto-adopt (src/patches/ADOPT.json; pull request, never
+  merged by the bot), the owner's 33 decisions, agent review offline-unlock list, L062 to L064.
+  Record `docs/review/SESSION-2026-10-20.md`.
+- **Next**: OPEN-WORK 20 Oct, in order: W15b RESULT and the first adopt pull request, then W15c
+  (provider combos, Truecaller measured, pf-vault after the owner's token).
+
+## 17 Oct 2026, night IST (packets W15 and H15)
 
 - **Main** `8148af78` (W15 #187, tree `dfacad0c`) plus H15 (records) once merged, plus bot commits.
 - **W15**: publish guard (L059), Facebook 583.0.0.39.55 on Hushfacebook 0.14.0 (pin 475614366;

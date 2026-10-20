@@ -6,6 +6,8 @@ Provider: SysAdminDoc/HushFacebook (licence: GPL-3.0, bundle: the one .mpp asset
 Provider: RookieEnough/De-Vanced (fallback only, packet W13; licence: GPL-3.0, the same repository the Amazon Music record cites; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Built only when a Hushfacebook build fails, on Facebook 580.0.0.51.74 (version code 475019344, 240-640dpi): its own pins, so the 581 pins above stay Hushfacebook's. Patches: src/patches/facebook-derevanced (Disable all ads, Disable analytics and telemetry, Messenger install compatibility; Change package name excluded).
 
 ## Patches
+- Open comments at full height: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
+- Open comments with a gesture: added 2026-10-20 by owner decision, 20 Oct 2026 (packet W15b; Selection watch #182 list; the adopt rule passes it too)
 W13 (10 Oct 2026): Hushfacebook 0.9.0 supports only Facebook 582.0.0.50.54 (its CHANGELOG: "Hushfacebook now targets Facebook 582.0.0.50.54 only"), so the pins move to 582; the 581 build stays published until the 582 build replaces it.
 Names exactly as the patcher listed them in Explore run 37976702866 (issue #173): 85 patches, 82 included.
 

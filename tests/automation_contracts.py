@@ -90,6 +90,20 @@ class ActionPins(unittest.TestCase):
         spec = (ROOT / 'docs/council/AGENT-SPEC.md').read_text(encoding='utf-8')
         self.assertIn('Never suppress, never "impossible"', spec)
 
+    def test_dependabot_covers_every_composite_action(self):
+        """W15b (#188): Dependabot bumped setup-java in 6 workflows but not in the composite
+        .github/actions/preparing, so Validate #411 failed on mixed pins. Every composite folder
+        must sit under a Dependabot directory, and no single 'directory' line may hide them."""
+        import fnmatch
+        dep = (ROOT / '.github/dependabot.yml').read_text(encoding='utf-8')
+        self.assertNotIn('\n    directory: ', dep)
+        dirs = re.findall(r'(?m)^\s+- "(/[^"]*)"\s*$', dep.split('directories:', 1)[1].split('schedule:', 1)[0])
+        self.assertIn('/', dirs)
+        composites = sorted('/' + str(p.parent.relative_to(ROOT)) for p in (ROOT / '.github/actions').glob('*/action.yml'))
+        self.assertTrue(composites)
+        missing = [c for c in composites if not any(fnmatch.fnmatch(c, d) for d in dirs if d != '/')]
+        self.assertEqual(missing, [])
+
     def test_dependabot_asks_for_no_missing_label(self):
         self.assertNotIn('labels:', (ROOT / '.github/dependabot.yml').read_text(encoding='utf-8'))
 

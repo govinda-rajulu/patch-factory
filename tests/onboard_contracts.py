@@ -219,5 +219,22 @@ class Workflow(unittest.TestCase):
         self.assertIn("needs.record.outputs.head_repo != github.repository", self.TEXT)
 
 
+
+class OwnerPolicy(unittest.TestCase):
+    """W15b: the offline-unlock list reaches the reviewers from the base commit only."""
+    def test_policy_comes_from_base_not_head(self):
+        import tempfile, json as j
+        with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+            for root, apps in ((a, ['esfile']), (b, ['esfile', 'telegram'])):
+                (Path(root) / 'src/patches').mkdir(parents=True)
+                (Path(root) / 'src/patches/ADOPT.json').write_text(j.dumps({'paid_ok_targets': apps}))
+                (Path(root) / 'src/targets.json').write_text('[]')
+            m = onboard_check.manifest(a, b)
+        self.assertEqual(m['owner_policy']['paid_unlock_ok_offline_apps'], ['esfile'])
+
+    def test_prompt_names_the_exception(self):
+        text = (ROOT / 'docs/council/ONBOARD.md').read_text(encoding='utf-8')
+        self.assertIn('owner_policy.paid_unlock_ok_offline_apps', text)
+
 if __name__ == '__main__':
     unittest.main()
