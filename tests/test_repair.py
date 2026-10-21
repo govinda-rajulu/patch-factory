@@ -188,7 +188,28 @@ class Repair(unittest.TestCase):
         lines = text.splitlines()
         self.assertEqual(len(lines), 2)
         self.assertEqual(lines[0], 'preserved=yes')
-        self.assertEqual(json.loads(lines[1].removeprefix('matrix=')), {'target': ids})
+        # W15c: longest build first; exactly the requested apps.
+        got = json.loads(lines[1].removeprefix('matrix='))['target']
+        self.assertEqual(sorted(got), sorted(ids))
+        minutes = json.loads((self.r/'src/etc/build-minutes.json').read_text())['minutes']
+        self.assertEqual(got, sorted(ids, key=lambda i: (-minutes.get(i, float('inf')), ids.index(i))))
+        self.assertEqual(got[0], max(ids, key=lambda i: minutes.get(i, float('inf'))))
+
+    def test_batch_unknown_app_starts_first_and_bad_minutes_keep_request_order(self):
+        targets = json.loads((self.r/'src/targets.json').read_text())
+        ids = [t['id'] for t in targets if t['enabled']]
+        minutes = json.loads((self.r/'src/etc/build-minutes.json').read_text())
+        short = min(minutes['minutes'], key=minutes['minutes'].get)
+        del minutes['minutes'][short]
+        self.put('src/etc/build-minutes.json', json.dumps(minutes))
+        result, text = self.batch_probe(','.join(ids))
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        self.assertEqual(json.loads(text.splitlines()[1].removeprefix('matrix='))['target'][0], short)
+        self.put('src/etc/build-minutes.json', '{"minutes": {"youtube": -1}}')
+        result, text = self.batch_probe(','.join(ids))
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+        self.assertEqual(json.loads(text.splitlines()[1].removeprefix('matrix='))['target'], ids)
+        self.assertIn('requested order kept', result.stdout)
 
     def test_batch_invalid_requests_never_append_outputs(self):
         for raw in ('', ' ', ',', 'youtube,', ',youtube', 'youtube,,reddit',

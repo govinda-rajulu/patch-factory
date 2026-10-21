@@ -39,9 +39,19 @@ if any(ident not in known for ident in want): stop("unknown requested target id"
 if any(not known[ident] for ident in want): stop("disabled target requested")
 dest = os.environ.get("GITHUB_OUTPUT")
 if not dest: stop("GITHUB_OUTPUT missing")
-matrix = json.dumps({"target": want}, separators=(",", ":"))
+import sys
+sys.path.insert(0, "src/etc")
+import run_order  # W15c: longest build first; the same apps, only the order changes
+try:
+    run = run_order.order(".", want)
+except ValueError:
+    run = want
+    print("::warning::batch plan: build-minutes.json unreadable; requested order kept")
+if sorted(run) != sorted(want): stop("run order changed the set of apps")
+matrix = json.dumps({"target": run}, separators=(",", ":"))
 # Validate the complete plan before appending any output; no shared /tmp file.
 with open(dest, "a", encoding="utf-8") as stream:
     stream.write("matrix=" + matrix + "\n")
-print("planned " + str(len(want)) + " target(s): " + matrix)
+print("requested order: " + ",".join(want))
+print("planned " + str(len(want)) + " target(s), longest first: " + matrix)
 PY

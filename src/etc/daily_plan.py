@@ -133,7 +133,16 @@ def main(root=None, environment=None):
         wanted = collect(root, ids, environment)
         need(regular_bytes(config, MAX_CONFIG) == data,
              "target configuration changed during polling")
-        emit(output, wanted)
+        # W15c (21 Oct 2026): longest build first; the same apps, only the order changes.
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        try:
+            import run_order
+            ordered = run_order.order(root, wanted)
+        except (ImportError, ValueError):
+            ordered = wanted
+            print("::warning::daily plan: run order unavailable; configured order kept")
+        need(sorted(ordered) == sorted(wanted), "run order changed the set of apps")
+        emit(output, ordered)
         return 0
     except (PlanError, OSError, UnicodeError, json.JSONDecodeError, RecursionError):
         print("::error::daily plan refused invalid or incomplete inputs; "

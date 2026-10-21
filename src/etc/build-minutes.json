@@ -1,0 +1,22 @@
+{
+ "_note": "Measured job minutes per app, used only to start the longest builds first (W15c, 21 Oct 2026). Seeded from Batch run 39481109866 (20 Oct, 17 apps, max-parallel 6): first to last log line of each job. An app not listed starts first (unknown counts as long). Order changes speed only, never what is built.",
+ "minutes": {
+  "facebook": 6.56,
+  "instagram": 6.03,
+  "hotstar": 5.09,
+  "edge": 3.94,
+  "linkedin": 3.94,
+  "primevideo": 3.31,
+  "reddit": 3.14,
+  "youtube": 3.09,
+  "photos": 2.93,
+  "telegram": 2.91,
+  "truecaller-combo": 2.87,
+  "keymapper": 2.63,
+  "ytmusic": 2.6,
+  "amazonmusic": 2.16,
+  "esfile": 2.14,
+  "mxplayer": 2.06,
+  "adguard": 1.91
+ }
+}

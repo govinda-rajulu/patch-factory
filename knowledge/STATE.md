@@ -6,7 +6,16 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 20 Oct 2026, night IST (packet W15b; start here)
+## 21 Oct 2026, morning IST (packet W15c; start here)
+
+- **Main** `0119e54f` (W15b #193 `79f619ec` plus a bot commit) plus W15c once merged.
+- **W15c**: publisher pin at source preparation, adopt waits on a pending branch, longest build
+  first, parallel smoke builds, audit. Record `docs/review/SESSION-2026-10-21.md`, audit
+  `docs/review/AUDIT-2026-10-21.md`, L066 and L067.
+- **Next**: OPEN-WORK 21 Oct: owner allows Actions pull requests, W15d signing isolation
+  (owner yes), W15e tool pins, then speed items and combos.
+
+## 20 Oct 2026, night IST (packet W15b)
 
 - **Main** `40ad4f61` (H15 #190 plus bot commits) plus W15b once merged.
 - **W15b**: #188 applied (Dependabot covers `.github/actions/*`), #141 fixed (1 GiB bound,

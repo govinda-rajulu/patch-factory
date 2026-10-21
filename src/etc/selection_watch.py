@@ -469,7 +469,19 @@ def adopt(root, out, repo, runner=None, stamp=None):
     if open_adopt:
         print('SELECTION_ADOPT waiting: pull request #%s is still open; one at a time' % open_adopt[0]['number'])
         return 0
+    # W15c (20 Oct 2026): run 39485415276 pushed adopt/2026-10-20-39485415276 and GitHub refused
+    # the pull request (the repository did not let Actions create pull requests). A branch with
+    # no pull request at all is still pending: open its pull request now, or wait on it; never
+    # push a second branch.
     stamp = stamp or datetime.date.today().isoformat()
+    heads = run(['git', 'ls-remote', '--heads', 'origin', 'refs/heads/adopt/*'])
+    for line in (heads.stdout or '').splitlines() if heads.returncode == 0 else []:
+        name = line.split('refs/heads/', 1)[-1].strip()
+        if not name.startswith('adopt/'):
+            continue
+        seen = run(['gh', 'pr', 'list', '--repo', repo, '--state', 'all', '--head', name, '--json', 'number'])
+        if seen.returncode == 0 and json.loads(seen.stdout or '[]') == []:
+            return open_and_check(root, out, repo, run, name, picks, stamp, pending=True)
     branch = 'adopt/%s-%s' % (stamp, os.environ.get('GITHUB_RUN_ID', 'local'))
     groups = {}
     for w in picks:
@@ -495,13 +507,31 @@ def adopt(root, out, repo, runner=None, stamp=None):
         if r.returncode != 0:
             print('::warning::SELECTION_ADOPT %s failed: %s' % (cmd[1], (r.stderr or r.stdout)[-300:]))
             return 1
+    return open_and_check(root, out, repo, run, branch, picks, stamp)
+
+
+def open_and_check(root, out, repo, run, branch, picks, stamp, pending=False):
+    groups = {}
+    for w in picks:
+        groups.setdefault((w['target'], w['provider']), []).append(w)
     body = ['Adopted by the Selection watch rule (src/patches/ADOPT.json). The bot never merges this.', '']
+    if pending:
+        body += ['The branch was pushed by an earlier run whose pull request GitHub refused; the list below is today\'s rule output.', '']
     body += ['- %s / %s: `%s`: %s' % (w['target'], w['provider'], w['name'], w['why']) for w in picks]
     r = run(['gh', 'pr', 'create', '--repo', repo, '--base', 'main', '--head', branch,
              '--title', 'adopt: %d new patch name(s), %s' % (len(picks), stamp), '--body', '\n'.join(body)])
     if r.returncode != 0:
-        print('::warning::SELECTION_ADOPT branch %s pushed; GitHub refused the pull request: %s' % (branch, (r.stderr or '')[-200:]))
-        return 1
+        note = ('SELECTION_ADOPT branch %s has no pull request; GitHub refused it: %s. Owner: open it from '
+                'https://github.com/%s/compare/main...%s or allow Actions to create pull requests '
+                '(Settings, Actions, General, Workflow permissions). No second branch is pushed meanwhile.'
+                % (branch, (r.stderr or '').strip()[-160:], repo, branch))
+        print('::warning::' + note)
+        report = out / 'report.md'
+        if report.is_file():
+            with report.open('a', encoding='utf-8') as f:
+                f.write('\n## Adopt waiting\n\n' + note + '\n')
+        # The first refusal is red once, so it is seen; later runs wait on the branch quietly.
+        return 0 if pending else 1
     number = run(['gh', 'pr', 'view', branch, '--repo', repo, '--json', 'number', '--jq', '.number']).stdout.strip()
     for wf, ref, extra in (('validate.yml', branch, []), ('onboard-review.yml', 'main', ['-f', 'pr=' + number])):
         if run(['gh', 'workflow', 'run', wf, '--repo', repo, '--ref', ref] + extra).returncode != 0:

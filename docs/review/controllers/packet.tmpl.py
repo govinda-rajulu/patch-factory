@@ -18,7 +18,8 @@ result line. Phases:
   validate  wait for CHECKS on the packet head (and OPTIONAL checks when they appear);
             any that fails stops before merge
   smoke     one nonpublishing Manual Patch per entry in SMOKE on BRANCH ("app", or
-            "app/provider" to build one provider with its own pins); each must work and print
+            "app/provider" to build one provider with its own pins), all dispatched at once,
+            longest app first, then watched together (W15c); each must work and print
             a COVERAGE line (not COVERAGE_UNAVAILABLE; an any-version provider prints its "any
             app version" line and PATCHES_ALL_OFFERED instead), or nothing merges. Entries also in
             SMOKE_ADVISORY (fallback providers) are recorded as NOTE when they fail, never
@@ -340,35 +341,48 @@ def smoke_runs():
     return found
 
 
+def smoke_order():
+    """W15c (owner, 21 Oct 2026): dispatch every smoke build at once, longest app first
+    (src/etc/build-minutes.json in the packet clone; an app not listed counts as long)."""
+    try:
+        table = json.loads((CLONE / 'src/etc/build-minutes.json').read_text(encoding='utf-8')).get('minutes') or {}
+    except (OSError, ValueError, AttributeError):
+        table = {}
+    rank = lambda t: -float(table.get(t.partition('/')[0], float('inf')) if isinstance(table, dict) else float('inf'))
+    return sorted(SMOKE, key=lambda t: (rank(t), SMOKE.index(t)))
+
+
 def smoke():
-    """Nonpublishing builds on the packet branch prove the new resolver in CI before the merge."""
+    """Nonpublishing builds on the packet branch prove the new resolver in CI before the merge.
+    All are dispatched first and watched together; two builds of one app still queue behind
+    each other (the patch-<app> concurrency group), so the wait covers that too."""
     R['smoke'] = {}
-    for t in SMOKE:
-        have = smoke_runs().get(t)
-        if have:
-            say('smoke', 'SKIP', '%s: run %s already exists on %s' % (t, have['id'], HEAD[:12]))
-        else:
-            app, _, provider = t.partition('/')
-            cmd = [GH, 'workflow', 'run', 'manual-patch.yml', '--repo', REPO, '--ref', BRANCH, '-f', 'target=' + app, '-f', 'publish=false']
-            code, out, err = run(cmd + (['-f', 'provider=' + provider] if provider else []), timeout=120)
-            if code != 0:
-                stop('smoke', '%s: dispatch failed: %s. Nothing merged.' % (t, (err or out).decode('utf-8', 'replace')[:200]))
-            say('smoke', 'OK', '%s: dispatched a nonpublishing Manual Patch on %s' % (t, BRANCH))
-        end = time.time() + BUILD_WAIT
-        soft = t in SMOKE_ADVISORY
-        while True:
-            r = smoke_runs().get(t)
-            if r and r.get('status') == 'completed':
-                break
-            if time.time() > end:
-                if soft:
-                    R['smoke'][t] = dict(run=(r or {}).get('id'), conclusion='unfinished', advisory=True)
-                    say('smoke', 'NOTE', '%s: advisory, no finished run after %d s (not blocking)' % (t, BUILD_WAIT))
-                    break
-                stop('smoke', '%s: no finished run after %d s. Nothing merged.' % (t, BUILD_WAIT))
-            time.sleep(POLL)
-        if not (r and r.get('status') == 'completed'):
+    have = smoke_runs()
+    for t in smoke_order():
+        if have.get(t):
+            say('smoke', 'SKIP', '%s: run %s already exists on %s' % (t, have[t]['id'], HEAD[:12]))
             continue
+        app, _, provider = t.partition('/')
+        cmd = [GH, 'workflow', 'run', 'manual-patch.yml', '--repo', REPO, '--ref', BRANCH, '-f', 'target=' + app, '-f', 'publish=false']
+        code, out, err = run(cmd + (['-f', 'provider=' + provider] if provider else []), timeout=120)
+        if code != 0:
+            stop('smoke', '%s: dispatch failed: %s. Nothing merged.' % (t, (err or out).decode('utf-8', 'replace')[:200]))
+        say('smoke', 'OK', '%s: dispatched a nonpublishing Manual Patch on %s' % (t, BRANCH))
+    end = time.time() + BUILD_WAIT
+    while True:
+        runs = smoke_runs()
+        if all(runs.get(t) and runs[t].get('status') == 'completed' for t in SMOKE) or time.time() > end:
+            break
+        time.sleep(POLL)
+    for t in SMOKE:
+        r = runs.get(t)
+        soft = t in SMOKE_ADVISORY
+        if not (r and r.get('status') == 'completed'):
+            if soft:
+                R['smoke'][t] = dict(run=(r or {}).get('id'), conclusion='unfinished', advisory=True)
+                say('smoke', 'NOTE', '%s: advisory, no finished run after %d s (not blocking)' % (t, BUILD_WAIT))
+                continue
+            stop('smoke', '%s: no finished run after %d s. Nothing merged.' % (t, BUILD_WAIT))
         log = LOGS / ('smoke-%s-%s.log' % (t.replace('/', '-'), r['id']))
         run([GH, 'run', 'view', str(r['id']), '--repo', REPO, '--log'], timeout=300, out=log)
         text = log.read_bytes().decode('utf-8', 'replace') if log.exists() else ''
@@ -408,9 +422,8 @@ def close_issues():
     for number, text in CLOSE:
         phase = 'close'
         issue = must('repos/%s/issues/%d' % (REPO, number), phase)
-        if issue.get('state') == 'closed':
-            say(phase, 'SKIP', '#%d already closed' % number)
-            continue
+        # W15c: "Closes #N" in a packet body closes N at the merge, before this phase (#188 on
+        # 20 Oct closed with no comment). The comment still goes on; only the close is skipped.
         mark = '[pf-%s-close-%d]' % (PACKET, number)
         comments = must('repos/%s/issues/%d/comments?per_page=100' % (REPO, number), phase)
         if any(mark in (c.get('body') or '') for c in comments):
@@ -418,6 +431,9 @@ def close_issues():
         else:
             must('repos/%s/issues/%d/comments' % (REPO, number), phase, 'POST', dict(body=mark + '\n\n' + text))
             say(phase, 'OK', 'comment posted on #%d' % number)
+        if issue.get('state') == 'closed':
+            say(phase, 'SKIP', '#%d already closed' % number)
+            continue
         if issue.get('pull_request'):
             # W15b: a pull request (Dependabot #188 applied in a packet) closes through the pulls
             # endpoint; state_reason belongs to issues only.
