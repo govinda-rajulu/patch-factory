@@ -80,13 +80,16 @@ runs:
         fi
     - name: Set up Python
       if: inputs.install_python_deps == 'true'
-      uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: '3.x'
     - name: Install Python dependencies
       if: inputs.install_python_deps == 'true'
       shell: bash
-      run: pip install -r ${{ inputs.python_requirements }}
+      # W15d (AUDIT 4): the input reaches the shell through env, never interpolated.
+      env:
+        PF_REQUIREMENTS: ${{ inputs.python_requirements }}
+      run: pip install -r "$PF_REQUIREMENTS"
     - name: Install Bouncy Castle provider for BKS keystore
       if: inputs.install_bouncy_castle == 'true'
       shell: bash

@@ -58,6 +58,7 @@ PURPOSE = {
     'keepalive.yml': 'Keeps scheduled automations from being paused by GitHub.',
     'qualify-baselines.yml': 'Qualifies the build evidence of published releases once the whole build run worked.',
     'selection-watch.yml': 'Selection watch: drops patch names providers stopped offering, lists new ones for you, digests provider releases.',
+    'rule-merge.yml': 'Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green.',
 }
 STEP = {
     'Set up job': 'GitHub starting the job',

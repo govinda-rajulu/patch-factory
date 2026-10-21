@@ -158,7 +158,7 @@ def provider_text(b):
             'licence: the LICENSE file at %s)') % (key, b.get('name'), b.get('channel'), home)
 
 
-def write_record(t, added=(), approved=(), note=None, store=None, why=None):
+def write_record(t, added=(), approved=(), note=None, store=None, why=None, decision=None):
     """Create or extend docs/review/onboarding/<id>.md so the onboarding check can pass."""
     RECORDS.mkdir(parents=True, exist_ok=True)
     p = record_path(t['id'])
@@ -169,9 +169,9 @@ def write_record(t, added=(), approved=(), note=None, store=None, why=None):
         provs = '; '.join(provider_text(b) for b in (t.get('candidates') or []) + (t.get('extra_bundles') or []))
         text = ('# %s (%s)\n\nPackage: %s\nSource APK: %s\nProvider: %s\n\n## Patches\n\n## Risks\n'
                 '- See the agent review on the pull request that adds this record.\n\n'
-                '## Decision\nOwner request through "5. Add target" on %s; merging the pull request is the approval.\n') % (
+                '## Decision\n%s\n') % (
             t.get('label') or t['id'], t['id'], t['package'], store or 'per src/build/helper/apps.json',
-            provs or 'none', stamp)
+            provs or 'none', decision or ('Owner request through "5. Add target" on %s; merging the pull request is the approval.' % stamp))
     for b in (t.get('candidates') or []) + (t.get('extra_bundles') or []):
         key = source_key(b)
         if key not in text:
@@ -434,7 +434,11 @@ def cmd_patch(a):
     approved = screen(added, a.approve_confirm)
     write_lines(d / 'include-patches', inc)
     write_lines(d / 'exclude-patches', exc)
-    write_record(t, [n for n in added if list_mode], approved, why=getattr(a, 'why', None))
+    why = getattr(a, 'why', None)
+    # W15d: a record the adopt rule creates says so; it is not an owner "5. Add target" request.
+    decision = ('Selection watch adopt rule (src/patches/ADOPT.json) on %s; 11. Rule merge merges the pull request '
+                'only when every check, the Onboarding review and every test build are green.' % today()) if why else None
+    write_record(t, [n for n in added if list_mode], approved, why=why, decision=decision)
     return ['%s (%s): %s' % (t.get('label'), d.name, '; '.join(msg))]
 
 

@@ -20,6 +20,7 @@ import github_patcher
 import extra_bundle
 import input_recipe
 import shadow_inputs
+import bundle_version
 
 DOMAIN = "patch-factory/resolved-dependencies/v1"
 # W15b (20 Oct 2026, #141): Facebook 583 merged to 301,471,185 bytes on 19 Oct, past the old
@@ -207,8 +208,8 @@ def prepare(root, ident, env, patcher_fetch=None, run=None, extra_fetch=None):
         body = {"domain": DOMAIN, "schema": 1, "run": run_id, "material": material,
                 "dependency_sha256": input_recipe.digest(material),
                 "bundle_tag": parsed["BUNDLE_TAG"],
-                "patch_version": re.findall(r"[0-9]+(?:[.][0-9]+)+", source.stem)[-1]
-                                 if re.findall(r"[0-9]+(?:[.][0-9]+)+", source.stem) else "unknown",
+                # W15d: the same reader as the downloading path, prerelease suffix kept.
+                "patch_version": bundle_version.version_of(source.name),
                 "extra_provenance": extra_metadata,
                 "state": "RESOLVED_DEPENDENCIES_ONLY",
                 "authority": "shadow-only; no build selection",
@@ -239,7 +240,7 @@ def verify(root, ident, env):
                                   "runtime/OS/transitive closure", "durable published baseline"],
          "lock overstates evidence")
     need(isinstance(doc.get("patch_version"), str) and
-         re.fullmatch(r"(?:unknown|[0-9]+(?:[.][0-9]+)+)", doc["patch_version"]),
+         (doc["patch_version"] == "unknown" or bundle_version.PATTERN.fullmatch(doc["patch_version"])),
          "invalid patch version")
     m = doc["material"]
     need(m["target"] == ident and m["declaration_sha256"] == declaration(root, ident),

@@ -34,9 +34,14 @@ POLL = int(os.environ.get('PF_POLL', '30'))
 BUILD_WAIT = int(os.environ.get('PF_BUILD_WAIT', '9000'))
 WAIT = int(os.environ.get('PF_WAIT', '3600'))
 JOB = re.compile(r'(?:^|/ )Patch ([a-z0-9][a-z0-9-]*)$')
-FLOWS = [('provider', 'agent-watch.yml', '6. Provider watch'), ('nightly', 'watch.yml', '7. Nightly watch'),
+FLOWS = [('provider', 'agent-watch.yml', '6. Provider watch'),
          ('community', 'community-watch.yml', '8. Community watch'), ('tooling', 'tooling-watch.yml', 'Tooling watch'),
-         ('selection', 'selection-watch.yml', '10. Selection watch')]
+         ('selection', 'selection-watch.yml', '10. Selection watch'),
+         # W15d: right after the Selection watch, so a fresh adopt pull request gets its first RULE_MERGE line.
+         ('rulemerge', 'rule-merge.yml', '11. Rule merge'),
+         # W15d: the Nightly watch last. Its name check fails on names a provider dropped until the
+         # Selection watch has taken them out (21 Oct: HushGram dropped two, #203).
+         ('nightly', 'watch.yml', '7. Nightly watch')]
 
 STAMP = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
 HOME = pathlib.Path(os.environ.get('PF_HOME', str(pathlib.Path.home())))
@@ -93,6 +98,19 @@ def raw(path, phase):
     return out.decode('utf-8', 'replace')
 
 
+BOT = 'github-actions[bot]'
+
+
+def bot_only(old, new):
+    """W15d: main moved past PF_MAIN by watch commits only (Selection or Community watch on a
+    schedule GitHub ran late). Every commit between must be the workflow bot's."""
+    cmp = must('repos/%s/compare/%s...%s' % (REPO, old, new), 'gate')
+    commits = cmp.get('commits') or []
+    return (cmp.get('status') == 'ahead' and 0 < len(commits) == cmp.get('total_commits', len(commits))
+            and all((c.get('author') or {}).get('login') == BOT and (c.get('committer') or {}).get('login') == BOT
+                    for c in commits))
+
+
 def gate():
     code, out, err = run([GH, 'auth', 'status'], timeout=60)
     if code != 0:
@@ -102,14 +120,16 @@ def gate():
     main = must('repos/%s/branches/main' % REPO, 'gate')['commit']['sha']
     first = SINCE_FILE.read_text(encoding='utf-8').split() if SINCE_FILE.is_file() else []
     rerun = len(first) == 2 and first[1] == MAIN
-    if main != MAIN and not rerun:
+    bots = main != MAIN and not rerun and bot_only(MAIN, main)
+    if main != MAIN and not rerun and not bots:
         stop('gate', 'MAIN_MOVED: live main %s is not PF_MAIN %s. Nothing dispatched.' % (main[:12], MAIN[:12]))
     targets = json.loads(raw('repos/%s/contents/src/targets.json?ref=%s' % (REPO, main), 'gate'))
     apps = [t['id'] for t in targets if t.get('enabled') is True]
     if not apps:
         stop('gate', 'no enabled app in src/targets.json')
     R.update(main=main, enabled=apps, since=since())
-    note = '' if main == MAIN else ' (rerun: main moved since the first attempt, e.g. a watch snapshot)'
+    note = '' if main == MAIN else (' (bot watch commits on top of PF_MAIN)' if bots else
+                                     ' (rerun: main moved since the first attempt, e.g. a watch snapshot)')
     say('gate', 'OK', 'main %s%s, %d enabled apps: %s' % (main[:12], note, len(apps), ', '.join(apps)))
     return main, apps
 

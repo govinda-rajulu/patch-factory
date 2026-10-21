@@ -1,5 +1,29 @@
 # Open work
 
+## Current checkpoint: 21 October 2026, midday IST (packet W15d)
+
+W15c merged (#199, `73d85522`; T1 0 findings). W15d: exact bundle version on release pages,
+11. Rule merge (owner yes: green rule pull requests merge themselves), reserved names, honest
+adopt records, #202 closed, history audit. Record: [SESSION-2026-10-21.md](SESSION-2026-10-21.md),
+[HISTORY-AUDIT-2026-10-21.md](HISTORY-AUDIT-2026-10-21.md). Open, in order:
+
+1. Next Selection watch (07:41 IST, or the W15d T1 run): fresh adopt pull request under the
+   corrected rule; read the RULE_MERGE line (merge, wait or refuse with its reason) and the
+   SELECTION_APPLY line (it should commit now that merged packet branches no longer pause it).
+2. W15e signing isolation (owner yes 21 Oct): patch job with no secrets and a read-only token;
+   sign and publish in a separate job (AUDIT 1).
+3. W15f combo planner: reads every provider in bundles.json, picks the best version and combo
+   per app, opens a pull request with test builds; Rule merge merges it when green. First data:
+   MX Player 2.2.4 with FTL plus MightyMich `Unlock MX Player Pro` (Paresh's licence patch works
+   only on 1.93.4), ES File plus rushiranpise `Unlock VIP Lifetime`, then items 2 and 3 of 20 Oct.
+   Must-have names per app; a "missing this build" line on the shelf; retire or regenerate
+   UNREVIEWED.tsv.
+4. Tool pins and release-notes watch (AUDIT 2), speed items, community summary. (AUDIT 4 done in W15d.)
+5. pf-vault (owner creates the repository and token first). CodeRabbit (owner installs the app; optional).
+6. Facebook: owner installs 583 from the HushFacebook 0.16.1 release
+   (`facebook-v583.0.0.39.55-b2026102100000000039643492486000001`), never the 0.16.0 one (it closes
+   Facebook when comments open), then cleanup apply (preview 55 releases, 21 Oct).
+
 ## Current checkpoint: 21 October 2026, morning IST (packet W15c)
 
 W15b merged (#193, `79f619ec`). W15c: publisher pin at preparation, adopt waits on a pending
