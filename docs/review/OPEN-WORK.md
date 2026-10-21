@@ -1,5 +1,24 @@
 # Open work
 
+## Current checkpoint: 21 October 2026, morning IST (packet W15c)
+
+W15b merged (#193, `79f619ec`). W15c: publisher pin at preparation, adopt waits on a pending
+branch, longest build first, parallel smoke, audit. Record: [SESSION-2026-10-21.md](SESSION-2026-10-21.md),
+[AUDIT-2026-10-21.md](AUDIT-2026-10-21.md). Open, in order:
+
+1. Owner: allow Actions to create pull requests; then the pending adopt branch
+   `adopt/2026-10-20-39485415276` (about 53 names) gets its pull request; read it and its builds.
+2. W15d, owner yes first: patch with no secrets, sign and publish in a separate job (AUDIT 1).
+3. W15e: pin morphe-desktop and every bundle by sha256; Tooling watch bump pull request with new
+   and removed CLI options and a test build (AUDIT 2).
+4. AUDIT 4 hardening (nointerp coverage, ci.yml plan scopes, preparing action input).
+5. Speed: containers in the background, LinkedIn shadow step-down, Amazon Music resolver,
+   shared per-run inputs packet (AUDIT speed).
+6. Community watch: one short summary instead of raw comment chunks.
+7. Combos, Truecaller measured, pf-vault: items 2 to 4 of the 20 Oct checkpoint below.
+8. Facebook: sizes explained (in-app browser splits); owner installs 583, then cleanup apply.
+   Dropping a split only after a phone test.
+
 ## Current checkpoint: 20 October 2026, night IST (packet W15b)
 
 W15b (one pull request): #188 bump applied and Dependabot covers composites; #141 receipt bound

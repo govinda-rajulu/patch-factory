@@ -370,3 +370,14 @@ Tags: tests, gates
 The adopt test expected the branch adopt/<date>-local; Actions sets GITHUB_RUN_ID, so 3. Validate went red
 on the W15b pull request while the local suite passed. Tests pin what they read from the environment, and
 suite.sh exports the Actions variables so the local gate sees what the runner sees (W15b, 20 Oct).
+
+### L066 · A fail-closed rule is checked on every path that feeds it
+Tags: gates, signing
+W15b made an unreadable pinned certificate stop the build. The prepared-source path only carries the merged
+APK, whose bytes no longer match the original signature, so 2. Check new patch went red on Facebook. Before
+a rule turns strict, list every caller and the input each one really has (W15c, 21 Oct).
+
+### L067 · A bot step that can be refused keeps no daily side effect
+Tags: automation
+The adopt step pushed a branch, then GitHub refused the pull request; the next day it would push another.
+A side effect waiting on a refusal is found again and reused, never repeated (W15c, 21 Oct).

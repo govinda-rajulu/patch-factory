@@ -51,7 +51,8 @@ class FallbackProvenance(unittest.TestCase):
 
     def prepare(self):
         self.f.f.prepare('keymapper')
-        return source.prepare(self.root,'keymapper',self.f.env,self.downloader,lambda *args:self.f.meta)
+        # W15c: prepare checks the publisher pin; test_source_inputs and publisher_cert_contracts cover it.
+        return source.prepare(self.root,'keymapper',self.f.env,self.downloader,lambda *args:self.f.meta,publisher=lambda *a:0)
 
     def consume(self):
         doc=self.prepare()

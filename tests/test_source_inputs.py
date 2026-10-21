@@ -31,6 +31,10 @@ class SourceContracts(unittest.TestCase):
         self.ident = 'keymapper'
         self.meta = dict(package='io.github.sds100.keymapper', version_name='4.2.1', version_code='42', min_sdk=29)
         self.fetches = 0
+        # W15c: prepare checks the publisher pin on the original download; the rule itself is
+        # covered by publisher_cert_contracts, so these fixtures answer like a pinned match.
+        self.publisher_calls = []
+        self.publisher = lambda root, ident, env: (self.publisher_calls.append(ident), 0)[1]
 
     def downloader(self, args, **kwargs):
         self.assertEqual(args, ['bash', 'src/build/source_download.sh', self.ident, '4.2.1'])
@@ -46,7 +50,7 @@ class SourceContracts(unittest.TestCase):
 
     def prepare(self):
         self.dep = self.f.prepare(self.ident)
-        return source.prepare(self.r, self.ident, self.env, self.downloader, lambda *a: self.meta)
+        return source.prepare(self.r, self.ident, self.env, self.downloader, lambda *a: self.meta, publisher=self.publisher)
 
     def consumer(self):
         self.doc = self.prepare()
@@ -58,6 +62,21 @@ class SourceContracts(unittest.TestCase):
 
     def reseal(self, doc):
         (self.r / source.LOCK).write_bytes(input_recipe.canonical(shadow.seal({k:v for k,v in doc.items() if k != 'sha256'})))
+
+    def test_prepare_checks_the_publisher_on_the_original_download(self):
+        # W15c (20 Oct 2026): Check new patch run 39483060645 read the pin from the merged copy.
+        self.dep = self.f.prepare(self.ident)
+        with self.assertRaisesRegex(ValueError, 'publisher certificate refused'):
+            source.prepare(self.r, self.ident, self.env, self.downloader, lambda *a: self.meta,
+                           publisher=lambda root, ident, env: 1)
+        self.assertFalse((self.r / 'source-inputs').exists())
+        self.assertEqual(self.prepare_again(), [self.ident])
+
+    def prepare_again(self):
+        import shutil
+        shutil.rmtree(self.r / 'download')
+        source.prepare(self.r, self.ident, self.env, self.downloader, lambda *a: self.meta, publisher=self.publisher)
+        return self.publisher_calls
 
     def test_exact_prepare_verify_install_consume_without_second_download(self):
         doc = self.consumer()
@@ -104,7 +123,7 @@ class SourceContracts(unittest.TestCase):
     def test_preparation_failure_has_no_packet_and_preserves_existing_files(self):
         self.f.prepare()
         p=self.r/'download';p.mkdir();(p/'keep').write_bytes(b'keep')
-        with self.assertRaises(ValueError):source.prepare(self.r,self.ident,self.env,self.downloader,lambda *a:self.meta)
+        with self.assertRaises(ValueError):source.prepare(self.r,self.ident,self.env,self.downloader,lambda *a:self.meta,publisher=self.publisher)
         self.assertEqual(self.fetches,0);self.assertFalse((self.r/'source-inputs').exists())
         self.assertEqual((p/'keep').read_bytes(),b'keep')
 
@@ -219,11 +238,17 @@ class SourceContracts(unittest.TestCase):
         reader=tools/'aapt2'
         reader.write_text("#!/bin/bash\nprintf \"package: name='io.github.sds100.keymapper' versionCode='42' versionName='4.2.1'\\nsdkVersion:'29'\\n\"\n")
         reader.chmod(0o755)
+        # W15c: prepare reads the publisher pin from the original download (the real check).
+        pin=json.loads((Path(__file__).resolve().parents[1]/'src/build/PUBLISHERS.json').read_text())['io.github.sds100.keymapper'][0]
+        signer=tools/'apksigner'
+        signer.write_text('#!/bin/bash\necho "Signer #1 certificate SHA-256 digest: %s"\n' % pin)
+        signer.chmod(0o755)
         self.f.prepare()
         env=dict(self.env,ANDROID_HOME=str(self.r/'android'))
         result=subprocess.run([sys.executable,'src/build/source_inputs.py','prepare',self.ident],
                               cwd=self.r,env=env,capture_output=True,text=True,timeout=30)
         self.assertEqual(result.returncode,0,result.stderr)
+        self.assertIn('PUBLISHER_CERT io.github.sds100.keymapper %s pinned OK' % pin, result.stdout)
         self.assertEqual(source.verify(self.r,self.ident,self.env)['metadata'],self.meta)
         self.assertTrue((self.r/'source-observation/keymapper.json').exists())
 

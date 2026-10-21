@@ -117,6 +117,28 @@ class DailyPlanTests(unittest.TestCase):
         self.assertEqual((self.root / 'CALLED').read_text(), 'selected\n')
         self.assertIn('matrix={"target":["selected"]}', self.output.read_text())
 
+    def test_longest_build_first_with_the_same_apps(self):
+        # W15c (21 Oct 2026): the build matrix starts the longest apps first.
+        shutil.copyfile(ROOT / 'src/etc/run_order.py', self.root / 'src/etc/run_order.py')
+        (self.root / 'src/etc/build-minutes.json').write_text(json.dumps({'minutes': {'a': 1, 'b': 5}}))
+        self.config.write_text(json.dumps([
+            {'id': 'a', 'enabled': True, 'poll': True},
+            {'id': 'b', 'enabled': True, 'poll': True},
+            {'id': 'new', 'enabled': True, 'poll': True}]))
+        self.poll("printf 'new_patch=1\\n' >> \"$GITHUB_OUTPUT\"\n")
+        self.assertEqual(self.cli().returncode, 0)
+        self.assertIn('matrix={"target":["new","b","a"]}', self.output.read_text())
+
+    def test_missing_run_order_keeps_the_configured_order(self):
+        self.config.write_text(json.dumps([
+            {'id': 'a', 'enabled': True, 'poll': True},
+            {'id': 'b', 'enabled': True, 'poll': True}]))
+        self.poll("printf 'new_patch=1\\n' >> \"$GITHUB_OUTPUT\"\n")
+        result = self.cli()
+        self.assertEqual(result.returncode, 0)
+        self.assertIn('matrix={"target":["a","b"]}', self.output.read_text())
+        self.assertIn('configured order kept', result.stdout)
+
     def test_zero_eligible_targets_is_valid_not_empty_config(self):
         self.config.write_text('[{"id":"off","enabled":false,"poll":true}]')
         self.poll('touch CALLED\nexit 2\n')

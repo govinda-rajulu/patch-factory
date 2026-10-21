@@ -174,4 +174,6 @@ This file keeps only what fits in neither.
 - Every step that may fail prints its own reason; four silent steps hid four causes (W15b, L063).
 - Run a new rule over the real inventory and read its counts before shipping it (W15b, L064).
 - Local gates run with the Actions environment (GITHUB_RUN_ID etc.); a test read it and Validate went red while the suite passed (W15b, L065).
+- Before a rule turns fail-closed, list every caller and the input it really has; the merged copy broke the cert pin (W15c, L066).
+- A bot side effect waiting on a refusal is found again and reused, never repeated daily (W15c, L067).
 - A lesson that is only a note comes back: lesson 8 (1 Oct, Dependabot skips composites) returned as #188 until a test enforced it (W15b).

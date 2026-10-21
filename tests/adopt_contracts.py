@@ -130,6 +130,56 @@ class Adopt(unittest.TestCase):
         self.assertEqual(sw.adopt(ROOT, self.out, 'o/r', self.runner()), 0)
         self.assertEqual(self.calls, [])
 
+    def pending(self, create_code):
+        self.plan([{'target': 'linkedin', 'provider': 'heyymichii', 'name': 'Material You', 'call': 'adopt', 'why': 'rule'}])
+        (self.out / 'report.md').write_text('# report\n')
+        def run(cmd, **k):
+            self.calls.append(cmd)
+            if cmd[:2] == ['git', 'ls-remote']:
+                return subprocess.CompletedProcess(cmd, 0, 'abc\trefs/heads/adopt/2026-10-20-39485415276\n', '')
+            if cmd[:3] == ['gh', 'pr', 'create']:
+                return subprocess.CompletedProcess(cmd, create_code, '', 'GraphQL: GitHub Actions is not permitted' if create_code else '')
+            if cmd[:3] == ['gh', 'pr', 'view']:
+                return subprocess.CompletedProcess(cmd, 0, '43', '')
+            return subprocess.CompletedProcess(cmd, 0, '[]', '')
+        return sw.adopt(ROOT, self.out, 'o/r', run, stamp='2026-10-21')
+
+    def test_a_pushed_branch_without_a_pull_request_waits_and_never_pushes_another(self):
+        # W15c (20 Oct 2026): GitHub refused the bot's pull request; no second branch the next day.
+        self.assertEqual(self.pending(1), 0)
+        self.assertFalse(any(c[:2] == ['python3', 'src/etc/app.py'] or c[:2] == ['git', 'push'] for c in self.calls))
+        text = (self.out / 'report.md').read_text()
+        self.assertIn('adopt/2026-10-20-39485415276 has no pull request', text)
+        self.assertIn('compare/main...adopt/2026-10-20-39485415276', text)
+
+    def test_a_pending_branch_gets_its_pull_request_once_github_allows_it(self):
+        self.assertEqual(self.pending(0), 0)
+        self.assertFalse(any(c[:2] == ['git', 'push'] for c in self.calls))
+        self.assertIn(['gh', 'workflow', 'run', 'validate.yml', '--repo', 'o/r', '--ref', 'adopt/2026-10-20-39485415276'], self.calls)
+        self.assertTrue(any(c[:3] == ['gh', 'pr', 'create'] and 'adopt/2026-10-20-39485415276' in c for c in self.calls))
+
+    def test_the_first_refusal_is_red_once(self):
+        self.plan([{'target': 'linkedin', 'provider': 'heyymichii', 'name': 'Material You', 'call': 'adopt', 'why': 'rule'}])
+        def run(cmd, **k):
+            self.calls.append(cmd)
+            if cmd[:3] == ['gh', 'pr', 'create']:
+                return subprocess.CompletedProcess(cmd, 1, '', 'refused')
+            return subprocess.CompletedProcess(cmd, 0, '[]' if cmd[:3] == ['gh', 'pr', 'list'] else '', '')
+        self.assertEqual(sw.adopt(ROOT, self.out, 'o/r', run, stamp='2026-10-21'), 1)
+        self.assertTrue(any(c[:2] == ['git', 'push'] for c in self.calls))
+
+    def test_a_branch_whose_pull_request_was_closed_or_merged_does_not_block(self):
+        self.plan([{'target': 'linkedin', 'provider': 'heyymichii', 'name': 'Material You', 'call': 'adopt', 'why': 'rule'}])
+        def run(cmd, **k):
+            self.calls.append(cmd)
+            if cmd[:2] == ['git', 'ls-remote']:
+                return subprocess.CompletedProcess(cmd, 0, 'abc\trefs/heads/adopt/old\n', '')
+            if cmd[:3] == ['gh', 'pr', 'list'] and '--head' in cmd:
+                return subprocess.CompletedProcess(cmd, 0, '[{"number": 5}]', '')
+            return subprocess.CompletedProcess(cmd, 0, '[]' if cmd[:3] == ['gh', 'pr', 'list'] else ('42' if cmd[:3] == ['gh', 'pr', 'view'] else ''), '')
+        self.assertEqual(sw.adopt(ROOT, self.out, 'o/r', run, stamp='2026-10-21'), 0)
+        self.assertTrue(any(c[:2] == ['git', 'push'] for c in self.calls))
+
     def test_a_workflow_change_is_never_pushed(self):
         self.plan([{'target': 'linkedin', 'provider': 'heyymichii', 'name': 'Material You', 'call': 'adopt', 'why': 'rule'}])
         rc = sw.adopt(ROOT, self.out, 'o/r', self.runner(fail=lambda c: c[:3] == ['git', 'diff', '--quiet']))

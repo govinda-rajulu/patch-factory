@@ -12,6 +12,8 @@ An unreadable original of a PINNED package fails the build (owner, 20 Oct 2026, 
 14 Oct apksigner refused the Telegram and Facebook downloads with "CHUNKED_SHA256 digest
 mismatch", the file's bytes no longer matched its own signature, and the pin was skipped.
 A package not pinned yet still prints PUBLISHER_CERT_UNREADABLE and passes.
+A prepared source APK of a split app (PF_SOURCE_READY=true, no .apkm/.xapk here) is the
+merged copy; its original was checked by source_inputs.py prepare (W15c, 20 Oct 2026).
 Usage: publisher_cert.py TARGET_ID
 """
 import json
@@ -50,6 +52,11 @@ def check(root, ident, env, signer=identity.original_signer):
     if p.is_file():
         pins = json.loads(p.read_text(encoding='utf-8'))
     want = pins.get(t['package'])
+    d = root / 'download'
+    if (env.get('PF_SOURCE_READY') == 'true' and t.get('apk_type', 'apk') != 'apk' and
+            not any((d / (t['apk_name'] + ext)).is_file() for ext in ('.apkm', '.xapk'))):
+        print('PUBLISHER_CERT %s checked when the source APK was prepared (merged copy here)' % t['package'])
+        return 0
     try:
         with tempfile.TemporaryDirectory() as work:
             apk, where = original(root, t, work)

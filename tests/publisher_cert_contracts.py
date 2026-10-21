@@ -67,5 +67,43 @@ class Publisher(unittest.TestCase):
         self.assertEqual(self.seen, [b'plain'])
 
 
+class Prepared(unittest.TestCase):
+    # W15c (20 Oct 2026): a prepared split app arrives merged; prepare checked its original.
+    setUp_base = Publisher.setUp
+    signer = Publisher.signer
+    pins = Publisher.pins
+
+    def setUp(self):
+        self.setUp_base()
+        (self.r / 'download/x.apkm').unlink()
+        (self.r / 'download/x.apk').write_bytes(b'merged')
+        self.pins({'com.x': ['a' * 64]})
+
+    def kind(self, apk_type):
+        (self.r / 'src/targets.json').write_text(json.dumps([dict(id='x', enabled=True, package='com.x', apk_name='x', apk_type=apk_type)]))
+
+    def test_prepared_bundle_is_not_read_again(self):
+        self.kind('bundle')
+        self.assertEqual(pc.check(self.r, 'x', {'PF_SOURCE_READY': 'true'}, self.signer('b' * 64)), 0)
+        self.assertEqual(self.seen, [])
+
+    def test_prepared_plain_apk_is_still_checked(self):
+        self.kind('apk')
+        self.assertEqual(pc.check(self.r, 'x', {'PF_SOURCE_READY': 'true'}, self.signer('b' * 64)), 1)
+        self.assertEqual(self.seen, [b'merged'])
+
+    def test_unprepared_bundle_without_its_box_is_still_checked(self):
+        self.kind('bundle')
+        self.assertEqual(pc.check(self.r, 'x', {}, self.signer('b' * 64)), 1)
+        self.assertEqual(pc.check(self.r, 'x', {'PF_SOURCE_READY': 'false'}, self.signer('b' * 64)), 1)
+
+    def test_prepared_bundle_with_its_box_reads_the_box(self):
+        self.kind('bundle')
+        with zipfile.ZipFile(self.r / 'download/x.apkm', 'w') as z:
+            z.writestr('base.apk', b'base')
+        self.assertEqual(pc.check(self.r, 'x', {'PF_SOURCE_READY': 'true'}, self.signer('b' * 64)), 1)
+        self.assertEqual(self.seen, [b'base'])
+
+
 if __name__ == '__main__':
     unittest.main()

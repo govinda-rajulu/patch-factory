@@ -97,7 +97,7 @@ def verify(root, ident, env):
     return doc
 
 
-def prepare(root, ident, env, run=None, metadata=None):
+def prepare(root, ident, env, run=None, metadata=None, publisher=None):
     root = Path(root).resolve()
     dep = resolved.verify(root, ident, env)
     t = shadow.target(root, ident)
@@ -120,6 +120,14 @@ def prepare(root, ident, env, run=None, metadata=None):
     meta = {k: observed[k] for k in ("package", "version_name", "version_code", "min_sdk")}
     print(observed_line(meta, before), file=sys.stderr)
     validate_metadata(meta, t)
+    need(before == apk_record(root, relative), "APK changed during inspection")
+    # W15c (20 Oct 2026): the build only receives the merged APK, whose re-packed bytes no
+    # longer match the original signature (Facebook, Check new patch run 39483060645). The
+    # original store download is still here, so the publisher pin is checked now.
+    if publisher is None:
+        import publisher_cert
+        publisher = publisher_cert.check
+    need(publisher(root, ident, clean) == 0, "publisher certificate refused (see the PUBLISHER line)")
     need(before == apk_record(root, relative), "APK changed during inspection")
     need(resolved.verify(root, ident, env) == dep, "dependencies changed during fetch")
     import source_fallback
