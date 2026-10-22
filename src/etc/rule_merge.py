@@ -10,9 +10,12 @@ Merges only when ALL hold, read from the GitHub API on the default branch's own 
   * GitHub reports the pull request mergeable (a conflict cannot heal: the pull request is
     closed with a note and its branch deleted, so the next Selection watch rebuilds it on main);
   * check runs on the head: "Validate targets and scripts" succeeded and nothing failed;
-  * the newest "Onboarding review #N" run, started after the head commit, succeeded;
+  * the newest "Onboarding review #N" run, started after the head commit, succeeded (W15e: or,
+    when no run carries that name, the bot's "Onboarding review: PASS" comment is newer than the head);
   * every app/provider pair the body lists has its own finished, successful nonpublishing
     Manual Patch on the head (the run title names the provider unless it is the primary).
+W15e: a run waits up to PF_RULE_MERGE_PATIENCE seconds while builds or checks are still running,
+because runs the bot starts wake no workflow (L069); the Onboarding review also wakes it.
 Waits while an unmerged packet/* branch exists (a controller gates on the exact main sha).
 Merges with the head sha pinned, so a later push cannot slip in, then starts Validate and the
 status page on main (a push by the workflow token starts no workflow by itself).
@@ -100,13 +103,22 @@ def decide(repo, pr, api, policy, targets=None):
     born = when(api('repos/%s/commits/%s' % (repo, head))['commit']['committer']['date'])
     reviews = [r for r in api('repos/%s/actions/workflows/onboard-review.yml/runs?per_page=50' % repo).get('workflow_runs', [])
                if r.get('display_title') == 'Onboarding review #%d' % n and when(r['created_at']) >= born]
-    if not reviews:
-        return 'wait', 'no Onboarding review run for #%d after the head commit' % n
-    last = max(reviews, key=lambda r: r['created_at'])
-    if last.get('status') != 'completed':
-        return 'wait', 'Onboarding review still running'
-    if last.get('conclusion') != 'success':
-        return 'refuse', 'Onboarding review ended %s: %s' % (last.get('conclusion'), last.get('html_url'))
+    if reviews:
+        last = max(reviews, key=lambda r: r['created_at'])
+        if last.get('status') != 'completed':
+            return 'wait', 'Onboarding review still running'
+        if last.get('conclusion') != 'success':
+            return 'refuse', 'Onboarding review ended %s: %s' % (last.get('conclusion'), last.get('html_url'))
+    else:
+        # W15e (L069): runs named before the quoting fix read "Onboarding review" only.
+        said = [c for c in (api('repos/%s/issues/%d/comments?per_page=100' % (repo, n)) or [])
+                if (c.get('user') or {}).get('login') == BOT and '## Onboarding review:' in (c.get('body') or '')
+                and when(c.get('updated_at') or c['created_at']) >= born]
+        if not said:
+            return 'wait', 'no Onboarding review run for #%d after the head commit' % n
+        verdict = max(said, key=lambda c: c.get('updated_at') or c['created_at'])['body']
+        if '## Onboarding review: PASS' not in verdict:
+            return 'refuse', 'the newest Onboarding review comment is not PASS'
     runs = api('repos/%s/actions/workflows/manual-patch.yml/runs?event=workflow_dispatch&head_sha=%s&per_page=50'
                % (repo, head)).get('workflow_runs', [])
     for target, provider in sorted({(t, p) for t, p, _ in rows}):
@@ -136,7 +148,23 @@ def note(repo, number, why, api):
     return True
 
 
-def run(repo, api=gh_api, dispatch=None, policy=None, targets=None):
+RUNNING = ('still running', 'no test build', 'no successful', 'has not computed', 'no Onboarding review')
+
+
+def run(repo, api=gh_api, dispatch=None, policy=None, targets=None, patience=None, sleep=None):
+    patience = int(os.environ.get('PF_RULE_MERGE_PATIENCE', '0')) if patience is None else patience
+    sleep = sleep or __import__('time').sleep
+    waited = 0
+    while True:
+        merged, waiting = one_pass(repo, api, dispatch, policy, targets)
+        if merged or not waiting or waited >= patience:
+            return 0
+        print('RULE_MERGE waiting 60 s for: %s' % '; '.join(waiting))
+        sleep(60)
+        waited += 60
+
+
+def one_pass(repo, api=gh_api, dispatch=None, policy=None, targets=None):
     policy = policy or json.loads((ROOT / 'src/patches/ADOPT.json').read_text(encoding='utf-8'))
     dispatch = dispatch or (lambda wf: subprocess.run(['gh', 'workflow', 'run', wf, '--repo', repo, '--ref', 'main'],
                                                       capture_output=True, timeout=120).returncode)
@@ -153,7 +181,8 @@ def run(repo, api=gh_api, dispatch=None, policy=None, targets=None):
             held.append(ref['ref'].split('refs/heads/', 1)[-1])
     if held:
         print('RULE_MERGE wait: packet branch %s is not merged yet; main stays put until it is' % held[0])
-        return 0
+        return 0, []
+    waiting = []
     for pr in api('repos/%s/pulls?state=open&per_page=50' % repo):
         if not pr['head']['ref'].startswith('adopt/'):
             continue
@@ -169,6 +198,8 @@ def run(repo, api=gh_api, dispatch=None, policy=None, targets=None):
             continue
         if call == 'refuse':
             note(repo, pr['number'], why, api)
+        if call == 'wait' and any(w in why for w in RUNNING):
+            waiting.append('#%d %s' % (pr['number'], why))
         if call != 'merge':
             continue
         api('repos/%s/pulls/%d/merge' % (repo, pr['number']), 'PUT',
@@ -184,7 +215,7 @@ def run(repo, api=gh_api, dispatch=None, policy=None, targets=None):
         for wf in ('validate.yml', 'status.yml'):
             if dispatch(wf) != 0:
                 print('::warning::RULE_MERGE could not start %s on main; run it from the Actions tab' % wf)
-    return 0
+    return merged, waiting
 
 
 if __name__ == '__main__':

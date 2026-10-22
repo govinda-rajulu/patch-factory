@@ -8,6 +8,9 @@ import hashlib
 import html
 import json
 import re
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parent))  # W15e: readable.py lives beside this file
 
 PKG = re.compile(r"[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+")
 REPO = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*")
@@ -242,20 +245,35 @@ def safe(value):
 
 
 def render(report):
-    lines = ["# Community changes: " + report["status"], "",
-             "Compared " + str(report["old_coverage"]["bundles"]) + " -> " +
-             str(report["new_coverage"]["bundles"]) + " providers; " + str(report["event_count"]) + " events.",
-             "Relevant: " + str(report["relevant_events"]) + "; unknown scope: " + str(report["unknown_scope_events"]) + ".",
-             "", *LIMITS, ""]
-    # Full relevant inventory first. No top-N cuts before or after classification.
+    """W15e (owner, 22 Oct 2026): grouped tables; every event is still listed (no top-N cut),
+    OTHER_APPS folded because it is the long one. Style: docs/review/REPORT-STYLE.md."""
+    import collections
+    import readable
+    mine = [e for e in report["events"] if e["relevance"] == "YOUR_APPS"]
+    lines = readable.headline("Community changes", report["status"], len(mine) + len(report["unwired_offers"]))
+    lines += ["Compared " + str(report["old_coverage"]["bundles"]) + " -> " +
+              str(report["new_coverage"]["bundles"]) + " providers; " + str(report["event_count"]) + " events.",
+              "Relevant: " + str(report["relevant_events"]) + "; unknown scope: " + str(report["unknown_scope_events"]) + ".", ""]
+    counts = collections.Counter(e["relevance"] for e in report["events"])
+    lines += readable.table(["Group", "Events", "Meaning"], [
+        ["YOUR_APPS", counts["YOUR_APPS"], "providers or patches for apps you build: read these"],
+        ["UNKNOWN_SCOPE", counts["UNKNOWN_SCOPE"], "the index ties them to no app"],
+        ["OTHER_APPS", counts["OTHER_APPS"], "apps you do not build (folded)"],
+        ["Unwired providers", len(report["unwired_offers"]), "offers for your apps from providers you do not use yet"]])
+    lines += [""] + readable.details("What this report does not prove", ["- " + x for x in LIMITS]) + [""]
+    head = ["Kind", "Provider", "Patch", "Fields", "Apps"]
+    row = lambda e: [safe(e["kind"]), safe(e["provider"]), safe(e["patch"] or "(provider)"),
+                     safe(", ".join(e["changed_fields"])), safe(", ".join(e["packages"]))]
     for relevance in ("YOUR_APPS", "UNKNOWN_SCOPE", "OTHER_APPS"):
-        lines += ["## " + relevance]
-        for event in report["events"]:
-            if event["relevance"] == relevance:
-                lines += ["- " + safe(event["kind"]) + " | " + safe(event["provider"]) + " | " +
-                          safe(event["patch"] or "(provider)") + " | fields: " +
-                          safe(", ".join(event["changed_fields"])) + " | apps: " + safe(", ".join(event["packages"]))]
-    lines += ["", "## Unwired providers for configured apps"]
-    lines += ["- " + safe(row["package"]) + " | " + safe(row["provider"]) + " | review required"
-              for row in report["unwired_offers"]]
+        events = [e for e in report["events"] if e["relevance"] == relevance]
+        lines += ["## " + relevance + " (" + str(len(events)) + ")"]
+        if not events:
+            lines += ["- none", ""]
+            continue
+        rows = readable.table(head, [row(e) for e in events])
+        lines += (readable.details("All %d events" % len(events), rows) if relevance == "OTHER_APPS" else rows) + [""]
+    lines += ["## Unwired providers for configured apps (" + str(len(report["unwired_offers"])) + ")"]
+    lines += readable.table(["App package", "Provider", "Next step"],
+                            [[safe(r["package"]), safe(r["provider"]), "review required"] for r in report["unwired_offers"]]) \
+        if report["unwired_offers"] else ["- none"]
     return "\n".join(lines) + "\n"

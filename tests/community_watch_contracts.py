@@ -537,3 +537,28 @@ class Delivery(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class Supersede(unittest.TestCase):
+    """W15e (owner, 22 Oct 2026): one open community report; older ones close as superseded."""
+    def test_older_open_reports_close_and_others_stay(self):
+        bot = {"login": "github-actions[bot]", "type": "Bot"}
+        rows = [{"id": 1, "number": 206, "title": w.TITLE, "user": bot}, {"id": 2, "number": 201, "title": w.TITLE, "user": bot},
+                {"id": 3, "number": 197, "title": w.TITLE, "user": {"login": "someone", "type": "User"}},
+                {"id": 4, "number": 154, "title": "Council desk", "user": bot}]
+        calls = []
+        def reader(method, path, payload=None):
+            calls.append((method, path, payload))
+            if method == "GET":
+                return rows if path.endswith("page=1") else []
+            return {}
+        closed = w.supersede("repos/" + w.REPO + "/issues", 206, reader)
+        self.assertEqual(closed, 1)
+        self.assertIn(("PATCH", "repos/" + w.REPO + "/issues/201", {"state": "closed", "state_reason": "completed"}), calls)
+        self.assertFalse(any(p.endswith("/206") or p.endswith("/197") or p.endswith("/154") for m, p, _ in calls if m == "PATCH"))
+
+    def test_api_guard_allows_only_the_close_patch(self):
+        with self.assertRaises(ValueError):
+            w.api("PATCH", "repos/" + w.REPO + "/issues/5", {"title": "x"})
+        with self.assertRaises(ValueError):
+            w.api("DELETE", "repos/" + w.REPO + "/issues/5")

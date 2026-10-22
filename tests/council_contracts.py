@@ -50,6 +50,41 @@ LESSON_HASHES = {  # append a line for each new lesson; existing lines never cha
     'L034': 'd2d24ec178f147b0',
     'L035': 'd9d7fad96a862951',
     'L036': '7cea633a30899732',
+    'L037': '97b06b6aeb0ded03',
+    'L038': 'a75fd8c16640284a',
+    'L039': 'ac658fe20c9089c8',
+    'L040': 'ecb0ed8fe6ee0857',
+    'L041': 'c8824139a18bfbd4',
+    'L042': '18501d0ff5aae845',
+    'L043': 'db16e85825ae02e3',
+    'L044': '2f09167046884184',
+    'L045': '8fdf5c6c354fbaaa',
+    'L046': 'adcc2bc42a4f8d2c',
+    'L047': '4f4e83cbf819969f',
+    'L048': 'dbf2ebea706150d1',
+    'L049': '283c0e6111fdcdd6',
+    'L050': '5ea368786e07b12c',
+    'L051': 'b82e6e4b072ade90',
+    'L052': '5edd645d2fd270fd',
+    'L053': '9627ccb69950909e',
+    'L054': '6bf1b9135b0dc4b5',
+    'L055': '7fe16815182935a9',
+    'L056': 'f00a07968ba38da5',
+    'L057': '90b372b38dcdbea4',
+    'L058': 'ca2b0d8f318c1524',
+    'L059': 'a49bc3514d8dcc64',
+    'L060': 'f96b5d80cf85e1e6',
+    'L061': 'd7a4a618c5ff0955',
+    'L062': 'b4a553d69cf90e19',
+    'L063': '56edce234d2d8a8a',
+    'L064': '6d586674e598b6ba',
+    'L065': 'fcea84bc6d747e3a',
+    'L066': '873073102b4019ef',
+    'L067': '9c3d538f0d3b6be6',
+    'L068': '194d450651e34268',
+    'L069': '2d5b878f571739b5',
+    'L070': 'a5ef8ffc59b35fc6',
+    'L071': '1857394a0718e0e6',
 }
 KEYS = {'GITHUB_TOKEN': 'ghs_FAKE_TOKEN_0001', 'GEMINI_API_KEY': 'AIza_FAKE_GEMINI_0002',
         'NVIDIA_API_KEY': 'nvapi-FAKE-NVIDIA-0003', 'OPENROUTER_API_KEY': 'sk-or-v1-FAKE-0004',
@@ -527,7 +562,7 @@ class Council(unittest.TestCase):
                          ['contents: read', 'issues: write', 'pull-requests: write'])
         self.assertEqual(wf.count('secrets.'), 6)
         self.assertEqual(sorted(re.findall(r'secrets\.(\w+)', wf)), sorted(p['key'] for p in council.PROVIDERS.values()))
-        self.assertIn('options: [probe, question, ask, audit, triage]', wf)
+        self.assertIn('options: [probe, question, ask, audit, triage, shift]', wf)
         self.assertIn('          PF_QUESTION: ${{ inputs.question }}\n', wf)
         self.assertIn('          PF_SHARD: ${{ inputs.shard }}\n', wf)
         self.assertIn('    timeout-minutes: 50\n', wf)
@@ -602,9 +637,9 @@ class Council(unittest.TestCase):
 
     def test_audit_parts_pack_in_order_and_name_every_skip(self):
         files = ['src/council/seats.json', 'src/council/shards.json', 'docs/assets/manrope-v4.504.woff2', 'src/council/council.py']
-        parts, skipped = council.audit_parts(files, part_chars=8000, file_max=8000)
+        parts, skipped = council.audit_parts(files, part_chars=16000, file_max=16000)
         self.assertEqual([[r for r, _ in p] for p in parts], [['src/council/seats.json', 'src/council/shards.json']])
-        self.assertEqual(skipped, [('docs/assets/manrope-v4.504.woff2', 'binary'), ('src/council/council.py', 'over 8000 characters')])
+        self.assertEqual(skipped, [('docs/assets/manrope-v4.504.woff2', 'binary'), ('src/council/council.py', 'over 16000 characters')])
         for part in council.audit_parts(council.shard_files(json.loads((ROOT / 'src/council/shards.json').read_text()), 'tests'))[0]:
             self.assertLessEqual(sum(len(council.file_block(r, t)) for r, t in part), council.AUDIT_PART_CHARS)
 
@@ -842,7 +877,7 @@ class Council(unittest.TestCase):
         with self.assertRaises(council.Refused):
             council.desk_job({}, spec, monday)
         wf = (ROOT / '.github/workflows/council.yml').read_text()
-        self.assertEqual(re.findall(r'cron: "([^"]+)"', wf), ['17 3 * * *', '17 15 * * *'])
+        self.assertEqual(re.findall(r'cron: "([^"]+)"', wf), ['17 3 * * *', '17 15 * * *', '17 21 * * *', '17 0 * * *', '17 9 * * *', '17 12 * * *'])
         called = []
         real = council.desk_job
         council.desk_job = lambda c, s, now: called.append(now.tzinfo) or ('probe', {})
@@ -922,3 +957,62 @@ class ProbeEveryModel(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class ReadableFindings(unittest.TestCase):
+    """W15e (owner, 22 Oct 2026): vague findings dropped and counted; low/nit folded."""
+    def test_vague_dropped_minor_folded(self):
+        g = lambda issue, sev, seats=1, fix='x': dict(file='src/a.py', line=3, issue=issue, fix=fix, severity=sev, seats=['s%d' % i for i in range(seats)])
+        found = [g('keytool error may leak the password', 'high'), g('The code does not enforce a rule that AGENTS.md forbids.', 'medium'),
+                 g('multiple statements on one line', 'nit'), g('broad except', 'low', 2)]
+        out, kept = council.findings_block(found, 4, 30)
+        text = '\n'.join(out)
+        self.assertIn('**Findings:** high 1, low 1, nit 1; 1 vague one(s) dropped', text)
+        self.assertNotIn('does not enforce a rule', text)
+        self.assertLess(text.index('broad except'), text.index('<details>'))
+        self.assertGreater(text.index('multiple statements'), text.index('<details>'))
+        self.assertEqual(len(kept), 3)
+
+
+class Personas(unittest.TestCase):
+    """W15e (owner, 22 Oct 2026): every seat has a persona and a solo shift; shifts rotate one seat at a time."""
+    def test_every_seat_has_persona_and_shift(self):
+        cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
+        spec = json.loads((ROOT / 'src/council/shards.json').read_text())
+        ids = {s['id'] for s in spec['shards']}
+        self.assertEqual(sorted(cfg['shift_order']), sorted(s['id'] for s in cfg['seats']))
+        for s in cfg['seats']:
+            self.assertTrue(s['persona']['name'] and s['persona']['voice'] and s['persona']['council_lens'], s['id'])
+            self.assertIn(s['shift']['job'], ('audit', 'triage'))
+            self.assertTrue(set(s['shift']['shards']) <= ids, s['id'])
+            if s['shift']['job'] == 'audit':
+                self.assertTrue(s['shift']['shards'], s['id'])
+
+    def test_shift_slots_rotate_every_seat_and_leave_council_slots(self):
+        import datetime as dt
+        cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
+        spec = json.loads((ROOT / 'src/council/shards.json').read_text())
+        day = dt.datetime(2026, 10, 22, 0, 17, tzinfo=dt.timezone.utc)
+        seen = set()
+        for d in range(7):
+            for h in council.SHIFT_HOURS_UTC:
+                mode, extra = council.desk_job(cfg, spec, day.replace(hour=h) + dt.timedelta(days=d))
+                self.assertEqual(mode, 'shift')
+                seen.add(extra['PF_SEAT'])
+        self.assertEqual(seen, set(cfg['shift_order']))
+        self.assertEqual(council.desk_job(cfg, spec, day.replace(hour=15))[0], 'audit')
+
+    def test_persona_text_changes_with_the_work(self):
+        seat = {'id': 'gpt', 'persona': {'name': 'Warden', 'voice': 'blunt', 'council_lens': 'worst case'}, 'shift': {'brief': 'security sweep'}}
+        council.SHIFT.update(seat=None, voice='The Bench')
+        self.assertIn('council your lens is: worst case', council.persona_text(seat))
+        council.SHIFT.update(seat='gpt')
+        self.assertIn('Solo shift: security sweep', council.persona_text(seat))
+        council.SHIFT.update(seat=None)
+        self.assertEqual(council.persona_text({'id': 'x'}), '')
+
+    def test_big_file_is_chunked_not_skipped(self):
+        parts, skipped = council.audit_parts(['src/council/council.py'])
+        self.assertEqual(skipped, [])
+        self.assertGreater(len(parts), 1)
+        self.assertEqual(''.join(t for p in parts for _, t in p), (ROOT / 'src/council/council.py').read_text())

@@ -16,6 +16,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src/build"))
+sys.path.insert(0, str(ROOT / "src/etc"))
 import github_bundle
 import github_patcher
 import extra_bundle
@@ -178,30 +179,43 @@ def rollup(report):
 
 
 def markdown(report):
-    lines = ["# Provider watch: " + report["status"], "", report["run_url"], "",
-             "Coverage: `" + json.dumps(report["coverage"], sort_keys=True) + "`", "",
-             *LIMITS, "", "| Target / provider | Host | Observation |", "| --- | --- | --- |"]
-    for row in report["sources"]:
-        lines.append("| " + display(row["target"] + "/" + row["name"]) + " | " +
-                     row["host"] + " | " + row["status"] + " |")
+    """W15e (owner, 22 Oct 2026): changes first in one table, unchanged providers folded
+    (docs/review/REPORT-STYLE.md). Same facts as before; nothing is dropped, only folded."""
+    import readable
+    rows = report["sources"]
+    moved = [r for r in rows if r["status"] != "OK" or r["delta"]["state"] == "MISSING"
+             or r["delta"]["added"] or r["delta"]["removed"]]
+    cov = report.get("coverage") or {}
+    lines = readable.headline("Provider watch", report["status"], len(moved))
+    lines += [report["run_url"], "",
+              "Read %s of %s provider(s); %s failed, %s pending. Coverage: `%s`" % (
+                  cov.get("succeeded", 0), report.get("expected"), cov.get("failed", 0), cov.get("pending", 0),
+                  json.dumps(cov, sort_keys=True)), ""]
     if report.get("error"):
-        lines += ["", "Collection error: `" + display(report["error"]) + "`"]
-    for row in report["sources"]:
-        if row["status"] != "OK":
-            lines += ["", "## " + display(row["target"] + "/" + row["name"]),
-                      "No delta: `" + display(row.get("error", "NOT_OBSERVED")) + "`."]
-            continue
-        change = row["delta"]
-        if change["state"] == "MISSING" or change["added"] or change["removed"]:
-            lines += ["", "## " + display(row["target"] + "/" + row["name"])]
-            if change["state"] == "MISSING":
-                lines += ["Baseline missing; observed " + str(len(row["observation"]["names"])) +
-                          " names. This is NOT an all-added or unchanged result."]
+        lines += ["Collection error: `" + display(report["error"]) + "`", ""]
+    if moved:
+        lines += ["## Changed or not read (%d)" % len(moved)]
+        table = []
+        for row in moved:
+            name = display(row["target"] + "/" + row["name"])
+            if row["status"] != "OK":
+                table.append([name, row["host"], row["status"], "No delta: `" + display(row.get("error", "NOT_OBSERVED")) + "`.", "-"])
+            elif row["delta"]["state"] == "MISSING":
+                table.append([name, row["host"], "NO BASELINE", "Baseline missing; observed " + str(len(row["observation"]["names"])) +
+                              " names. This is NOT an all-added or unchanged result.", "-"])
             else:
-                for label in ("added", "removed"):
-                    lines += ["**" + label + "**: " +
-                              (", ".join("`" + display(n) + "`" for n in change[label]) or "(none)")]
-    lines += ["", "Read AGENTS.md before acting. Added names still need BANNED/CONFIRM review.",
+                table.append([name, row["host"], "CHANGED",
+                              readable.names((display(n) for n in row["delta"]["added"]), 40) or "(none)",
+                              readable.names((display(n) for n in row["delta"]["removed"]), 40) or "(none)"])
+        lines += readable.table(["App / provider", "Host", "State", "Added", "Removed"], table)
+        lines += [""]
+    lines += ["%d of %d provider(s) unchanged." % (len(rows) - len(moved), len(rows)), ""]
+    lines += readable.details("Every provider (%d)" % len(rows), readable.table(
+        ["Target / provider", "Host", "Observation"],
+        [[display(r["target"] + "/" + r["name"]), r["host"], r["status"]] for r in rows]))
+    lines += [""] + readable.details("What this watch does not check", ["- " + x for x in LIMITS])
+    lines += ["", "Read AGENTS.md before acting. Added names still need BANNED/CONFIRM review "
+              "(the Selection watch applies src/patches/ADOPT.json to them).",
               "No committed baseline or patch selection was modified."]
     return "\n".join(lines) + "\n"
 
@@ -290,17 +304,51 @@ def main():
     validate_report(report, ROOT, identity)
     if sys.argv[1] == "enforce":
         return 0 if report["status"] in ("OK", "CHANGED") else 1
-    if report["status"] == "OK":
-        return 0
     need((out / "report.md").read_bytes() == markdown(report).encode(), "REPORT_BODY_DRIFT")
     need((out / "report.md").stat().st_size <= 60000, "REPORT_TOO_LARGE_FOR_ISSUE")
-    # Single attempt, no fallback/retry that could duplicate a successful write.
-    result = subprocess.run(["gh", "issue", "create", "--repo", identity["repository"],
-                             "--title", "provider watch: " + report["status"] + " run " +
-                             identity["run_id"] + "/" + identity["attempt"],
-                             "--body-file", str(out / "report.md")],
-                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
-    need(result.returncode == 0, "ISSUE_DELIVERY_FAILED")
+    return deliver(identity, out / "report.md", report["status"])
+
+
+STANDING = "provider watch"
+
+
+def deliver(identity, body_path, status, run=None):
+    """W15e: one standing issue, edited in place; a comment lists only what changed. Older
+    per-run "provider watch: ..." issues are closed as superseded (owner 22 Oct 2026: no pile-up).
+    Every write is a single attempt: no retry can duplicate a successful one."""
+    import readable
+    run = run or subprocess.run
+    repo = identity["repository"]
+    found = run(["gh", "issue", "list", "--repo", repo, "--state", "open", "--limit", "100", "--search",
+                 'in:title "provider watch"', "--json", "number,title"], capture_output=True, text=True, timeout=120)
+    need(found.returncode == 0, "ISSUE_DELIVERY_FAILED")
+    rows = json.loads(found.stdout or "[]")
+    standing = sorted(r["number"] for r in rows if r.get("title") == STANDING)
+    old = sorted(r["number"] for r in rows if (r.get("title") or "").startswith(STANDING + ": "))
+    body = body_path.read_text(encoding="utf-8")
+    if standing:
+        number = str(standing[0])
+        before = run(["gh", "issue", "view", number, "--repo", repo, "--json", "body", "-q", ".body"],
+                     capture_output=True, text=True, timeout=120)
+        result = run(["gh", "issue", "edit", number, "--repo", repo, "--body-file", str(body_path)],
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
+        need(result.returncode == 0, "ISSUE_DELIVERY_FAILED")
+        if status != "OK":
+            note = "\n".join(["**Changed by run %s/%s**" % (identity["run_id"], identity["attempt"]), ""] +
+                             readable.changed_lines(before.stdout if before.returncode == 0 else "", body))
+            run(["gh", "issue", "comment", number, "--repo", repo, "--body", note],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
+    elif status == "OK":
+        return 0
+    else:
+        result = run(["gh", "issue", "create", "--repo", repo, "--title", STANDING, "--body-file", str(body_path)],
+                     capture_output=True, text=True, timeout=120)
+        need(result.returncode == 0, "ISSUE_DELIVERY_FAILED")
+        number = (result.stdout or "").strip().rsplit("/", 1)[-1]
+    for n in old:
+        run(["gh", "issue", "close", str(n), "--repo", repo, "--comment",
+             "Superseded by #%s: since W15e the provider watch keeps one standing issue, edited in place." % number],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
     return 0
 
 

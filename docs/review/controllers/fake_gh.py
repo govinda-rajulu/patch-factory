@@ -10,6 +10,8 @@ cleanup apply calls, and the pf-t1 flows (any workflow file, status.json, target
 W14: release_bodies{id: body} and release edits (PATCH --input); tidy_mangle makes an edit come back different.
 W15b: prs_as_issues[n]: issue n is a pull request (GET shows pull_request; PATCH with state_reason refused; PATCH pulls/n closes);
 pull_rows{n: object}: GET pulls/n for a pull request other than the packet's (prechecks).
+W15e: later_main (rehearse.sh MID_DRIFT) moves main once the packet pull request exists; a merge into a moved main
+gets the real three-way tree (git merge-tree), as GitHub would.
 """
 import json, os, sys, pathlib, subprocess as sp
 S = pathlib.Path(os.environ['FAKE_STATE'])
@@ -79,6 +81,8 @@ for i, x in enumerate(a):
 for pr in st['pulls']:  # like GitHub: an open pull request follows its branch (state seeds may name a prior head)
     if not pr.get('merged_at') and pr.get('head', {}).get('ref'):
         pr['head']['sha'] = git('rev-parse', 'refs/heads/' + pr['head']['ref']) or pr['head']['sha']
+if p.startswith(R + 'branches/main') and st.get('later_main') and st['pulls']:  # W15e MID_DRIFT: a bot commit lands mid-run
+    git('update-ref', 'refs/heads/main', st['later_main']); st['main'] = st.pop('later_main')
 if p.startswith(R + 'branches/main'): out({'commit': {'sha': st['main']}})
 if p.startswith(R + 'git/commits/'): out({'tree': {'sha': git('rev-parse', p.split('/')[-1] + '^{tree}')}})
 if p.startswith(R + 'pulls?state=all'): out(st['pulls'])
@@ -90,6 +94,8 @@ if p.startswith(R + 'pulls/%d/merge' % NUM) and m == 'PUT':
     if f.get('sha') != pr['head']['sha']: fail('HTTP 409 head changed')
     env = dict(os.environ, GIT_AUTHOR_NAME='g', GIT_AUTHOR_EMAIL='g@x', GIT_COMMITTER_NAME='g', GIT_COMMITTER_EMAIL='g@x')
     tree = st.get('merge_tree') or pr['head']['sha'] + '^{tree}'
+    if not st.get('merge_tree') and git('rev-parse', pr['head']['sha'] + '^1') != st['main']:  # W15e: main moved; merge like GitHub
+        tree = git('merge-tree', '--write-tree', st['main'], pr['head']['sha']).split()[0]
     c = sp.run(['git', '-C', st['origin'], 'commit-tree', tree, '-p', st['main'], '-p', pr['head']['sha'], '-m', 'Merge'],
                env=env, capture_output=True, text=True).stdout.strip()
     git('update-ref', 'refs/heads/main', c); st['main'] = c; pr['merged_at'] = 'now'; pr['merge_commit_sha'] = c; pr['state'] = 'closed'

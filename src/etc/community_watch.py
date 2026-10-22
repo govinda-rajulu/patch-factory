@@ -125,11 +125,19 @@ def chunks(text, limit=48000):
 def report_text(report):
     news = report["website_history"]
     text = model.render(report)
-    text += "\n## Website What's New, current rolling window\n" + news["limit"] + "\n"
-    for row in news["relevant_rows"]:
-        text += "- " + model.safe(row["date"]) + " | " + model.safe(row["provider_label"]) + " | " + row["package"] + "\n"
-        for name in row["patches"]:
-            text += "  - " + model.safe(name) + "\n"
+    text += "\n## Website What's New, current rolling window (" + str(len(news["relevant_rows"])) + ")\n" + news["limit"] + "\n\n"
+    import readable
+    if news["relevant_rows"]:
+        text += "\n".join(readable.table(["Date", "Provider label", "App package", "Patches"],
+                                         [[model.safe(r["date"]), model.safe(r["provider_label"]), r["package"], len(r["patches"])]
+                                          for r in news["relevant_rows"]])) + "\n\n"
+        names = []
+        for row in news["relevant_rows"]:
+            names.append("- " + model.safe(row["date"]) + " | " + model.safe(row["provider_label"]) + " | " + row["package"])
+            names += ["  - " + model.safe(name) for name in row["patches"]]
+        text += "\n".join(readable.details("Every patch name in the window", names)) + "\n"
+    else:
+        text += "- none\n"
     text += "\n## Evidence and recovery limits\n"
     text += "Source: " + INDEX_URL + "\nHistory: " + NEWS_URL + "\n"
     text += "Baseline SHA256: " + report["baseline_sha256"] + "\nObserved SHA256: " + report["index_sha256"] + "\n"
@@ -193,7 +201,9 @@ def load_report(root, out, ident):
 
 
 def api(method, path, payload=None):
-    need(method in ("GET", "POST") and path.startswith("repos/" + REPO + "/"), "API_SCOPE")
+    closing = (method == "PATCH" and re.fullmatch("repos/" + re.escape(REPO) + "/issues/[0-9]+", path) is not None
+               and payload == dict(state="closed", state_reason="completed"))  # W15e supersede only
+    need((method in ("GET", "POST") or closing) and path.startswith("repos/" + REPO + "/"), "API_SCOPE")
     args = ["gh", "api", "--method", method, path]
     if payload is not None:
         args += ["--input", "-"]
@@ -256,6 +266,26 @@ def verify_delivery(data, parts, number, reader):
              "REPORT_PART_READBACK_FAILED")
 
 
+def supersede(path, number, reader):
+    """W15e (owner, 22 Oct 2026): older open reports close once a newer one is read back, so the
+    issue list holds one community report. Best effort: a failure here never fails the report."""
+    try:
+        old = [r for r in pages(path + "?state=open", reader) if "pull_request" not in r
+               and r.get("title") == TITLE and r.get("number") != number and bot_record(r)]
+    except Exception:
+        return 0
+    closed = 0
+    for row in old:
+        try:
+            reader("POST", path + "/" + str(row["number"]) + "/comments",
+                   dict(body="Superseded by #" + str(number) + ": a newer community report was read back. Its numbered parts stay here as history."))
+            reader("PATCH", path + "/" + str(row["number"]), dict(state="closed", state_reason="completed"))
+            closed += 1
+        except Exception:
+            pass
+    return closed
+
+
 def report(root, out, ident, reader=api):
     data, parts = load_report(root, out, ident)
     body = header(data, parts)
@@ -287,6 +317,7 @@ def report(root, out, ident, reader=api):
             reader("POST", issue_path + "/comments", dict(body=wanted))
     # Actual API readback, not trusting a local successful-write flag.
     verify_delivery(data, parts, number, reader)
+    supersede(path, number, reader)
     receipt = dict(report_key=data["report_key"], report_sha256=sha((out / "report.json").read_bytes()),
                    index_sha256=data["index_sha256"], baseline_sha256=data["baseline_sha256"],
                    issue=number, issue_url="https://github.com/" + REPO + "/issues/" + str(number),

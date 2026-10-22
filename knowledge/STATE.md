@@ -6,7 +6,15 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 21 Oct 2026, midday IST (packet W15d; start here)
+## 22 Oct 2026, late morning IST (packet W15e; start here)
+
+- **Main** `47bcf796` (W15d #204 `ab8423a8` plus bot commits) plus W15e once merged.
+- **W15e**: readable bot reports (docs/review/REPORT-STYLE.md), Rule merge fixed (L069, L070),
+  agent personas and solo shifts (docs/council/PERSONAS.md), cleanup keeps one release per app,
+  T1 built version, controllers merge over bot-only drift on main (L071). Record `docs/review/SESSION-2026-10-22.md`. Wrong calls this chat: 45.
+- **Next**: OPEN-WORK 22 Oct: W15g signing split, then combo planner.
+
+## 21 Oct 2026, midday IST (packet W15d)
 
 - **Main** `b4060823` (W15c #199 `73d85522` plus a bot commit) plus W15d once merged.
 - **W15d**: exact bundle version on release pages, 11. Rule merge (green rule pull requests merge

@@ -18,9 +18,15 @@ printf '#!/bin/bash\nif [ "$1" = ls-remote ] && [ "$2" = --tags ]; then printf "
 P=""; if [ -n "${PRIOR_TREE:-}" ]; then P=$(cd "$W/origin.git" && GIT_AUTHOR_NAME=g GIT_AUTHOR_EMAIL=g@x GIT_COMMITTER_NAME=g GIT_COMMITTER_EMAIL=g@x git commit-tree "$PRIOR_TREE" -p "$B" -m prior); git -C "$W/origin.git" update-ref "refs/heads/$PRIOR_BRANCH" "$P"; export PF_PARENT="$P"; fi
 # PRIOR_MOVED=1: someone pushed on top of the prior head; the controller must stop at push.
 if [ -n "$P" ] && [ -n "${PRIOR_MOVED:-}" ]; then M2=$(cd "$W/origin.git" && GIT_AUTHOR_NAME=g GIT_AUTHOR_EMAIL=g@x GIT_COMMITTER_NAME=g GIT_COMMITTER_EMAIL=g@x git commit-tree "$PRIOR_TREE" -p "$P" -m moved); git -C "$W/origin.git" update-ref "refs/heads/$PRIOR_BRANCH" "$M2"; fi
+# W15e drift: DRIFT=PATH puts a bot commit changing PATH on the fake main before the run (PF_BASE
+# stays the base); DRIFT_MAIL sets its author (a human drift must stop); MID_DRIFT=PATH adds one
+# more bot commit the first time main is read after the packet pull request exists.
+bot() { (cd "$W/origin.git" && I=$(mktemp) && GIT_INDEX_FILE=$I git read-tree "$1" && O=$(echo "drift $2" | git hash-object -w --stdin) && GIT_INDEX_FILE=$I git update-index --add --cacheinfo "100644,$O,$2" && T=$(GIT_INDEX_FILE=$I git write-tree) && rm -f "$I" && GIT_AUTHOR_NAME=bot GIT_AUTHOR_EMAIL="${DRIFT_MAIL:-41898282+github-actions[bot]@users.noreply.github.com}" GIT_COMMITTER_NAME=bot GIT_COMMITTER_EMAIL='41898282+github-actions[bot]@users.noreply.github.com' git commit-tree "$T" -p "$1" -m "bot $2"); }
+MAINREF="$B"; if [ -n "${DRIFT:-}" ]; then MAINREF=$(bot "$B" "$DRIFT"); git -C "$W/origin.git" update-ref refs/heads/main "$MAINREF"; fi
+LATER=""; if [ -n "${MID_DRIFT:-}" ]; then LATER=$(DRIFT_MAIL= bot "$MAINREF" "$MID_DRIFT"); fi
 # MIRROR_REPO=DIR: a second repository for the W13 mirror phase (fake openskip).
 if [ -n "${MIRROR_REPO:-}" ]; then git clone -q --bare "$MIRROR_REPO" "$W/mirror.git"; fi
-python3 -c "import json,sys; s={'origin':sys.argv[1],'main':sys.argv[2],'runs':[],'pulls':[],'mirror_origin':sys.argv[5]}; s['pulls']=[{'number':900,'head':{'sha':sys.argv[6],'ref':sys.argv[7]},'merged_at':None,'html_url':'u','state':'open'}] if sys.argv[6] else []; s.update(json.loads(sys.argv[3])); open(sys.argv[4],'w').write(json.dumps(s))" "$W/origin.git" "$B" "${5:-{\}}" "$W/state.json" "$W/mirror.git" "$P" "${PRIOR_BRANCH:-}"
+python3 -c "import json,sys; s={'origin':sys.argv[1],'main':sys.argv[2],'runs':[],'pulls':[],'mirror_origin':sys.argv[5]}; s['later_main']=sys.argv[8] if len(sys.argv)>8 and sys.argv[8] else None; s['pulls']=[{'number':900,'head':{'sha':sys.argv[6],'ref':sys.argv[7]},'merged_at':None,'html_url':'u','state':'open'}] if sys.argv[6] else []; s.update(json.loads(sys.argv[3])); open(sys.argv[4],'w').write(json.dumps(s))" "$W/origin.git" "$MAINREF" "${5:-{\}}" "$W/state.json" "$W/mirror.git" "$P" "${PRIOR_BRANCH:-}" "$LATER"
 for pass in 1 ${RERUN:+2}; do
   echo "-- run $pass"; cp "$C" "$W/home/"
   (cd "$W/home" && PATH="$W/bin:$PATH" FAKE_STATE="$W/state.json" PF_HOME="$W/home" PF_REMOTE="$W/origin.git" PF_BASE="$B" PF_POLL=0 PF_WAIT=5 PF_BUILD_WAIT=5 PF_PAGES_WAIT=5 PF_MIRROR_REMOTE="$W/mirror.git" PF_MIRROR_QUIET=1 python3 "$W/home/$(basename "$C")") || true

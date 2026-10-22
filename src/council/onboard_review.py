@@ -179,17 +179,26 @@ def render(rows, ok, why, m):
         a = r['answer'] or {}
         lines.append('| %s | %s | %s | %s | %s |' % (r['seat'], r['model'] or '-', r['status'][:60],
                                                    a.get('verdict', '-'), len(a.get('findings') or [])))
-    for r in rows:
+    # W15e (owner, 22 Oct 2026): blocks stay visible; approvals' reasons fold (REPORT-STYLE.md).
+    def said(r):
         a = r['answer']
-        if not a:
-            continue
-        lines += ['', '**%s** (%s): %s' % (r['seat'], a['verdict'], a['summary'])]
-        for f in a['findings']:
-            lines.append('- %s `%s`: %s (quote: "%s")' % (f['severity'], f['item'], f['issue'], f['quote'][:160]))
+        out = ['**%s** (%s): %s' % (r['seat'], a['verdict'], a['summary'])]
+        out += ['- %s `%s`: %s (quote: "%s")' % (f['severity'], f['item'], f['issue'], f['quote'][:160]) for f in a['findings']]
         if a.get('dropped'):
-            lines.append('- %d finding(s) dropped: quote not found in the manifest' % a['dropped'])
+            out.append('- %d finding(s) dropped: quote not found in the manifest' % a['dropped'])
         if a.get('unshipped'):
-            lines.append('- %d finding(s) dropped: they quote a patch this change excludes or removes' % a['unshipped'])
+            out.append('- %d finding(s) dropped: they quote a patch this change excludes or removes' % a['unshipped'])
+        return out
+    answered = [r for r in rows if r['answer']]
+    loud = [r for r in answered if r['answer']['verdict'] != 'approve' or r['answer']['findings']]
+    quiet = [r for r in answered if r not in loud]
+    for r in loud:
+        lines += [''] + said(r)
+    if quiet:
+        lines += ['', '<details><summary>%d approving seat(s): their reasons</summary>' % len(quiet), '']
+        for r in quiet:
+            lines += said(r) + ['']
+        lines += ['</details>']
     for p in m.get('problems') or []:
         lines.append('- deterministic: ' + p)
     return '\n'.join(lines) + '\n'
