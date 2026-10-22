@@ -37,6 +37,12 @@ The configured CI certificate SHA-256 is
 This identifies the expected CI signer, not an original publisher or the signer
 of an app already installed on a phone.
 
+Since W15h (22 Oct 2026) this value lives in `src/build/ci-signer.json`. The build stops
+before patching when the keystore certificate differs, and the Obtainium import pins it
+(`allowedSigningCertHashes`), so Obtainium 1.6.16 or newer refuses any APK signed by
+another key. A deliberate key change means: new value in that file, regenerate
+`docs/obtainium.json` (`python3 src/etc/obtainium.py`), and every phone re-imports.
+
 A restore drill is separate work: in a trusted isolated environment, recover
 the saved material, open the keystore successfully and compare its certificate
 fingerprint without replacing production secrets. Record only non-secret

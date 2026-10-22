@@ -420,3 +420,18 @@ Tags: agents, review, evidence
 Seats read lessons by tag, but tags_for knew five tags; eleven lessons tagged build, ci,
 automation, review or signing were never shown to any seat. Found by the outside-repo review
 (memory systems "recall"). A contract test now fails on any stored tag no path asks for (W15f, 22 Oct).
+
+### L074 · A watch whose report only lands in an artifact is not a watch
+Tags: watch, evidence
+The owner asked on 8 Oct for every outside tool to be watched for updates and features. Tooling
+watch checked two pins and wrote its report to a 30-day artifact unless a pin moved, so nobody saw
+Obtainium 1.7, morphe-desktop 1.19.0 or FlareSolverr 3.5.2. Since W15h it reads all 13 upstreams in
+src/etc/upstreams.json into one standing issue, edited in place, with a comment only on change (22 Oct).
+
+### L075 · An empty answer from a list API is not proof that the list is empty
+Tags: sources, evidence
+On 22 Oct the releases API answered empty for this repository (the evening check said "every
+release is gone"; the W15f cleanup later deleted 20 that were there) and for three providers with
+100+ releases (AdGuard, ES File and Instagram builds failed "no matching release"). Minutes later the
+same calls returned full pages. The bundle fetch and the poll now ask three times and name the
+answer as transient; a person reading "0" checks a second way before acting on it (W15h).

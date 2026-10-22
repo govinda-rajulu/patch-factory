@@ -52,6 +52,15 @@ jobs:
             printf '%s\n\nBranch: `%s`. Open the pull request from the compare page: https://github.com/%s/compare/main...%s\n' "$(cat tooling-report.md)" "$B" "$REPO" "$B" > issue.md
             if [ -n "$N" ]; then gh issue comment "$N" --repo "$REPO" --body-file issue.md; else gh issue create --repo "$REPO" --title "$T" --body-file issue.md; fi
           fi
+      - name: Upstreams to the standing issue
+        # W15h (L074): every outside tool and source, one issue edited in place, a comment only on change.
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+        run: python3 src/etc/tooling_watch.py --upstreams
       - name: Keep the report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -60,5 +69,6 @@ jobs:
           path: |
             tooling-report.md
             tooling-plan.json
+            tooling-upstreams.md
           if-no-files-found: warn
           retention-days: 30

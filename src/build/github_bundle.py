@@ -71,13 +71,36 @@ def api_page(owner, repo, page, env):
     return data
 
 
+EMPTY_RETRY_SECONDS = (10, 30)
+
+
+def first_page(owner, repo, env, sleep=None):
+    """W15h (22 Oct 2026): during the W15f batch GitHub answered page 1 of three providers'
+    release lists (rushiranpise, BlazeFTL, brosssh, each with 100+ releases) with an empty
+    array; minutes later the same request returned 100 rows. An empty first page is asked
+    again before it may count as 'no releases', and a still-empty answer says so plainly."""
+    import time
+    sleep = sleep or time.sleep
+    rows = api_page(owner, repo, 1, env)
+    for wait in EMPTY_RETRY_SECONDS:
+        if rows:
+            return rows
+        print('::warning::' + owner + '/' + repo + ': GitHub returned an empty release list; asking again in '
+              + str(wait) + ' s', file=sys.stderr)
+        sleep(wait)
+        rows = api_page(owner, repo, 1, env)
+    require(rows, 'GitHub returned an empty release list for ' + owner + '/' + repo + ' three times; '
+            'transient API answer, not a version-compatibility result')
+    return rows
+
+
 def choose_release(owner, repo, channel, env):
     require(channel in ('prerelease', 'latest'), 'unsupported release channel')
     # Preserve the existing build downloader: prerelease means newest published
     # release including stable, latest means stable only. Now resolution uses those
     # exact same bytes rather than independently selecting a dev bundle.
     for page in range(1, 11):
-        rows = api_page(owner, repo, page, env)
+        rows = first_page(owner, repo, env) if page == 1 else api_page(owner, repo, page, env)
         for release in rows:
             require(isinstance(release, dict), 'invalid release record')
             if release.get('draft') or not release.get('published_at'):

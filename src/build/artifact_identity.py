@@ -82,10 +82,16 @@ def cert_from_keystore(root, env):
     return hashlib.sha256(cert).hexdigest()
 
 
-def capture_signer(root, env):
+def capture_signer(root, env, pin=None):
     path = root / '.signer-before-build.json'
     require(not path.exists(), 'signer capture already exists; use a fresh checkout')
     fingerprint = cert_from_keystore(root, env)
+    # W15h: the Obtainium import pins this certificate (src/build/ci-signer.json); an APK signed
+    # by any other key is refused on every phone, so a different keystore stops here, before patching.
+    # The build passes the pin (command line below); unit fixtures with fake keystores pass none.
+    if pin is not None:
+        require(fingerprint == json.loads(pin.read_text())['certificate_sha256'],
+                'CI keystore certificate differs from src/build/ci-signer.json (Obtainium pin); see RECOVERY.md before any key change')
     atomic_json(path, {'schema': SCHEMA, 'certificate_sha256': fingerprint,
                        'trust': 'current CI keystore; historical device continuity not established'})
     print('SIGNER CAPTURED: public certificate fingerprint only; no key/password written')
@@ -377,7 +383,7 @@ if __name__ == '__main__':
         root = pathlib.Path('.').resolve()
         mode = sys.argv[1]
         if mode == 'capture-signer':
-            capture_signer(root, os.environ)
+            capture_signer(root, os.environ, pin=root / 'src/build/ci-signer.json')
         elif mode == 'capture-inputs':
             capture_inputs(root, sys.argv[2], sys.argv[3], os.environ)
         elif mode == 'verify':

@@ -61,7 +61,19 @@ PROVIDERS = {
                 'models': 'https://api.mistral.ai/v1/models', 'key': 'MISTRAL_API_KEY', 'auth': True},
     'cohere': {'chat': 'https://api.cohere.ai/compatibility/v1/chat/completions',
                'models': 'https://api.cohere.ai/v1/models', 'key': 'COHERE_API_KEY', 'auth': True},
+    # W15h (owner 22 Oct: free keys so seats stop failing): Cloudflare Workers AI, 10,000 neurons
+    # a day free, no training on inputs (developers.cloudflare.com/workers-ai/platform/data-usage).
+    # Used only as a backup seat model; nothing calls it until both secrets exist.
+    'cloudflare': {'chat': 'https://api.cloudflare.com/client/v4/accounts/{account}/ai/v1/chat/completions',
+                   'key': 'CLOUDFLARE_API_TOKEN', 'account': 'CLOUDFLARE_ACCOUNT_ID', 'auth': True},
 }
+# W15h: smallest gap between two calls to one provider, in seconds, from each free tier's
+# published per-minute limit (Gemini 3 Flash 5 RPM, Groq 30 RPM, OpenRouter free 20 RPM,
+# NVIDIA about 40 RPM, Cohere trial 20 RPM). Seats on one provider share one account limit,
+# so calls to a provider go one at a time. PF_PACE_SCALE=0 (or PF_RETRY_SLEEP=0) turns it off.
+PACE = {'gemini': 13.0, 'nvidia': 2.0, 'openrouter': 3.5, 'groq': 2.5, 'mistral': 1.5, 'cohere': 3.5, 'cloudflare': 1.5}
+_pace_lock = {}
+_pace_last = {}
 VOTES = ('adopt', 'reject', 'hold', 'ask_owner')
 ANSWERS = ('yes', 'no', 'unknown')
 # A reason cites evidence when it names a repository path or file, a rule list, a trusted
@@ -162,7 +174,7 @@ def same_site(url, location):
 def allowed_hosts():
     hosts = {'api.github.com'}
     for p in PROVIDERS.values():
-        hosts |= {urllib.parse.urlsplit(p[k]).hostname for k in ('chat', 'models')}
+        hosts |= {urllib.parse.urlsplit(p[k]).hostname for k in ('chat', 'models') if p.get(k)}
     return hosts
 
 
@@ -199,9 +211,10 @@ def http(method, url, headers, body=None, timeout=90):
 def scrub(text, env):
     """Remove every configured key value from text before it can be logged or posted."""
     for p in PROVIDERS.values():
-        v = env.get(p['key']) or ''
-        if len(v) >= 8:
-            text = text.replace(v, '[key]')
+        for name in (p['key'], p.get('account')):
+            v = env.get(name) or '' if name else ''
+            if len(v) >= 8:
+                text = text.replace(v, '[key]')
     return text
 
 
@@ -343,6 +356,9 @@ def available_models(provider, env):
     if provider in _model_cache:
         return _model_cache[provider]
     p = PROVIDERS[provider]
+    if not p.get('models'):
+        _model_cache[provider] = None
+        return None
     headers = {'User-Agent': 'pf-council'}
     if p.get('auth'):
         headers['Authorization'] = 'Bearer ' + env[p['key']]
@@ -363,7 +379,35 @@ def candidates(seat, env):
     """Preferences the catalog lists, then the ones it does not: catalogs lag and differ by
     client, so a missing listing only lowers priority. The provider has the final word."""
     ids = available_models(seat['provider'], env) or set()
-    return [m for m in seat['models'] if m in ids] + [m for m in seat['models'] if m not in ids]
+    listed = [m for m in seat['models'] if m in ids] + [m for m in seat['models'] if m not in ids]
+    # W15h: model ids go stale ("2 missing" on the desk, 7-22 Oct). A seat's 'discover' patterns
+    # add catalogue models its list does not name, newest-looking id first, after its own list.
+    found = []
+    for pattern in seat.get('discover') or []:
+        found += sorted((m for m in ids if re.search(pattern, m) and m not in listed and m not in found), reverse=True)
+    return listed + found[:2]
+
+
+def keyed(provider, env):
+    p = PROVIDERS[provider]
+    return bool(env.get(p['key'])) and (not p.get('account') or bool(env.get(p['account'])))
+
+
+def paced(provider, env):
+    """W15h: one call at a time per provider, spaced by PACE (seats share an account limit)."""
+    import threading
+    lock = _pace_lock.setdefault(provider, threading.Lock())
+    scale = 0.0 if env.get('PF_RETRY_SLEEP') == '0' else float(env.get('PF_PACE_SCALE', '1'))
+    lock.acquire()
+    gap = PACE.get(provider, 2.0) * scale - (time.monotonic() - _pace_last.get(provider, -1e9))
+    if gap > 0:
+        time.sleep(gap)
+    return lock
+
+
+def release(provider, lock):
+    _pace_last[provider] = time.monotonic()
+    lock.release()
 
 
 def retry_wait(env, text):
@@ -413,10 +457,17 @@ def complete(seat, model, system, user, env, retry=True, extra=()):
         body['reasoning_effort'] = seat['reasoning_effort']
     headers = {'Authorization': 'Bearer ' + env[p['key']], 'Content-Type': 'application/json',
                'Accept': 'application/json', 'User-Agent': 'pf-council'}
+    url = p['chat'].format(account=env.get(p.get('account') or '', '')) if p.get('account') else p['chat']
+    if p.get('account') and not re.fullmatch(r'[0-9a-f]{32}', env.get(p['account'], '')):
+        raise Refused('account id is not 32 hex characters')
     attempt, attempts = 0, (2 if retry else 1)
     while attempt < attempts:
         attempt += 1
-        status, text = http('POST', p['chat'], headers, body)
+        lock = paced(seat['provider'], env)
+        try:
+            status, text = http('POST', url, headers, body)
+        finally:
+            release(seat['provider'], lock)
         if status == 200:
             return reply_text(text, env)
         # A model that rejects an optional field is asked again without it, once per field.
@@ -589,7 +640,8 @@ def persona_text(seat):
 def run_seat(seat, system, user, env, checker, canary):
     system = system + persona_text(seat)
     row = {'seat': seat['id'], 'provider': seat['provider'], 'model': '', 'status': '', 'answer': None}
-    if not env.get(PROVIDERS[seat['provider']]['key']):
+    backups = [b for b in seat.get('backups') or [] if b.get('provider') in PROVIDERS and keyed(b['provider'], env)]
+    if not keyed(seat['provider'], env) and not backups:
         row['status'] = 'SKIPPED_NO_KEY'
         return row
     if len(system) + len(user) > seat['max_input_chars']:
@@ -597,18 +649,32 @@ def run_seat(seat, system, user, env, checker, canary):
         return row
     try:
         missing, busy, cut = [], [], []
-        models = [m for m in candidates(seat, env) if (seat['provider'], m) not in remembered('missing')][:4]
-        for index, model in enumerate(models):
-            row['model'] = model
+        own = [m for m in candidates(seat, env) if (seat['provider'], m) not in remembered('missing')][:5] if keyed(seat['provider'], env) else []
+        # W15h: when every own model is missing, busy or cut, the seat answers through its backups
+        # on other providers (seats.json 'backups'; a backup without a key is skipped).
+        tries = [(seat, m) for m in own] + [(dict(seat, provider=b['provider']), b['model']) for b in backups
+                                            if (b['provider'], b['model']) not in remembered('missing')]
+        for index, (who, model) in enumerate(tries):
+            row['model'] = model if who is seat else '%s via %s (backup)' % (model, who['provider'])
             try:
                 # A busy model is retried only when it is the seat's last preference.
-                text = complete(seat, model, system, user, env, retry=index == len(models) - 1)
+                text = complete(who, model, system, user, env, retry=index == len(tries) - 1)
+                seat = who
                 break
             except ModelMissing:
-                remembered('missing').add((seat['provider'], model))
+                remembered('missing').add((who['provider'], model))
                 missing.append(model)
             except Truncated:
-                cut.append(model)
+                # W15h: reasoning models spend the output budget thinking ("cut at max_tokens").
+                # One more try with twice the room and low effort before moving on.
+                try:
+                    text = complete(dict(who, max_tokens=min(16000, 2 * int(who.get('max_tokens', 6000))),
+                                         reasoning_effort='low'), model, system, user, env, retry=False)
+                    seat = who
+                    row['model'] += ' (more room)'
+                    break
+                except (Truncated, Busy, ModelMissing):
+                    cut.append(model)
             except Busy:
                 busy.append(model)
         else:
@@ -635,7 +701,7 @@ def run_seat(seat, system, user, env, checker, canary):
                 text = complete(seat, model, system, user, env, retry=False, extra=(
                     {'role': 'assistant', 'content': text[:6000]},
                     {'role': 'user', 'content': 'Refused: %s. Reply with only the corrected JSON object.' % str(e)[:160]}))
-                row['model'] = model + ' (repaired)'
+                row['model'] += ' (repaired)'
         row['status'] = 'OK'
     except Refused as e:
         row['status'] = 'UNAVAILABLE ' + scrub(str(e), env)[:120]
@@ -929,6 +995,37 @@ def upsert(env, number, marker, body):
         return 'edited'
     gh(env, 'POST', 'repos/%s/issues/%d/comments' % (repo, number), {'body': body})
     return 'posted'
+
+
+REAUDIT_DAYS = 14
+
+
+def unchanged_since(env, number, marker, prompt_hash, pack_hash, now=None):
+    """W15h audit memory (owner 22 Oct: budget; the ai-memory idea from the outside-repo review):
+    a shard whose files and prompt match the last audit comment, with at least one valid seat
+    answer and under REAUDIT_DAYS old, is not sent to the seats again. Any read problem means
+    'not known unchanged', so the audit runs."""
+    import datetime
+    if env.get('PF_COUNCIL_STAGED') == '1' or env.get('PF_REAUDIT') == '1':
+        return False
+    try:
+        for page in (1, 2, 3):
+            rows = json.loads(gh(env, 'GET', 'repos/%s/issues/%d/comments?per_page=100&page=%d' % (env['PF_REPO'], number, page)))
+            for c in rows:
+                body = c.get('body') or ''
+                if (c.get('user') or {}).get('login') != 'github-actions[bot]' or marker not in body:
+                    continue
+                m = re.search(r'prompt sha256 `([0-9a-f]+)`, evidence sha256 `([0-9a-f]+)`', body)
+                valid = re.search(r'; (\d+) of \d+ seat answers valid', body)
+                when = datetime.datetime.fromisoformat((c.get('updated_at') or '').replace('Z', '+00:00'))
+                age = ((now or datetime.datetime.now(datetime.timezone.utc)) - when).days
+                return bool(m and valid and int(valid.group(1)) > 0 and prompt_hash.startswith(m.group(1))
+                            and pack_hash.startswith(m.group(2)) and age < REAUDIT_DAYS)
+            if len(rows) < 100:
+                break
+    except (OSError, ValueError, KeyError, TypeError, Refused):
+        return False
+    return False
 
 
 def mode_review(env, seats, cfg):
@@ -1297,6 +1394,13 @@ def mode_audit(env, seats, cfg):
     context = trained('\n\n'.join(['REPOSITORY RULES (trusted):\n' + agents_limits(),
                                    'OWNER (trusted):\n' + read('docs/council/OWNER.md'),
                                    'LESSONS (trusted):\n' + '\n\n'.join(lessons(tags_for(files)))]))
+    marker = '<!-- pf-council:shift:%s -->' % SHIFT['seat'] if SHIFT['seat'] else MARKER['audit'] % shard
+    whole = hashlib.sha256()
+    for part in parts[:AUDIT_MAX_PARTS]:
+        whole.update(''.join(file_block(rel, body) for rel, body in part).encode())
+    if len(parts) <= AUDIT_MAX_PARTS and unchanged_since(env, number, marker, sha(instructions), whole.hexdigest()):
+        summary(env, '### council audit: shard `%s` unchanged since its last audit; no seat called\n' % clean(shard, 40))
+        return 'unchanged'
     rows, unreached, digest = [], [], hashlib.sha256()
     for index, part in enumerate(parts, 1):
         if index > AUDIT_MAX_PARTS or time.time() > deadline:

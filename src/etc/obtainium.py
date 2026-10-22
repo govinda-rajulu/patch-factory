@@ -28,6 +28,8 @@ for p in ALL_APPS:
     assert p in pkg, ("no target", p)
 
 live = set(LABELS)
+CI_CERT = json.load(open("src/build/ci-signer.json"))["certificate_sha256"]
+assert re.fullmatch("[0-9a-f]{64}", CI_CERT), "src/build/ci-signer.json: not a SHA-256"
 # Imports describe configured enabled targets; availability is a separate live concern.
 CHECK = "--check" in sys.argv
 
@@ -45,6 +47,9 @@ def entry(p):
       "versionDetection": False,
       "trackOnly": False,
       "appName": LABELS[p],
+      # W15h (22 Oct 2026): Obtainium 1.6.16+ (commit 0fa9c8b; import format reviewed against v1.7.1) refuses and
+      # deletes an APK whose signing certificate is not listed here. One home: src/build/ci-signer.json.
+      "allowedSigningCertHashes": CI_CERT,
     }
     return {"id": pkg[p], "url": APP_URL, "author": AUTHOR, "name": LABELS[p],
             "categories": ["patch-factory"], "preferredApkIndex": 0,

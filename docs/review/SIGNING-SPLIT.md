@@ -21,3 +21,11 @@ patch job. W15g moves the receipt draft into the patch job (sealed, bound to the
 lets the publish job finish it with the signing record (unsigned sha -> signed sha), so no
 evidence check is weakened (L061). Gate: a full nonpublishing batch of every app through all
 three jobs before merge, then one publishing build of a small app.
+
+## W15h note (22 Oct 2026): the patcher can now skip signing
+
+morphe-desktop 1.19.0 (22 Oct, Patcher 2.0) has `--unsigned` ("Disable signing of the final apk",
+commit 4505091). The patch job can therefore produce an unsigned APK with no keystore at all, and
+the sign job runs `apksigner` alone; no throwaway BKS key is needed. Check in the W15g rehearsal:
+the unsigned output is zipaligned and `apksigner verify` passes after signing; the Obtainium
+certificate pin (`src/build/ci-signer.json`) must still match the signed APK.
