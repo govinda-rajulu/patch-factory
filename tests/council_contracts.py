@@ -85,6 +85,8 @@ LESSON_HASHES = {  # append a line for each new lesson; existing lines never cha
     'L069': '2d5b878f571739b5',
     'L070': 'a5ef8ffc59b35fc6',
     'L071': '1857394a0718e0e6',
+    'L072': '15ac071e7bab2a6f',
+    'L073': '94927572c7868f83',
 }
 KEYS = {'GITHUB_TOKEN': 'ghs_FAKE_TOKEN_0001', 'GEMINI_API_KEY': 'AIza_FAKE_GEMINI_0002',
         'NVIDIA_API_KEY': 'nvapi-FAKE-NVIDIA-0003', 'OPENROUTER_API_KEY': 'sk-or-v1-FAKE-0004',
@@ -1016,3 +1018,56 @@ class Personas(unittest.TestCase):
         self.assertEqual(skipped, [])
         self.assertGreater(len(parts), 1)
         self.assertEqual(''.join(t for p in parts for _, t in p), (ROOT / 'src/council/council.py').read_text())
+
+
+class CouncilV3(unittest.TestCase):
+    """W15f (22 Oct 2026): ideas ported from the owner's outside-repo review (record:
+    docs/review/OUTSIDE-REPOS-2026-10-22.md)."""
+
+    def test_every_lesson_tag_reaches_a_seat(self):
+        text = (ROOT / 'docs/council/LESSONS.md').read_text()
+        used = {t.strip() for m in re.finditer(r'(?m)^### L\d{3} [^\n]*\nTags: ([^\n]+)\n', text) for t in m[1].split(',')}
+        asked = set()
+        for p in council.repo_files():
+            asked |= set(council.tags_for([p]))
+        self.assertEqual(sorted(used - asked), [], 'a lesson tag no repository path asks for is never read by any seat')
+
+    def test_workflow_and_build_paths_get_their_lessons(self):
+        self.assertTrue({'workflows', 'ci', 'automation'} <= set(council.tags_for(['.github/workflows/council.yml'])))
+        self.assertTrue({'build', 'signing', 'release'} <= set(council.tags_for(['src/build/build.sh'])))
+        self.assertIn('L072', ''.join(council.lessons(council.tags_for(['docs/review/controllers/pf-t1.py']))))
+
+    def test_http_refuses_hosts_outside_the_providers(self):
+        for url in ('https://evil.example/v1', 'http://api.github.com/repos', 'https://api.github.com.evil.example/x'):
+            self.assertEqual(council.http('GET', url, {}), (0, 'host not allowed'), url)
+        self.assertIn('integrate.api.nvidia.com', council.allowed_hosts())
+
+    def test_staged_mode_writes_only_the_summary(self):
+        import os, tempfile
+        calls = []
+        old = council.gh
+        council.gh = lambda *a, **k: calls.append(a) or '[]'
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                out = os.path.join(d, 'summary.md')
+                env = {'PF_COUNCIL_STAGED': '1', 'GITHUB_STEP_SUMMARY': out, 'PF_REPO': 'o/r'}
+                self.assertEqual(council.upsert(env, 154, '<!-- m -->', 'body text'), 'staged')
+                self.assertIn('body text', Path(out).read_text())
+        finally:
+            council.gh = old
+        self.assertEqual(calls, [])
+
+    def test_shift_checklists_load_only_on_the_shift(self):
+        cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
+        with_list = [s for s in cfg['seats'] if s.get('shift', {}).get('checklist')]
+        self.assertEqual(sorted(s['id'] for s in with_list), ['codestral', 'gpt'])
+        for s in with_list:
+            self.assertTrue((ROOT / s['shift']['checklist']).is_file(), s['id'])
+            try:
+                council.SHIFT.update(seat=s['id'], voice='')
+                self.assertIn('CHECKLIST (trusted):', council.persona_text(s))
+                council.SHIFT.update(seat=None, voice=cfg['council_voice'])
+                self.assertNotIn('CHECKLIST', council.persona_text(s))
+            finally:
+                council.SHIFT.update(seat=None, voice='')
+        self.assertIn('Zero findings is a good answer', cfg['council_voice'])

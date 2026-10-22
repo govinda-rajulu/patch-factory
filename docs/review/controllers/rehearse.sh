@@ -23,6 +23,8 @@ if [ -n "$P" ] && [ -n "${PRIOR_MOVED:-}" ]; then M2=$(cd "$W/origin.git" && GIT
 # more bot commit the first time main is read after the packet pull request exists.
 bot() { (cd "$W/origin.git" && I=$(mktemp) && GIT_INDEX_FILE=$I git read-tree "$1" && O=$(echo "drift $2" | git hash-object -w --stdin) && GIT_INDEX_FILE=$I git update-index --add --cacheinfo "100644,$O,$2" && T=$(GIT_INDEX_FILE=$I git write-tree) && rm -f "$I" && GIT_AUTHOR_NAME=bot GIT_AUTHOR_EMAIL="${DRIFT_MAIL:-41898282+github-actions[bot]@users.noreply.github.com}" GIT_COMMITTER_NAME=bot GIT_COMMITTER_EMAIL='41898282+github-actions[bot]@users.noreply.github.com' git commit-tree "$T" -p "$1" -m "bot $2"); }
 MAINREF="$B"; if [ -n "${DRIFT:-}" ]; then MAINREF=$(bot "$B" "$DRIFT"); git -C "$W/origin.git" update-ref refs/heads/main "$MAINREF"; fi
+# W15f: DRIFT_MERGE=PATH: a Rule merge on main (bot commit changing PATH, merged by "GitHub" for the bot).
+if [ -n "${DRIFT_MERGE:-}" ]; then X=$(bot "$MAINREF" "$DRIFT_MERGE"); MAINREF=$(cd "$W/origin.git" && GIT_AUTHOR_NAME=bot GIT_AUTHOR_EMAIL='41898282+github-actions[bot]@users.noreply.github.com' GIT_COMMITTER_NAME=GitHub GIT_COMMITTER_EMAIL=noreply@github.com git commit-tree "$X^{tree}" -p "$MAINREF" -p "$X" -m "Rule merge"); git -C "$W/origin.git" update-ref refs/heads/main "$MAINREF"; fi
 LATER=""; if [ -n "${MID_DRIFT:-}" ]; then LATER=$(DRIFT_MAIL= bot "$MAINREF" "$MID_DRIFT"); fi
 # MIRROR_REPO=DIR: a second repository for the W13 mirror phase (fake openskip).
 if [ -n "${MIRROR_REPO:-}" ]; then git clone -q --bare "$MIRROR_REPO" "$W/mirror.git"; fi

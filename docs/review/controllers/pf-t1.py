@@ -7,7 +7,8 @@ Nothing is merged or deleted. One dispatch at a time, each waited for. Phases:
   gate       gh logged in; live main is PF_MAIN (a rerun after a STOP accepts the main
              the first attempt recorded, because Community and Selection watch push to main)
   batch      9. Batch Patch, publish=false, every enabled app: builds all apps with the new
-             version rule and publishes nothing
+             version rule and publishes nothing. W15f: PF_T1_PUBLISH=1 publishes instead (a
+             fresh set of releases, owner 22 Oct after every release was gone)
   check      2. Check new patch: the daily flow, run now (it publishes only apps whose
              provider or store changed, exactly as the 17:53 IST schedule does)
   provider   6. Provider watch    nightly  7. Nightly watch
@@ -32,6 +33,7 @@ MAIN = os.environ.get('PF_MAIN', '')
 GH = os.environ.get('PF_GH', 'gh')
 POLL = int(os.environ.get('PF_POLL', '30'))
 BUILD_WAIT = int(os.environ.get('PF_BUILD_WAIT', '9000'))
+PUBLISH = os.environ.get('PF_T1_PUBLISH') == '1'  # W15f: the batch publishes every enabled app
 WAIT = int(os.environ.get('PF_WAIT', '3600'))
 JOB = re.compile(r'(?:^|/ )Patch ([a-z0-9][a-z0-9-]*)$')
 FLOWS = [('provider', 'agent-watch.yml', '6. Provider watch'),
@@ -103,11 +105,14 @@ BOT = 'github-actions[bot]'
 
 def bot_only(old, new):
     """W15d: main moved past PF_MAIN by watch commits only (Selection or Community watch on a
-    schedule GitHub ran late). Every commit between must be the workflow bot's."""
+    schedule GitHub ran late). Every commit between must be the workflow bot's. W15f (L072): a
+    merge 11. Rule merge makes is authored by the bot and committed by GitHub (web-flow)."""
     cmp = must('repos/%s/compare/%s...%s' % (REPO, old, new), 'gate')
     commits = cmp.get('commits') or []
     return (cmp.get('status') == 'ahead' and 0 < len(commits) == cmp.get('total_commits', len(commits))
-            and all((c.get('author') or {}).get('login') == BOT and (c.get('committer') or {}).get('login') == BOT
+            and all((c.get('author') or {}).get('login') == BOT
+                    and ((c.get('committer') or {}).get('login') == BOT
+                         or (c.get('committer') or {}).get('login') == 'web-flow' and len(c.get('parents') or []) == 2)
                     for c in commits))
 
 
@@ -232,15 +237,17 @@ def shown_version(b):
 
 
 def batch(main, apps):
-    r = dispatch_and_wait('batch', 'batch-patch.yml', main, [('targets', ','.join(apps)), ('publish', 'false')], BUILD_WAIT,
-                          want=lambda x: 'publish=false' in (x.get('display_title') or x.get('name') or ''))
+    flag = 'true' if PUBLISH else 'false'
+    r = dispatch_and_wait('batch', 'batch-patch.yml', main, [('targets', ','.join(apps)), ('publish', flag)], BUILD_WAIT,
+                          want=lambda x: ('publish=' + flag) in (x.get('display_title') or x.get('name') or ''))
     found = read_apps('batch', r)
     for app in apps:
         row = found.get(app) or dict(run=r['id'], result='missing', error='no job for this app in the batch run')
         R['apps'][app] = dict(batch=row)
     bad = [a for a in apps if R['apps'][a]['batch'].get('result') != 'success']
-    say('batch', 'OK' if not bad else 'FINDING', 'run %s: %d of %d apps worked without publishing%s'
-        % (r['id'], len(apps) - len(bad), len(apps), ('; failed: ' + ', '.join(bad)) if bad else ''))
+    say('batch', 'OK' if not bad else 'FINDING', 'run %s: %d of %d apps worked %s%s'
+        % (r['id'], len(apps) - len(bad), len(apps), 'and published' if PUBLISH else 'without publishing',
+           ('; failed: ' + ', '.join(bad)) if bad else ''))
     for a in apps:
         b = R['apps'][a]['batch']
         note = b.get('coverage') if b.get('result') == 'success' else (b.get('error') or b.get('coverage'))

@@ -101,6 +101,7 @@ jobs:
           PF_QUESTION: ${{ inputs.question }}
           PF_SHARD: ${{ inputs.shard }}
           PF_SEAT: ${{ inputs.seat }}
+          PF_COUNCIL_STAGED: ${{ vars.PF_COUNCIL_STAGED }}
           PF_FIXES: council-out/fixes.patch
         run: |
           # The PR that adds the council runs this against a base without it: nothing to do.

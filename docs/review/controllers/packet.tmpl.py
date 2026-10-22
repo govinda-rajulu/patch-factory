@@ -33,7 +33,8 @@ result line. Phases:
   cleanup   (W13) when CLEANUP_APPLY: applies that exact preview at once (the owner's launcher
             is the owner's command; PF_CLEANUP=keep skips it), receipt in the logs
   t1        (W13) when RUN_T1: docs/review/controllers/pf-t1.py, the all-flows test, on the
-            merge; its own RESULT line and logs, reported here
+            merge; its own RESULT line and logs, reported here. W15f: PUBLISH_ALL makes its
+            batch publish every enabled app and moves it before preview and cleanup
 Checks: CHECKS must pass; OPTIONAL checks that appear must pass; ADVISORY checks are
 waited for and recorded, never blocking (owner's call, written in the packet record).
 PRECHECKS: live GitHub facts the packet's records rely on, read before anything is pushed.
@@ -75,6 +76,7 @@ CLOSE = ()          # (issue number, closing comment) pairs, done after the merg
 PRECHECKS = ()      # (api path, field, expected value, why) read in gate; a mismatch stops
 CLEANUP_APPLY = False  # apply the cleanup preview at once (PF_CLEANUP=keep skips)
 RUN_T1 = False      # run docs/review/controllers/pf-t1.py on the merge at the end
+PUBLISH_ALL = False  # (W15f) T1's batch publishes every enabled app, and T1 runs before the cleanup
 TIDY = False        # (W14) src/etc/release_tidy.py on the merge: preview, then apply with a backup in the logs
 MIRROR = None       # (W13) dict(repo, files, manifest, anchor, branch, title[, replaces]): copy files from the
                     # merged tree into another repository of the owner by ITS OWN pull request
@@ -194,6 +196,7 @@ def gate():
 
 
 BOT_MAIL = '41898282+github-actions[bot]@users.noreply.github.com'
+MERGER_MAIL = 'noreply@github.com'  # W15f: GitHub commits the merges 11. Rule merge makes (author: the bot)
 
 
 def git_out(args, phase, env=None):
@@ -205,8 +208,9 @@ def git_out(args, phase, env=None):
 
 def drift_tree(main, phase):
     """W15e (L071): the tree a merge into `main` must have. TREE when main is BASE. When main is
-    past BASE, every commit after BASE must be a plain (one-parent) commit authored and committed
-    by the Actions bot, and none may touch a path the packet changes; the answer is then TREE
+    past BASE, every commit after BASE must be authored by the Actions bot and committed by it, or
+    (W15f, L072) be a merge GitHub committed for the bot (11. Rule merge), and none may touch a
+    path the packet changes; the answer is then TREE
     with those bot paths taken from main. Anything else stops with MAIN_MOVED (nothing merged)."""
     if main == BASE:
         return TREE
@@ -216,9 +220,9 @@ def drift_tree(main, phase):
     if subprocess.run(['git', 'merge-base', '--is-ancestor', BASE, main], cwd=CLONE, capture_output=True).returncode != 0:
         stop(phase, 'MAIN_MOVED: main %s does not contain the base %s. Nothing merged.' % (main[:12], BASE[:12]))
     rows = [l.split(' ') for l in git_out(['log', '--format=%H %ae %ce %P', BASE + '..' + main], phase).splitlines() if l.strip()]
-    human = [r[0][:12] for r in rows if r[1] != BOT_MAIL or r[2] != BOT_MAIL or len(r) != 4]
+    human = [r[0][:12] for r in rows if r[1] != BOT_MAIL or not (r[2] == BOT_MAIL and len(r) == 4 or r[2] == MERGER_MAIL)]
     if human:
-        stop(phase, 'MAIN_MOVED: main %s has %d commit(s) after the base that are not plain bot commits (%s). Nothing merged.'
+        stop(phase, 'MAIN_MOVED: main %s has %d commit(s) after the base that are not bot commits (%s). Nothing merged.'
              % (main[:12], len(human), ', '.join(human[:5])))
     moved = [x for x in git_out(['diff', '--name-only', '--no-renames', '-z', BASE, main], phase).split('\0') if x]
     mine = set(x for x in git_out(['diff', '--name-only', '--no-renames', '-z', BASE_TREE, TREE], phase).split('\0') if x)
@@ -699,7 +703,7 @@ def t1(merge_sha):
         say('t1', 'SKIP', 'all-flows test not run here')
         return True
     script = CLONE / 'docs/review/controllers/pf-t1.py'
-    env = dict(os.environ, PF_MAIN=merge_sha)
+    env = dict(os.environ, PF_MAIN=merge_sha, PF_T1_PUBLISH='1' if PUBLISH_ALL else '')
     with open(LOGS / 'pf-t1.out', 'wb') as out:
         code = subprocess.run([sys.executable, str(script)], cwd=CLONE, env=env, stdout=out, stderr=subprocess.STDOUT).returncode
     lines = (LOGS / 'pf-t1.out').read_bytes().decode('utf-8', 'replace').splitlines()
@@ -745,11 +749,14 @@ def main():
     R['merge'] = merge(pr)
     close_issues()
     deployed = pages(R['merge'])
+    # W15f: with PUBLISH_ALL the fresh releases exist before the cleanup keeps the newest per app.
+    tested = t1(R['merge']) if PUBLISH_ALL else True
     previewed = preview()
     cleaned = previewed and cleanup(R['merge'])
     tidied = tidy(R['merge'])
     mirrored = mirror(R['merge'])
-    tested = t1(R['merge'])
+    if not PUBLISH_ALL:
+        tested = t1(R['merge'])
     return finish(deployed and previewed and cleaned and tidied and mirrored and tested)
 
 

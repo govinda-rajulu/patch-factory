@@ -159,11 +159,24 @@ def same_site(url, location):
             and a.port == b.port)
 
 
+def allowed_hosts():
+    hosts = {'api.github.com'}
+    for p in PROVIDERS.values():
+        hosts |= {urllib.parse.urlsplit(p[k]).hostname for k in ('chat', 'models')}
+    return hosts
+
+
 def http(method, url, headers, body=None, timeout=90):
     """One HTTP call. Returns (status, text). Never raises for HTTP errors.
 
+    W15f: only https to a provider host or api.github.com (the gh-aw firewall idea, in-process);
+    nothing a model writes can aim a call elsewhere.
+
     urllib turns a redirected POST into a bodiless GET; follow one redirect by repeating
     the same method and body instead, and only within the same site."""
+    parts = urllib.parse.urlsplit(url)
+    if parts.scheme != 'https' or (parts.hostname or '').lower() not in allowed_hosts():
+        return 0, 'host not allowed'
     data = None if body is None else json.dumps(body).encode()
     for hop in (1, 2):
         req = urllib.request.Request(url, data=data, method=method, headers=headers)
@@ -238,6 +251,7 @@ def envelope(label, value, limit):
 
 
 SPEC_SENTINEL = '----- spec below -----'
+CHECKLIST_MAX = 3000
 SPEC_MAX, STATE_MAX, CHECKPOINT_MAX = 4500, 2500, 3000
 
 
@@ -283,15 +297,28 @@ def agents_limits():
     return text[a:b].strip() if a >= 0 and b > a else text[:3000]
 
 
+# W15f (22 Oct 2026): 11 lessons carried only tags no path asked for (build, ci, automation,
+# review, signing...), so no seat ever read them. Every LESSONS tag must be reachable from some
+# repository path (tests/council_contracts.py pins it).
+TAG_PATHS = (
+    (('.github/',), ('workflows', 'ci', 'automation')),
+    (('src/patches', 'src/options', 'src/targets.json'), ('selection', 'sources', 'providers')),
+    (('src/build',), ('gates', 'build', 'release', 'signing')),
+    (('src/build/helper', 'src/build/store_chain.sh', 'src/build/source_'), ('stores', 'store')),
+    (('src/community',), ('providers', 'sources', 'watch')),
+    (('src/etc',), ('automation', 'status', 'watch', 'retention', 'notify')),
+    (('src/council', 'docs/council', 'docs/review/controllers'), ('agents', 'review', 'automation')),
+    (('docs/review/onboarding',), ('onboarding', 'selection')),
+    (('tests/',), ('gates', 'tests')),
+)
+
+
 def tags_for(paths):
     tags = {'evidence'}
     for p in paths:
-        if p.startswith('.github/'):
-            tags.add('workflows')
-        if p.startswith('src/patches') or p.startswith('src/options') or p == 'src/targets.json':
-            tags.add('selection')
-        if p.startswith('src/build') or p.startswith('tests/'):
-            tags.add('gates')
+        for prefixes, names in TAG_PATHS:
+            if any(p.startswith(x) or p == x for x in prefixes):
+                tags.update(names)
         if p.startswith('docs/') or p.endswith('.md'):
             tags.add('docs')
     return sorted(tags)
@@ -548,8 +575,13 @@ def persona_text(seat):
     if not p:
         return ''
     if SHIFT['seat'] == seat['id']:
-        return ('\n\nYOU (trusted): %s, %s. Solo shift: %s. Work alone; the same JSON schema and citation rules apply.'
+        text = ('\n\nYOU (trusted): %s, %s. Solo shift: %s. Work alone; the same JSON schema and citation rules apply.'
                 % (p['name'], p['voice'], seat['shift']['brief']))
+        # W15f: an optional checklist file (docs/council/checklists/) walks the shift's boundaries.
+        path = seat['shift'].get('checklist')
+        if path:
+            text += '\n\nCHECKLIST (trusted):\n' + capped(read(path), CHECKLIST_MAX)
+        return text
     return ('\n\nYOU (trusted): %s, %s. On the council your lens is: %s. Council voice: %s'
             % (p['name'], p['voice'], p['council_lens'], SHIFT['voice']))
 
@@ -878,6 +910,11 @@ def base_system(canary):
 
 
 def upsert(env, number, marker, body):
+    if env.get('PF_COUNCIL_STAGED') == '1':
+        # W15f: repository variable PF_COUNCIL_STAGED=1 makes every council write a preview in
+        # the run summary; nothing is posted or edited (gh-aw staged mode). Not a sandbox.
+        summary(env, '### staged: would write on #%d (%s)\n\n%s\n' % (number, marker, body))
+        return 'staged'
     repo = env['PF_REPO']
     mine = None
     for page in (1, 2, 3):

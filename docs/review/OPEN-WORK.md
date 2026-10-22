@@ -1,6 +1,22 @@
 # Open work
 
-## Current checkpoint: 22 October 2026, late morning IST (packet W15e)
+## Current checkpoint: 22 October 2026, midday IST (packet W15f)
+
+W15e merged (#208, `f3d91337`; cleanup applied); Rule merge merged #207 itself (`c1fa3d3d`). T1
+stopped on that merge (L072). W15f: Rule merges count as bot drift in the controller and T1; T1
+reruns on main; council v3 from the outside-repo review ([OUTSIDE-REPOS-2026-10-22.md](OUTSIDE-REPOS-2026-10-22.md)). Open, in order:
+
+0. After W15f: check that every app has one release again (the fresh set) and no orphan tag is left.
+1. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)); it ends with one publishing build
+   the owner installs over the current app, so it runs when he can test the phone.
+2. Combo planner and ceiling memory (LinkedIn step-downs).
+3. Facebook: owner installs the kept 0.16.1 build (never 0.16.0).
+4. openskip and brain: AGENT-PERSONAS.md and REPORT-STYLE.md by their own PRs; openskip also
+   impeccable and plugin quality gates, brain the ai-memory ideas (OUTSIDE-REPOS record).
+5. Optional, owner: free Cerebras or Cloudflare Workers AI keys as fallback seats; council
+   seats split into read-only and write jobs (gh-aw safe outputs).
+
+## Checkpoint: 22 October 2026, late morning IST (packet W15e)
 
 W15d merged (#204, `ab8423a8`; T1 0 findings). W15e: readable bot reports, Rule merge fixed
 (#207 then merges itself), personas and solo shifts, one release kept per app, merged branches
