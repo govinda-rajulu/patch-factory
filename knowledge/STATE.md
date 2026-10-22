@@ -6,7 +6,15 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 22 Oct 2026, late morning IST (packet W15e; start here)
+## 22 Oct 2026, midday IST (packet W15f; start here)
+
+- **Main** `c1fa3d3d` (W15e #208 `f3d91337`, then Rule merge #207 by the bot) plus W15f once merged.
+- **W15f**: Rule merges count as bot drift in the controller and T1 (L072); T1 rerun on main;
+  council v3 from the outside-repo review (docs/review/OUTSIDE-REPOS-2026-10-22.md, L073).
+  Record `docs/review/SESSION-2026-10-22.md` (W15f section). Wrong calls this chat: 46.
+- **Next**: OPEN-WORK 22 Oct midday: W15g signing split (needs a phone test), then combo planner.
+
+## 22 Oct 2026, late morning IST (packet W15e)
 
 - **Main** `47bcf796` (W15d #204 `ab8423a8` plus bot commits) plus W15e once merged.
 - **W15e**: readable bot reports (docs/review/REPORT-STYLE.md), Rule merge fixed (L069, L070),

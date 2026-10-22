@@ -55,7 +55,7 @@ if a[:2] == ['workflow', 'run']:
     prov = ([x.split('=', 1)[1] for x in a if x.startswith('provider=')] + [''])[0]
     targets = ([x.split('=', 1)[1] for x in a if x.startswith('targets=')] + [''])[0]
     title = ('Manual %s%s / publish=false' % (tgt, ' / ' + prov if prov else '')) if wf == 'manual-patch.yml' else \
-        ('Batch %s / publish=false' % targets) if wf == 'batch-patch.yml' else wf
+        ('Batch %s / publish=%s' % (targets, ([x.split('=', 1)[1] for x in a if x.startswith('publish=')] + ['false'])[0])) if wf == 'batch-patch.yml' else wf
     st['runs'].append({'id': 800000 + len(st['runs']), 'wf': wf, 'target': tgt or targets, 'provider': prov, 'display_title': title,
                        'head_branch': ref, 'head_sha': git('rev-parse', 'refs/heads/' + ref), 'created_at': '2099-01-01T00:00:00Z',
                        'updated_at': '2099-01-01T00:00:01Z', 'status': 'queued', 'conclusion': None, 'polls': 0, 'html_url': 'u'})

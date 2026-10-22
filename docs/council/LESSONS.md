@@ -407,3 +407,16 @@ Bot commits (Selection, Community, Provider watch) land on main every few hours,
 that stops on any move sent the owner back for a new bundle (e46ff50e, 21 Oct). Since W15e the
 clone proves each commit after the base is a plain bot commit touching no packet file, and the
 merge must equal the packet tree plus those files; any other move still stops (W15e, 22 Oct).
+
+### L072 · A Rule merge is bot drift too; every main gate shares one drift rule
+Tags: automation, review
+Rule merge merged #207 at 06:00Z, four minutes after W15e merged, and T1 stopped with MAIN_MOVED:
+its bot check wanted the bot as committer, but GitHub (web-flow) commits the merges it makes. The
+controller check written that morning (L071) had the same gap. Both now accept a two-parent
+merge authored by the bot and committed by GitHub; an owner merge still stops (W15f, 22 Oct).
+
+### L073 · A recall filter must reach every tag it stores
+Tags: agents, review, evidence
+Seats read lessons by tag, but tags_for knew five tags; eleven lessons tagged build, ci,
+automation, review or signing were never shown to any seat. Found by the outside-repo review
+(memory systems "recall"). A contract test now fails on any stored tag no path asks for (W15f, 22 Oct).
