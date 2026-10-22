@@ -13,15 +13,24 @@ on:
     # mornings, all on the desk issue in seats.json. One job at a time keeps free tiers answering.
     - cron: "17 3 * * *"  # 08:47 IST daily: one audit shard (Monday: triage)
     - cron: "17 15 * * *"  # 20:47 IST daily: one audit shard
+    # W15e (owner, 22 Oct 2026): solo shifts, one seat at a time in persona order (PERSONAS.md).
+    - cron: "17 21 * * *"  # 02:47 IST daily: one seat's solo shift
+    - cron: "17 0 * * *"  # 05:47 IST daily: one seat's solo shift
+    - cron: "17 9 * * *"  # 14:47 IST daily: one seat's solo shift
+    - cron: "17 12 * * *"  # 17:47 IST daily: one seat's solo shift
   workflow_dispatch:
     inputs:
       mode:
-        description: 'probe = check which seats answer; question = vote on one patch or provider; ask = factual answer with cited facts; audit = review one shard of the repository; triage = judge every open issue'
+        description: 'probe = check which seats answer; question = vote on one patch or provider; ask = factual answer with cited facts; audit = review one shard of the repository; triage = judge every open issue; shift = one seat works its solo shift (input seat)'
         type: choice
-        options: [probe, question, ask, audit, triage]
+        options: [probe, question, ask, audit, triage, shift]
         default: probe
       issue:
-        description: 'Question, ask, audit or triage mode: issue number for the comment'
+        description: 'Question, ask, audit, triage or shift mode: issue number for the comment'
+        required: false
+        default: ''
+      seat:
+        description: 'Shift mode: seat id from src/council/seats.json (gpt, gemini, nemotron, open, codestral, command, groq)'
         required: false
         default: ''
       target:
@@ -91,6 +100,7 @@ jobs:
           PF_NOTE: ${{ inputs.note }}
           PF_QUESTION: ${{ inputs.question }}
           PF_SHARD: ${{ inputs.shard }}
+          PF_SEAT: ${{ inputs.seat }}
           PF_FIXES: council-out/fixes.patch
         run: |
           # The PR that adds the council runs this against a base without it: nothing to do.

@@ -203,6 +203,7 @@ def read_apps(phase, r):
         found[app] = dict(
             run=r['id'], result=j.get('conclusion'), url=j.get('html_url'),
             version=next((l[8:] for l in mine if l.startswith('VERSION=')), ''),
+            built=built_version(pick('RELEASE_CONTRACT_VERIFIED {')),
             coverage=(pick('COVERAGE ') or [''])[-1], lost=pick('COVERAGE_LOST')[:10],
             dropped=pick('PATCH_DROPPED')[:10], fallback=(pick('PROVIDER_FALLBACK') or [''])[0][:300],
             attempts=(pick('ATTEMPTS_OK') or pick('ATTEMPTS_FAILED') or [''])[-1][:200],
@@ -210,6 +211,24 @@ def read_apps(phase, r):
             applied=(pick('applied ') or [''])[-1][:120],
             error=(pick('##[error]') or pick('[-] ') or [''])[0])
     return found
+
+
+def built_version(lines):
+    """W15e (22 Oct 2026): the version in the verified release handoff, which is what was built.
+    VERSION= is only the plan: LinkedIn planned 4.1.1261 and built 4.1.1255.1 after two step-downs."""
+    for line in reversed(lines):
+        try:
+            return str(json.loads(line.split('RELEASE_CONTRACT_VERIFIED ', 1)[1]).get('version') or '')
+        except (ValueError, IndexError, AttributeError):
+            continue
+    return ''
+
+
+def shown_version(b):
+    planned, built = b.get('version') or '', b.get('built') or ''
+    if built and planned and built != planned:
+        return '%s (planned %s)' % (built, planned)
+    return built or planned or '-'
 
 
 def batch(main, apps):
@@ -225,7 +244,7 @@ def batch(main, apps):
     for a in apps:
         b = R['apps'][a]['batch']
         note = b.get('coverage') if b.get('result') == 'success' else (b.get('error') or b.get('coverage'))
-        print('   %-16s %-8s %-18s %s' % (a, b.get('result'), b.get('version') or '-', note or ''), flush=True)
+        print('   %-16s %-8s %-18s %s' % (a, b.get('result'), shown_version(b), note or ''), flush=True)
     save()
 
 

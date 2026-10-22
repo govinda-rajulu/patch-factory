@@ -8,7 +8,8 @@ launcher that checks bytes and sha256. How-to: docs/review/controllers/README.md
 Runs on the owner box. Every phase reads state first, so a rerun skips finished work and
 never pushes, merges or dispatches twice. One side effect per phase, each with its own
 result line. Phases:
-  gate      gh logged in; live main is BASE (or the packet is already merged)
+  gate      gh logged in; live main is BASE (or the packet is already merged). W15e: main may
+            be past BASE by bot commits only; the clone proves it (see drift_tree)
   clone     fresh stamped clone; the packet tree from the embedded bundle, checked by tree id,
             committed on BASE with a fixed author and date (same commit id on a rerun)
   push      new branch BRANCH (only if absent; a different head there stops). With PARENT set
@@ -171,7 +172,10 @@ def gate():
     merged = bool(pr and pr.get('merged_at'))
     R.update(main_at_start=main, pr=pr and pr['number'], merged_at_start=merged)
     if main != BASE and not merged:
-        stop('gate', 'MAIN_MOVED: live main %s is not the base %s and %s is not merged. Nothing changed.' % (main[:12], BASE[:12], PACKET))
+        # W15e (L071): bot commits (Selection, Community, Provider watch) land on main every few
+        # hours; a controller that stops on each one keeps the owner rebuilding. The clone below
+        # proves the drift is bot-only and touches no packet file, or stops with MAIN_MOVED.
+        say('gate', 'NOTE', 'main %s is past the base %s; the clone checks it moved by bot commits only' % (main[:12], BASE[:12]))
     if not merged:
         bt = (must('repos/%s/git/commits/%s' % (REPO, BASE), 'gate').get('tree') or {}).get('sha')
         if bt != BASE_TREE:
@@ -187,6 +191,57 @@ def gate():
         say('gate', 'OK', 'precheck %s %s = %r' % (path, field, got))
     say('gate', 'OK', 'main %s, %s %s' % (main[:12], PACKET, 'already merged' if merged else 'not merged yet'))
     return pr, merged
+
+
+BOT_MAIL = '41898282+github-actions[bot]@users.noreply.github.com'
+
+
+def git_out(args, phase, env=None):
+    r = subprocess.run(['git'] + args, cwd=CLONE, capture_output=True, env=env, timeout=600)
+    if r.returncode != 0:
+        stop(phase, 'git %s failed: %s' % (' '.join(args[:2]), r.stderr.decode('utf-8', 'replace')[:200]))
+    return r.stdout.decode('utf-8', 'replace')
+
+
+def drift_tree(main, phase):
+    """W15e (L071): the tree a merge into `main` must have. TREE when main is BASE. When main is
+    past BASE, every commit after BASE must be a plain (one-parent) commit authored and committed
+    by the Actions bot, and none may touch a path the packet changes; the answer is then TREE
+    with those bot paths taken from main. Anything else stops with MAIN_MOVED (nothing merged)."""
+    if main == BASE:
+        return TREE
+    git_out(['fetch', '-q', 'origin', '+refs/heads/main:refs/pf/main'], phase)
+    if subprocess.run(['git', 'cat-file', '-e', main + '^{commit}'], cwd=CLONE, capture_output=True).returncode != 0:
+        stop(phase, 'MAIN_MOVED: main %s is not in the fetched history (force-pushed?). Nothing merged.' % main[:12])
+    if subprocess.run(['git', 'merge-base', '--is-ancestor', BASE, main], cwd=CLONE, capture_output=True).returncode != 0:
+        stop(phase, 'MAIN_MOVED: main %s does not contain the base %s. Nothing merged.' % (main[:12], BASE[:12]))
+    rows = [l.split(' ') for l in git_out(['log', '--format=%H %ae %ce %P', BASE + '..' + main], phase).splitlines() if l.strip()]
+    human = [r[0][:12] for r in rows if r[1] != BOT_MAIL or r[2] != BOT_MAIL or len(r) != 4]
+    if human:
+        stop(phase, 'MAIN_MOVED: main %s has %d commit(s) after the base that are not plain bot commits (%s). Nothing merged.'
+             % (main[:12], len(human), ', '.join(human[:5])))
+    moved = [x for x in git_out(['diff', '--name-only', '--no-renames', '-z', BASE, main], phase).split('\0') if x]
+    mine = set(x for x in git_out(['diff', '--name-only', '--no-renames', '-z', BASE_TREE, TREE], phase).split('\0') if x)
+    both = sorted(set(moved) & mine)
+    if both:
+        stop(phase, 'MAIN_MOVED: bot commits after the base change %d file(s) this packet changes too (%s). Nothing merged.'
+             % (len(both), ', '.join(both[:5])))
+    idx = WORK / ('pf-%s-%s.index' % (PACKET, STAMP))
+    env = dict(os.environ, GIT_INDEX_FILE=str(idx))
+    git_out(['read-tree', TREE], phase, env)
+    for path in moved:
+        row = git_out(['ls-tree', '-z', main, '--', path], phase).strip('\0')
+        if row:
+            meta = row.split('\t', 1)[0].split()
+            git_out(['update-index', '--add', '--cacheinfo', '%s,%s,%s' % (meta[0], meta[2], path)], phase, env)
+        else:
+            git_out(['update-index', '--force-remove', '--', path], phase, env)
+    tree = git_out(['write-tree'], phase, env).strip()
+    idx.unlink()
+    R.setdefault('drift', {})[main] = dict(commits=len(rows), files=len(moved), tree=tree)
+    say(phase, 'OK', 'main %s is %d bot commit(s) past the base, %d file(s), none the packet changes; merge tree must be %s'
+        % (main[:12], len(rows), len(moved), tree[:12]))
+    return tree
 
 
 def clone():
@@ -224,6 +279,8 @@ def clone():
     R['head'] = HEAD
     say('clone', 'OK', 'packet head %s (tree %s) on base %s%s' % (HEAD[:12], TREE[:12], BASE[:12],
         (', after the pushed head %s' % PARENT[:12]) if PARENT != BASE else ''))
+    if R.get('main_at_start') != BASE and not R.get('merged_at_start'):
+        drift_tree(R['main_at_start'], 'clone')
 
 
 def push():
@@ -305,8 +362,7 @@ def merge(pr):
         return tree_check(sha)
     if pr.get('head', {}).get('sha') != HEAD:
         stop('merge', 'pull request head %s is not the packet head %s' % (pr.get('head', {}).get('sha', '')[:12], HEAD[:12]))
-    if main_sha('merge') != BASE:
-        stop('merge', 'MAIN_MOVED before merge; nothing merged')
+    drift_tree(main_sha('merge'), 'merge')  # W15e: bot-only drift merges; anything else stops here
     out = must('repos/%s/pulls/%d/merge' % (REPO, pr['number']), 'merge', 'PUT', dict(merge_method='merge', sha=HEAD))
     sha = out.get('sha') or ''
     if not out.get('merged') or len(sha) != 40:
@@ -317,9 +373,18 @@ def merge(pr):
 
 def tree_check(sha):
     t = (must('repos/%s/git/commits/%s' % (REPO, sha), 'merge').get('tree') or {}).get('sha')
-    if t != TREE:
-        stop('merge', 'merge %s has tree %s, not the packet tree %s' % (sha[:12], (t or '')[:12], TREE[:12]))
-    say('merge', 'OK', 'merge tree is the packet tree %s' % TREE[:12])
+    if t == TREE:
+        say('merge', 'OK', 'merge tree is the packet tree %s' % TREE[:12])
+        return sha
+    # W15e: a merge into a main that bot commits moved has the packet tree plus their files.
+    git_out(['fetch', '-q', 'origin', '+refs/heads/main:refs/pf/main'], 'merge')
+    parents = git_out(['rev-list', '--parents', '-n', '1', sha], 'merge').split()
+    if len(parents) != 3 or parents[2] != HEAD:
+        stop('merge', 'merge %s has tree %s, not the packet tree %s, and is not a merge of the packet head' % (sha[:12], (t or '')[:12], TREE[:12]))
+    want = drift_tree(parents[1], 'merge')
+    if t != want:
+        stop('merge', 'merge %s has tree %s, not %s (the packet tree with the bot files of %s)' % (sha[:12], (t or '')[:12], want[:12], parents[1][:12]))
+    say('merge', 'OK', 'merge tree %s is the packet tree plus the bot files of %s' % (t[:12], parents[1][:12]))
     return sha
 
 

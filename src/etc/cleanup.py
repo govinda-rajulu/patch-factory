@@ -5,8 +5,8 @@
     python3 src/etc/cleanup.py apply --token TOKEN [--receipt FILE]
 
 What goes (owner rules, 9 Oct 2026):
-  * releases: grouped by app (the tag before "-v<version>"); per app the two newest by
-    publication time stay and every older one goes, whatever its layout, author or marker.
+  * releases: grouped by app (the tag before "-v<version>"); per app the newest by
+    publication time stays (owner, 22 Oct 2026: one per app; it was two) and every older one goes, whatever its layout, author or marker.
     A release whose app prefix is no target's tag_prefix in src/targets.json belongs to a
     retired app and goes too (owner, 9 Oct 2026: one Truecaller, the tc-combo build);
   * the tags of those releases, and any build tag (PREFIX-vVERSION-bDIGITS) whose release
@@ -35,7 +35,7 @@ import sys
 REPO = 'govinda-rajulu/patch-factory'
 BUILD_TAG = re.compile(r'^[a-z0-9-]+-v[0-9]+(?:\.[0-9]+)*-b[0-9]{8}(?:[0-9]{26})?$')
 PAGES_ENV = 'github-pages'
-KEEP = 2
+KEEP = 1  # owner, 22 Oct 2026: "delete all others"; the newest build per app stays
 KEEP_DEPLOYMENTS = 5
 PACKET = 'packet/'
 APP_TAG = re.compile(r'^([a-z0-9-]+?)-v[0-9][0-9.]*(?:-b[0-9]+)?$')
@@ -144,7 +144,7 @@ def plan(releases, tag_map, deploys=(), branch_rows=(), known=None):
             if retired:
                 rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': 'retired app ' + app})
             elif i < KEEP:
-                kept.append({'tag': r['tag_name'], 'reason': 'two newest of ' + app})
+                kept.append({'tag': r['tag_name'], 'reason': 'newest of ' + app})
             else:
                 rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': 'older build of ' + app})
     have = {r['tag_name'] for r in releases}
@@ -202,7 +202,7 @@ def show(p):
         print('  deploy  %d record(s), created %s to %s' % (len(d), min(x['created_at'] or '' for x in d), max(x['created_at'] or '' for x in d)))
     for b in p['branches']:
         print('  branch  %s  (%s, in main)' % (b['name'], b['sha'][:12]))
-    print('Kept (two newest per app):')
+    print('Kept (newest per app):')
     for k in p['kept']:
         print('  keep    %s  (%s)' % (k['tag'], k['reason']))
     print('Kept (newest %d Pages deployment records):' % KEEP_DEPLOYMENTS)

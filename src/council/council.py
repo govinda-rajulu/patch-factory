@@ -38,6 +38,10 @@ MARKER = {'review': '<!-- pf-council:review -->', 'question': '<!-- pf-council:q
 # Jobs a seat may take (seats.json "jobs"); a seat without the key takes every job.
 JOBS = ('review', 'question', 'ask', 'audit', 'triage', 'probe')
 TRIAGE_VERDICTS = ('close', 'keep', 'owner')
+# W15e (owner, 22 Oct 2026): seats have a persona and a solo shift (docs/council/PERSONAS.md).
+# SHIFT holds the seat id while one seat works its shift alone; None means council work.
+SHIFT = {'seat': None, 'voice': ''}
+SHIFT_HOURS_UTC = (21, 0, 9, 12)  # 02:47, 05:47, 14:47, 17:47 IST: one seat alone, one at a time (L039)
 TRIAGE_CHUNK = 6
 # Every provider speaks OpenAI-style chat completions. 'auth' marks a model catalogue that
 # needs the key; OpenRouter's is public. Every one accepts response_format json_object
@@ -353,6 +357,10 @@ def desk_job(cfg, spec, now):
     desk = cfg.get('desk')
     if not (isinstance(desk, int) and desk > 0):
         raise Refused('seats.json has no desk issue')
+    order = cfg.get('shift_order') or []
+    if now.hour in SHIFT_HOURS_UTC and order:
+        seat = order[(now.toordinal() * len(SHIFT_HOURS_UTC) + SHIFT_HOURS_UTC.index(now.hour)) % len(order)]
+        return 'shift', {'PF_ISSUE': str(desk), 'PF_SEAT': seat}
     if now.weekday() == 0 and now.hour < 12:
         return 'triage', {'PF_ISSUE': str(desk)}
     ids = [s['id'] for s in spec['shards']]
@@ -533,7 +541,21 @@ def check_review(obj):
     return obj
 
 
+def persona_text(seat):
+    """Who this seat is. Council work adds its lens to the shared council voice; a shift adds
+    the brief. Trusted text from seats.json only, never from the data being judged."""
+    p = seat.get('persona')
+    if not p:
+        return ''
+    if SHIFT['seat'] == seat['id']:
+        return ('\n\nYOU (trusted): %s, %s. Solo shift: %s. Work alone; the same JSON schema and citation rules apply.'
+                % (p['name'], p['voice'], seat['shift']['brief']))
+    return ('\n\nYOU (trusted): %s, %s. On the council your lens is: %s. Council voice: %s'
+            % (p['name'], p['voice'], p['council_lens'], SHIFT['voice']))
+
+
 def run_seat(seat, system, user, env, checker, canary):
+    system = system + persona_text(seat)
     row = {'seat': seat['id'], 'provider': seat['provider'], 'model': '', 'status': '', 'answer': None}
     if not env.get(PROVIDERS[seat['provider']]['key']):
         row['status'] = 'SKIPPED_NO_KEY'
@@ -728,6 +750,35 @@ def merge_findings(rows):
 
 # ---------- rendering ----------
 
+# W15e (owner, 22 Oct 2026): findings that name no rule, file fact or check are noise. Pattern
+# seen on the desk: "The code does not enforce a rule that AGENTS.md forbids." They are dropped
+# and counted, never shown as work. Style: docs/review/REPORT-STYLE.md.
+VAGUE = [re.compile(p, re.I) for p in (
+    r'\bdoes not enforce a (safety )?rule\b', r'\brule that (agents\.md|the code)( no longer)? (forbids|enforces)\b',
+    r'^add (a )?(rule )?enforcement( check)?( for the rule.*)?\.?$', r'^add a check\.?$', r'^(improve|consider) (error handling|logging)\.?$')]
+
+
+def vague(g):
+    return any(v.search(str(g.get('issue', ''))) or v.search(str(g.get('fix', ''))) for v in VAGUE)
+
+
+def findings_block(found, of, limit):
+    """Severity counts, then a main table (high/medium or seen by 2+ seats), low/nit folded."""
+    kept = [g for g in found if not vague(g)]
+    gone = len(found) - len(kept)
+    counts = ', '.join('%s %d' % (s, sum(g['severity'] == s for g in kept)) for s in SEVERITIES if any(g['severity'] == s for g in kept))
+    out = ['', '**Findings:** %s%s' % (counts or 'none', '; %d vague one(s) dropped (no rule, file fact or check named)' % gone if gone else '')]
+    main = [g for g in kept if g['severity'] in ('critical', 'high', 'medium') or len(g['seats']) > 1][:limit]
+    minor = [g for g in kept if g not in main][:limit]
+    head = ['| agree | severity | where | issue | suggested fix |', '|---|---|---|---|---|']
+    row = lambda g: '| %s | %s | %s | %s | %s |' % ('%d/%d' % (len(g['seats']), of) if of else len(g['seats']), g['severity'], where(g),
+                                                   clean(g['issue']), clean(g['fix']) or '-')
+    if main:
+        out += [''] + head + [row(g) for g in main]
+    if minor:
+        out += ['', '<details><summary>%d minor finding(s) (low, nit, one seat)</summary>' % len(minor), ''] + head + [row(g) for g in minor] + ['', '</details>']
+    return out, kept
+
 def clean(text, n=400):
     text = str(text)[:n]
     text = text.replace('```', "'''").replace('<', '&lt;').replace('>', '&gt;')
@@ -760,12 +811,8 @@ def render_review(rows, pr, prompt_hash, pack_hash):
             '%d %s' % (verdicts.count(v), v) for v in VERDICTS if v in verdicts)))
         found = merge_findings(rows)
         if found:
-            out += ['', '| agree | severity | where | issue | suggested fix |', '|---|---|---|---|---|']
-            for g in found[:15]:
-                at = where(g)
-                out.append('| %d/%d | %s | %s | %s | %s |' % (len(g['seats']), len(ok), g['severity'], at,
-                                                          clean(g['issue']), clean(g['fix']) or '-'))
-            out += ['', 'Findings seen by one seat only are leads, not conclusions.']
+            block, kept = findings_block(found, len(ok), 15)
+            out += block + (['', 'Findings seen by one seat only are leads, not conclusions.'] if kept else [])
         else:
             out.append('No findings.')
         out += dropped_note(rows)
@@ -1036,8 +1083,23 @@ def audit_parts(files, part_chars=None, file_max=None):
             skipped.append((rel, 'binary'))
             continue
         n = len(file_block(rel, text))
-        if n > part_chars or len(text) > file_max:
+        if len(text) > file_max:
             skipped.append((rel, 'over %d characters' % min(part_chars, file_max)))
+            continue
+        if n > part_chars:
+            # W15e: council.py passed 70000 characters and fell out of every audit. A big file
+            # is now sent alone, in whole-line chunks, one part each; quotes still verify per chunk.
+            if cur:
+                parts.append(cur)
+                cur, size = [], 0
+            chunk = ''
+            for line in text.splitlines(keepends=True):
+                if chunk and len(file_block(rel, chunk + line)) > part_chars:
+                    parts.append([(rel, chunk)])
+                    chunk = ''
+                chunk += line
+            if chunk:
+                parts.append([(rel, chunk)])
             continue
         if cur and size + n > part_chars:
             parts.append(cur)
@@ -1150,10 +1212,10 @@ def fix_section(fixes):
     return out
 
 
-def render_audit(shard, rows, parts, skipped, unreached, prompt_hash, pack_hash, fixes=()):
+def render_audit(shard, rows, parts, skipped, unreached, prompt_hash, pack_hash, fixes=(), marker=None, title=None):
     ok = [r for r in rows if r['status'] == 'OK']
     seats = sorted({r['seat'] for r in ok})
-    out = [MARKER['audit'] % shard, '### Council audit (advisory): shard `%s`' % clean(shard, 40), '',
+    out = [marker or MARKER['audit'] % shard, title or '### Council audit (advisory): shard `%s`' % clean(shard, 40), '',
            '%d part(s), %d file(s) reviewed; %d of %d seat answers valid from %d seat(s).' % (
                len(parts) - len(unreached), sum(len(p) for i, p in enumerate(parts) if i + 1 not in unreached),
                len(ok), len(rows), len(seats))]
@@ -1164,13 +1226,9 @@ def render_audit(shard, rows, parts, skipped, unreached, prompt_hash, pack_hash,
         out.append('Skipped, never sent: ' + ', '.join('`%s` (%s)' % (clean(p, 120), why) for p, why in skipped[:20]))
     found = merge_findings(rows)
     if found:
-        out += ['', '| agree | severity | where | issue | suggested fix |', '|---|---|---|---|---|']
-        for g in found[:30]:
-            at = where(g)
-            out.append('| %d | %s | %s | %s | %s |' % (len(g['seats']), g['severity'], at,
-                                                     clean(g['issue']), clean(g['fix']) or '-'))
-        out += ['', 'Leads, not conclusions: each finding is verified against the code before any change.']
-        out += fix_section(list(fixes))
+        block, kept = findings_block(found, 0, 30)
+        out += block + ['', 'Leads, not conclusions: each finding is verified against the code before any change.']
+        out += fix_section([f for f in fixes if not vague(f)])
     elif ok:
         out.append('No findings.')
     else:
@@ -1224,8 +1282,12 @@ def mode_audit(env, seats, cfg):
     if target and patch:  # the only file this program writes besides the job summary
         Path(target).parent.mkdir(parents=True, exist_ok=True)
         Path(target).write_text(patch, encoding='utf-8')
-    body = render_audit(shard, rows, parts, skipped, unreached, sha(instructions), digest.hexdigest(), fixes)
-    return upsert(env, number, MARKER['audit'] % shard, body)
+    marker, title = MARKER['audit'] % shard, None
+    if SHIFT['seat']:
+        marker = '<!-- pf-council:shift:%s -->' % SHIFT['seat']
+        title = '### %s (%s), solo shift: shard `%s`' % (clean(env.get('PF_PERSONA', ''), 40), SHIFT['seat'], clean(shard, 40))
+    body = render_audit(shard, rows, parts, skipped, unreached, sha(instructions), digest.hexdigest(), fixes, marker, title)
+    return upsert(env, number, marker, body)
 
 
 def check_triage(obj, numbers, run_ids):
@@ -1330,6 +1392,11 @@ def mode_triage(env, seats, cfg):
             r['chunk'], r['size'] = c // TRIAGE_CHUNK + 1, len(numbers)
             rows.append(r)
     body, calls = render_triage(issues, rows, sha(instructions), digest.hexdigest())
+    if SHIFT['seat']:
+        mark = '<!-- pf-council:shift:%s -->' % SHIFT['seat']
+        body = body.replace(MARKER['triage'], mark, 1).replace('### Council triage (advisory)',
+                                                               '### %s (%s), solo shift: triage' % (clean(env.get('PF_PERSONA', ''), 40), SHIFT['seat']), 1)
+        return upsert(env, number, mark, body)
     # Machine-readable copy for the owner's scoring script; the job log is not public data.
     print('TRIAGE_RESULT ' + json.dumps({'calls': calls, 'seats': {r['seat']: r['status'] for r in rows}}, sort_keys=True))
     return upsert(env, number, MARKER['triage'], body)
@@ -1404,6 +1471,20 @@ def main(env=None):
         print('council: scheduled %s %s' % (mode, extra.get('PF_SHARD', '')))
     job = 'review' if event == 'pull_request' else mode
     seats = [s for s in cfg['seats'] if job in s.get('jobs', JOBS)]
+    SHIFT.update(seat=None, voice=cfg.get('council_voice', ''))
+    if mode == 'shift':
+        mine = [s for s in cfg['seats'] if s['id'] == env.get('PF_SEAT') and s.get('shift')]
+        if not mine:
+            print('council refused: no seat with a shift named %r' % env.get('PF_SEAT'))
+            return 1
+        seat = mine[0]
+        SHIFT['seat'] = seat['id']
+        seats, mode = [seat], seat['shift']['job']
+        env['PF_PERSONA'] = seat['persona']['name']
+        if mode == 'audit':
+            shards = seat['shift']['shards']
+            env['PF_SHARD'] = shards[datetime.datetime.now(datetime.timezone.utc).toordinal() % len(shards)]
+        print('council: shift of %s (%s): %s %s' % (seat['persona']['name'], seat['id'], mode, env.get('PF_SHARD', '')))
     try:
         if event == 'pull_request':
             result = mode_review(env, seats, cfg)

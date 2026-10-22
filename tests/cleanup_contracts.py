@@ -75,6 +75,8 @@ class Fake:
 
 class Cleanup(unittest.TestCase):
     def setUp(self):
+        self._keep, cl.KEEP = cl.KEEP, 2  # fixtures below were written for two per app (W15e: live rule is one)
+        self.addCleanup(setattr, cl, "KEEP", self._keep)
         self.old = os.getcwd()
         self.tmp = tempfile.TemporaryDirectory()
         os.chdir(self.tmp.name)
@@ -128,10 +130,18 @@ class Cleanup(unittest.TestCase):
         self.assertEqual([r['tag'] for r in p['releases']],
                          ['adguard-v1.5-b20260905', 'adguard-v1.6-b20260906', 'adguard-v1.7-b20260907'])
         kept = {k['tag']: k['reason'] for k in p['kept']}
-        self.assertEqual(kept, {'adguard-v1.8-b20260908': 'two newest of adguard',
-                                'adguard-v1.9-b20260909': 'two newest of adguard',
-                                'tc-combo-v1.1-b20260901': 'two newest of tc-combo',
+        self.assertEqual(kept, {'adguard-v1.8-b20260908': 'newest of adguard',
+                                'adguard-v1.9-b20260909': 'newest of adguard',
+                                'tc-combo-v1.1-b20260901': 'newest of tc-combo',
                                 'v1.0-manual': 'not an app build tag'})
+
+    def test_owner_rule_keeps_one_per_app(self):
+        self.assertEqual(self._keep, 1)  # owner, 22 Oct 2026
+        cl.KEEP = 1
+        self.fake.releases[:] = [rel(8, 8), rel(9, 9), rel(1, 1, prefix='tc-combo')]
+        p = self.preview()
+        self.assertEqual([r['tag'] for r in p['releases']], ['adguard-v1.8-b20260908'])
+        self.assertEqual({k['tag'] for k in p['kept']}, {'adguard-v1.9-b20260909', 'tc-combo-v1.1-b20260901'})
 
     def test_a_new_release_after_preview_changes_the_token(self):
         p = self.preview()

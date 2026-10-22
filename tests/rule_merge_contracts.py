@@ -139,6 +139,52 @@ class RuleMerge(unittest.TestCase):
             with self.subTest(case=label):
                 self.assertEqual(decide(w)[0], 'wait')
 
+    def test_207_unnamed_review_run_falls_back_to_the_bot_pass_comment(self):
+        # 22 Oct 2026: run-name lost "#207" to a YAML comment, so no run carried the number (L069).
+        w = world()
+        w['reviews'][0]['display_title'] = 'Onboarding review'
+        w['comments'] = [{'user': {'login': 'github-actions[bot]'}, 'created_at': '2026-10-22T02:23:00Z',
+                          'updated_at': '2026-10-22T02:23:47Z', 'body': ' \n## Onboarding review: PASS\n\nseats'}]
+        self.assertEqual(decide(w)[0], 'merge')
+        blocked = copy.deepcopy(w)
+        blocked['comments'][0]['body'] = '## Onboarding review: BLOCK\n'
+        self.assertEqual(decide(blocked)[0], 'refuse')
+        stranger = copy.deepcopy(w)
+        stranger['comments'][0]['user']['login'] = 'someone'
+        self.assertEqual(decide(stranger)[0], 'wait')
+        old = copy.deepcopy(w)
+        old['comments'][0].update(created_at='2026-10-22T02:00:00Z', updated_at='2026-10-22T02:00:00Z')
+        self.assertEqual(decide(old)[0], 'wait')
+
+    def test_patience_waits_for_running_builds_then_merges(self):
+        w = world()
+        w['builds'][0]['status'] = 'in_progress'
+        calls, naps = [], []
+        def nap(seconds):
+            naps.append(seconds)
+            w['builds'][0]['status'] = 'completed'
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            rm.run(REPO, api=api_for(w, calls), dispatch=lambda wf: 0, policy=POLICY, targets=TARGETS, patience=600, sleep=nap)
+        self.assertEqual(naps, [60])
+        self.assertTrue(any(m == 'PUT' for m, _, _ in calls))
+        self.assertIn('RULE_MERGE waiting 60 s', out.getvalue())
+
+    def test_no_patience_means_one_pass(self):
+        w = world()
+        w['builds'][0]['status'] = 'in_progress'
+        naps = []
+        with contextlib.redirect_stdout(io.StringIO()):
+            rm.run(REPO, api=api_for(w, []), dispatch=lambda wf: 0, policy=POLICY, targets=TARGETS, patience=0, sleep=naps.append)
+        self.assertEqual(naps, [])
+
+    def test_workflow_waits_and_the_review_wakes_it(self):
+        text = (ROOT / '.github/workflows/rule-merge.yml').read_text(encoding='utf-8')
+        self.assertIn('PF_RULE_MERGE_PATIENCE: "1200"', text)
+        self.assertEqual(text.count('- cron: '), 4)
+        review = (ROOT / '.github/workflows/onboard-review.yml').read_text(encoding='utf-8')
+        self.assertIn('gh workflow run rule-merge.yml --repo "$PF_REPO" --ref main', review)
+        self.assertIn('actions: write', review.split('  wake:')[1])
+
     def test_the_real_adopt_pull_request_files_are_all_allowed(self):
         # The 16 files of adopt PR #202 (read from the API on 21 Oct 2026); L064: measure on real data.
         real = ['docs/review/onboarding/%s.md' % a for a in ('facebook', 'hotstar', 'instagram', 'mxplayer', 'photos', 'reddit')]

@@ -1,6 +1,7 @@
 name: Onboarding review
 # W15d: the run name carries the pull request number, so 11. Rule merge can find it.
-run-name: Onboarding review #${{ inputs.pr || github.event.pull_request.number }}
+# W15e: quoted. Unquoted, YAML read " #" as a comment and every run was named "Onboarding review" (L069).
+run-name: "Onboarding review #${{ inputs.pr || github.event.pull_request.number }}"
 # Packet W1/W2 (8 Oct 2026): every pull request that adds an app, a provider or a patch name
 # must pass a written onboarding record (deterministic) and an agent review (council seats).
 # Job 1 reads the pull request as data with the BASE checkout's checker and no model keys.
@@ -132,3 +133,19 @@ jobs:
           PF_PR: ${{ needs.record.outputs.pr }}
           PF_MANIFEST: onboard-manifest/manifest.json
         run: python3 src/council/onboard_review.py
+  wake:
+    # W15e (L069): a run the bot starts wakes no workflow_run, so the review wakes 11. Rule merge
+    # itself. Rule merge runs main's own code and decides; this job only starts it.
+    name: Wake Rule merge
+    needs: agents
+    if: always() && needs.agents.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      actions: write
+    steps:
+      - name: Start 11. Rule merge on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PF_REPO: ${{ github.repository }}
+        run: gh workflow run rule-merge.yml --repo "$PF_REPO" --ref main

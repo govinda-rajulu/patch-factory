@@ -13,7 +13,11 @@ on:
     workflows: ["1. Manual Patch", "3. Validate", "Onboarding review"]
     types: [completed]
   schedule:
-    - cron: "7 4 * * *"  # 09:37 IST daily, in case a trigger was missed
+    # W15e: four a day. Runs the bot starts wake nothing (L069), so this is the safety net.
+    - cron: "7 4 * * *"  # 09:37 IST, in case a trigger was missed
+    - cron: "7 10 * * *"  # 15:37 IST, in case a trigger was missed
+    - cron: "7 16 * * *"  # 21:37 IST, in case a trigger was missed
+    - cron: "7 22 * * *"  # 03:37 IST, in case a trigger was missed
   workflow_dispatch:
 concurrency:
   # Its own queue: sharing main-writer would let a burst of these runs cancel a pending
@@ -24,7 +28,7 @@ concurrency:
 jobs:
   merge:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - name: Checkout main (the rule that runs)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -34,4 +38,6 @@ jobs:
       - name: Merge green rule pull requests
         env:
           GH_TOKEN: ${{ github.token }}
+          # W15e: wait up to 20 min for running test builds instead of missing them.
+          PF_RULE_MERGE_PATIENCE: "1200"
         run: python3 src/etc/rule_merge.py

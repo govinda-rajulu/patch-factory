@@ -18,24 +18,18 @@ if [ -n "$NUM" ] && [ "$NUM" != "null" ]; then
 fi
 echo "fingerprint now=$SUM last=${OLD:-none}"
 if [ "$SUM" = "$OLD" ]; then echo "unchanged, staying quiet"; exit 0; fi
-BODY=$(WATCH_FINGERPRINT="$SUM" python3 - "$R" <<'PY'
-import os, pathlib, re, sys
-text=pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
-repo=os.environ["GITHUB_REPOSITORY"]; run=os.environ["GITHUB_RUN_ID"]
-if repo!="govinda-rajulu/patch-factory" or not re.fullmatch(r"[0-9]+",run):
-    raise SystemExit("invalid watch run identity")
-url="https://github.com/"+repo+"/actions/runs/"+run
-print("fingerprint: "+os.environ["WATCH_FINGERPRINT"]+"\n\nRun: "+url)
-print("\nFull redacted report and structured coverage: this run's nightly-report artifact (30 days).")
-print("Execution success does not establish complete provider coverage.\n")
-if len(text.encode("utf-8")) > 45000:
-    print("Report exceeds the issue preview limit. Full report is in the artifact; no tail-only result substituted.")
-else:
-    print("\n".join("    "+line for line in text.splitlines()))
-PY
-) || exit 1
+# W15e (owner, 22 Oct 2026): tables, not an indented dump (src/etc/nightly_body.py).
+case "${GITHUB_REPOSITORY:-}" in govinda-rajulu/patch-factory) ;; *) echo "::error::invalid watch run identity"; exit 1;; esac
+case "${GITHUB_RUN_ID:-}" in ''|*[!0-9]*) echo "::error::invalid watch run identity"; exit 1;; esac
+URL="https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+BODY=$(python3 "$(dirname "$0")/nightly_body.py" render "$R" "$SUM" "$URL") || exit 1
 if [ -n "$NUM" ] && [ "$NUM" != "null" ]; then
-  gh issue comment "$NUM" --body "$BODY" && gh issue edit "$NUM" --body "$BODY" || exit 1
+  # The comment says only what changed; the body has everything.
+  OLDF=$(mktemp); NEWF=$(mktemp)
+  printf '%s\n' "${PRIOR:-}" > "$OLDF"; printf '%s\n' "$BODY" > "$NEWF"
+  NOTE=$(python3 "$(dirname "$0")/nightly_body.py" changes "$OLDF" "$NEWF") || exit 1
+  rm -f "$OLDF" "$NEWF"
+  gh issue comment "$NUM" --body "$NOTE" && gh issue edit "$NUM" --body "$BODY" || exit 1
   echo "updated issue $NUM"
 else
   gh issue create --title "$TITLE" --body "$BODY" && echo "opened a new issue" || exit 1

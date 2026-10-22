@@ -40,7 +40,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'src/etc'))
-import provider_watch  # noqa: E402
+import provider_watch
+import readable  # noqa: E402
 
 OUT = ROOT / 'selection-watch-evidence'
 TITLE = 'Selection watch'
@@ -301,53 +302,94 @@ def ranking(root, targets):
     return out
 
 
+def held_kind(why):
+    """Short reason group for a held name, so 77 held names read as a handful of rows."""
+    low = (why or '').lower()
+    for word, kind in (('reserved', 'reserved by the owner'), ('banned', 'matches BANNED'), ('confirm', 'matches CONFIRM: owner decides'),
+                       ('universal patch', 'universal patch (not written for this app)'), ('paid word', 'paid word on an account app'),
+                       ('another bundle', 'same name in another bundle (one bundle per name)'),
+                       ('for good', 'changes the app for good (no off switch)'), ('no description', 'no description in the index'),
+                       ('hold word', 'hold word')):
+        if word in low:
+            return kind
+    return 'other'
+
+
 def report(p, dig, rank, run_url, due=()):
-    L = ['# Selection watch', '', run_url, '',
-         'Removed names are ones the provider no longer offers; builds already go without them. '
-         'New names that pass src/patches/ADOPT.json go to one pull request; it merges itself only when every check and test build is green (11. Rule merge); the rest wait for you.', '']
-    L += ['## Removed today (%d folder(s))' % len(p['edits'])]
-    for d, e in sorted(p['edits'].items()):
-        L.append('- `%s` (%s): %s' % (esc(d), esc(e['provider']), ', '.join('`%s`' % esc(x) for x in e['include'])))
-    L += ['', '## Needs you']
-    L += ['- ' + esc(b, 2000) for b in p['blocked']] or ['- nothing blocked']
-    L += ['- Reminder: ' + esc(d, 600) for d in due]
+    """W15e (owner, 22 Oct 2026): tables first, long lists folded. Style: docs/review/REPORT-STYLE.md."""
     adopt = [w for w in p['waiting'] + p.get('backlog', []) if w.get('call') == 'adopt']
-    L += ['', '## Adopted by rule, pull request opened, never merged by the bot (%d)' % len(adopt)]
-    for w in adopt[:80]:
-        L.append('- %s / %s: `%s`' % (esc(w['target']), esc(w['provider']), esc(w['name'])))
     held = [w for w in p['waiting'] if w.get('call') != 'adopt']
-    L += ['', '## New patches waiting for your call (%d)' % len(held)]
-    for w in held[:80]:
-        L.append('- %s%s / %s: `%s` (since %s%s). Add: "5. Add target", action patch, id `%s`, patches `%s`; skip: patches `-%s`'
-                 % ('**%s** ' % w['tag'] if w['tag'] else '', esc(w['target']), esc(w['provider']), esc(w['name']), w['since'],
-                    '; held: ' + esc(w['why'], 120) if w.get('why') else '',
-                    esc(w['target']), esc(w['name']), esc(w['name'])))
     old_held = [w for w in p.get('backlog', []) if w.get('call') != 'adopt']
+    defaults = p.get('defaults') or []
+    needs = len(p['blocked']) + len(held) + len(due)
+    removed = sum(len(e['include']) for e in p['edits'].values())
+    L = readable.headline('Selection watch', 'NEEDS YOU' if needs else 'OK', needs)
+    L += [run_url, '']
+    L += readable.table(['What', 'Count', 'Meaning'], [
+        ['Needs you', needs, 'blocked names, new names waiting for your call, reminders'],
+        ['Removed today', '%d name(s) in %d folder(s)' % (removed, len(p['edits'])), 'the provider no longer offers them; builds already go without'],
+        ['Adopted by rule', '%d name(s) on %d app(s)' % (len(adopt), len({w['target'] for w in adopt})),
+         'one pull request; 11. Rule merge merges it when every check, review and test build is green'],
+        ['Held by the rule', len(old_held), 'older names the rule keeps out, grouped by reason below'],
+        ['New in open-mode apps', len(defaults), "they already ship by the provider's default"],
+        ['Provider releases', len([d for d in dig if not d.get('error')]), 'since the last run'],
+        ['Baselines re-seeded', len(p['baselines']), 'name lists the next run compares against'],
+        ['Not read today', len(p['findings']), 'providers this run could not read']])
+    L += ['', '## Needs you']
+    rows = [['blocked', esc(b, 2000)] for b in p['blocked']]
+    rows += [['reminder', esc(d, 600)] for d in due]
+    rows += [['new name', '%s%s / %s: `%s` (since %s%s). Add: "5. Add target", action patch, id `%s`, patches `%s`; skip: patches `-%s`'
+              % ('**%s** ' % w['tag'] if w['tag'] else '', esc(w['target']), esc(w['provider']), esc(w['name']), w['since'],
+                 '; held: ' + esc(w['why'], 120) if w.get('why') else '', esc(w['target']), esc(w['name']), esc(w['name']))]
+             for w in held[:80]]
+    L += readable.table(['Kind', 'What to do'], rows) if rows else ['- nothing blocked']
+    if p['edits']:
+        L += ['', '## Removed today (%d folder(s))' % len(p['edits'])]
+        L += readable.table(['Folder', 'Provider', 'Names the provider dropped'],
+                            [['`%s`' % esc(d), esc(e['provider']), readable.names(esc(x) for x in e['include'])]
+                             for d, e in sorted(p['edits'].items())])
+    if adopt:
+        L += ['', '## Adopted by rule (%d): pull request opened; 11. Rule merge merges it when green' % len(adopt)]
+        by = readable.group(adopt, lambda w: (w['target'], w['provider']))
+        L += readable.table(['App / provider', 'Names', 'New names'],
+                            [['%s / %s' % (esc(t), esc(v)), len(ws), readable.names(esc(w['name']) for w in ws)] for (t, v), ws in by.items()])
+        L += [''] + readable.details('All %d adopted names' % len(adopt),
+                                     ['- %s / %s: `%s`' % (esc(w['target']), esc(w['provider']), esc(w['name'])) for w in adopt[:200]])
     if old_held:
         L += ['', '## Older names never chosen, held by the rule (%d)' % len(old_held)]
-        for w in old_held[:80]:
-            L.append('- %s / %s: `%s` (held: %s)' % (esc(w['target']), esc(w['provider']), esc(w['name']), esc(w['why'], 120)))
-    if p.get('defaults'):
-        L += ['', "## New in open-mode apps (%d): they already ship by the provider's default" % len(p['defaults'])]
-        for w in p['defaults'][:80]:
-            L.append('- %s%s / %s: `%s`. Drop it: "5. Add target", action patch, id `%s`, patches `-%s`'
-                     % ('**%s** ' % w['tag'] if w['tag'] else '', esc(w['target']), esc(w['provider']), esc(w['name']),
-                        esc(w['target']), esc(w['name'])))
+        kinds = readable.group(old_held, lambda w: held_kind(w.get('why')))
+        L += readable.table(['Why held', 'Names', 'Apps'],
+                            [[k, len(ws), ', '.join(sorted({esc(w['target']) for w in ws}))] for k, ws in kinds.items()])
+        L += [''] + readable.details('Every held name with its reason',
+                                     ['- %s / %s: `%s` (held: %s)' % (esc(w['target']), esc(w['provider']), esc(w['name']), esc(w['why'], 120))
+                                      for w in old_held[:200]])
+    if defaults:
+        L += ['', "## New in open-mode apps (%d): they already ship by the provider's default" % len(defaults)]
+        L += readable.table(['App / provider', 'Name', 'To drop it'],
+                            [['%s / %s' % (esc(w['target']), esc(w['provider'])), '%s`%s`' % ('**%s** ' % w['tag'] if w['tag'] else '', esc(w['name'])),
+                              '"5. Add target", action patch, id `%s`, patches `-%s`' % (esc(w['target']), esc(w['name']))] for w in defaults[:80]])
     L += ['', '## Provider releases since the last run']
-    for d in dig:
-        if d.get('error'):
-            L.append('- %s: %s' % (esc(d['repo']), d['error']))
-            continue
-        L.append('- **%s %s** (%s%s) %s' % (esc(d['repo']), esc(d['tag'], 80), d['date'], ', pre-release' if d['prerelease'] else '', d['url']))
-        L += ['  - ' + esc(x) for x in d['lines']]
+    good = [d for d in dig if not d.get('error')]
+    if good:
+        L += readable.table(['Provider', 'Release', 'Date', 'Link'],
+                            [['**%s %s**' % (esc(d['repo']), esc(d['tag'], 80)), 'pre-release' if d['prerelease'] else 'release', d['date'], d['url']] for d in good])
+        notes = []
+        for d in good:
+            notes += ['- **%s %s**' % (esc(d['repo']), esc(d['tag'], 80))] + ['  - ' + esc(x) for x in d['lines']]
+        L += [''] + readable.details('Release notes (first lines)', notes)
+    L += ['- %s: %s' % (esc(d['repo']), d['error']) for d in dig if d.get('error')]
     if not dig:
         L.append('- none')
     L += ['', '## Better provider? (community index, you decide; switching goes through onboarding)']
-    L += ['- ' + esc(r, 600) for r in rank]
-    L += ['', '## Baselines re-seeded (%d)' % len(p['baselines'])]
-    for path, b in sorted(p['baselines'].items()):
-        L.append('- `%s`: %s' % (esc(path), 'seeded, %d names' % len(b['names']) if b['seeded'] else
-                                 '+%d -%d' % (len(b['added']), len(b['removed']))))
+    split = [r.split(': ', 1) if ': ' in r else [r, ''] for r in rank]
+    flagged = [x for x in split if '**better provider?**' in x[1]]
+    L += readable.table(['App', 'Now and best other'], [[esc(a), esc(b.replace('**better provider?**', ''), 600) + ' **better provider?**'] for a, b in flagged]) \
+        if flagged else ['- no app has a bigger provider in the index']
+    L += [''] + readable.details('Every app (%d)' % len(rank), ['- ' + esc(r, 600) for r in rank])
+    if p['baselines']:
+        L += ['', '## Baselines re-seeded (%d)' % len(p['baselines'])]
+        L += readable.details('Files', ['- `%s`: %s' % (esc(path), 'seeded, %d names' % len(b['names']) if b['seeded'] else
+                                                     '+%d -%d' % (len(b['added']), len(b['removed']))) for path, b in sorted(p['baselines'].items())])
     L += ['', '## Not read today'] + (['- ' + esc(f, 300) for f in p['findings']] or ['- every provider was read'])
     return '\n'.join(L) + '\n'
 
@@ -592,11 +634,14 @@ def issue(out, repo):
         f.write(body)
     if rows:
         n = str(rows[0]['number'])
+        before = subprocess.run(['gh', 'issue', 'view', n, '--repo', repo, '--json', 'body', '-q', '.body'],
+                                capture_output=True, text=True, timeout=120)
         subprocess.run(['gh', 'issue', 'edit', n, '--repo', repo, '--body-file', f.name], check=True, timeout=120)
         if (out / 'changed').read_text().strip() == '1':
-            first = [l for l in body.splitlines() if l.startswith('## ')]
+            # W15e: the comment says only what changed; the body has everything (REPORT-STYLE.md).
+            lines = readable.changed_lines(before.stdout if before.returncode == 0 else '', body)
             subprocess.run(['gh', 'issue', 'comment', n, '--repo', repo, '--body',
-                            'Updated by run %s: %s' % (os.environ.get('GITHUB_RUN_ID', '?'), '; '.join(first[:4]))],
+                            '\n'.join(['**Changed by run %s**' % os.environ.get('GITHUB_RUN_ID', '?'), ''] + lines)],
                            check=True, timeout=120)
     else:
         subprocess.run(['gh', 'issue', 'create', '--repo', repo, '--title', TITLE, '--body-file', f.name], check=True, timeout=120)

@@ -291,3 +291,57 @@ class ProviderWatch(unittest.TestCase):
         self.assertNotIn("|| true", source)
         self.assertNotIn("contents: write", source)
         self.assertNotIn("git push", source)
+
+
+class StandingIssue(unittest.TestCase):
+    """W15e (owner, 22 Oct 2026): one standing issue edited in place; old per-run issues close."""
+    IDENT = {"repository": "govinda-rajulu/patch-factory", "run_id": "9", "attempt": "1"}
+
+    def fake(self, listing, calls):
+        def run(argv, **kwargs):
+            calls.append(argv[:3])
+            if argv[1:3] == ["issue", "list"]:
+                return subprocess.CompletedProcess(argv, 0, json.dumps(listing), "")
+            if argv[1:3] == ["issue", "view"]:
+                return subprocess.CompletedProcess(argv, 0, "# Provider watch: OK\n", "")
+            if argv[1:3] == ["issue", "create"]:
+                return subprocess.CompletedProcess(argv, 0, "https://github.com/x/issues/300\n", "")
+            return subprocess.CompletedProcess(argv, 0, "", "")
+        return run
+
+    def body(self):
+        import tempfile as tf
+        d = Path(tf.mkdtemp())
+        (d / "r.md").write_text("# Provider watch: CHANGED\n\n| a | b |\n", encoding="utf-8")
+        return d / "r.md"
+
+    def test_edits_the_standing_issue_comments_the_change_and_closes_old_ones(self):
+        calls = []
+        rows = [{"number": 210, "title": "provider watch"}, {"number": 205, "title": "provider watch: CHANGED run 1/1"},
+                {"number": 200, "title": "provider watch: CHANGED run 2/1"}, {"number": 27, "title": "watch: repo and provider status"}]
+        watch.deliver(self.IDENT, self.body(), "CHANGED", run=self.fake(rows, calls))
+        verbs = [c[2] for c in calls]
+        self.assertEqual(verbs, ["list", "view", "edit", "comment", "close", "close"])
+        self.assertNotIn("create", verbs)
+
+    def test_creates_one_standing_issue_when_none_exists(self):
+        calls = []
+        watch.deliver(self.IDENT, self.body(), "CHANGED", run=self.fake([{"number": 205, "title": "provider watch: CHANGED run 1/1"}], calls))
+        self.assertEqual([c[2] for c in calls], ["list", "create", "close"])
+
+    def test_quiet_when_nothing_changed_and_no_standing_issue(self):
+        calls = []
+        watch.deliver(self.IDENT, self.body(), "OK", run=self.fake([], calls))
+        self.assertEqual([c[2] for c in calls], ["list"])
+
+    def test_body_puts_changes_first_and_folds_unchanged(self):
+        rows = [dict(target="facebook", name="hushfacebook", host="github", status="OK",
+                     delta=dict(state="OK", added=["Open comments at full height"], removed=[]), observation=dict(names=["x"])),
+                dict(target="youtube", name="morphe", host="github", status="OK",
+                     delta=dict(state="OK", added=[], removed=[]), observation=dict(names=["y"]))]
+        text = watch.markdown(dict(status="CHANGED", run_url="u", expected=2, sources=rows,
+                                   coverage=dict(succeeded=2, failed=0, pending=0)))
+        self.assertIn("**Needs you:** 1 item(s)", text)
+        self.assertIn("| facebook/hushfacebook | github | CHANGED | `Open comments at full height` | (none) |", text)
+        self.assertIn("1 of 2 provider(s) unchanged.", text)
+        self.assertLess(text.index("## Changed or not read"), text.index("<details><summary>Every provider (2)"))

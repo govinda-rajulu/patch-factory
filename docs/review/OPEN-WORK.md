@@ -1,6 +1,20 @@
 # Open work
 
-## Current checkpoint: 21 October 2026, midday IST (packet W15d)
+## Current checkpoint: 22 October 2026, late morning IST (packet W15e)
+
+W15d merged (#204, `ab8423a8`; T1 0 findings). W15e: readable bot reports, Rule merge fixed
+(#207 then merges itself), personas and solo shifts, one release kept per app, merged branches
+and superseded issues cleaned. Record: [SESSION-2026-10-22.md](SESSION-2026-10-22.md). Open, in order:
+
+1. After the merge: Rule merge merges #207 within its 20 min patience or the next cron; read the
+   RULE_MERGE line on the next run.
+2. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)).
+3. Combo planner (MX 2.2.4 + MightyMich, ES File + rushiranpise VIP, Telegram vs HushTelegram)
+   and ceiling memory for LinkedIn step-downs.
+4. Facebook: owner installs the newest 0.16.1 build (never 0.16.0).
+5. openskip and brain: AGENT-PERSONAS.md and REPORT-STYLE.md by their own PRs.
+
+## Checkpoint: 21 October 2026, midday IST (packet W15d)
 
 W15c merged (#199, `73d85522`; T1 0 findings). W15d: exact bundle version on release pages,
 11. Rule merge (owner yes: green rule pull requests merge themselves), reserved names, honest

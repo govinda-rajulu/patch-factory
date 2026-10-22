@@ -387,3 +387,23 @@ Tags: agents, review
 The history agent listed "watch.yml has no job timeout"; it has had one since W2. Two more of its
 eight "dropped" items were by design. Every claim names a file; read that file before a packet or
 the owner hears it (W15d, 21 Oct).
+
+### L069 · An unquoted ' #' in YAML is a comment, and bot-started runs wake nothing
+Tags: workflows, automation
+`run-name: Onboarding review #${{ inputs.pr }}` named every run "Onboarding review": YAML read the
+rest as a comment, so 11. Rule merge never found the review of #207. Quote any value holding `#`
+(tests/yaml_comment_contracts.py). Runs the workflow token starts fire no workflow_run either; a
+waiter needs a schedule, its own patience or an explicit dispatch (W15e, 22 Oct).
+
+### L070 · Pull request checks on a bot pull request wait for approval; never gate on them
+Tags: workflows, automation
+Validate, Council and Onboarding review on adopt PR #207 sat "Action required". Rule merge reads
+the dispatched runs and the bot's own comments instead. A gate that needs a human click is not
+automation (W15e, 22 Oct).
+
+### L071 · A controller tolerates bot drift on main, never human drift
+Tags: automation, review
+Bot commits (Selection, Community, Provider watch) land on main every few hours, so a controller
+that stops on any move sent the owner back for a new bundle (e46ff50e, 21 Oct). Since W15e the
+clone proves each commit after the base is a plain bot commit touching no packet file, and the
+merge must equal the packet tree plus those files; any other move still stops (W15e, 22 Oct).
