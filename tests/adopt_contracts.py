@@ -34,6 +34,19 @@ class Classify(unittest.TestCase):
         self.assertEqual(self.call(ig, 'com.instagram.android', 'Install next to Instagram'), 'hold')
         self.assertEqual(self.call(ig, 'com.instagram.android', 'Hide paid partnership Reels'), 'adopt')
 
+    def test_reserved_name_waits_for_its_owner_given_provider(self):
+        # W15d: owner E1 gave Photos "AMOLED dark theme" to Akash-Sriram; adopt PR #202 put it on rushiranpise.
+        d = {('rushiranpise/morphe-patches', 'AMOLED dark theme'): [({'com.google.android.apps.photos'}, 'Pure black dark theme.')],
+             ('akash-sriram/morphe-google-photos', 'AMOLED dark theme'): [({'com.google.android.apps.photos'}, 'Pure black dark theme.')]}
+        rush = dict(row('photos', 'rushiranpise', 'morphe-patches'), name='rushiranpise')
+        akash = dict(row('photos', 'Akash-Sriram', 'morphe-google-photos'), name='akash')
+        call, why = sw.classify(POLICY, d, rush, 'com.google.android.apps.photos', 'AMOLED dark theme', '')
+        self.assertEqual((call, why.split(':')[0]), ('hold', 'reserved for akash-sriram by the owner'))
+        self.assertEqual(sw.classify(POLICY, d, akash, 'com.google.android.apps.photos', 'AMOLED dark theme', '')[0], 'adopt')
+        other = dict(row('facebook', 'RookieEnough', 'De-Vanced'), name='derevanced')
+        d2 = {('rookieenough/de-vanced', 'AMOLED dark theme'): [({'com.facebook.katana'}, 'Pure black dark theme.')]}
+        self.assertEqual(sw.classify(POLICY, d2, other, 'com.facebook.katana', 'AMOLED dark theme', '')[0], 'adopt')
+
     def test_paid_words_only_on_offline_apps(self):
         self.assertEqual(self.call(row('esfile', 'rushiranpise', 'morphe-patches'), 'com.estrongs.android.pop', 'Unlock VIP Lifetime'), 'adopt')
         self.assertEqual(self.call(row('telegram', 'rushiranpise', 'morphe-patches'), 'org.telegram.messenger', 'Unlock Premium'), 'hold')
@@ -179,6 +192,9 @@ class Adopt(unittest.TestCase):
             return subprocess.CompletedProcess(cmd, 0, '[]' if cmd[:3] == ['gh', 'pr', 'list'] else ('42' if cmd[:3] == ['gh', 'pr', 'view'] else ''), '')
         self.assertEqual(sw.adopt(ROOT, self.out, 'o/r', run, stamp='2026-10-21'), 0)
         self.assertTrue(any(c[:2] == ['git', 'push'] for c in self.calls))
+        # W15d: the spent branch is deleted, and only that one.
+        self.assertIn(['git', 'push', 'origin', '--delete', 'adopt/old'], self.calls)
+        self.assertEqual(sum(1 for c in self.calls if '--delete' in c), 1)
 
     def test_a_workflow_change_is_never_pushed(self):
         self.plan([{'target': 'linkedin', 'provider': 'heyymichii', 'name': 'Material You', 'call': 'adopt', 'why': 'rule'}])
@@ -210,3 +226,28 @@ class Bundle(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class RecordDecision(unittest.TestCase):
+    """W15d: a record the adopt rule creates says the rule made it, not an owner "5. Add target" request."""
+
+    def write(self, **kw):
+        import importlib
+        app = importlib.import_module('app')
+        t = {'id': 'demo', 'label': 'Demo', 'package': 'com.demo', 'candidates': []}
+        with tempfile.TemporaryDirectory() as td, mock.patch.object(app, 'RECORDS', Path(td)):
+            app.write_record(t, **kw)
+            return (Path(td) / 'demo.md').read_text(encoding='utf-8')
+
+    def test_rule_record_names_the_rule(self):
+        text = self.write(decision='Selection watch adopt rule (src/patches/ADOPT.json) on 2026-10-22.')
+        self.assertIn('## Decision\nSelection watch adopt rule', text)
+        self.assertNotIn('5. Add target', text)
+
+    def test_owner_record_keeps_the_add_target_text(self):
+        self.assertIn('Owner request through "5. Add target" on', self.write())
+
+    def test_cmd_patch_passes_the_rule_decision_only_with_why(self):
+        src = (ROOT / 'src/etc/app.py').read_text(encoding='utf-8')
+        self.assertIn("'only when every check, the Onboarding review and every test build are green.' % today()) if why else None", src)
+        self.assertIn('write_record(t, [n for n in added if list_mode], approved, why=why, decision=decision)', src)

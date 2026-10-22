@@ -6,7 +6,15 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 21 Oct 2026, morning IST (packet W15c; start here)
+## 21 Oct 2026, midday IST (packet W15d; start here)
+
+- **Main** `b4060823` (W15c #199 `73d85522` plus a bot commit) plus W15d once merged.
+- **W15d**: exact bundle version on release pages, 11. Rule merge (green rule pull requests merge
+  themselves; owner yes 21 Oct), ADOPT.json reserved names, adopt records name the rule, #202
+  closed, history audit `docs/review/HISTORY-AUDIT-2026-10-21.md`, L068.
+- **Next**: OPEN-WORK 21 Oct midday: W15e signing isolation, W15f combo planner.
+
+## 21 Oct 2026, morning IST (packet W15c)
 
 - **Main** `0119e54f` (W15b #193 `79f619ec` plus a bot commit) plus W15c once merged.
 - **W15c**: publisher pin at source preparation, adopt waits on a pending branch, longest build

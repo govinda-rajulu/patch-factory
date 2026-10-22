@@ -120,5 +120,23 @@ class Watch(unittest.TestCase):
         self.assertNotIn('HushGram', ig)
 
 
+
+class PacketHold(unittest.TestCase):
+    """W15d: only an unmerged packet branch pauses apply; four merged ones (cleanup held by
+    owner F3) paused every day. Unknown counts as unmerged."""
+
+    def test_merged_branches_do_not_hold_but_unmerged_and_unknown_do(self):
+        listing = '\n'.join(['%s\trefs/heads/packet/%s' % (c * 40, n) for c, n in (('a', 'w15b'), ('b', 'w15c'), ('c', 'w15d'), ('d', 'w15e'))])
+        status = {'a' * 40: 'ahead', 'b' * 40: 'identical', 'c' * 40: 'diverged', 'd' * 40: None}
+        self.assertEqual(sw.unmerged_packets(listing, status.get), ['packet/w15d', 'packet/w15e'])
+        self.assertEqual(sw.unmerged_packets(listing, lambda s: 'ahead'), [])
+        self.assertEqual(sw.unmerged_packets('', status.get), [])
+
+    def test_apply_step_has_a_token_for_the_compare(self):
+        wf = (ROOT / '.github/workflows/selection-watch.yml').read_text(encoding='utf-8')
+        step = wf.split('- name: Commit removals and baselines to main', 1)[1].split('- name:', 1)[0]
+        self.assertIn('GH_TOKEN: ${{ github.token }}', step)
+
+
 if __name__ == '__main__':
     unittest.main()

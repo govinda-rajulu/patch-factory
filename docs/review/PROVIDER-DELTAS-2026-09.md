@@ -1,5 +1,10 @@
 # Provider delta review packet: 14-26 September 2026
 
+> **Closed, 21 October 2026 (packet W15d, [history audit](HISTORY-AUDIT-2026-10-21.md)).**
+> The last open note below (Paresh GitLab baselines) is done: `docs/review/providers/paresh-com.truecaller.names`
+> (10 names) and `paresh-com.mxtech.videoplayer.pro.names` (1) since W11 (9 Oct). New provider
+> names are now decided by the Selection watch adopt rule (src/patches/ADOPT.json). This file is a record only.
+>
 > **Correction, 27 September 2026.** Two statements below are superseded by live
 > evidence. The original text stays as the 26 September record.
 >

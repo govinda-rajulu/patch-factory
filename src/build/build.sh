@@ -96,7 +96,8 @@ green_log "[+] using exact resolved bundle $BUNDLE_TAG sha256=$MPP_HASH"
 WANT=1
 FIRST=$(ls ./*.mpp 2>/dev/null | head -1)
 [ -n "$FIRST" ] || { red_log "[-] no winner bundle in cwd"; exit 1; }
-PV=$(basename "$FIRST" .mpp | grep -oE '[0-9]+([.][0-9]+)+' | tail -1)
+# W15d: keep a prerelease suffix (1.2.0-dev.3), never shorten it to the stable-looking 1.2.0.
+PV=$(python3 src/build/bundle_version.py "$FIRST")
 echo "PV=${PV:-unknown}"
 mv "$FIRST" "./09-$WINNER.mpp"
 green_log "[+] bundle 09 $WINNER $(wc -c < "./09-$WINNER.mpp") bytes"

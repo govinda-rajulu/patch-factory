@@ -21,6 +21,10 @@ jobs:
   plan:
     name: Plan
     runs-on: ubuntu-24.04
+    # W15d (AUDIT 4): Plan only reads (rate limit, releases, run metadata) and uploads an artifact.
+    permissions:
+      contents: read
+      actions: read
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       count: ${{ steps.plan.outputs.count }}

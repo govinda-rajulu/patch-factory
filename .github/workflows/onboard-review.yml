@@ -1,4 +1,6 @@
 name: Onboarding review
+# W15d: the run name carries the pull request number, so 11. Rule merge can find it.
+run-name: Onboarding review #${{ inputs.pr || github.event.pull_request.number }}
 # Packet W1/W2 (8 Oct 2026): every pull request that adds an app, a provider or a patch name
 # must pass a written onboarding record (deterministic) and an agent review (council seats).
 # Job 1 reads the pull request as data with the BASE checkout's checker and no model keys.

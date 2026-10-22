@@ -13,8 +13,13 @@ f=sys.argv[1]
 bad=[]; inrun=False; ind=0
 for i,l in enumerate(open(f,encoding='utf-8'),1):
     l=l.rstrip('\n')
-    m=re.match(r'^(\s*)run:\s*\|?\s*$',l)
+    # W15d: also the list-item form "- run: |" and folded ">" blocks, which the old pattern skipped.
+    m=re.match(r'^(\s*)(?:-\s+)?run:\s*[|>]?[-+]?\s*$',l)
     if m: inrun=True; ind=len(m.group(1)); continue
+    # W15d (AUDIT 4): a one-line run: is a shell command too.
+    one=re.match(r'^\s*(?:-\s+)?run:\s*(\S.*)$',l)
+    if one and re.search(r'\$\{\{\s*(inputs\.|github\.event\.inputs\.)',one.group(1)):
+        bad.append((i,l.strip()[:100])); continue
     if inrun and l.strip() and (len(l)-len(l.lstrip()))<=ind: inrun=False
     if inrun and re.search(r'\$\{\{\s*(inputs\.|github\.event\.inputs\.)',l):
         bad.append((i,l.strip()[:100]))

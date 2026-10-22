@@ -3,7 +3,7 @@ name: 10. Selection watch
 # A chosen name the provider no longer offers leaves the include list (builds already go
 # without it), provider name baselines are re-seeded, new patches wait for the owner, and a
 # digest of every provider's releases (Morphe included) lands on one standing issue.
-# W15b: new names the src/patches/ADOPT.json rule passes go to one pull request; the bot never merges. See src/etc/selection_watch.py.
+# W15b: new names the src/patches/ADOPT.json rule passes go to one pull request; 11. Rule merge merges it only when green (W15d). See src/etc/selection_watch.py.
 permissions:
   contents: write
   issues: write
@@ -55,8 +55,11 @@ jobs:
           if-no-files-found: error
           retention-days: 30
       - name: Commit removals and baselines to main
+        env:
+          # W15d: reads whether a packet branch is already in main (compare API).
+          GH_TOKEN: ${{ github.token }}
         run: python3 src/etc/selection_watch.py apply
-      - name: Open the adopt pull request (never merged by the bot)
+      - name: Open the adopt pull request (merged only by 11. Rule merge when green)
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 src/etc/selection_watch.py adopt

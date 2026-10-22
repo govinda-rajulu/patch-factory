@@ -177,3 +177,4 @@ This file keeps only what fits in neither.
 - Before a rule turns fail-closed, list every caller and the input it really has; the merged copy broke the cert pin (W15c, L066).
 - A bot side effect waiting on a refusal is found again and reused, never repeated daily (W15c, L067).
 - A lesson that is only a note comes back: lesson 8 (1 Oct, Dependabot skips composites) returned as #188 until a test enforced it (W15b).
+- An agent's "missing" is read against the named file before it is planned; 1 of 8 history claims was false, 2 by design (W15d, L068).

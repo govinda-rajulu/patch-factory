@@ -1,0 +1,37 @@
+name: 11. Rule merge
+# W15d (owner, 21 Oct 2026): a Selection watch rule pull request merges itself only when its
+# checks, its Onboarding review and every app's nonpublishing test build are green; anything
+# red or touching an account app's paid name waits for the owner. Runs the default branch's
+# own code, never the pull request's. See src/etc/rule_merge.py.
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+  checks: read
+on:
+  workflow_run:
+    workflows: ["1. Manual Patch", "3. Validate", "Onboarding review"]
+    types: [completed]
+  schedule:
+    - cron: "7 4 * * *"  # 09:37 IST daily, in case a trigger was missed
+  workflow_dispatch:
+concurrency:
+  # Its own queue: sharing main-writer would let a burst of these runs cancel a pending
+  # Selection or Community watch (GitHub keeps one pending run per group). A writer that
+  # meets a moved main stops with MAIN_MOVED and retries; rule_merge waits while a packet/* branch exists.
+  group: rule-merge
+  cancel-in-progress: false
+jobs:
+  merge:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main (the rule that runs)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Merge green rule pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 src/etc/rule_merge.py

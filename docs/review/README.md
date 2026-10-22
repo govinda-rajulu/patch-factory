@@ -11,7 +11,7 @@ Last indexed **20 October 2026** for packet W15b; earlier, **10 October 2026** f
 
 | Read | Why |
 | --- | --- |
-| [SESSION-2026-10-21.md](SESSION-2026-10-21.md) | 21 Oct: packet W15c (W15b result and T1 findings, publisher pin at preparation, adopt pending branch, longest build first, parallel smoke) and [AUDIT-2026-10-21.md](AUDIT-2026-10-21.md) (security, speed, tool freshness, Facebook splits). Read first. |
+| [SESSION-2026-10-21.md](SESSION-2026-10-21.md) | 21 Oct: packets W15c and W15d (W15d: exact bundle version, 11. Rule merge, reserved names, [HISTORY-AUDIT-2026-10-21.md](HISTORY-AUDIT-2026-10-21.md); W15c: W15b result and T1 findings, publisher pin at preparation, adopt pending branch, longest build first, parallel smoke) and [AUDIT-2026-10-21.md](AUDIT-2026-10-21.md) (security, speed, tool freshness, Facebook splits). Read first. |
 | [SESSION-2026-10-20.md](SESSION-2026-10-20.md) | 20 Oct: packet W15b (#188 and #141 causes from the job logs, transfer and merge reasons, pinned certificate fails closed, council probe per model, auto-adopt by name and description, owner decisions, W15c plan, wrong calls 31 to 34, L062 to L065). Read first. |
 | [SESSION-2026-10-11.md](SESSION-2026-10-11.md) | 11 Oct: W13 results, packet W14 (Reddit universal and store step-down, Nightly false UNKNOWN, ranking, reminders, publisher pins, agent review, one home for repeated text and release tidy, Obtainium card, automation wiring, agent spec and fix lane). Read first. |
 | [SESSION-2026-10-17.md](SESSION-2026-10-17.md) | 17 Oct: knowledge bank of the W15 chat (timeline, findings, verified facts, wrong calls 26 to 30, lessons L058 to L061, owner rules). Read first. |

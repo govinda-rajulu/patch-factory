@@ -1,5 +1,5 @@
 {
-  "note": "Selection watch auto-adopt policy (owner, 17 and 20 Oct 2026; packet W15b). A NEW name a provider we already build starts offering is added to that provider's include list by a pull request only when every rule below passes on its name AND its community-index description. Anything else waits for the owner with the rule that held it. Unsure always means wait: no description, BANNED or CONFIRM, a hold word, a paid word on an app outside paid_ok_targets. exclude-patches is the owner veto and is never touched. The bot opens the pull request and starts its checks; it never merges. Edit this file to change the policy. W15b (owner, 20 Oct 2026: older never-chosen names go through this rule too) adds three holds, each read from data: a name another bundle of the same app also offers (AGENTS rule 4: one name under two bundles aborts the build); a name starting with a content verb (hide, remove, limit...) whose description names no off switch and no ad, tracking or suggestion target, because it changes what the app shows for good; and the extra hold words above. Also held: a universal patch (the index ties it to no app), because it was not written for this app and the owner already excluded its siblings (Add Toast, Custom DPI, Png Optimizer); a patch that needs configuring; one that changes what opens at start.",
+  "note": "Selection watch auto-adopt policy (owner, 17 and 20 Oct 2026; packet W15b). A NEW name a provider we already build starts offering is added to that provider's include list by a pull request only when every rule below passes on its name AND its community-index description. Anything else waits for the owner with the rule that held it. Unsure always means wait: no description, BANNED or CONFIRM, a hold word, a paid word on an app outside paid_ok_targets. exclude-patches is the owner veto and is never touched. The bot opens the pull request and starts its checks; 11. Rule merge merges it only when every check, the Onboarding review and every test build are green (owner, 21 Oct 2026, W15d). Edit this file to change the policy. W15b (owner, 20 Oct 2026: older never-chosen names go through this rule too) adds three holds, each read from data: a name another bundle of the same app also offers (AGENTS rule 4: one name under two bundles aborts the build); a name starting with a content verb (hide, remove, limit...) whose description names no off switch and no ad, tracking or suggestion target, because it changes what the app shows for good; and the extra hold words above. Also held: a universal patch (the index ties it to no app), because it was not written for this app and the owner already excluded its siblings (Add Toast, Custom DPI, Png Optimizer); a patch that needs configuring; one that changes what opens at start.",
   "hold_words": [
     "package name",
     "rename",
@@ -89,5 +89,13 @@
     "prompt",
     "prompts",
     "nag"
+  ],
+  "reserved": [
+    {
+      "target": "photos",
+      "name": "AMOLED dark theme",
+      "for": "akash-sriram",
+      "why": "owner E1, 20 Oct 2026: Akash-Sriram's AMOLED dark theme goes into the Photos combo; one provider per name"
+    }
   ]
 }

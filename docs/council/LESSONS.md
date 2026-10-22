@@ -381,3 +381,9 @@ a rule turns strict, list every caller and the input each one really has (W15c, 
 Tags: automation
 The adopt step pushed a branch, then GitHub refused the pull request; the next day it would push another.
 A side effect waiting on a refusal is found again and reused, never repeated (W15c, 21 Oct).
+
+### L068 · An agent's "missing" is checked against the file before it is planned
+Tags: agents, review
+The history agent listed "watch.yml has no job timeout"; it has had one since W2. Two more of its
+eight "dropped" items were by design. Every claim names a file; read that file before a packet or
+the owner hears it (W15d, 21 Oct).

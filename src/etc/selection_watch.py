@@ -20,10 +20,11 @@ Daily, after the Nightly watch. Phases:
                community index by patches offered and by our chosen names offered.
   apply    applies the planned removals and baselines in this checkout, runs preflight and
            bancheck, and commits them to main (main-writer queue; refuses if main moved;
-           waits while any packet/* branch exists, so a packet controller's base holds).
+           waits while an unmerged packet/* branch exists, so a packet controller's base holds;
+           W15d: merged ones waiting for cleanup no longer pause it).
   adopt    (W15b) new names the src/patches/ADOPT.json rule passes (name AND community-index
            description) go to ONE pull request with onboarding records; checks are started on
-           it; the bot never merges. Held names wait for the owner with the rule that held them.
+           it; 11. Rule merge merges it only when green (W15d). Held names wait for the owner with the rule that held them.
   issue    one standing issue "Selection watch": body = latest report; a comment only when
            something changed or waits for the owner.
 Removals only ever take names away; BANNED, CONFIRM and exclude lists are never touched.
@@ -105,6 +106,11 @@ def classify(policy, descriptions, row, package, name, flag, others=()):
         return 'hold', 'matches CONFIRM: owner decides'
     if name in others:
         return 'hold', 'another bundle of this app offers the same name; one bundle per name (AGENTS rule 4)'
+    # W15d: a name the owner gave to another provider (one provider per feature) waits.
+    for r in policy.get('reserved', []):
+        mine = {str(row.get('name', '')).lower(), str(row.get('owner', '')).lower()}
+        if r.get('target') == row.get('target') and r.get('name') == name and str(r.get('for', '')).lower() not in mine:
+            return 'hold', 'reserved for %s by the owner: %s' % (r.get('for'), r.get('why', ''))
     repo = ('%s/%s' % (row.get('owner', ''), row.get('repo', ''))).lower()
     entries = descriptions.get((repo, name), [])
     found = [desc for pkgs, desc in entries if package in pkgs]
@@ -298,7 +304,7 @@ def ranking(root, targets):
 def report(p, dig, rank, run_url, due=()):
     L = ['# Selection watch', '', run_url, '',
          'Removed names are ones the provider no longer offers; builds already go without them. '
-         'New names that pass src/patches/ADOPT.json go to one pull request the bot never merges; the rest wait for you.', '']
+         'New names that pass src/patches/ADOPT.json go to one pull request; it merges itself only when every check and test build is green (11. Rule merge); the rest wait for you.', '']
     L += ['## Removed today (%d folder(s))' % len(p['edits'])]
     for d, e in sorted(p['edits'].items()):
         L.append('- `%s` (%s): %s' % (esc(d), esc(e['provider']), ', '.join('`%s`' % esc(x) for x in e['include'])))
@@ -399,7 +405,27 @@ def git(root, *args):
     return r.stdout.decode().strip()
 
 
-def apply(root, out, runner=git, push=True):
+def gh_compare(sha):
+    """GitHub's compare status of a commit against main ('ahead' or 'identical' = in main), or None."""
+    repo = os.environ.get('GITHUB_REPOSITORY', 'govinda-rajulu/patch-factory')
+    r = subprocess.run(['gh', 'api', 'repos/%s/compare/%s...main?per_page=1' % (repo, sha), '--jq', '.status'],
+                       capture_output=True, text=True, timeout=120)
+    return r.stdout.strip() if r.returncode == 0 else None
+
+
+def unmerged_packets(listing, compare=gh_compare):
+    """W15d: packet branches whose head is NOT in main yet (a controller's base must hold).
+    A merged packet branch waits for cleanup (owner F3 holds cleanup) and must not freeze main:
+    four merged ones paused every apply. Unknown status counts as unmerged."""
+    words = listing.split()
+    out = []
+    for sha, ref in zip(words[0::2], words[1::2]):
+        if compare(sha) not in ('ahead', 'identical'):
+            out.append(ref.split('refs/heads/', 1)[-1])
+    return out
+
+
+def apply(root, out, runner=git, push=True, compare=gh_compare):
     p = json.loads((out / 'plan.json').read_text(encoding='utf-8'))
     paths = []
     for d, e in p['edits'].items():
@@ -419,9 +445,9 @@ def apply(root, out, runner=git, push=True):
         return 'NOTHING'
     if push:
         # A packet controller gates on the exact main commit: never move main under one.
-        packets = runner(root, 'ls-remote', 'origin', 'refs/heads/packet/*').split()
+        packets = unmerged_packets(runner(root, 'ls-remote', 'origin', 'refs/heads/packet/*'), compare)
         if packets:
-            print('SELECTION_APPLY paused: packet branch %s exists; tomorrow retries' % packets[1].rsplit('/', 1)[-1])
+            print('SELECTION_APPLY paused: packet branch %s is not merged yet; tomorrow retries' % packets[0])
             return 'PAUSED'
     import preflight
     preflight.check(root)
@@ -449,7 +475,7 @@ def apply(root, out, runner=git, push=True):
 
 
 def adopt(root, out, repo, runner=None, stamp=None):
-    """W15b: names the rule adopted go to one pull request. The bot never merges it.
+    """W15b: names the rule adopted go to one pull request; W15d: 11. Rule merge merges it when green.
 
     One open adopt pull request at a time; app.py writes the onboarding record (each name
     with its reason) and runs the repo's gates and generators; Validate and the Onboarding
@@ -482,6 +508,11 @@ def adopt(root, out, repo, runner=None, stamp=None):
         seen = run(['gh', 'pr', 'list', '--repo', repo, '--state', 'all', '--head', name, '--json', 'number'])
         if seen.returncode == 0 and json.loads(seen.stdout or '[]') == []:
             return open_and_check(root, out, repo, run, name, picks, stamp, pending=True)
+        # W15d: no adopt pull request is open (checked above), so this branch's is closed or
+        # merged; it is spent. Delete it so old branches do not pile up (5S).
+        if seen.returncode == 0:
+            gone = run(['git', 'push', 'origin', '--delete', name])
+            print('SELECTION_ADOPT %s spent branch %s' % ('deleted' if gone.returncode == 0 else '::warning:: could not delete', name))
     branch = 'adopt/%s-%s' % (stamp, os.environ.get('GITHUB_RUN_ID', 'local'))
     groups = {}
     for w in picks:
@@ -514,7 +545,8 @@ def open_and_check(root, out, repo, run, branch, picks, stamp, pending=False):
     groups = {}
     for w in picks:
         groups.setdefault((w['target'], w['provider']), []).append(w)
-    body = ['Adopted by the Selection watch rule (src/patches/ADOPT.json). The bot never merges this.', '']
+    body = ['Adopted by the Selection watch rule (src/patches/ADOPT.json). 11. Rule merge merges this only when every check, '
+            'the Onboarding review and every test build are green; anything else waits for the owner.', '']
     if pending:
         body += ['The branch was pushed by an earlier run whose pull request GitHub refused; the list below is today\'s rule output.', '']
     body += ['- %s / %s: `%s`: %s' % (w['target'], w['provider'], w['name'], w['why']) for w in picks]
