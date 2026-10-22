@@ -13,7 +13,6 @@ Control taps and volume on Reels
 Copy comment
 Data saver
 Default playback quality
-Disable analytics
 Don't report screenshots
 Don't save recent searches
 Don't send reel watch history
@@ -29,6 +28,8 @@ Full screen Reels and Home
 Glass tab bar
 Group Instagram's notifications
 Hide AI-labeled reels
+Hide Follow on feed posts
+Hide Follow on stories
 Hide Instants
 Hide Meta AI
 Hide Notes on profile pictures
@@ -38,6 +39,7 @@ Hide comments
 Hide group buttons on the share sheet
 Hide highlights
 Hide paid partnership Reels
+Hide profile tabs
 Hide reels by caption words
 Hide suggested accounts in DMs
 Hide suggested accounts in Reels
@@ -50,8 +52,10 @@ Hide the Reels tab
 Hide the Repost button
 Hide the Share button
 Hide the Threads button
+Hide the comment emoji row
 Hide the home feed
 Hide the notes row
+Hide the search bar in Messages
 Hide your active status
 HushGram launch screen
 HushGram settings
@@ -63,7 +67,8 @@ Keep the reel speed
 Lock your messages
 Long press to zoom
 Loop a story
-Open developer options
+Message box buttons
+Open comments without the keyboard
 Open links in external browser
 Profile posts as a list
 Pure black dark mode
@@ -82,6 +87,7 @@ See who a story mentions
 Show a post's exact time
 Show a reel's exact time
 Show a story's exact time
+Show all recent searches
 Show hidden like counts
 Show if a profile follows you
 Show when someone was last active
@@ -94,8 +100,10 @@ Stop Reels scrolling
 Stop Story auto-advance
 Stop background wake-ups
 Stop swipe to create
+Stop swipe up to reply
 Stop swiping between tabs
 Story ring size
+Swipe left to open the profile
 Tap a feed video to pause it
 Tap to play
 Turn off HDR brightness boosts
