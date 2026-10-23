@@ -145,7 +145,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=30', result.stdout)  # W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card
+        self.assertIn('PORTAL_CONTRACTS_PASS=31', result.stdout)  # W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card; W15h: certificate pin
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
@@ -884,7 +884,9 @@ transfer(){
 
     def test_poll_unknown_provider(self):
         self.stub('curl', 'echo \'{"message":"API rate limit exceeded"}\'')
-        x = self.run_cmd(['bash', 'src/etc/poll.sh', 'youtube'], {**self.env(), 'repository': 'fixture/repo', 'GITHUB_OUTPUT': str(self.r / 'out')})
+        # W15h: poll asks three times; the fixture skips the waits and counts the asks.
+        x = self.run_cmd(['bash', 'src/etc/poll.sh', 'youtube'], {**self.env(), 'repository': 'fixture/repo', 'GITHUB_OUTPUT': str(self.r / 'out'), 'PF_POLL_WAITS': '0 0 0'})
+        self.assertEqual(x.stdout.count('release list empty or unreadable; asking again'), 3, x.stdout)
         self.assertEqual(x.returncode, 2, x.stdout)
         self.assertNotIn('new_patch=0', (self.r / 'out').read_text())
 

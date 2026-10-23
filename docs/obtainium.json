@@ -9,7 +9,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^adguard-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"AdGuard\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^adguard-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"AdGuard\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.amazon.mp3",
@@ -20,7 +20,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^amazonmusic-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Amazon Music\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^amazonmusic-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Amazon Music\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.microsoft.emmx",
@@ -31,7 +31,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^edge-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Microsoft Edge\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^edge-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Microsoft Edge\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.estrongs.android.pop",
@@ -42,7 +42,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^es-file-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"ES File Explorer\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^es-file-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"ES File Explorer\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.facebook.katana",
@@ -53,7 +53,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^facebook-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Facebook\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^facebook-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Facebook\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "app.morphe.android.apps.photos",
@@ -64,7 +64,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^gg-photos-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Google Photos\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^gg-photos-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Google Photos\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "in.startv.hotstar",
@@ -75,7 +75,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^hotstar-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"JioHotstar\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^hotstar-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"JioHotstar\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.instagram.android",
@@ -86,7 +86,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^instagram-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Instagram\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^instagram-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Instagram\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "io.github.sds100.keymapper",
@@ -97,7 +97,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^key-mapper-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Key Mapper\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^key-mapper-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Key Mapper\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.linkedin.android",
@@ -108,7 +108,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^linkedin-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"LinkedIn\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^linkedin-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"LinkedIn\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.mxtech.videoplayer.pro",
@@ -119,7 +119,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^mx-player-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"MX Player Pro\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^mx-player-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"MX Player Pro\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.amazon.avod.thirdpartyclient",
@@ -130,7 +130,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^prime-video-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Prime Video\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^prime-video-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Prime Video\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.reddit.frontpage",
@@ -141,7 +141,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^reddit-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Reddit\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^reddit-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Reddit\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "com.truecaller",
@@ -152,7 +152,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^tc-combo-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Truecaller\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^tc-combo-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Truecaller\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "org.telegram.messenger",
@@ -163,7 +163,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^telegram-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Telegram\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^telegram-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Telegram\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "app.morphe.android.youtube",
@@ -174,7 +174,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^youtube-morphe-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"YouTube\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^youtube-morphe-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"YouTube\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
    "id": "app.morphe.android.apps.youtube.music",
@@ -185,7 +185,7 @@
     "patch-factory"
    ],
    "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^yt-music-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"YouTube Music\"}"
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^yt-music-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"YouTube Music\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   }
  ]
 }

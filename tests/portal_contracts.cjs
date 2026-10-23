@@ -221,4 +221,10 @@ check('Obtainium card offers the standard upstream flavor only, with exact ident
  assert.ok(!/<script|\son[a-z]+\s*=|href="(?!#)/i.test(svg.toString()));
  const notice=fs.readFileSync(path.join(root,'docs/assets/NOTICE.txt'),'utf8');assert.ok(notice.includes('obtainium.svg')&&notice.includes('091d8253af3ef7a6333c6a0b147f41d570dca964'));
 });
+check('W15h: every patched entry pins the CI signing certificate; a missing, foreign or extra pin is refused',()=>{
+ const pin=JSON.parse(fs.readFileSync(path.join(root,'src/build/ci-signer.json'))).certificate_sha256;
+ for(const app of c.validateImport(pack,targets))assert.equal(JSON.parse(app.additionalSettings).allowedSigningCertHashes,pin);
+ for(const mutate of [s=>{delete s.allowedSigningCertHashes},s=>{s.allowedSigningCertHashes='b'.repeat(64)},s=>{s.allowedSigningCertHashes=pin+','+'b'.repeat(64)},s=>{s.allowedSigningCertHashes=pin.toUpperCase()},s=>{s.allowedSigningCertHashes=''}]){
+  const d=structuredClone(pack),s=JSON.parse(d.apps[0].additionalSettings);mutate(s);d.apps[0].additionalSettings=JSON.stringify(s);assert.throws(()=>c.validateImport(d,targets));}
+});
 console.log('PORTAL_CONTRACTS_PASS='+count);

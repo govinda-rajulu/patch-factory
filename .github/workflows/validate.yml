@@ -170,7 +170,9 @@ jobs:
         run: bash src/etc/nointerp.sh
       - name: shellcheck
         run: |
-          sudo apt-get install -y -q shellcheck >/dev/null
+          # W15h (council lead, 20 Oct): use the runner image's shellcheck; install only when it is absent.
+          command -v shellcheck >/dev/null || sudo apt-get install -y -q shellcheck >/dev/null
+          shellcheck --version | sed -n 2p
           # SC1091 sourced file not followed, SC2086 word splitting we rely on for flag lists
           shellcheck -S error -e SC1091,SC2086 src/build/*.sh src/etc/*.sh
       # ACTION_COMPATIBILITY_SMOKE_START

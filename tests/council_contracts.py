@@ -87,6 +87,8 @@ LESSON_HASHES = {  # append a line for each new lesson; existing lines never cha
     'L071': '1857394a0718e0e6',
     'L072': '15ac071e7bab2a6f',
     'L073': '94927572c7868f83',
+    'L074': '57c5b1cebaedd4a3',
+    'L075': '28fcc7e1169a02d0',
 }
 KEYS = {'GITHUB_TOKEN': 'ghs_FAKE_TOKEN_0001', 'GEMINI_API_KEY': 'AIza_FAKE_GEMINI_0002',
         'NVIDIA_API_KEY': 'nvapi-FAKE-NVIDIA-0003', 'OPENROUTER_API_KEY': 'sk-or-v1-FAKE-0004',
@@ -562,8 +564,9 @@ class Council(unittest.TestCase):
         perms = re.search(r'\n    permissions:\n((?:      .+\n)+)', wf)[1]
         self.assertEqual(sorted(l.strip() for l in perms.splitlines()),
                          ['contents: read', 'issues: write', 'pull-requests: write'])
-        self.assertEqual(wf.count('secrets.'), 6)
-        self.assertEqual(sorted(re.findall(r'secrets\.(\w+)', wf)), sorted(p['key'] for p in council.PROVIDERS.values()))
+        self.assertEqual(wf.count('secrets.'), 8)  # W15h: + Cloudflare token and account id
+        self.assertEqual(sorted(re.findall(r'secrets\.(\w+)', wf)),
+                         sorted([p['key'] for p in council.PROVIDERS.values()] + ['CLOUDFLARE_ACCOUNT_ID']))
         self.assertIn('options: [probe, question, ask, audit, triage, shift]', wf)
         self.assertIn('          PF_QUESTION: ${{ inputs.question }}\n', wf)
         self.assertIn('          PF_SHARD: ${{ inputs.shard }}\n', wf)
@@ -586,7 +589,8 @@ class Council(unittest.TestCase):
         self.assertEqual(len(keys), len(set(keys)))
         for name, p in council.PROVIDERS.items():
             self.assertTrue(p['chat'].startswith('https://') and p['chat'].endswith('/chat/completions'), name)
-            self.assertTrue(p['models'].startswith('https://') and p['models'].endswith('/models'), name)
+            # W15h: Cloudflare has no OpenAI-style catalogue; its seats name exact models.
+            self.assertTrue(name == 'cloudflare' or (p['models'].startswith('https://') and p['models'].endswith('/models')), name)
             self.assertIsInstance(p['auth'], bool, name)
         self.assertFalse(council.PROVIDERS['openrouter']['auth'])
         env = dict(self.env(), GROQ_API_KEY='gsk_FAKE_GROQ_0005', COHERE_API_KEY='co-FAKE-0006')

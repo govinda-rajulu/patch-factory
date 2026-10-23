@@ -1,6 +1,29 @@
 # Open work
 
-## Current checkpoint: 22 October 2026, midday IST (packet W15f)
+## Current checkpoint: 22 October 2026, night IST (packet W15h)
+
+W15f merged (#210, `db32d516`), published and cleaned up (one release per app). W15h: Obtainium
+certificate pin, tooling watch v2 over 13 upstreams (L074), empty API answers asked again (L075),
+council v4 (seat backups, model discovery, pacing, audit memory; Cloudflare wired).
+Record: [SESSION-2026-10-22.md](SESSION-2026-10-22.md), W15h section. Open, in order:
+
+0. Owner, once: re-import the Obtainium JSON from the page (needs Obtainium 1.6.16 or newer) so
+   the certificate pin reaches the phone.
+1. Owner, optional: free keys `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` (backup for every
+   seat, docs/council/SETUP.md); optional $10 OpenRouter credit (50 to 1000 free calls a day).
+   Owner clicks, optional: Settings > Code security > CodeQL "Default"; CodeRabbit app on this
+   repository only (free on public repositories).
+2. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`;
+   needs a phone test. Reddit stays on the kept 2026.42.0 (owner, 22 Oct).
+3. Combo planner and ceiling memory (LinkedIn step-downs).
+4. From the Tooling watch issue: FlareSolverr digest bump, pup to htmlq, apkeep / APKPure API as
+   extra sources.
+5. openskip and brain: AGENT-PERSONAS.md and REPORT-STYLE.md by their own PRs.
+6. Council: read the desk after a week of v4 (backups used, cut retries, unchanged shards
+   skipped); safe-outputs split of the onboarding agent job (comments from a separate job);
+   zizmor advisory job; triage and digest templates for the Runner seat (OUTSIDE-REPOS LATER).
+
+## Checkpoint: 22 October 2026, midday IST (packet W15f)
 
 W15e merged (#208, `f3d91337`; cleanup applied); Rule merge merged #207 itself (`c1fa3d3d`). T1
 stopped on that merge (L072). W15f: Rule merges count as bot drift in the controller and T1; T1

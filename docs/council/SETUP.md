@@ -19,10 +19,16 @@ repository, so free-tier prompt use for training costs nothing private.
 | `MISTRAL_API_KEY` | Mistral La Plateforme, free (Experiment) plan | https://console.mistral.ai/api-keys | per workspace, shown in the console; phone check at signup | codestral |
 | `COHERE_API_KEY` | Cohere trial key | https://dashboard.cohere.com/api-keys | 1000 calls a month, 20 a minute; evaluation use | command |
 | `GROQ_API_KEY` | Groq | https://console.groq.com/keys | about 30 a minute, 1000 a day, 8000 tokens a minute | groq |
+| `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Workers AI (W15h, optional) | https://dash.cloudflare.com/profile/api-tokens (template "Workers AI", Read); the account id is on the dashboard Overview page (32 hex characters) | 10,000 neurons a day, reset 00:00 UTC; no training on inputs | backup for every seat |
+
+W15h (22 Oct 2026): Cloudflare has an OpenAI-style endpoint
+(`/client/v4/accounts/<id>/ai/v1/chat/completions`, developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility),
+so it is now wired as the last backup of every seat; nothing calls it until both secrets exist.
+OpenRouter: one $10 credit purchase raises `:free` models from 50 to 1000 calls a day (openrouter.ai/docs/faq);
+optional, the only paid step, owner's choice.
 
 Not seated, with the reason: Cerebras (trial credit with a card, no lasting free tier),
-GitHub Models (retired 30 Jul 2026), Cloudflare Workers AI (needs an account id and is not the
-OpenAI chat shape), Hugging Face ($0.10 a month), Together, SambaNova, Scaleway, Chutes (credit
+GitHub Models (retired 30 Jul 2026), Hugging Face ($0.10 a month), Together, SambaNova, Scaleway, Chutes (credit
 or paid only), ModelScope and SiliconFlow (identity checks). Candidates for later, unverified:
 Ollama Cloud, Kilo Gateway, Z AI GLM Flash, LLM7. Research sources: the
 [awesome-free-llm-apis](https://github.com/mnfst/awesome-free-llm-apis) and
@@ -40,6 +46,23 @@ tokens a minute) answers probes and small asks, while the large seats take revie
 Quorum stays 3 valid answers. A seat's optional `jobs` list limits what it is sent (Groq: probe
 and ask), and `reasoning_effort` plus `max_tokens` keep reasoning models from spending their
 whole answer budget thinking (7 Oct 2026: four seats failed that way, see LESSONS 19).
+
+### W15h: why seats failed, and what changed (22 Oct 2026)
+
+Desk #154, 7 to 22 Oct: most lost answers were `UNAVAILABLE no listed model answered (N missing,
+N busy, N cut at max_tokens)`; codestral and command almost always answered. Three causes, none
+"a seat added for show": model ids retired by the provider (missing), free-tier limits hit by
+seats calling at once (busy; gpt and nemotron share one NVIDIA account), and reasoning models
+spending the answer budget thinking (cut). Since W15h:
+
+- `discover` patterns per seat add up to two catalogue models after the seat's own list.
+- `backups` per seat: models on other providers, tried after the seat's own; a backup without a
+  key is skipped. The desk names them `model via provider (backup)`.
+- A cut reply gets one more try with twice the room (at most 16000) and `reasoning_effort` low.
+- Calls to one provider go one at a time, spaced by its published per-minute limit (`PACE` in
+  `src/council/council.py`).
+- Audit memory: a shard whose files and prompt match its last audit (valid answers, under 14
+  days old) is not sent again. `PF_REAUDIT=1` forces a fresh audit.
 
 ## Lanes: small to heavy
 

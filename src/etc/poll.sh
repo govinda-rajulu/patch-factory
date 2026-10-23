@@ -32,9 +32,16 @@ while IFS=$'\t' read -r n h p o r; do
     D=$(curl -sSL "https://gitlab.com/api/v4/projects/$p/releases?per_page=5" \
         | jq -r 'first(.[]) | .released_at // ""')
   else
-    D=$(curl -sSL "${AUTH[@]}" \
-        "https://api.github.com/repos/$o/$r/releases" \
-        | jq -r 'first(.[] | .assets[] | select(.name | test("[.]mpp$")) | .updated_at) // ""')
+    # W15h: GitHub sometimes answers a busy batch with an empty or error body; ask up to three times.
+    D=""
+    for wait in ${PF_POLL_WAITS:-0 10 30}; do
+      sleep "$wait"
+      D=$(curl -sSL "${AUTH[@]}" \
+          "https://api.github.com/repos/$o/$r/releases" \
+          | jq -r 'if type == "array" then (first(.[] | .assets[] | select(.name | test("[.]mpp$")) | .updated_at) // "") else "" end' 2>/dev/null)
+      [ -n "$D" ] && [ "$D" != "null" ] && break
+      echo "::warning::$n: release list empty or unreadable; asking again"
+    done
   fi
   [ -n "$D" ] && [ "$D" != "null" ] || { echo "::error::$n: provider date unknown"; UNKNOWN=1; continue; }
   S=$(date -d "$D" +%s) || { UNKNOWN=1; continue; }

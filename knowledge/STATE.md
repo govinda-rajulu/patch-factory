@@ -6,7 +6,16 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 22 Oct 2026, midday IST (packet W15f; start here)
+## 22 Oct 2026, night IST (packet W15h; start here)
+
+- **Main** `db32d516` (W15f #210) plus W15h once merged.
+- **W15h**: Obtainium certificate pin (`src/build/ci-signer.json`, one home), tooling watch v2
+  (`src/etc/upstreams.json`, standing issue "Tooling watch", L074), empty release lists asked
+  again (L075), council v4 (seat backups, model discovery, pacing, audit memory, Cloudflare wired).
+  Record `docs/review/SESSION-2026-10-22.md` (both W15h sections). Wrong calls this chat: 48.
+- **Next**: OPEN-WORK 22 Oct night: owner re-import, Reddit question, W15g signing split.
+
+## 22 Oct 2026, midday IST (packet W15f)
 
 - **Main** `c1fa3d3d` (W15e #208 `f3d91337`, then Rule merge #207 by the bot) plus W15f once merged.
 - **W15f**: Rule merges count as bot drift in the controller and T1 (L072); T1 rerun on main;
