@@ -166,6 +166,121 @@ def scope(targets):
     return packages, wired
 
 
+
+def _version_values(value):
+    """Collect version strings from the index's two compatibility shapes."""
+    found = set()
+    if isinstance(value, str) and value.strip():
+        found.add(value.strip())
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            if key in ("version", "versionName", "currentVersion"):
+                found.update(_version_values(item))
+            elif key == "versions":
+                found.update(_version_values(item))
+            elif key == "targets":
+                found.update(_version_values(item))
+            elif isinstance(item, (dict, list)):
+                found.update(_version_values(item))
+    elif isinstance(value, list):
+        for item in value:
+            found.update(_version_values(item))
+    return found
+
+
+def _target_current_version(target):
+    """Use an explicit current app version when a target supplies one.
+
+    ``max_app_version`` is a useful fallback for older target records; it is a
+    ceiling, not silently treated as a current version when a better field is
+    present.
+    """
+    for key in ("current_version", "current_app_version", "app_version", "version", "max_app_version"):
+        value = target.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None
+
+
+def rank_providers(index_data, targets):
+    """Rank community providers for each configured app.
+
+    Ranking is deliberately deterministic and observation-only. MorpheApp is
+    official; it sorts before other providers, followed by applicable patch
+    count, support for the configured app version, the number of supported
+    versions, and freshness. ``better`` is true only when an alternative has a
+    strictly better rank tuple than the configured provider. Missing current
+    versions remain visible as unknown rather than being treated as support.
+    """
+    parsed = inventory(index_data)
+    providers = parsed["providers"]
+    out = []
+    for target in targets:
+        if not target.get("enabled"):
+            continue
+        package = target.get("package")
+        if not isinstance(package, str):
+            continue
+        configured = {
+            (str(p.get("owner")) + "/" + str(p.get("repo"))).lower()
+            for p in target.get("candidates", []) + target.get("extra_bundles", [])
+            if isinstance(p, dict) and not p.get("fallback")
+        }
+        current = _target_current_version(target)
+        rows = []
+        for key, provider in providers.items():
+            if package not in (provider.get("metadata", {}).get("targetApps") or []):
+                continue
+            applicable = []
+            for variants in provider.get("patches", {}).values():
+                for patch in variants:
+                    compat = patch.get("compatibility") or {}
+                    if not compat or package not in compat:
+                        # The index explicitly uses an empty compatibility
+                        # record for a universal patch; unknown remains a
+                        # countable finding but is not claimed applicable.
+                        if compat == {} and patch.get("applicability") == "UNKNOWN":
+                            applicable.append(patch)
+                        elif compat == {} and patch.get("applicability") == "DECLARED":
+                            applicable.append(patch)
+                        continue
+                    applicable.append(patch)
+            supported = set()
+            for variants in provider.get("patches", {}).values():
+                for patch in variants:
+                    compat = patch.get("compatibility") or {}
+                    for record in compat.get(package, []):
+                        supported.update(_version_values(record))
+            meta = provider.get("metadata", {})
+            freshness = meta.get("appUpdates", {}).get(package) if isinstance(meta.get("appUpdates"), dict) else None
+            if freshness is None:
+                freshness = meta.get("updatedAt") or 0
+            repo = provider.get("repo", "")
+            owner = repo.split("/", 1)[0].lower() if "/" in repo else ""
+            official = owner == "morpheapp"
+            current_supported = current in supported if current else None
+            # Unknown current support must not beat an explicit supported
+            # version. It remains a visible field in the rendered rank.
+            rank = (int(official), len(applicable), int(current_supported is True),
+                    len(supported), freshness if isinstance(freshness, (int, float)) else 0)
+            rows.append(dict(repo=repo, source=provider.get("source"), official=official,
+                             patch_count=len(applicable), supported_versions=sorted(supported),
+                             current_version=current, supports_current=current_supported,
+                             freshness=freshness, configured=repo.lower() in configured, rank=rank))
+        rows.sort(key=lambda row: (row["rank"], row["repo"].lower()), reverse=True)
+        configured_rows = [row for row in rows if row["configured"]]
+        best_configured = max((row["rank"] for row in configured_rows), default=None)
+        alternatives = [row for row in rows if not row["configured"]]
+        better = [row for row in alternatives if best_configured is None or row["rank"] > best_configured]
+        out.append(dict(app=target.get("id"), package=package, current_version=current,
+                        configured=sorted(configured), providers=rows,
+                        better=better, better_exists=bool(better)))
+    return out
+
+
+# Name used by callers that describe this as the Community provider ranker.
+provider_ranker = rank_providers
+
 def patch_packages(records):
     return sorted({pkg for record in records for pkg in record["compatibility"]})
 

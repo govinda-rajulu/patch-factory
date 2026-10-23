@@ -1,63 +1,120 @@
-INFO: GitHub: fetching releases from https://api.github.com/repos/MorpheApp/morphe-patches/releases 
-INFO: GitHub: fetched 30 releases from MorpheApp/morphe-patches 
-INFO: Morphe data root: /tmp/mj/morphe-data (JAR-adjacent) 
-INFO: Downloading patches from MorpheApp/morphe-patches v1.42.0-dev.6... 
-INFO: GitHub: downloading patches-1.42.0-dev.6.mpp from https://github.com/MorpheApp/morphe-patches/releases/download/v1.42.0-dev.6/patches-1.42.0-dev.6.mpp 
-INFO: GitHub: wrote 9351057 bytes to /tmp/mj/morphe-data/patches/MorpheApp-morphe-patches/v1.42.0-dev.6__patches-1.42.0-dev.6.mpp 
-INFO: Patches mpp saved to /tmp/mj/morphe-data/patches/MorpheApp-morphe-patches/v1.42.0-dev.6__patches-1.42.0-dev.6.mpp. This file will be used on your next run as long as it is not deleted! 
-INFO: Index: 46
+# morphe-desktop v1.19.0 list-patches -x --with-packages --with-versions --with-options -f com.reddit.frontpage
+# bundle MorpheApp/morphe-patches v1.48.0 patches-1.48.0.mpp sha256 82bc696c94c26dbf75242b59980251315145457575b663200b981ca351e1c0f7
+# run by the owner on Cloud Shell, 23 Oct 2026 18:00Z (probe pf-reddit-names). Replaces the 7 Sep v1.42.0-dev.6 dump.
+INFO: Morphe data root: <probe>/payload/morphe-data (JAR-adjacent)
+INFO: Index: 0
+Name: Clone app
+Description: Changes the app package name to allow installing the same app multiple times. By default ".morphe" is appended to the package name. Each cloned install must use a unique package name. Cloning does not work with all apps and using this patch may cause app crashes or other unexpected behavior.
+Enabled: false
+Options:
+	Title: packageName
+	Description: Package name to use for the cloned app.
+	Required: true
+	Key: packageName
+	Default: Default
+	Possible values:
+		Default (Default)
+	Type: String
+	
+	Title: updatePermissions
+	Description: Update custom permissions declared by the app. Fixes installation conflicts, but can break features in certain apps.
+	Required: false
+	Key: updatePermissions
+	Default: true
+	Type: Boolean
+	
+	Title: updateProviders
+	Description: Update provider names declared by the app. Fixes installation conflicts, but can break features in certain apps.
+	Required: false
+	Key: updateProviders
+	Default: true
+	Type: Boolean
+
+Index: 1
+Name: Change installer source
+Description: Spoofs the installer source so the app appears to be installed from an app store.
+Enabled: false
+Options:
+	Title: packageInstallerName
+	Required: false
+	Key: packageInstallerName
+	Default: com.android.vending
+	Possible values:
+		com.android.vending (Google Play)
+		com.sec.android.app.samsungapps (Samsung Galaxy Store)
+		com.amazon.venezia (Amazon Appstore)
+		com.huawei.appmarket (Huawei AppGallery)
+		com.xiaomi.mipicks (Xiaomi GetApps)
+	Type: String
+
+Index: 2
+Name: Override certificate pinning
+Description: Overrides certificate pinning, allowing to inspect traffic via a proxy.
+Enabled: false
+
+Index: 3
+Name: Spoof signature
+Description: Spoofs the package signature of the original APK.
+Enabled: false
+
+Index: 4
+Name: Disable Play Store updates
+Description: Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting
+Enabled: false
+
+Index: 54
 Name: Hide ads
 Description: Adds options to hide ads.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 47
+Index: 55
 Name: Custom font
 Description: Adds an option to replace Reddit Sans / Roboto with a custom TTF or OTF font file at runtime.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 48
+Index: 56
 Name: Force system font
 Description: Adds an option that renders Reddit with the device system font instead of Reddit Sans / Roboto.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 49
+Index: 57
 Name: Hide Ask button
 Description: Adds an option to hide Ask button in the search bar.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 50
+Index: 58
 Name: Custom branding name for Reddit
 Description: Changes the Reddit app name to the name specified in patch options.
 Enabled: false
@@ -69,182 +126,351 @@ Options:
 	Default: Reddit Morphe
 	Possible values:
 		Reddit Morphe (Default)
-	Type: kotlin.String
+	Type: String
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 51
+Index: 59
 Name: Hide communities shelf
 Description: Adds an option to hide the related or suggested communities shelf in subreddits.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 52
+Index: 60
+Name: Copy text
+Description: Adds an option to make post and comment text selectable and copyable. Disables collapsing comments. This patch works with Reddit 2026.24.0 and newer.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 61
+Name: Keep feed position
+Description: Adds an option to keep the feed at the same position after closing a post, image or video, instead of moving the opened post to the top of the screen.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 62
+Name: Show flairs in home feed
+Description: Adds an option to show post flair badges in the home feed. This patch works with Reddit 2026.24.0 and newer.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 63
+Name: Full width feed media
+Description: Adds an option to show images and videos edge to edge in the feed and post details, without side padding and rounded corners.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 64
+Name: Feed media max height
+Description: Adds an option to change the maximum height of images, videos and galleries in the feed.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 65
+Name: Hide media viewer components
+Description: Adds options to hide the "See the conversation" button and the title, buttons and video controls of the media viewer. Hiding the title, buttons and video controls requires Reddit 2026.38.0 or newer.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 66
+Name: Media viewer black background
+Description: Adds an option to use a black background behind images and videos in the media viewer, instead of the theme background color.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 67
+Name: Media viewer fade
+Description: Adds an option to lower or remove the dark fade behind the caption when viewing images and videos.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 68
 Name: Disable modern home
 Description: Adds an option to disable the modern home UI. This patch works with Reddit 2026.24.0 and earlier.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 53
+Index: 69
 Name: Hide navigation buttons
 Description: Adds options to hide buttons in the navigation bar.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 54
+Index: 70
+Name: Customize post layout
+Description: Adds options to show the view count of posts, to move the vote and comment buttons of posts to the right side, and to swap the vote and comment buttons. Moving and swapping the buttons works with Reddit 2026.39.0 and newer.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 71
 Name: Disable screenshot popup
 Description: Adds an option to disable the popup that appears when taking a screenshot.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 55
+Index: 72
 Name: Hide Reddit search
 Description: Permanently hides the Reddit search in the contextual menu. This patch does not work with root mounting
 Enabled: false
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 56
+Index: 73
 Name: Hide sidebar components
 Description: Adds options to hide the sidebar components.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 57
+Index: 74
 Name: Remove subreddit dialog
 Description: Adds options to remove the NSFW community warning and notifications suggestion dialogs by dismissing them automatically.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 58
+Index: 75
 Name: Hide Trending shelves
 Description: Adds an option to hide the Trending shelves from feed and search suggestions.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 59
-Name: Show view count
-Description: Adds an option to show the view count of Posts.
+Index: 76
+Name: App icon
+Description: Adds an option to select from the Reddit app icons available in the manifest.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 60
+Index: 77
+Name: Remember collapsed comments
+Description: Adds an option to keep comments you collapsed collapsed when reopening a post.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 78
+Name: Download location
+Description: Adds options to choose the folder and file name of downloaded images and videos, which can use the subreddit, author and account, and can be set per account.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 79
 Name: Spoof signature
 Description: Spoofs the signature of the app to fix notification issues.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 		2024.02.0
 
-Index: 61
+Index: 80
+Name: Start as guest
+Description: Skips the forced startup login screen using Reddit's native guest browsing mode.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0
+
+Index: 81
 Name: Open links directly
 Description: Adds an option to skip over redirection URLs in external links.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 62
+Index: 82
 Name: Open links externally
 Description: Adds an option to always open links in your browser instead of with the in-app-browser.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0
+		2026.10.0
 
-Index: 63
+Index: 83
 Name: Sanitize sharing links
 Description: Adds an option to sanitize sharing links by removing tracking query parameters.
 Enabled: true
 Compatible packages:
 	Package name: com.reddit.frontpage
 	Compatible versions:
-		2026.35.0
-		2026.34.0
+		2026.42.0
+		2026.41.0
+		2026.40.0
 		2026.24.0
-		2026.14.0
-		2026.04.0 
+		2026.10.0
+
+Index: 84
+Name: Redgifs audio
+Description: Adds an option to play the original Redgifs video, which has audio, instead of Reddit's silent copy.
+Enabled: true
+Compatible packages:
+	Package name: com.reddit.frontpage
+	Compatible versions:
+		2026.42.0
+		2026.41.0
+		2026.40.0
+		2026.24.0
+		2026.10.0

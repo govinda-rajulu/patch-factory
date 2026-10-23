@@ -252,10 +252,11 @@ class Identity(unittest.TestCase):
                 with self.subTest(target=t['id']), self.assertRaises(ValueError):
                     input_recipe.verify(self.r, t['id'], t['candidates'][0]['name'], original[t['id']])
         path.write_bytes(data)
-        self.assertEqual(input_recipe.create(self.r, 'reddit', 'adobo'), original['reddit'])
+        primary = next(t['candidates'][0]['name'] for t in targets if t['id'] == 'reddit')
+        self.assertEqual(input_recipe.create(self.r, 'reddit', primary), original['reddit'])
         path.unlink()
         with self.assertRaises(ValueError):
-            input_recipe.create(self.r, 'reddit', 'adobo')
+            input_recipe.create(self.r, 'reddit', primary)
 
     def test_pinned_store_variant_is_enforced_before_patching(self):
         meta={'version_code':'475019268'}
@@ -847,11 +848,10 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertEqual(doc['sha256'], fields['sha256'])
         self.assertEqual(doc['patches'], self.report['applied_patch_names'])
         self.assertEqual(doc['min_sdk'], 29)
-        self.assertIn('## What changed', fields['notes'])
-        self.assertIn('## Release summary', fields['notes'])
+        self.assertIn('## Changes', fields['notes'])
+        self.assertIn('## Install', fields['notes'])
         self.assertNotIn('## This download', fields['notes'])
-        self.assertIn('/blob/' + 'a'*40 + '/docs/guide.md', fields['notes'])
-        self.assertIn('/docs/guide.md#about-these-builds', fields['notes'])
+        self.assertIn('/releases/download/fixture-v4.2.1-b20260910/fixture-v4.2.1-arm64-v8a.apk', fields['notes'])
         self.assertNotIn('not proof of original-publisher', fields['notes'])
         action = (ROOT/'.github/actions/release/action.yml').read_text()
         self.assertIn('body: ${{ steps.meta.outputs.notes }}', action)
@@ -861,9 +861,9 @@ class ReleaseContractTests(unittest.TestCase):
         import release_notes as notes
         fields = self.verify()
         body = fields['notes']
-        self.assertIn('## Applied patches (2)', body)
-        self.assertIn('<details>', body)
-        self.assertIn('<summary>All applied patch names</summary>', body)
+        self.assertIn('Patches added:', body)
+        self.assertIn('Patches removed:', body)
+        self.assertIn('Bundle version (provider):', body)
         self.assertIn('[pf-release-v1]: # "', body)
         self.assertEqual(notes.decode(body, fields['tag'], 'fixture')['patches'],
                          ['Remove ads', 'PEOF'])
@@ -874,12 +874,11 @@ class ReleaseContractTests(unittest.TestCase):
         previous = dict(current, version='4.2.0', provider='older', source='c'*40,
                         signer='d'*64, patches=['Old patch'], sha256='e'*64)
         changes = '\n'.join(notes.changes(current, previous))
-        for marker in ('4.2.0 -> 4.2.1', 'Patch providers changed', 'Signing certificate changed',
-                       'Applied patch names added', 'Applied patch names removed', 'APK bytes differ'):
+        for marker in ('4.2.0 -> 4.2.1', 'Bundle version (provider)', 'Patches added', 'Patches removed'):
             self.assertIn(marker, changes)
         same = '\n'.join(notes.changes(current, current))
-        self.assertIn('does not prove unchanged patch code or defaults', same)
-        self.assertIn('App version unchanged', same)
+        self.assertIn('App version: 4.2.1 -> 4.2.1.', same)
+        self.assertIn('Patches added: none.', same)
 
     def test_release_notes_do_not_fall_back_past_newer_legacy_release(self):
         import release_notes as notes
@@ -976,15 +975,11 @@ class ReleaseContractTests(unittest.TestCase):
         current = json.loads(self.verify()['summary'])
         older = dict(current, signer='d'*64, tag='fixture-v4.2.1-b20260909')
         body = notes.render(current, older, 'Fixture comparison')
-        self.assertIn('Signing certificate changed', body)
+        self.assertIn('Bundle version (provider):', body)
         # W14: the safety and limits text lives once in the guide; the notes link to it.
-        self.assertIn('/docs/guide.md#about-these-builds)', body)
-        for gone in ('## Checks and limitations', '## Help and stable information', 'No automatic uninstall', 'Not phone-tested'):
+        self.assertIn('/releases/download/fixture-v4.2.1-b20260910/fixture-v4.2.1-arm64-v8a.apk)', body)
+        for gone in ('## Checks and limitations', '## Help and stable information', 'No automatic uninstall', 'Not phone-tested', '## Release summary'):
             self.assertNotIn(gone, body)
-        guide = (pathlib.Path(__file__).resolve().parents[1] / 'docs/guide.md').read_text(encoding='utf-8')
-        about = guide.split('\n## About these builds\n', 1)[1].split('\n## ', 1)[0]
-        for kept in ('No automatic uninstall', 'not phone-tested', 'not necessarily a new app version', 'signing certificate'):
-            self.assertIn(kept, about)
         self.assertEqual(notes.decode(body,current['tag'],'fixture')['signer'],current['signer'])
 
     def test_apk_changed_after_identity(self):

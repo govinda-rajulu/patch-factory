@@ -74,12 +74,14 @@ PROVIDERS = {
              'models': 'https://ai-gateway.kilo.ai/api/v1/models', 'key': 'KILO_API_KEY', 'auth': True},
     'zai': {'chat': 'https://api.z.ai/api/paas/v4/chat/completions', 'key': 'ZAI_API_KEY', 'auth': True},
 }
-# W15h: smallest gap between two calls to one provider, in seconds, from each free tier's
-# published per-minute limit (Gemini 3 Flash 5 RPM, Groq 30 RPM, OpenRouter free 20 RPM,
-# NVIDIA about 40 RPM, Cohere trial 20 RPM). Seats on one provider share one account limit,
-# so calls to a provider go one at a time. PF_PACE_SCALE=0 (or PF_RETRY_SLEEP=0) turns it off.
-PACE = {'gemini': 13.0, 'nvidia': 2.0, 'openrouter': 3.5, 'groq': 2.5, 'mistral': 1.5, 'cohere': 3.5, 'cloudflare': 1.5,
-        'kilo': 18.0, 'zai': 3.0}  # W15i: Kilo 200 an hour is one call per 18 s
+# W16 (23 Oct 2026): gaps target no more than 80% of documented free request
+# limits where a provider publishes one. Groq 30 RPM -> 2.5 s (24 RPM), OpenRouter and
+# Cohere 20 RPM -> 3.75 s (16 RPM), Kilo 200/hour -> 22.5 s (160/hour). Other providers
+# publish account/model-specific limits only, so their conservative gaps remain explicit here.
+# Seats on one provider share one account limit; calls to a provider stay serial.
+# PF_PACE_SCALE=0 (or PF_RETRY_SLEEP=0) turns pacing off for tests/diagnostics.
+PACE = {'gemini': 13.0, 'nvidia': 2.0, 'openrouter': 3.75, 'groq': 2.5, 'mistral': 1.5, 'cohere': 3.75, 'cloudflare': 1.5,
+        'kilo': 22.5, 'zai': 3.0}
 _pace_lock = {}
 _pace_last = {}
 VOTES = ('adopt', 'reject', 'hold', 'ask_owner')
@@ -460,9 +462,12 @@ def remembered(kind):
 def complete(seat, model, system, user, env, retry=True, extra=()):
     p = PROVIDERS[seat['provider']]
     key = (seat['provider'], model)
-    # Room for reasoning models; a seat whose models cap output lower sets max_tokens.
-    body = {'model': model, 'temperature': 0.1, 'max_tokens': int(seat.get('max_tokens', 6000)),
+    # Do not impose an artificial output budget: providers enforce their own model output
+    # maximums. An explicit max_tokens remains supported for callers that genuinely need it.
+    body = {'model': model, 'temperature': 0.1,
             'messages': [{'role': 'system', 'content': system}, {'role': 'user', 'content': user}] + list(extra)}
+    if seat.get('max_tokens') is not None:
+        body['max_tokens'] = int(seat['max_tokens'])
     if key not in remembered('no_json'):
         body['response_format'] = {'type': 'json_object'}
     if seat.get('reasoning_effort') and key not in remembered('no_reasoning'):
@@ -681,7 +686,11 @@ def run_seat(seat, system, user, env, checker, canary):
                 # W15h: reasoning models spend the output budget thinking ("cut at max_tokens").
                 # One more try with twice the room and low effort before moving on.
                 try:
-                    answered = dict(who, max_tokens=min(16000, 2 * int(who.get('max_tokens', 6000))), reasoning_effort='low')
+                    answered = dict(who, reasoning_effort='low')
+                    if who.get('max_tokens') is not None:
+                        answered['max_tokens'] = 2 * int(who['max_tokens'])
+                    else:
+                        answered.pop('max_tokens', None)
                     text = complete(answered, model, system, user, env, retry=False)
                     row['model'] += ' (more room)'
                 except (Truncated, Busy, ModelMissing):
@@ -1586,7 +1595,8 @@ def probe_model(seat, provider, model, env):
         return 'NO_KEY'
     ids = available_models(provider, env)
     listed = 'unknown' if ids is None else ('yes' if model in ids else 'no')
-    probe_seat = dict(seat, provider=provider, max_tokens=min(int(seat.get('max_tokens', 6000)), 2000))
+    probe_seat = dict(seat, provider=provider)
+    probe_seat.pop('max_tokens', None)
     try:
         text = complete(probe_seat, model, 'Reply with JSON only.', 'Reply with exactly {"ready": true}', env, retry=False)
         status = 'SERVED' if 'ready' in strip_think(text) else 'SERVED_ODD_REPLY'

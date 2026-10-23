@@ -265,7 +265,8 @@ class DependencyContracts(unittest.TestCase):
 
     def test_all_fourteen_have_observations_even_when_legacy_matrix_empty(self):
         out=self.r/"output";out.write_text('matrix={"target":[]}\n')
-        shadow.plan(self.r,dict(self.env,GITHUB_OUTPUT=str(out)))
+        shadow.plan(self.r,dict(self.env, PF_BUILD_MATRIX=json.dumps({"target": []}),
+                                  GITHUB_OUTPUT=str(out)))
         expected=dep.expected_targets(self.r);self.assertEqual(len(expected),ENABLED)
         for ident in expected:
             self.f.prepare(ident)

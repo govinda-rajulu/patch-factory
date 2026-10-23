@@ -1,8 +1,8 @@
 # Facebook (facebook)
 
 Package: com.facebook.katana
-Source APK: https://www.apkmirror.com/apk/facebook-2/facebook/facebook-583-0-0-39-55-release/ (arm64-v8a, 480-640dpi, Android 11+, version code 475614366, BUNDLE, read 17 Oct 2026; the build pins that code and refuses any other). W15 (17 Oct 2026): Hushfacebook v0.14.0 (16 Oct, its release notes: "targets Facebook 583.0.0.39.55 only ... build 475614366 for 64-bit phones", 91 patches). Until W15: 582.0.0.50.54, version code 475417104; until W13: 581.0.0.45.58, version code 475215365.
-Provider: SysAdminDoc/HushFacebook (licence: GPL-3.0, bundle: the one .mpp asset of the newest stable release, v0.8.0 on 8 Oct 2026; channel: stable). GitHub spells the repository HushFacebook; the community index says Hushfacebook.
+Source APK: https://www.apkmirror.com/apk/facebook-2/facebook/facebook-584-0-0-51-56-release/ (arm64-v8a, 480dpi, Android 11+, version code 475817393, BUNDLE, read 23 Oct 2026; the build pins that code and refuses any other). W16 (23 Oct 2026): HushFacebook v0.17.0 supports Facebook 584.0.0.51.56 only. Until W16: 583.0.0.39.55, version code 475614366; until W15: 582.0.0.50.54, version code 475417104; until W13: 581.0.0.45.58, version code 475215365.
+Provider: SysAdminDoc/HushFacebook (licence: GPL-3.0, bundle: the one .mpp asset of the newest release, v0.17.0 on 22 Oct 2026; channel: latest). GitHub spells the repository HushFacebook; the community index says Hushfacebook.
 Provider: RookieEnough/De-Vanced (fallback only, packet W13; licence: GPL-3.0, the same repository the Amazon Music record cites; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Built only when a Hushfacebook build fails, on Facebook 580.0.0.51.74 (version code 475019344, 240-640dpi): its own pins, so the 581 pins above stay Hushfacebook's. Patches: src/patches/facebook-derevanced (Disable all ads, Disable analytics and telemetry, Messenger install compatibility; Change package name excluded).
 
 ## Patches

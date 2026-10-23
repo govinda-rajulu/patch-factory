@@ -355,7 +355,18 @@ function releaseRows(rows,ts){
  for(const rows of map.values())rows.sort((a,b)=>b.tag.build.localeCompare(a.tag.build)||Date.parse(b.rel.published_at)-Date.parse(a.rel.published_at));
  return {map,rejected};
 }
-function buildMeta(row){const t=row.tag;return 'Build '+t.day+(t.run?' · run '+t.run+' · attempt '+t.attempt:' · legacy tag');}
+function buildMeta(row){return 'Last built '+row.tag.day;}
+function releaseRecord(body){
+ const m=typeof body==='string'&&body.match(/^\[pf-release-v1\]: # \"([A-Za-z0-9+/=]+)\"[ \t]*$/m);
+ if(!m||typeof atob!=='function')return null;
+ try{
+  const raw=atob(m[1]),bytes=Uint8Array.from(raw,c=>c.charCodeAt(0));
+  const json=typeof TextDecoder==='function'?new TextDecoder().decode(bytes):decodeURIComponent(escape(raw));
+  const d=JSON.parse(json);
+  if(!d||typeof d!=='object'||typeof d.version!=='string'||typeof d.provider!=='string'||typeof d.bundle!=='string'||!Array.isArray(d.patches))return null;
+  return d;
+ }catch{return null;}
+}
 function noteText(body){
  if(typeof body!=='string')return '';
  // W15i (CodeQL js/incomplete-multi-character-sanitization): strip comments until none are
@@ -448,15 +459,17 @@ function markdown(body,budget){
  return box;
 }
 function changeSummary(top,previous){
- const body=noteText(top.rel.body),section=/^## What changed[ \t]*\n([\s\S]*?)(?=^## |$(?![\s\S]))/m.exec(body);
- if(section){const rows=section[1].split('\n').filter(x=>x.startsWith('- ')).slice(0,3);if(rows.length)return rows.map(x=>readable(x.slice(2)));}
- if(previous)return [previous.tag.version===top.tag.version?'Same app version, another build.':'App version '+previous.tag.version+' → '+top.tag.version+'.','Patch-by-patch changes were not recorded in comparable release metadata.'];
- return ['No earlier comparable release in this inventory. Read the publisher’s notes below.'];
+ const body=noteText(top.rel.body),section=/^## Changes[ \t]*\n([\s\S]*?)(?=^## |$(?![\s\S]))/m.exec(body);
+ if(section){const rows=section[1].split('\n').filter(x=>x.startsWith('- ')).slice(0,4);if(rows.length)return rows.map(x=>readable(x.slice(2)));}
+ if(previous)return [previous.tag.version===top.tag.version?'App version: '+top.tag.version+' -> '+top.tag.version+'.':'App version: '+previous.tag.version+' -> '+top.tag.version+'.'];
+ return ['App version: unknown -> '+top.tag.version+'.'];
 }
-function releaseNotes(article,body,summary){
- const overview=el('div',undefined,'change-preview');overview.append(el('h4','What changed'));
- for(const line of summary.slice(0,2))overview.append(el('p',line.length>160?line.slice(0,157)+'…':line));
- article.append(overview);
+function field(article,label,value){
+ const p=el('p',undefined,'card-field');p.append(el('strong',label+': '));p.append(document.createTextNode(value));article.append(p);
+}
+function patchText(record){
+ if(!record||!Array.isArray(record.patches))return 'Not recorded';
+ return record.patches.length?record.patches.join(', '):'none';
 }
 async function appsPanel(root){
  const [ts,releaseResult]=await Promise.all([getTargets(),pages('releases').then(rows=>({rows})).catch(error=>({error}))]);
@@ -467,15 +480,15 @@ async function appsPanel(root){
  if(!t.enabled){heading.append(el('span','Disabled','badge'));article.append(el('p','Not eligible for new builds. Existing release history is available on GitHub.','meta'));root.append(article);continue;}
  const rows=map.get(t.tag_prefix||t.id)||[];
  if(!rows.length){article.append(el('p',releaseResult.error?'Release availability unknown.':'No matching published APK in the complete release inventory.','meta'));root.append(article);continue;}
- const top=rows[0],age=Date.now()-Date.parse(top.asset.updated_at||top.rel.published_at);
+ const top=rows[0],age=Date.now()-Date.parse(top.asset.updated_at||top.rel.published_at),record=releaseRecord(top.rel.body);
  article.dataset.published=top.rel.published_at;
- if(Number.isFinite(age)&&age>=0&&age<3*86400000)heading.append(el('span','Recent upload','badge'));
- article.append(el('p',top.tag.version),el('p',buildMeta(top),'meta'),el('p',Math.round(top.asset.size/1048576)+' MB · published '+when(top.rel.published_at),'meta release-facts'));
- const actions=el('div',undefined,'actions');actions.append(link('Download released APK',top.asset.browser_download_url,'download'));article.append(actions);
- releaseNotes(article,top.rel.body,changeSummary(top,rows[1]));
- const original=el('p',undefined,'meta');original.append(link('Original release / evidence',top.rel.html_url));article.append(original);
- if(top.asset.digest&&/^sha256:[a-f0-9]{64}$/.test(top.asset.digest)){const d=el('details');d.append(el('summary','APK SHA256'),el('pre',top.asset.digest.slice(7)));article.append(d);}
- if(rows.length>1){const d=el('details');d.append(el('summary',(rows.length-1)+' older releases'));for(const r of rows.slice(1)) {const p=el('p');p.append(link(r.tag.version+' · '+buildMeta(r),r.rel.html_url));d.append(p);}article.append(d);}
+ if(Number.isFinite(age)&&age>=0&&age<3*86400000)heading.append(el('span','Recently built','badge'));
+ article.append(el('p',top.tag.version,'app-version'));
+ field(article,'Patches',patchText(record));
+ field(article,'Provider',record?record.provider:'Not recorded');
+ field(article,'Bundle',record?record.bundle:'Not recorded');
+ field(article,'Last built',buildMeta(top).replace('Last built ',''));
+ const actions=el('div',undefined,'actions');actions.append(link('Install APK',top.asset.browser_download_url,'download'));article.append(actions);
  root.append(article);
  }
  await obtainiumCard(root);

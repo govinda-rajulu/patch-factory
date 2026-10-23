@@ -38,6 +38,8 @@ class ResolvedContracts(unittest.TestCase):
                         GITHUB_RUN_ATTEMPT="2", GITHUB_REPOSITORY="fixture/repo",
                         KEYSTORE_PASS="DO_NOT_INHERIT", KEYSTORE_B64="SECRET",
                         JAVA_TOOL_OPTIONS="UNSAFE", COE="true")
+        # Shadow Plan receives the same build target list the daily Plan emitted.
+        self.env["PF_BUILD_MATRIX"] = json.dumps({"target": ["keymapper"]}, separators=(",", ":"))
         self.calls = []
         self.ident = "keymapper"
 
@@ -309,13 +311,13 @@ class ResolvedContracts(unittest.TestCase):
         self.assertNotEqual(again.returncode, 0)
         self.assertNotIn("SECRET", again.stderr)
 
-    def test_shadow_matrix_covers_legacy_omitted_targets_without_build_authority(self):
+    def test_shadow_matrix_follows_the_build_plan_without_build_authority(self):
         out = self.r / "output";out.write_text("matrix={\"target\":[]}\n")
         shadow.plan(self.r, dict(self.env, GITHUB_OUTPUT=str(out)))
         lines = out.read_text().splitlines()
         self.assertEqual(lines[0], 'matrix={"target":[]}')
         observation = json.loads(next(x.split("=", 1)[1] for x in lines if x.startswith("resolution_matrix=")))
-        self.assertEqual(len(observation["target"]), ENABLED)
+        self.assertEqual(observation["target"], ["keymapper"])
         self.assertNotIn("UNCHANGED", (self.r / "shadow-evidence/plan.json").read_text())
 
     def test_workflow_read_only_resolution_no_secrets_and_pre_secret_verify(self):

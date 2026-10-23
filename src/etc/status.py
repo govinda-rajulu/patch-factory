@@ -57,6 +57,7 @@ PURPOSE = {
     'council.yml': 'Agent council: scheduled audits posted on the council desk issue.',
     'keepalive.yml': 'Keeps scheduled automations from being paused by GitHub.',
     'qualify-baselines.yml': 'Qualifies the build evidence of published releases once the whole build run worked.',
+    'needs-you.yml': 'Combines the five standing watch reports into one plain-language Needs you issue.',
     'selection-watch.yml': 'Selection watch: drops patch names providers stopped offering, lists new ones for you, digests provider releases.',
     'rule-merge.yml': 'Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green.',
 }

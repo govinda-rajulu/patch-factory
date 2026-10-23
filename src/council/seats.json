@@ -1,5 +1,5 @@
 {
-  "note": "Advisory council seats. Each seat tries its listed models in order and uses the first one its provider serves. Free tiers only; a seat with no key is skipped. A seat whose budget (max_input_chars) is smaller than a job's pack abstains, so small seats serve ask and probe, large ones serve reviews and audits. desk: the standing Council desk issue that scheduled runs write to. Optional per seat: jobs (default all), reasoning_effort (sent only when set; dropped if a model refuses it), max_tokens (reasoning seats need room). GitHub Models retired on 30 Jul 2026. Keys and limits: docs/council/SETUP.md. W15e (owner, 22 Oct 2026): each seat has a persona (name, voice, council_lens) and a solo shift (job, shards, brief); see docs/council/PERSONAS.md.",
+  "note": "Advisory council seats. Each seat tries its listed models in order and uses the first one its provider serves. Free tiers only; a seat with no key is skipped. A seat whose budget (max_input_chars) is smaller than a job's pack abstains, so small seats serve ask and probe, large ones serve reviews and audits. desk: the standing Council desk issue that scheduled runs write to. Optional per seat: jobs (default all), reasoning_effort (sent only when set; dropped if a model refuses it). Provider output limits are not configured; calls omit max_tokens. GitHub Models retired on 30 Jul 2026. Keys and limits: docs/council/SETUP.md. W15e (owner, 22 Oct 2026): each seat has a persona (name, voice, council_lens) and a solo shift (job, shards, brief); see docs/council/PERSONAS.md.",
   "quorum": 3,
   "desk": 154,
   "seats": [
@@ -10,8 +10,7 @@
         "openai/gpt-oss-20b",
         "deepseek-ai/deepseek-v4-pro"
       ],
-      "max_input_chars": 120000,
-      "max_tokens": 8000,
+      "max_input_chars": 200000,
       "reasoning_effort": "low",
       "jobs": [
         "review",
@@ -60,8 +59,7 @@
         "gemini-3-flash-preview",
         "gemini-flash-latest"
       ],
-      "max_input_chars": 150000,
-      "max_tokens": 8000,
+      "max_input_chars": 200000,
       "reasoning_effort": "low",
       "persona": {
         "name": "Archivist",
@@ -108,8 +106,7 @@
         "minimaxai/minimax-m3",
         "qwen/qwen3.5-397b-a17b"
       ],
-      "max_input_chars": 120000,
-      "max_tokens": 8000,
+      "max_input_chars": 200000,
       "reasoning_effort": "low",
       "persona": {
         "name": "Foreman",
@@ -146,8 +143,7 @@
         "google/gemma-4-31b-it:free",
         "openrouter/free"
       ],
-      "max_input_chars": 100000,
-      "max_tokens": 8000,
+      "max_input_chars": 200000,
       "reasoning_effort": "low",
       "persona": {
         "name": "Scout",
@@ -191,8 +187,7 @@
         "codestral-latest",
         "mistral-small-latest"
       ],
-      "max_input_chars": 120000,
-      "max_tokens": 4000,
+      "max_input_chars": 200000,
       "persona": {
         "name": "Mechanic",
         "voice": "precise code fixer; one-line fixes with a test, nothing vague",
@@ -236,8 +231,7 @@
         "command-a-reasoning-08-2025",
         "command-a-03-2025"
       ],
-      "max_input_chars": 120000,
-      "max_tokens": 4000,
+      "max_input_chars": 200000,
       "persona": {
         "name": "Clerk",
         "voice": "strict rules clerk; reads OWNER.md and AGENTS.md before anything else",
@@ -281,8 +275,7 @@
         "openai/gpt-oss-120b",
         "openai/gpt-oss-20b"
       ],
-      "max_input_chars": 20000,
-      "max_tokens": 2000,
+      "max_input_chars": 25000,
       "reasoning_effort": "none",
       "jobs": [
         "ask",

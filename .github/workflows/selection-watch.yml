@@ -6,7 +6,6 @@ name: 10. Selection watch
 # W15b: new names the src/patches/ADOPT.json rule passes go to one pull request; 11. Rule merge merges it only when green (W15d). See src/etc/selection_watch.py.
 permissions:
   contents: write
-  issues: write
   # W15b: the adopt step opens one pull request and starts Validate and the Onboarding review on it.
   pull-requests: write
   actions: write
@@ -75,7 +74,3 @@ jobs:
           git add state.json
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "selection watch state $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" watch-state:watch-state
-      - name: Update the standing issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 src/etc/selection_watch.py issue

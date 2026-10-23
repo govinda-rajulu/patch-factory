@@ -23,3 +23,8 @@ Helper: `src/etc/readable.py`. Every bot issue body and comment in this reposito
 | #27 Nightly watch | `src/etc/nightly_body.py`, `watch_issue.sh` | check table, per-folder table, change-only comment |
 | #154 Council desk, PR reviews | `src/council/council.py` | severity counts, vague dropped, minor folded |
 | Onboarding review | `src/council/onboard_review.py` | blocks visible, approvals folded |
+
+
+## Needs you (W16)
+
+`src/etc/needs_you.py` reads the five standing watch reports after a collector run and edits one standing **Needs you** issue. It shows work in this order: **Decide**, **Install**, **Fix**, then **FYI**. A quiet day is one line, `Needs you: nothing needs you today.`; an unchanged body gets no comment. The old collectors remain the evidence and action libraries, and Selection's adopt pull request plus Rule merge path is unchanged.

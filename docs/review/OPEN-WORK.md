@@ -1,6 +1,28 @@
 # Open work
 
-## Current checkpoint: 23 October 2026, midday IST (packet W15i)
+## Current checkpoint: 24 October 2026 (W16 on dev/w16)
+
+W16 (one pull request from dev/w16): audit, Reddit on official Morphe v1.48.0 with Adobo fallback,
+shadow jobs only for apps that build, plain release notes and cards, one daily Needs you issue,
+council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](SESSION-2026-10-24.md). Open, in order:
+
+0. Owner: after the merge, one Batch Patch for reddit with publish on. Phone: Morphe Reddit is
+   2026.41.0 (42 needs Android 12); if the installed patched Reddit is 42, uninstall it first, then
+   install 41. Sign-in and feeds are the test (Spoof signature is off by rule).
+1. Cache the patcher JAR and source APKs by exact version and sha (needs cache keys from the
+   resolved packet); target Check new patch under 5 minutes.
+2. Read why Check new patch was red 49 of 118 runs (T1 per-app findings).
+3. Weekly agent repo review: one issue per finding, label review (brief step 6, not built yet).
+4. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)), needs a phone test.
+5. Still open from 23 Oct and 20 Oct: Instagram piko on 452.1; five apps with one store;
+   Google Play helper unused; combo planner; zizmor; persona pull requests; openskip mirror of
+   knowledge/handbook/PACKET-LESSONS.md by its own pull request; Cloudflare key optional; port
+   fiorenmas store fixes; pup to htmlq; pf-vault (owner creates the private repository and token
+   first). Carried from 20 Oct item 8: TDL_BACKUP secret delete (owner); Amazon Music keeps building,
+   never the main account; unknown-status items (agent runner pilot, portal SRI, PR53, F05/F06,
+   ES File logo, CLUTTER sections 1, 3 and 4).
+
+## Checkpoint: 23 October 2026, midday IST (packet W15i)
 
 W15h merged (#216, `3572ca71`, RESULT OK; T1: 17 of 17 built without publishing, two on a
 fallback). Owner keys run (pf-keys): Kilo saved, Z.AI waiting on a working key (seats skip it until the secret exists), CodeQL default on
@@ -16,8 +38,8 @@ Record: [SESSION-2026-10-23.md](SESSION-2026-10-23.md). Open, in order:
    older than the installed 42: uninstall the patched Reddit first, then install 41 (sign in again).
    Re-import the Obtainium JSON if not done since W15h.
 1. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`.
-2. docs/review/onboarding/facebook.md still says 583: the bot edited it after the W15i base, so the
-   record update rides the next packet built on the newer main.
+2. Done in this packet: docs/review/onboarding/facebook.md now records Facebook 584.0.0.51.56
+   with HushFacebook 0.17.0; its older 583 entry remains only as history.
 3. Instagram: piko's "Disable story auto flipping" no longer matches Instagram 452.1 (HushGram
    built instead); watch piko for a fix, or hold that name.
 4. Second store: YT Music, AdGuard, Photos and Truecaller have no APKPure mapping, Key Mapper no

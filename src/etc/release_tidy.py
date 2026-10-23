@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Remove the two repeated blocks from already published release notes (W14, owner ask 11 Oct 2026).
 
-Every structured release used to end with "## Checks and limitations" (3 bullets) and
-"## Help and stable information" (guide link + no-uninstall line). That text now lives once,
-in docs/guide.md "About these builds", and new notes carry one link line instead
-(src/build/release_notes.py). This tool gives old releases the same shape.
+Older structured releases contain repeated safety and help text. New notes keep only
+changes, provider notes and one install line; this tool removes those old repeated blocks
+without changing the machine-readable release record.
 
   python3 src/etc/release_tidy.py preview --out PLAN.json
   python3 src/etc/release_tidy.py apply --backup BACKUP.json [--receipt RECEIPT.json]
@@ -33,7 +32,7 @@ HELP = re.compile(r'## Help and stable information\n'
                   r'No automatic uninstall, import migration or device-protection bypass is required or recommended\.\n')
 MARKER = re.compile(release_notes.MARKER)
 # Old releases point at the guide on main: their pinned source commit predates the section.
-ABOUT = '[' + release_notes.ABOUT + '](' + WEB + '/blob/main/docs/guide.md#' + release_notes.ABOUT_ANCHOR + ')\n'
+
 
 
 def tidy(body):
@@ -42,7 +41,7 @@ def tidy(body):
         return None, 'legacy'
     if body.count(CHECKS) != 1 or len(HELP.findall(body)) != 1:
         return None, 'tidy' if CHECKS not in body and not HELP.search(body) else 'other'
-    new = HELP.sub(lambda m: ABOUT, body.replace(CHECKS, ''), count=1)
+    new = HELP.sub('', body.replace(CHECKS, ''), count=1)
     if MARKER.findall(new) != MARKER.findall(body) or not new.endswith(body[body.rindex('[pf-release-v1]'):]):
         return None, 'other'
     return new, 'change'

@@ -134,7 +134,7 @@ that leaves this block stale, so it cannot drift.
 | Microsoft Edge | `edge` | `edge` | apkpure | quantavil | yes |
 | MX Player Pro | `mxplayer` | `mx-player` | apkmirror | ftl + paresh | yes |
 | Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |
-| Reddit | `reddit` | `reddit` | apkpure | adobo | yes |
+| Reddit | `reddit` | `reddit` | apkpure | morphe (fallback: adobo) | yes |
 | Telegram | `telegram` | `telegram` | apkmirror | rushiranpise | yes |
 | Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | bufferk + paresh + binarymend | yes |
 | YouTube | `youtube` | `youtube-morphe` | apkmirror | morphe | yes |

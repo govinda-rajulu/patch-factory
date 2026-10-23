@@ -449,3 +449,34 @@ Tags: ci, evidence
 T1 said "17 of 17 apps worked" on 23 Oct while Facebook had built on De-Vanced 580 (Hushfacebook
 0.17.0 had moved to Facebook 584) and Instagram on HushGram (a piko fingerprint failed). A fallback
 keeps the shelf stocked; it is still a finding, and T1 now reports it as one (W15i).
+
+### L078 · Check the official bundle before choosing or keeping a community provider
+Tags: providers, evidence
+Reddit ran on Adobo alone for weeks with a note saying "adobo covers reddit alone", while the
+official MorpheApp/morphe-patches listed Reddit all along (v1.48.0: 31 patches, 2026.42.0 down to
+2026.10.0). On 23 Oct the Adobo 42 build was deleted for Adobo's sake and the shelf had no Reddit.
+Before a provider is chosen, kept or retired, the official bundle's live list-patches comes first (W16).
+
+### L079 · Never delete a shelf build until its replacement is published and verified
+Tags: release, retention
+The W15i cleanup deleted Reddit 2026.42.0 so 2026.41.0 would publish; Check new patch never built
+41 (nothing upstream changed), so the shelf had no Reddit release. A retirement waits for the
+replacement's publish receipt, and retirements name the provider they apply to (W16).
+
+### L080 · Check new patch builds only changed apps; a switch needs an explicit build
+Tags: ci, release
+The poll builds an app only when its provider published something new. A provider switch, a
+retirement or a selection change does not count, so it needs its own Batch Patch dispatch for that
+app, said in the packet's owner steps (W16).
+
+### L081 · A command's --help exit code is not a health check
+Tags: build, evidence
+morphe-desktop 1.19.0 prints its usage and exits 2 on `list-patches --help` because --patches is
+required. A probe that stopped on that exit code cost the owner a round trip (23 Oct). Record help
+text; gate on the real command's exit code and output (W16).
+
+### L082 · A version a provider lists is not a version the shelf can install
+Tags: build, release
+Morphe v1.48.0 lists Reddit 2026.42.0, and the owner was told W16 brings Morphe 42. The 42 APK needs
+Android 12 (SDK 32); the shelf ceiling is Android 10 (SDK 29), so the build stepped down to 41
+(23 Oct). Check the app's minimum SDK against min_sdk_ceiling before promising a version (W16).

@@ -1,5 +1,7 @@
 # Council setup: free keys, seats and lanes
 
+**Limits checked 23 Oct 2026:** the dated official-provider table is [PROVIDERS.md](PROVIDERS.md); values here are a quick operational summary.
+
 Written 6 Oct 2026 (packet T1). All six keys were stored in this repository and in openskip on
 7 Oct 2026, each tested against its provider first. Quotas and model names change without notice; the council
 copes (a missing key skips the seat, a retired model falls through), but re-check a provider's
@@ -11,17 +13,17 @@ own page before relying on a number here. Keys live only in repository secrets
 All six are free without a card. Everything the council sends is already public in this
 repository, so free-tier prompt use for training costs nothing private.
 
-| Secret | Provider | Where to create it | Free limit (seen 6 Oct 2026) | Seats |
+| Secret | Provider | Where to create it | Free limit (checked 23 Oct 2026) | Seats |
 |---|---|---|---|---|
-| `NVIDIA_API_KEY` | NVIDIA build | https://build.nvidia.com/settings/api-keys | about 40 requests a minute per model | gpt, nemotron |
+| `NVIDIA_API_KEY` | NVIDIA build | https://build.nvidia.com/settings/api-keys | free trial; exact per-model limits not published (see [PROVIDERS.md](PROVIDERS.md)) | gpt, nemotron |
 | `GEMINI_API_KEY` | Google AI Studio | https://aistudio.google.com/app/apikey | per model, shown in AI Studio; free prompts may train Google models | gemini |
-| `OPENROUTER_API_KEY` | OpenRouter `:free` models | https://openrouter.ai/keys | about 20 a minute, 50 a day | open |
-| `MISTRAL_API_KEY` | Mistral La Plateforme, free (Experiment) plan | https://console.mistral.ai/api-keys | per workspace, shown in the console; phone check at signup | codestral |
-| `COHERE_API_KEY` | Cohere trial key | https://dashboard.cohere.com/api-keys | 1000 calls a month, 20 a minute; evaluation use | command |
-| `GROQ_API_KEY` | Groq | https://console.groq.com/keys | about 30 a minute, 1000 a day, 8000 tokens a minute | groq |
+| `OPENROUTER_API_KEY` | OpenRouter `:free` models | https://openrouter.ai/keys | 20/min, 50/day without credits (1,000/day after 10 credits) | open |
+| `MISTRAL_API_KEY` | Mistral La Plateforme, free mode | https://console.mistral.ai/api-keys | per workspace/model, shown in Admin Panel; no public numeric value | codestral |
+| `COHERE_API_KEY` | Cohere trial key | https://dashboard.cohere.com/api-keys | 1,000 calls/month, 20/min per chat model; evaluation use | command |
+| `GROQ_API_KEY` | Groq | https://console.groq.com/keys | 30/min, 1,000/day, 8,000 tokens/min (official table) | groq |
 | `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Workers AI (W15h, optional) | https://dash.cloudflare.com/profile/api-tokens (template "Workers AI", Read); the account id is on the dashboard Overview page (32 hex characters) | 10,000 neurons a day, reset 00:00 UTC; no training on inputs | backup for every seat |
 | `KILO_API_KEY` | Kilo Gateway (W15i, optional) | https://app.kilo.ai (API keys) | free models (ids end in :free, or kilo-auto/free) at 200 requests an hour (kilo.ai/docs/gateway/usage-and-billing) | backup for gpt, gemini, nemotron, open, groq |
-| `ZAI_API_KEY` | Z.AI (W15i, optional) | https://z.ai/manage-apikey/apikey-list | GLM-4.7-Flash and GLM-4.5-Flash free (docs.z.ai/guides/overview/pricing); limits shown only in the account; busy hours answer 429 code 1305 | backup for gemini, codestral, command |
+| `ZAI_API_KEY` | Z.AI (W15i, optional) | https://z.ai/manage-apikey/apikey-list | GLM-4.7-Flash and GLM-4.5-Flash free ([pricing](https://docs.z.ai/guides/overview/pricing)); numeric limits shown only in the account | backup for gemini, codestral, command |
 
 W15h (22 Oct 2026): Cloudflare has an OpenAI-style endpoint
 (`/client/v4/accounts/<id>/ai/v1/chat/completions`, developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility),
@@ -61,8 +63,9 @@ spending the answer budget thinking (cut). Since W15h:
 - `backups` per seat: models on other providers, tried after the seat's own; a backup without a
   key is skipped. The desk names them `model via provider (backup)`.
 - A cut reply gets one more try with twice the room (at most 16000) and `reasoning_effort` low.
-- Calls to one provider go one at a time, spaced by its published per-minute limit (`PACE` in
-  `src/council/council.py`).
+- Calls to one provider go one at a time. `PACE` in `src/council/council.py` uses 80% of each
+  documented request limit where available (Kilo 22.5s, OpenRouter/Cohere 3.75s, Groq 2.5s);
+  providers with account-only limits retain a conservative gap.
 - Audit memory: a shard whose files and prompt match its last audit (valid answers, under 14
   days old) is not sent again. `PF_REAUDIT=1` forces a fresh audit.
 

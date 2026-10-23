@@ -74,6 +74,10 @@ class ShadowContracts(unittest.TestCase):
         self.env.pop("COE", None)
         self.f.env.pop("COE", None)
         self.env.pop("PF_SHADOW_PLAN_KEY", None)
+        self.env["PF_BUILD_MATRIX"] = json.dumps({"target": [
+            t["id"] for t in json.loads((self.r / "src/targets.json").read_text())
+            if t.get("enabled") is True and t.get("poll", False) is True
+        ]}, separators=(",", ":"))
 
     def declare(self, ident="keymapper"):
         return shadow.declaration(self.r, ident)
@@ -152,10 +156,31 @@ class ShadowContracts(unittest.TestCase):
         self.assertTrue(all(t["state"]=="RESOLVE" for t in report["targets"]))
         self.assertNotIn("UNCHANGED",json.dumps(report))
 
+    def test_plan_follows_one_build_target_not_all_opted_in_targets(self):
+        out = self.r / "output"; out.touch()
+        env = dict(self.env, PF_BUILD_MATRIX=json.dumps({"target": ["keymapper"]}))
+        keys = shadow.plan(self.r, dict(env, GITHUB_OUTPUT=str(out)))
+        self.assertEqual(list(keys), ["keymapper"])
+        report = json.loads((self.r / "shadow-evidence/plan.json").read_text())
+        self.assertEqual([row["target"] for row in report["targets"]], ["keymapper"])
+        resolution = next(line for line in out.read_text().splitlines()
+                          if line.startswith("resolution_matrix="))
+        self.assertEqual(json.loads(resolution.split("=", 1)[1]), {"target": ["keymapper"]})
+
+    def test_plan_with_no_builds_emits_no_shadow_matrix(self):
+        out = self.r / "output"; out.touch()
+        env = dict(self.env, PF_BUILD_MATRIX=json.dumps({"target": []}))
+        keys = shadow.plan(self.r, dict(env, GITHUB_OUTPUT=str(out)))
+        self.assertEqual(keys, {})
+        report = json.loads((self.r / "shadow-evidence/plan.json").read_text())
+        self.assertEqual(report["targets"], [])
+        self.assertIn("resolution_matrix=\n", out.read_text())
+
     def test_plan_disabled_skipped_and_duplicates_refused(self):
         self.target_change("keymapper","enabled",False)
         out=self.r/"out";out.touch()
-        keys=shadow.plan(self.r,dict(self.env,GITHUB_OUTPUT=str(out)))
+        env = dict(self.env, PF_BUILD_MATRIX=json.dumps({"target": []}))
+        keys=shadow.plan(self.r,dict(env,GITHUB_OUTPUT=str(out)))
         self.assertNotIn("keymapper",keys)
         p=self.r/"src/targets.json";ts=json.loads(p.read_text());ts.append(ts[0]);p.write_text(json.dumps(ts))
         old=out.read_bytes()
@@ -326,6 +351,7 @@ class ShadowContracts(unittest.TestCase):
         manual=(ROOT/".github/workflows/manual-patch.yml").read_text()
         release=(ROOT/".github/actions/release/action.yml").read_text()
         self.assertIn("matrix: ${{ steps.plan.outputs.matrix }}",ci)
+        self.assertIn("PF_BUILD_MATRIX: ${{ steps.plan.outputs.matrix }}",ci)
         self.assertIn("shadow_keys: ${{ steps.shadow.outputs.keys }}",ci)
         self.assertIn("continue-on-error: true",ci)
         self.assertIn("name: Preserve shadow Plan evidence\n        if: always()\n        continue-on-error: true",ci)

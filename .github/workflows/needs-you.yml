@@ -1,0 +1,50 @@
+name: Needs you
+# One daily reader after Tooling watch. The collectors keep their evidence;
+# this is the only workflow that writes the merged Needs you issue.
+permissions:
+  contents: read
+  actions: read
+  issues: write
+on:
+  schedule:
+    - cron: "59 4 * * *"  # 10:29 IST daily, after Tooling watch at 09:59 IST
+  workflow_dispatch:
+concurrency:
+  group: needs-you
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Read newest collector artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: python3 src/etc/needs_you.py fetch --repo "$REPO" --output-dir "$RUNNER_TEMP/needs-you"
+      - name: Render one plain-language issue
+        run: |
+          python3 src/etc/needs_you.py render \
+            --nightly "$RUNNER_TEMP/needs-you/nightly.md" \
+            --provider "$RUNNER_TEMP/needs-you/provider.md" \
+            --tooling "$RUNNER_TEMP/needs-you/tooling.md" \
+            --selection "$RUNNER_TEMP/needs-you/selection.md" \
+            --community "$RUNNER_TEMP/needs-you/community.md" \
+            --output needs-you.md
+      - name: Edit Needs you only when its body changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: python3 src/etc/needs_you.py deliver --repo "$REPO" --body needs-you.md
+      - name: Keep the rendered body
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: needs-you-${{ github.run_id }}-${{ github.run_attempt }}
+          path: needs-you.md
+          if-no-files-found: error
+          retention-days: 30

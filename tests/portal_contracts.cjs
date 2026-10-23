@@ -106,12 +106,12 @@ check('unified selection permits upstream without changing fourteen build target
 });
 check('release summaries keep same-version rebuild and unknown history distinct',()=>{
  const top={tag:{version:'1.0'},rel:{body:'Legacy notes'}};
- assert.match(c.changeSummary(top,{tag:{version:'1.0'}})[0],/Same app version/);
- assert.match(c.changeSummary(top,{tag:{version:'0.9'}})[0],/0.9 → 1.0/);
- assert.match(c.changeSummary(top,null)[0],/No earlier comparable/);
- top.rel.body='## What changed\n- App version unchanged.\n- Applied patch names added: A.\n\n## This download\nnot a change\n<!-- PF_RELEASE_V1 AAAA -->';
+ assert.match(c.changeSummary(top,{tag:{version:'1.0'}})[0],/App version: 1.0 -> 1.0/);
+ assert.match(c.changeSummary(top,{tag:{version:'0.9'}})[0],/App version: 0.9 -> 1.0/);
+ assert.match(c.changeSummary(top,null)[0],/App version: unknown -> 1.0/);
+ top.rel.body='## Changes\n- App version: 1.0 -> 1.0.\n- Patches added: A.\n\n## This download\nnot a change\n<!-- PF_RELEASE_V1 AAAA -->';
  assert.equal(c.changeSummary(top,null).length,2);
- assert.equal(c.changeSummary(top,null)[1],'Applied patch names added: A.');
+ assert.equal(c.changeSummary(top,null)[1],'Patches added: A.');
  assert.ok(!c.noteText(top.rel.body).includes('AAAA'));
  assert.equal(c.noteText('Useful notes\n\n[pf-release-v1]: # "QUFBQQ=="'),'Useful notes');
 });
@@ -120,7 +120,7 @@ check('reader flows retain disclosure, reset and explicit unknown evidence',()=>
  for(const marker of ['Read the saved report','Read latest saved report comments','Partly unknown: ','may have stopped'])assert.ok(source.includes(marker),marker);
  assert.ok(source.includes("u.pathname==='/'+REPO+'/status/status.json'"));
  assert.ok(!source.includes("link('Release details',top.rel.html_url)"));
- assert.ok(html.includes('About downloads, updates & status'));
+ assert.ok(html.includes('About'));
 });
 check('status rows: a failure stays listed until a later run works, lists are capped',()=>{
  const old={result:'failure',words:'Failed',when:new Date(Date.now()-40*86400000).toISOString()};

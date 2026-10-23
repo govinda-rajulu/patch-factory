@@ -333,13 +333,23 @@
     "exclusive": true,
     "candidates": [
       {
+        "name": "morphe",
+        "host": "github",
+        "channel": "latest",
+        "patch_dir": "reddit-morphe",
+        "options": "morphe",
+        "owner": "MorpheApp",
+        "repo": "morphe-patches"
+      },
+      {
         "name": "adobo",
         "host": "github",
         "channel": "prerelease",
         "patch_dir": "reddit-adobo",
         "options": "adobo",
         "owner": "jkennethcarino",
-        "repo": "adobo"
+        "repo": "adobo",
+        "fallback": true
       }
     ],
     "tag_prefix": "reddit",
@@ -348,7 +358,7 @@
     "poll": true,
     "source": "apkpure",
     "label": "Reddit",
-    "note": "Ads, telemetry and promoted posts removed. Dropped the rushiranpise extra bundle on 2026-09-06: its 7 patches are all PairIP, Firebase, certificate and spoof-signature work plus GmsCore, none of which this build needs. adobo covers reddit alone."
+    "note": "Official Morphe Reddit patches are primary, Adobo is the fallback. Morphe v1.48.0 lists Reddit 2026.42.0, but that APK needs Android 12 (SDK 32), so with this shelf's Android 10 ceiling the build steps down to 2026.41.0. Selection: Morphe's default-on Reddit patches minus Spoof signature (banned) and App icon (branding)."
   },
   {
     "id": "hotstar",

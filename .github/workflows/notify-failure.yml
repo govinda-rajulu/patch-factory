@@ -1,7 +1,7 @@
 name: Notify on failure
 on:
   workflow_run:
-    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "9. Batch Patch", "Tooling watch", "10. Selection watch", "Keepalive"]
+    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "9. Batch Patch", "Tooling watch", "10. Selection watch", "Keepalive", "Needs you"]
     types: [completed]
 permissions:
   issues: write
@@ -34,7 +34,8 @@ jobs:
               [".github/workflows/batch-patch.yml", "9. Batch Patch"],
               [".github/workflows/tooling-watch.yml", "Tooling watch"],
               [".github/workflows/selection-watch.yml", "10. Selection watch"],
-              [".github/workflows/keepalive.yml", "Keepalive"]
+              [".github/workflows/keepalive.yml", "Keepalive"],
+              [".github/workflows/needs-you.yml", "Needs you"]
             ]);
             const failures = new Set(["failure", "timed_out", "startup_failure", "action_required"]);
             const validConclusions = new Set([...failures, "success", "neutral", "cancelled", "skipped", "stale"]);

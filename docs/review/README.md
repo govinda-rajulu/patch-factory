@@ -11,6 +11,9 @@ Last indexed **20 October 2026** for packet W15b; earlier, **10 October 2026** f
 
 | Read | Why |
 | --- | --- |
+| [W16-BRIEF.md](W16-BRIEF.md) | 23 Oct owner brief after W15i: state, wrong calls 49 and 50, diagnosis, the W16 plan. Read first. |
+| [SESSION-2026-10-24.md](SESSION-2026-10-24.md) | 23 to 24 Oct: W16 on dev/w16 (audit, Reddit on Morphe, shadow narrowing, plain words, Needs you, council caps, fewer runs). |
+| [AUDIT-W16.md](AUDIT-W16.md) | W16 audit: every workflow, runs and minutes in 30 days, who reads it, what W16 changes. |
 | [HANDOVER-2026-10-23.md](HANDOVER-2026-10-23.md) | 20 to 23 Oct chat handover (W15b to W15i): what shipped, owner decisions, what worked, what went wrong (48 wrong calls), lessons, techniques, what is not covered, how to start the next chat. Read first. |
 | [SESSION-2026-10-23.md](SESSION-2026-10-23.md) | 23 Oct: packet W15i (shadow resolver tool folder L076, Facebook 584, Reddit 42 retired, council Kilo and Z.AI plus the Sunday model watch, CodeQL fixes, T1 fallback finding L077). |
 | [SESSION-2026-10-22.md](SESSION-2026-10-22.md) | 22 Oct: packet W15e (readable bot reports per [REPORT-STYLE.md](REPORT-STYLE.md), Rule merge fixes, agent personas, one release per app; signing split designed in [SIGNING-SPLIT.md](SIGNING-SPLIT.md)), then W15f (Rule merge counts as bot drift, council v3 from [OUTSIDE-REPOS-2026-10-22.md](OUTSIDE-REPOS-2026-10-22.md)). |
@@ -19,6 +22,7 @@ Last indexed **20 October 2026** for packet W15b; earlier, **10 October 2026** f
 | [SESSION-2026-10-11.md](SESSION-2026-10-11.md) | 11 Oct: W13 results, packet W14 (Reddit universal and store step-down, Nightly false UNKNOWN, ranking, reminders, publisher pins, agent review, one home for repeated text and release tidy, Obtainium card, automation wiring, agent spec and fix lane). Read first. |
 | [SESSION-2026-10-17.md](SESSION-2026-10-17.md) | 17 Oct: knowledge bank of the W15 chat (timeline, findings, verified facts, wrong calls 26 to 30, lessons L058 to L061, owner rules). Read first. |
 | [WIP-W15-2026-10-17.md](WIP-W15-2026-10-17.md) | 17 Oct: packet W15 (publish guard, Facebook 583, Obtainium build tracking, notify identity, Dependabot, SDK lines, council guard); what is done and what is open. Read first. |
+| [W16-WATCHES.md](W16-WATCHES.md) | W16: one daily Needs you issue, artifact-based collector reports, retained stateful watch issues, and community provider ranking. |
 | [SESSION-2026-10-10.md](SESSION-2026-10-10.md) | 10 Oct: packet W13 (lost patches dropped by name, provider fallback, Selection watch, pf-t1). |
 | [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | 9 to 10 Oct: packets W6 to W12 and handover H12 (W12: coverage-first version choice; H12: owner decisions, phone tests, controller toolkit). Before that, 9 Oct: packets W6 to W9 (W9: routine cleanup, retention preview retired, run-log filter, notices). Earlier: packet W6 (Amazon Music `libInit.so` marker, build status keyed by app, second cleanup). |
 | [SESSION-2026-10-08.md](SESSION-2026-10-08.md) | 8 Oct session: packet W2 (two-step app changes, plain status page, MicroG shipped where needed, silent failures, onboarding gate, tooling watch, leads decided). Read first. |

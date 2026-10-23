@@ -283,11 +283,13 @@ class ProviderWatch(unittest.TestCase):
         self.assertIn("primary candidates must be host=github", source)
         self.assertNotIn("gitlab candidate needs project_id", source)
 
-    def test_workflow_preserves_reports_before_enforcement(self):
+    def test_workflow_keeps_report_artifact_before_enforcement_without_issue_delivery(self):
         source = (ROOT / ".github/workflows/agent-watch.yml").read_text()
-        self.assertLess(source.index("provider_watch.py collect"), source.index("provider_watch.py issue"))
+        self.assertLess(source.index("provider_watch.py collect"), source.index("actions/upload-artifact"))
         self.assertLess(source.index("actions/upload-artifact"), source.index("provider_watch.py enforce"))
         self.assertIn("persist-credentials: false", source)
+        self.assertNotIn("provider_watch.py issue", source)
+        self.assertNotIn("issues: write", source)
         self.assertNotIn("|| true", source)
         self.assertNotIn("contents: write", source)
         self.assertNotIn("git push", source)

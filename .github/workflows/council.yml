@@ -59,8 +59,9 @@ on:
         required: false
         default: ''
 concurrency:
-  # One review per PR at a time; a newer push replaces an older, unfinished review.
-  group: council-${{ github.event.pull_request.number || github.run_id }}
+  # One review per PR; all scheduled/desk jobs share one group so L039 is true even if a
+  # manual dispatch overlaps a schedule. A newer run replaces an older unfinished run.
+  group: council-${{ github.event.pull_request.number || 'desk' }}
   cancel-in-progress: true
 jobs:
   council:
