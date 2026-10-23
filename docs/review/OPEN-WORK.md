@@ -11,7 +11,9 @@ council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](SESSION-2026-1
    install 41. Sign-in and feeds are the test (Spoof signature is off by rule).
 1. Cache the patcher JAR and source APKs by exact version and sha (needs cache keys from the
    resolved packet); target Check new patch under 5 minutes.
-2. Read why Check new patch was red 49 of 118 runs (T1 per-app findings).
+2. Read why Check new patch was red 49 of 118 runs (T1 per-app findings). Community watch: if it
+   is still red after W16b, its stop line now names the code. The shadow source step does not step
+   down for SDK like the build does (Reddit is capped at 2026.41.0 instead).
 3. Weekly agent repo review: one issue per finding, label review (brief step 6, not built yet).
 4. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)), needs a phone test.
 5. Still open from 23 Oct and 20 Oct: Instagram piko on 452.1; five apps with one store;

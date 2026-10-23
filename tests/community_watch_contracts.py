@@ -557,6 +557,14 @@ class Supersede(unittest.TestCase):
         self.assertIn(("PATCH", "repos/" + w.REPO + "/issues/201", {"state": "closed", "state_reason": "completed"}), calls)
         self.assertFalse(any(p.endswith("/206") or p.endswith("/197") or p.endswith("/154") for m, p, _ in calls if m == "PATCH"))
 
+    def test_a_stop_names_its_own_code_and_issue_pages_run_oldest_first(self):
+        # W16 (24 Oct 2026): "stopped: ValueError" alone hid the reason of run 40009076501.
+        root = Path(__file__).resolve().parents[1]
+        r = subprocess.run([sys.executable, str(root / "src/etc/community_watch.py"), "bogus"], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("Community Watch stopped: ValueError INVALID_COMMAND.", r.stderr)
+        self.assertIn('"?state=all&sort=created&direction=asc"', (root / "src/etc/community_watch.py").read_text())
+
     def test_api_guard_allows_only_the_close_patch(self):
         with self.assertRaises(ValueError):
             w.api("PATCH", "repos/" + w.REPO + "/issues/5", {"title": "x"})

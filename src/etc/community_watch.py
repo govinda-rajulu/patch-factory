@@ -308,7 +308,7 @@ def report(root, out, ident, reader=api):
     body = header(data, parts)
     marker = "<!-- pf-community:" + data["report_key"] + " -->"
     path = "repos/" + REPO + "/issues"
-    rows = pages(path + "?state=all", reader)
+    rows = pages(path + "?state=all&sort=created&direction=asc", reader)  # oldest first: a new issue cannot shift a page
     matches = [r for r in rows if "pull_request" not in r and marker in (r.get("body") or "")]
     need(len(matches) <= 1, "DUPLICATE_REPORT_ISSUES")
     if matches:
@@ -430,5 +430,7 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except Exception as error:
-        print("Community Watch stopped: " + type(error).__name__ + ". No success inferred.", file=sys.stderr)
+        # W16: name our own stop code (an upper-case word such as DUPLICATE_API_ROW); nothing else.
+        code = str(error) if isinstance(error, ValueError) and re.fullmatch(r"[A-Z][A-Z0-9_]{2,60}", str(error)) else ""
+        print("Community Watch stopped: " + type(error).__name__ + ((" " + code) if code else "") + ". No success inferred.", file=sys.stderr)
         sys.exit(2)

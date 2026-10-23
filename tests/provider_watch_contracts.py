@@ -78,12 +78,14 @@ class ProviderWatch(unittest.TestCase):
 
     def test_empty_bad_and_duplicate_output_refused(self):
         for data, code in ((b"Name: A\n", 2), (b"", 0), (b"network failed", 0),
-                           (b"Name: \n", 0), (b"Name: A\nName: A\n", 0),
+                           (b"Name: \n", 0),
                            (b"Name: A\x00\n", 0), (b"x" * (watch.LIMIT + 1), 0),
                            (b"Name: \xff\n", 0)):
             with self.subTest(data=data[:20], code=code), self.assertRaises((ValueError, UnicodeError)):
                 watch.names_from_output(data, code)
         self.assertEqual(watch.names_from_output(b"Header\nName: B\nDescription: test\nName: A\n", 0), ["A", "B"])
+        # W16: Morphe lists "Spoof signature" twice for Reddit (universal and for the app): one name.
+        self.assertEqual(watch.names_from_output(b"Name: A\nName: B\nName: A\n", 0), ["A", "B"])
 
     def test_empty_observation_is_failure_not_removal(self):
         result = self.collect(lambda row: dict(names=[]))

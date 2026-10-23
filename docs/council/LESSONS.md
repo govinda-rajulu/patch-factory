@@ -480,3 +480,10 @@ Tags: build, release
 Morphe v1.48.0 lists Reddit 2026.42.0, and the owner was told W16 brings Morphe 42. The 42 APK needs
 Android 12 (SDK 32); the shelf ceiling is Android 10 (SDK 29), so the build stepped down to 41
 (23 Oct). Check the app's minimum SDK against min_sdk_ceiling before promising a version (W16).
+
+### L083 · A guard copied into several readers needs the fix in every copy
+Tags: evidence, tests
+The version chooser refused Morphe's Reddit listing for a repeated name; W16 fixed src/build/coverage.py
+only. The provider watch has its own copy (DUPLICATE_PATCH_NAME), so after the merge Provider and
+Nightly watch went red on the same listing (23 Oct). Before fixing a refusal, grep every reader of
+the same input for the same check (W16b).
