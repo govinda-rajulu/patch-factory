@@ -12,7 +12,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 - **W16**: audit (docs/review/AUDIT-W16.md), Reddit on official Morphe with Adobo fallback (L078 to
   L080), shadow jobs only for apps that build, plain release notes and app cards, one daily Needs you
   issue, council caps removed, fewer runs. Record `docs/review/SESSION-2026-10-24.md`; brief
-  `docs/review/W16-BRIEF.md`. Wrong calls: 52 (L081, L082).
+  `docs/review/W16-BRIEF.md`. Merged #222 as `e7b7dbfa`; W16b fixes the watches. Wrong calls: 53 (L081 to L083).
 - **Next**: OPEN-WORK 24 Oct: Reddit Morphe publish and phone test, cache by version, W15g.
 
 ## 23 Oct 2026, midday IST (packet W15i)

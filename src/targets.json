@@ -326,7 +326,7 @@
     "package": "com.reddit.frontpage",
     "apk_name": "reddit",
     "apk_type": "bundle",
-    "max_app_version": null,
+    "max_app_version": "2026.41.0",
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 29,
     "pin": null,

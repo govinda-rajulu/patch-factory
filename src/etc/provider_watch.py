@@ -88,8 +88,9 @@ def names_from_output(data, returncode):
     need(names and len(names) <= 10000, "NO_PATCH_NAMES")
     need(all(n.strip() == n and n and len(n) <= 300 and
              not any(ord(c) < 32 or ord(c) == 127 for c in n) for n in names), "INVALID_PATCH_NAME")
-    need(len(names) == len(set(names)), "DUPLICATE_PATCH_NAME")
-    return sorted(names)
+    # W16 (24 Oct 2026): Morphe v1.48.0 lists "Spoof signature" twice for Reddit (universal and for
+    # the app). A repeated name is one patch to the patcher, so it is one name here.
+    return sorted(set(names))
 
 
 def delta(root, row, names):
