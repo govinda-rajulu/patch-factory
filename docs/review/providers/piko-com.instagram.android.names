@@ -12,6 +12,8 @@ Customize navigation bar
 Disable Reels scrolling
 Disable ads
 Disable analytics
+Disable background components
+Disable background processes and telemetry
 Disable comments
 Disable discover people
 Disable double tap like
@@ -29,8 +31,10 @@ External downloader
 Filter stories
 Focus Lock
 Friendship status indicator
+Hidden chats
 Hide Reels follow button
 Hide group creation button on sharesheet
+Hide hidden requests
 Hide notes tray
 Hide reshare button
 Hide save buttons
