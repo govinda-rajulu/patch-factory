@@ -6,6 +6,9 @@ Provider: crimera/piko (primary, channel prerelease) with brosssh/morphe-patches
 Provider: SysAdminDoc/HushGram (fallback only; licence: GPL-3.0, checked against the GitHub licence API by the W13 controller before anything is pushed; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Same author as SysAdminDoc/HushFacebook, the Facebook provider.
 
 ## Patches
+- Disable background components: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Disable background processes and telemetry: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Hidden chats: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Custom font: added 2026-10-22 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Customize navigation bar: added 2026-10-22 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Inbox lock: added 2026-10-22 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
