@@ -2,7 +2,6 @@ name: 6. Provider watch
 # Name-only observations. Baselines never advance on observation or reporting.
 permissions:
   contents: read
-  issues: write
 on:
   schedule:
     - cron: "37 6 * * 1"  # 12:07 IST Monday
@@ -37,11 +36,6 @@ jobs:
             provider-watch-evidence/report.md
           if-no-files-found: error
           retention-days: 30
-      - name: Report changes or incomplete observations
-        if: ${{ !cancelled() && steps.observe.outcome == 'success' }}
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 src/etc/provider_watch.py issue
       - name: Enforce complete observation coverage
         if: ${{ !cancelled() }}
         run: python3 src/etc/provider_watch.py enforce

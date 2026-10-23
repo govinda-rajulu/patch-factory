@@ -34,10 +34,16 @@ class Automations(unittest.TestCase):
         self.assertEqual(sorted(set(self.f) - set(status.PURPOSE)), [])
         self.assertEqual(sorted(set(status.PURPOSE) - set(self.f)), [])
 
-    def test_status_page_refreshes_after_every_workflow(self):
+    def test_status_page_refreshes_user_facing_builds_and_watchers_immediately(self):
         own = self.f['status.yml']
-        wanted = {v['name'] for k, v in self.f.items() if k not in ('status.yml', 'notify-failure.yml')}
-        self.assertEqual(sorted(wanted - set(listed(own['text']))), [])
+        # Checks, council, qualification and keepalive remain visible through the daily
+        # status refresh; only the Pages-facing build and watcher outputs wake it per run.
+        wanted = {
+            '1. Manual Patch', '2. Check new patch', '4. Explore patches', '5. Add target',
+            '6. Provider watch', '7. Nightly watch', '8. Community watch', '9. Batch Patch',
+            'Tooling watch', '10. Selection watch', 'Needs you',
+        }
+        self.assertEqual(set(listed(own['text'])), wanted)
 
     def test_failure_issues_cover_every_scheduled_or_dispatched_flow_they_can_read(self):
         text = self.f['notify-failure.yml']['text']

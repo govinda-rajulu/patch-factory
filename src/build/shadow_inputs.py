@@ -429,6 +429,26 @@ def compare(consumed, baseline, reason):
     return {"state": "UNCHANGED" if baseline["effective_sha256"] == consumed["effective_sha256"] else "BUILD",
             "reason": "VERIFIED_CONSUMED_KEY_COMPARISON", "authority": "shadow-only"}
 
+def build_targets(root, env, ts):
+    """Read the successful daily Plan matrix; never widen it to all opted-in apps."""
+    raw = env.get("PF_BUILD_MATRIX", "")
+    need(isinstance(raw, str) and raw, "build plan unavailable")
+    try:
+        matrix = json.loads(raw)
+    except (TypeError, json.JSONDecodeError):
+        raise ValueError("shadow inputs: malformed build plan")
+    need(isinstance(matrix, dict) and set(matrix) == {"target"} and
+         isinstance(matrix["target"], list), "malformed build plan")
+    wanted = matrix["target"]
+    need(all(isinstance(i, str) and re.fullmatch(r"[a-z0-9-]+", i) for i in wanted) and
+         len(set(wanted)) == len(wanted), "invalid or duplicate build target")
+    configured = {t["id"]: t for t in ts}
+    need(all(i in configured and configured[i].get("enabled") is True and
+             configured[i].get("poll", False) is True for i in wanted),
+         "build plan target is not an enabled opted-in app")
+    return wanted
+
+
 def plan(root, env):
     ts = read(root, "src/targets.json")
     need(isinstance(ts, list) and ts and all(isinstance(t, dict) for t in ts), "empty or invalid plan targets")
@@ -437,20 +457,20 @@ def plan(root, env):
          len(set(ids)) == len(ids), "invalid or duplicate plan IDs")
     need(all(type(t.get("enabled")) is bool and type(t.get("poll", False)) is bool for t in ts),
          "invalid plan flags")
+    wanted = build_targets(root, env, ts)
     keys, rows = {}, []
-    for t in ts:
-        if t.get("enabled") is True and t.get("poll") is True:
-            ident = t["id"]
-            need(ident not in keys, "duplicate planned target")
-            doc = declaration(root, ident)
-            keys[ident] = doc["sha256"]
-            rows.append({"target": ident, "declaration_sha256": doc["sha256"],
-                         "state": "RESOLVE", "reason": "REMOTE_CONSUMED_IDENTITIES_NOT_YET_KNOWN"})
+    for ident in wanted:
+        doc = declaration(root, ident)
+        keys[ident] = doc["sha256"]
+        rows.append({"target": ident, "declaration_sha256": doc["sha256"],
+                     "state": "RESOLVE", "reason": "REMOTE_CONSUMED_IDENTITIES_NOT_YET_KNOWN"})
     write(root, "shadow-evidence/plan.json", {"mode": "shadow-only", "targets": rows,
           "limits": "This stage does not elect/download remote inputs or alter the legacy matrix."})
-    # Fixed safe hash/ID JSON only, bounded to GitHub output size.
+    # Fixed safe hash/ID JSON only, bounded to GitHub output size. An empty
+    # resolution output makes the matrix job skip when the daily Plan is empty.
+    matrix = json.dumps({"target": wanted}, separators=(",", ":")) if wanted else ""
     text = ("keys=" + json.dumps(keys, separators=(",", ":")) + "\n" +
-            "resolution_matrix=" + json.dumps({"target": list(keys)}, separators=(",", ":")) + "\n")
+            "resolution_matrix=" + matrix + "\n")
     need(len(text.encode()) < 60000 and env.get("GITHUB_OUTPUT"), "shadow output unavailable")
     with open(env["GITHUB_OUTPUT"], "a") as f:
         f.write(text)

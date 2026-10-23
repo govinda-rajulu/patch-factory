@@ -180,7 +180,7 @@ class RuleMerge(unittest.TestCase):
     def test_workflow_waits_and_the_review_wakes_it(self):
         text = (ROOT / '.github/workflows/rule-merge.yml').read_text(encoding='utf-8')
         self.assertIn('PF_RULE_MERGE_PATIENCE: "1200"', text)
-        self.assertEqual(text.count('- cron: '), 4)
+        self.assertEqual(text.count('- cron: '), 2)
         review = (ROOT / '.github/workflows/onboard-review.yml').read_text(encoding='utf-8')
         self.assertIn('gh workflow run rule-merge.yml --repo "$PF_REPO" --ref main', review)
         self.assertIn('actions: write', review.split('  wake:')[1])

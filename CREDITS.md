@@ -35,6 +35,7 @@ as code or APKs to copy.
 | MX Player Pro | ftl | https://github.com/BlazeFTL/FTL-Patches |
 | MX Player Pro | paresh | https://gitlab.com/Paresh-Maheshwari/paresh-patches |
 | Prime Video | hoo-dles | https://github.com/hoo-dles/morphe-patches |
+| Reddit | morphe | https://github.com/MorpheApp/morphe-patches |
 | Reddit | adobo | https://github.com/jkennethcarino/adobo |
 | Telegram | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | Truecaller | bufferk | https://github.com/bufferk/morphe-patches |

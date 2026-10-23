@@ -1,7 +1,6 @@
 name: Keepalive
 on:
-  schedule:
-    - cron: "47 4 1 * *"  # 10:17 IST on the 1st
+  # Manual fallback only: bot commits already land on main throughout the month.
   workflow_dispatch:
 permissions:
   contents: write

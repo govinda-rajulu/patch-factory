@@ -13,11 +13,9 @@ on:
     workflows: ["1. Manual Patch", "3. Validate", "Onboarding review"]
     types: [completed]
   schedule:
-    # W15e: four a day. Runs the bot starts wake nothing (L069), so this is the safety net.
+    # W16: two a day. Runs the bot starts wake nothing (L069), so this remains the safety net.
     - cron: "7 4 * * *"  # 09:37 IST, in case a trigger was missed
-    - cron: "7 10 * * *"  # 15:37 IST, in case a trigger was missed
     - cron: "7 16 * * *"  # 21:37 IST, in case a trigger was missed
-    - cron: "7 22 * * *"  # 03:37 IST, in case a trigger was missed
   workflow_dispatch:
 concurrency:
   # Its own queue: sharing main-writer would let a burst of these runs cancel a pending

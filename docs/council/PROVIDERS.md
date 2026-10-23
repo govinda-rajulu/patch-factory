@@ -1,35 +1,73 @@
-# Council providers: what each free API accepts (7 Oct 2026)
+# Council providers: official free-tier limits (checked 23 Oct 2026)
 
-Research record behind the V1 and V2 council changes. Sources: each provider's own docs and
-forums, read 7 Oct 2026. Free tiers change without notice; the council copes, but re-check a
-provider page before relying on a number. Keys and limits: [SETUP.md](SETUP.md).
+This is the dated research record for the models currently named in
+[`src/council/seats.json`](../../src/council/seats.json). Values are from each provider's own
+public documentation, pricing, or rate-limit page. A provider that says the value is shown only
+in an account dashboard is recorded as **not documented** here; we do not turn an anecdotal or
+account-specific value into a repository budget. The council uses at most about 80% of a
+published request limit when it can, with one call at a time per provider.
 
-| Provider | JSON | Reasoning | Seen failures and what the council does |
-|---|---|---|---|
-| NVIDIA build | `response_format` json_object (syntax only; NIM's schema mode is `nvext.guided_json`) | gpt-oss and Nemotron: `reasoning_effort` low | 404 "Function not found for account" for a model `/v1/models` lists (kimi-k2.6, deepseek): the key is not entitled. 404 always falls through; missing models are remembered per run. |
-| Gemini (OpenAI compatibility) | json_object; schema mode varies by model | `reasoning_effort` low maps to a thinking level; thinking counts against max tokens | Busy (429/503) under parallel load; wait for `retryDelay`. Empty content when thinking used the budget: max_tokens 8000. |
-| OpenRouter `:free` | json_object; schema only on endpoints that support it (`provider.require_parameters`) | `reasoning_effort` or `reasoning.effort` | Free models come and go: missing and busy are normal; about 50 calls a day. |
-| Mistral | json_object (the prompt must say JSON) | none needed | Answered every part on 6-7 Oct (codestral-latest). |
-| Cohere compatibility | json_object | `reasoning_effort` only `none` or `high` | Trial key: 1000 calls a month, so heavy jobs stay on the schedule. |
-| Groq | json_object | gpt-oss low; qwen `none` | 8000 tokens a minute: seat takes probe and ask only. |
+| Provider / models used by this repo | RPM | RPD | TPM / TPD | Other free cap | Official source and exact quote |
+|---|---:|---:|---:|---|---|
+| **Kilo Gateway** — `kilo-auto/free`, `nvidia/nemotron-3-ultra-550b-a55b:free` | **not stated** (200/hour = 3.33 RPM arithmetic) | not documented | not documented | Free models: **200 requests/hour/IP** | [Usage & Billing](https://kilo.ai/docs/gateway/usage-and-billing): “**Free models per IP \| 200 requests per hour**.” |
+| **Z.AI** — `glm-4.7-flash`, `glm-4.5-flash` | not documented | not documented | not documented | Both listed as free; quota is account-specific | [Pricing](https://docs.z.ai/guides/overview/pricing): “**GLM-4.7-Flash \| Free \| Free \| Free \| Free**” and “**GLM-4.5-Flash \| Free \| Free \| Free \| Free**.” [FAQ](https://docs.z.ai/help/faq): “**You can check the rate limits from here: https://z.ai/manage-apikey/rate-limits**.” |
+| **Groq** — `qwen/qwen3.8-27b`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b` | **30** | **1,000** | **8,000 TPM / 200,000 TPD** | Limits apply at organization level; cached tokens do not count | [Rate Limits](https://console.groq.com/docs/rate-limits): the exact rows are “**openai/gpt-oss-120b \| 30 \| 1K \| 8K \| 200K**”, “**openai/gpt-oss-20b \| 30 \| 1K \| 8K \| 200K**”, and “**qwen/qwen3.8-27b \| 30 \| 1K \| 8K \| 200K**”; the page also says “**Rate limits apply at the organization level, not individual users.**” |
+| **OpenRouter** — `cohere/north-mini-code:free`, `google/gemma-4-31b-it:free`, `openrouter/free` | **20** | **50** without purchased credits; **1,000** after at least 10 credits | token limits not documented for free variants | Free-model cap is account-wide; `GET /api/v1/key` reports the daily counter | [API Credit & Rate Limits](https://openrouter.ai/docs/api_reference/limits): free-model table says “**Less than 10 \| 20 \| 50**” and “**At least 10 \| 20 \| 1000**.” |
+| **NVIDIA NIM** — `openai/gpt-oss-20b`, `deepseek-ai/deepseek-v4-pro`, `nvidia/nemotron-3-ultra-550b-a55b`, `nvidia/nemotron-3.5-super-vl-120b-a12b`, `minimaxai/minimax-m3`, `qwen/qwen3.5-397b-a17b` | not documented | not documented | not documented | Free trial, no card; per-model limits are account/model-specific | [NVIDIA API Catalog FAQ](https://build.nvidia.com/llms.txt): “**All models offer a free trial tier with no credit card required.**” NVIDIA's official forum answer says: “**The rate limits vary for each model, and we do not publish those.**” ([source](https://forums.developer.nvidia.com/t/request-more-4-000-credits-option-on-build-nvidia-com/344567)). |
+| **Mistral La Plateforme Free mode** — `codestral-latest`, `mistral-small-latest` | not documented (docs expose RPS, not a value) | not documented | not documented (docs say model-specific tokens/minute, no value) | Included monthly usage is shown in the account Limits page | [Usage and limits](https://docs.mistral.ai/admin/billing-usage/usage-limits): “**Completion rate limits are listed per model and include: Tokens per minute ... Requests per second**” and “**Free mode lets you create API keys and use included monthly usage within the limits shown on the Limits page.**” |
+| **Cohere trial key** — `command-a-reasoning-08-2025`, `command-a-03-2025` | **20 per model** | not documented (monthly cap instead) | not documented | **1,000 API calls/month** for trial keys | [Rate limits](https://docs.cohere.com/docs/rate-limits): “**Trial keys ... are limited to 1,000 API calls a month.**” and the Chat table lists “**Command A Reasoning \| 20 req / min**” and “**Command A \| 20 req / min**.” |
+| **Google Gemini API Free tier** — `gemini-3.6-flash`, `gemini-3-flash-preview`, `gemini-flash-latest` | not documented publicly; active value is in AI Studio | not documented publicly | not documented publicly | Free tier has free input/output tokens for eligible models; preview/experimental models are more restricted | [Rate limits](https://ai.google.dev/gemini-api/docs/rate-limits): “**Limits vary depending on the specific model being used**” and “**Rate limits ... can be viewed in Google AI Studio**.” [Pricing](https://ai.google.dev/gemini-api/docs/pricing): Free tier says “**Free input & output tokens**.” |
 
-Council behaviour that follows (council.py): every call asks for JSON mode; a 400 or 422 that
-names `response_format` or `reasoning` drops that field once and is remembered; a cut reply
-(`finish_reason` length, empty content) moves to the next model and is reported; one repair
-turn shows the seat its exact refusal; findings must quote a real line or are dropped; heavy
-jobs run one at a time on the desk schedule.
+## Raised council budgets and pacing
 
-## 8 Oct 2026: checked against the owner's v2 field guide
+The request ceilings above are account/provider limits, not promises that a model will answer. The
+repo now uses the following safe request pacing: Kilo 22.5 seconds between calls (160/hour),
+OpenRouter 3.75 seconds (16/minute), Cohere 3.75 seconds (16/minute), and Groq 2.5 seconds
+(24/minute). These are 80% of the corresponding published caps. NVIDIA, Mistral, Z.AI, Gemini,
+and Cloudflare publish no usable public number for this account/model combination, so their
+conservative existing gaps remain and are explicitly not described as quota guarantees.
 
-Source: `knowledge/handbook/FREE-LLM-APIS-2026-10-v2.md` (owner-supplied, facts dated 7 Oct
-2026; free tiers change monthly). Against the seats in `src/council/seats.json`:
+`max_input_chars` was raised for the review/audit seats to 200,000 characters (Groq to 25,000
+because its documented 8K TPM is the tightest seated cap). No seat sets `max_tokens`: the request
+omits that field so each provider enforces its own model output maximum. Groq remains restricted to
+small ask/probe jobs by its `jobs` list, pacing, and 8K TPM—not an artificial completion cap. An
+explicit cap supplied by a caller is still honored and doubled once after truncation. A busy/exhausted
+response (429/5xx or timeout) moves through the seat's own models and then its keyed backups.
 
-- Groq's Qwen id `qwen/qwen3.8-27b` matches the guide's corrected id. GitHub Models stays retired.
-- OpenRouter free models: 20 RPM and 50 requests a day, 1,000 a day after a one-time $10
-  purchase (owner decision; it would lift the `open` seat's daily cap).
-- Not seated yet, free without a card: Kilo Gateway (anonymous, 200 requests an hour per IP),
-  Requesty (200 a day), Cloudflare Workers AI (10,000 Neurons a day), LLM7 (100K tokens a day),
-  Reka ($10 monthly credit). Each needs a `PROVIDERS` entry in `council.py`, a secret and a
-  probe run: packet W2, one provider at a time.
-- Free tiers log prompts (NVIDIA, Gemini free, OpenRouter stealth models, Kilo auto, Requesty).
-  Seats only ever see this public repository.
+The schedule remains two audit slots daily, Monday triage, Sunday probes, and four solo shifts;
+`L039` keeps one heavy job per run. Audit parts remain capped at 10 and 70,000 characters, and
+the 30-minute audit deadline remains the per-run wall-clock cap. The workflow's concurrency group
+prevents a newer run for the same PR/desk invocation from racing an older one.
+
+## Rejected vendors recorded for W16 (owner brief §6, checked 23 Oct 2026)
+
+| Vendor | Rejection recorded by owner |
+|---|---|
+| Qwen/Alibaba | One-time 1M tokens per model for 90 days, Singapore region; OAuth free tier ended 15 Apr 2026 |
+| Moonshot Kimi direct | Requires a $1 top-up |
+| DeepSeek direct | Paid only |
+| Cerebras | Card needed |
+| GitHub Models | Retired 30 Jul 2026 |
+| Chutes | No free tier |
+| Kiro | Terms ban proxies |
+| MiniMax direct | Free amount not confirmed |
+
+Candidates not tried: xKiro, BazaarLink, and Kilo without a key. OmniRoute is reference-only and
+stale, not a source for these limits.
+
+## Request behavior (unchanged)
+
+| Provider | JSON / reasoning handling | Failure and fallback behavior |
+|---|---|---|
+| NVIDIA build | `response_format` JSON object; gpt-oss/Nemotron use low `reasoning_effort` | A 404/410 means the key is not entitled to that model; the next model is tried. |
+| Gemini (OpenAI compatibility) | JSON object; low `reasoning_effort` maps to model thinking | 429/503 waits for `retryDelay`; an empty/cut reply moves on. |
+| OpenRouter `:free` | JSON object where the endpoint supports it | Free models can disappear or be busy; provider fallback then seat backups are tried. |
+| Mistral | JSON object (prompt also says JSON) | Model-specific limits are account-visible; failures move to the next preference. |
+| Cohere compatibility | JSON object; reasoning effort only when accepted | Trial calls stay on the scheduled lanes; busy/refused calls move to the next model. |
+| Groq | JSON object; gpt-oss low effort and Qwen no reasoning effort | The small fact seat is limited to ask/probe and is paced against 8K TPM. |
+| Kilo Gateway / Z.AI | OpenAI-compatible JSON requests | Backups only; 429/busy responses fall through to the next model/provider. |
+
+Every request asks for JSON mode. If a model rejects `response_format` or `reasoning_effort`, that
+optional field is dropped for the rest of the run. A cut reply gets one larger retry, then moves
+to the next model. Invalid or uncited answers do not count toward quorum. The scheduled heavy
+lanes remain one audit shard per run, with one provider call at a time.

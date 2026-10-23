@@ -6,7 +6,6 @@ Times are IST (UTC + 5:30). GitHub may start a scheduled run late, sometimes by 
 | IST | When | Automation | What it does |
 | --- | --- | --- | --- |
 | 02:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
-| 03:37 | daily | 11. Rule merge (`rule-merge.yml`) | Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green. |
 | 05:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
 | 05:53 | daily | 2. Check new patch (`ci.yml`) | Quick poll: builds only the apps whose providers changed. |
 | 07:11 | daily | 7. Nightly watch (`watch.yml`) | Nightly watch: one report on the repository and every provider. |
@@ -15,9 +14,9 @@ Times are IST (UTC + 5:30). GitHub may start a scheduled run late, sometimes by 
 | 08:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
 | 09:37 | daily | 11. Rule merge (`rule-merge.yml`) | Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green. |
 | 09:59 | daily | Tooling watch (`tooling-watch.yml`) | Checks the pinned build tools for new versions, pre-releases included. |
+| 10:29 | daily | Needs you (`needs-you.yml`) | Combines the five standing watch reports into one plain-language Needs you issue. |
 | 11:53 | daily | 2. Check new patch (`ci.yml`) | Quick poll: builds only the apps whose providers changed. |
 | 14:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
-| 15:37 | daily | 11. Rule merge (`rule-merge.yml`) | Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green. |
 | 17:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
 | 17:53 | daily | 2. Check new patch (`ci.yml`) | Full daily check: every provider, then builds the apps that changed. |
 | 20:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
@@ -25,6 +24,5 @@ Times are IST (UTC + 5:30). GitHub may start a scheduled run late, sometimes by 
 | 23:53 | daily | 2. Check new patch (`ci.yml`) | Quick poll: builds only the apps whose providers changed. |
 | 08:43 | Mondays | 8. Community watch (`community-watch.yml`) | Community watch: scans the community patch index for apps built here. |
 | 12:07 | Mondays | 6. Provider watch (`agent-watch.yml`) | Provider watch: looks for new or changed patch releases. |
-| 10:17 | day 1 of each month | Keepalive (`keepalive.yml`) | Keeps scheduled automations from being paused by GitHub. |
 
 Everything else runs on request or after another run: Manual Patch, Batch Patch, Explore, Add target, Validate (every change), Notify on failure, Status page data (after each listed run), Onboarding review, Qualify published shadow baselines.

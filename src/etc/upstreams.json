@@ -3,7 +3,7 @@
  "upstreams": [
   {"id": "obtainium", "repo": "ImranR98/Obtainium", "kind": "release", "role": "the updater on the phone; docs/obtainium*.json follow its import format", "pin": {"file": "src/etc/obtainium.py", "text": "reviewed against v1.7.1", "tag": "v1.7.1"}},
   {"id": "morphe-desktop", "repo": "MorpheApp/morphe-desktop", "kind": "release", "role": "the patcher; every build takes the newest stable release"},
-  {"id": "morphe-patches", "repo": "MorpheApp/morphe-patches", "kind": "release", "role": "main patch bundle (YouTube, YouTube Music)"},
+  {"id": "morphe-patches", "repo": "MorpheApp/morphe-patches", "kind": "release", "role": "main patch bundle (YouTube, YouTube Music, Reddit)"},
   {"id": "microg-re", "repo": "MorpheApp/MicroG-RE", "kind": "release", "role": "Google sign-in companion; the page offers its newest release"},
   {"id": "apkeditor", "repo": "REAndroid/APKEditor", "kind": "release", "role": "merges split APKs", "pin": {"file": "src/build/TOOLING.sha256", "text": "/V1.4.9/APKEditor-1.4.9.jar", "tag": "V1.4.9"}},
   {"id": "pup", "repo": "ericchiang/pup", "kind": "release", "role": "reads store pages; unmaintained since 2016, htmlq is the candidate", "pin": {"file": "src/build/TOOLING.sha256", "text": "/v0.4.0/pup_v0.4.0_linux_amd64.zip", "tag": "v0.4.0"}},

@@ -280,13 +280,13 @@ class Council(unittest.TestCase):
         got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
         self.assertEqual(got['status'], 'UNAVAILABLE no listed model is served (2 tried)')
 
-    def test_retired_model_410_falls_through_and_seat_caps_output(self):
+    def test_retired_model_410_falls_through_and_honors_explicit_output_cap(self):
         asked = []
 
         def http(method, url, headers, body=None, timeout=90):
             if url.endswith('/models'):
                 return 200, json.dumps({'data': [{'id': 'm1'}]})
-            asked.append((body['model'], body['max_tokens']))
+            asked.append((body['model'], body.get('max_tokens')))
             if body['model'] == 'm1':
                 return 410, 'Gone'
             return 200, json.dumps({'choices': [{'message': {'content': '{"summary": "ok", "verdict": "looks_ok", "findings": []}'}}]})
@@ -296,7 +296,7 @@ class Council(unittest.TestCase):
         council._model_cache.clear()
         asked.clear()
         council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
-        self.assertEqual(asked, [('m1', 6000), ('m2', 6000)])
+        self.assertEqual(asked, [('m1', None), ('m2', None)])
 
     def test_seats_use_only_live_keyed_providers(self):
         cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
@@ -994,9 +994,9 @@ class ProbeEveryModel(unittest.TestCase):
             for a in alts:
                 self.assertIn(a['provider'], c.PROVIDERS)
         calls, printed = [], []
-        seat = {'id': 'nemotron', 'provider': 'nvidia', 'models': ['m1', 'm2'], 'max_input_chars': 100, 'max_tokens': 8000}
+        seat = {'id': 'nemotron', 'provider': 'nvidia', 'models': ['m1', 'm2'], 'max_input_chars': 100}
         def fake_complete(seat_, model, system, user, env, retry=True, extra=()):
-            calls.append((seat_['provider'], model, seat_['max_tokens'], retry))
+            calls.append((seat_['provider'], model, seat_.get('max_tokens'), retry))
             if model == 'm2':
                 raise c.ModelMissing('model not served (404)')
             return '{"ready": true}'
@@ -1010,7 +1010,7 @@ class ProbeEveryModel(unittest.TestCase):
         finally:
             c.complete, c.convene, c.available_models, c.summary = old
         self.assertEqual([(p, m) for p, m, _, _ in calls], [('nvidia', 'm1'), ('nvidia', 'm2')])
-        self.assertTrue(all(t <= 2000 and r is False for _, _, t, r in calls))
+        self.assertTrue(all(t is None and r is False for _, _, t, r in calls))
         table = printed[0]
         self.assertIn('| nemotron | nvidia | m1 | SERVED listed=yes |', table)
         self.assertIn('| nemotron | nvidia | m2 | MISSING listed=no |', table)

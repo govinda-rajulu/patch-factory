@@ -13,7 +13,7 @@ class Tidy(unittest.TestCase):
         new, why = t.tidy(OLD)
         self.assertEqual(why, 'change')
         self.assertNotIn('## Checks and limitations', new); self.assertNotIn('## Help and stable', new)
-        self.assertIn('#about-these-builds)', new)
+        self.assertNotIn('## Checks and limitations', new)
         self.assertTrue(new.endswith('[pf-release-v1]: # "eyJhIjoxfQ=="\n'))
         self.assertEqual(t.tidy(new)[1], 'tidy')
 

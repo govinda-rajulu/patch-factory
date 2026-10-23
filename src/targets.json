@@ -333,13 +333,23 @@
     "exclusive": true,
     "candidates": [
       {
+        "name": "morphe",
+        "host": "github",
+        "channel": "latest",
+        "patch_dir": "reddit-morphe",
+        "options": "morphe",
+        "owner": "MorpheApp",
+        "repo": "morphe-patches"
+      },
+      {
         "name": "adobo",
         "host": "github",
         "channel": "prerelease",
         "patch_dir": "reddit-adobo",
         "options": "adobo",
         "owner": "jkennethcarino",
-        "repo": "adobo"
+        "repo": "adobo",
+        "fallback": true
       }
     ],
     "tag_prefix": "reddit",
@@ -348,7 +358,7 @@
     "poll": true,
     "source": "apkpure",
     "label": "Reddit",
-    "note": "Ads, telemetry and promoted posts removed. Dropped the rushiranpise extra bundle on 2026-09-06: its 7 patches are all PairIP, Firebase, certificate and spoof-signature work plus GmsCore, none of which this build needs. adobo covers reddit alone."
+    "note": "Official Morphe Reddit patches are primary: v1.48.0 adds experimental Reddit 2026.42.0 support; if that build fails, step down within Morphe to 2026.41.0. Adobo is the fallback for its supported Reddit 2026.41.0 build. The selection keeps the Adobo ad-removal, screenshot, direct-link and share-link choices where Morphe has equivalents; unmatched Adobo choices are listed in docs/review/onboarding/reddit.md and the W16 live-check checklist."
   },
   {
     "id": "hotstar",

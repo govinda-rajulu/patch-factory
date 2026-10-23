@@ -5,11 +5,13 @@ name: Status page data
 # only refreshes "updated N ago" on quiet days: every listed run already triggers it. The only write
 # is one file force-pushed to the `status` branch (one commit, no history growth, never main).
 # Pull-request runs are ignored by the script. No checkout of anything but main.
+# The immediate list is limited to builds and watcher reports that the Pages owner reads.
+# The daily cron still refreshes every workflow's latest record, including checks and helpers.
 permissions:
   contents: read
 on:
   workflow_run:
-    workflows: ["1. Manual Patch", "2. Check new patch", "3. Validate", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "9. Batch Patch", "Tooling watch", "Onboarding review", "10. Selection watch", "11. Rule merge", "Council", "Qualify published shadow baselines", "Keepalive"]
+    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "9. Batch Patch", "Tooling watch", "10. Selection watch", "Needs you"]
     types: [completed]
   schedule:
     - cron: "53 2 * * *"  # 08:23 IST daily

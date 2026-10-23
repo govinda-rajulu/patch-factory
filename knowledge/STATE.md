@@ -6,7 +6,16 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 23 Oct 2026, midday IST (packet W15i; start here)
+## 24 Oct 2026 (W16 on dev/w16; start here)
+
+- **Main** `822c5f3c` (W15i #220 plus a bot commit) plus dev/w16 once merged.
+- **W16**: audit (docs/review/AUDIT-W16.md), Reddit on official Morphe with Adobo fallback (L078 to
+  L080), shadow jobs only for apps that build, plain release notes and app cards, one daily Needs you
+  issue, council caps removed, fewer runs. Record `docs/review/SESSION-2026-10-24.md`; brief
+  `docs/review/W16-BRIEF.md`. Wrong calls: 51 (L081).
+- **Next**: OPEN-WORK 24 Oct: Reddit Morphe publish and phone test, cache by version, W15g.
+
+## 23 Oct 2026, midday IST (packet W15i)
 
 - **Main** `3572ca71` (W15h #216) plus bot commits, plus W15i once merged.
 - **W15i**: shadow resolver tool folder (L076) and any-version locks; Facebook 584 with Hushfacebook

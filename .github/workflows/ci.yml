@@ -47,10 +47,12 @@ jobs:
       - name: Poll every opted-in target
         id: plan
         run: python3 src/etc/daily_plan.py
-      - name: Record shadow Plan declarations (not build selection)
+      - name: Record shadow Plan declarations for build targets only
         id: shadow
         continue-on-error: true
         timeout-minutes: 3
+        env:
+          PF_BUILD_MATRIX: ${{ steps.plan.outputs.matrix }}
         run: python3 src/build/shadow_inputs.py plan
       - name: Preserve shadow Plan evidence
         if: always()
@@ -65,13 +67,10 @@ jobs:
   resolve:
     name: Resolve shadow dependencies (${{ matrix.target }})
     needs: plan
-    # Full observation stays once a day (first cron) and on manual runs; a poll-only
-    # schedule runs it only when something will build, because Build needs its packets.
+    # Resolve only apps selected by the successful daily Plan; Build needs their packets.
     if: needs.plan.outputs.resolution_matrix != '' && (github.event_name != 'schedule' || github.event.schedule == '23 12 * * *' || needs.plan.outputs.count != '0')
-    # The first cron and manual runs observe every opted-in target, including those
-    # omitted by the old poller. A poll-only schedule resolves only the targets Build
-    # will consume (28 Sep 2026: one failing target made every poll resolve all 14);
-    # the report then lists the rest as UNKNOWN, never as unchanged.
+    # Every shadow job corresponds to a target Build will consume. Unbuilt targets
+    # are intentionally not downloaded or resolved; no shadow job runs for an empty plan.
     # Resolver failures are UNKNOWN evidence, never authority to change its matrix.
     continue-on-error: true
     permissions:

@@ -187,31 +187,41 @@ def publish_guard(current, rows, fallback):
     return None
 
 
-def changes(current, previous):
-    if not previous:
-        return ['Change comparison unavailable; the verified current build is listed below.']
-    result = [('App version unchanged at ' + current['version'] + '; this is another build.')
-              if current['version'] == previous['version'] else
-              'App version: ' + previous['version'] + ' -> ' + current['version'] + '.']
-    if previous.get('legacy'):
-        return result + ['Patch changes were not recorded in a comparable format in the previous release.']
-    for key, label in [('provider', 'Patch providers'), ('bundle', 'Primary patch bundle'),
-                       ('min_sdk', 'Minimum Android API'), ('package', 'Android package'),
-                       ('signer', 'Signing certificate')]:
-        if current[key] != previous[key]:
-            result.append(label + ' changed: ' + str(previous[key]) + ' -> ' + str(current[key]) + '.')
-    old, new = set(previous['patches']), set(current['patches'])
-    for label, values in [('Applied patch names added', new-old), ('Applied patch names removed', old-new)]:
-        if values:
-            result.append(label + ': ' + ', '.join(sorted(values)) + '.')
-    if old == new:
-        result.append('Applied patch names unchanged; this does not prove unchanged patch code or defaults.')
-    if current['source'] != previous['source']:
-        result.append('Repository source changed; see the exact source comparison below.')
-    if current['sha256'] != previous['sha256']:
-        result.append('APK bytes differ from the previous release.')
-    return result
+def _names(values):
+    return ', '.join(sorted(values)) if values else 'none'
 
+
+def changes(current, previous):
+    """Return only the release facts a person needs to install this build."""
+    old_version = previous.get('version', 'unknown') if previous else 'unknown'
+    old_bundle = previous.get('bundle', 'unknown') if previous else 'unknown'
+    old_provider = previous.get('provider', 'unknown') if previous else 'unknown'
+    old_patches = set(previous.get('patches', [])) if previous and not previous.get('legacy') else set()
+    new_patches = set(current['patches'])
+    lines = [
+        'App version: %s -> %s.' % (old_version, current['version']),
+        'Bundle version (provider): %s (%s) -> %s (%s).' %
+        (old_bundle, old_provider, current['bundle'], current['provider']),
+        'Patches added: %s.' % _names(new_patches - old_patches),
+        'Patches removed: %s.' % _names(old_patches - new_patches),
+    ]
+    if previous and previous.get('legacy'):
+        lines[2] = 'Patches added: not recorded for the previous release.'
+        lines[3] = 'Patches removed: not recorded for the previous release.'
+    elif not previous:
+        lines[2] = 'Patches added: ' + _names(new_patches) + '.'
+        lines[3] = 'Patches removed: none.'
+    return lines
+
+
+def provider_changelog(current):
+    """Build short provider notes from the existing release metadata."""
+    lines = []
+    if current.get('fallback'):
+        lines.append(current['fallback'])
+    if current.get('dropped'):
+        lines.append('Provider no longer offers: ' + ', '.join(current['dropped']))
+    return lines
 
 def text(value):
     value = html.escape(str(value), quote=False)
@@ -242,44 +252,15 @@ ABOUT = 'About these builds: what CI checks, its limits and install help'
 ABOUT_ANCHOR = 'about-these-builds'
 
 
-def render(current, previous=None, reason='Previous-release comparison not requested in this nonpublishing check.'):
+def render(current, previous=None, reason=''):
     checked(current)
-    guide = WEB + '/blob/' + current['source'] + '/docs/guide.md'
-    notes = []
-    if current.get('fallback'):
-        notes.append(current['fallback'] + '.')
-    if current.get('dropped'):
-        notes.append('Built without ' + str(len(current['dropped'])) + ' chosen patch(es) the provider no longer offers: '
-                     + '; '.join(current['dropped']) + '.')
-    lines = ['## What changed', *('- ' + text(x) for x in notes + changes(current, previous)), '',
-             text(reason), '', '## Release summary', '',
-             '| Detail | Value |', '| --- | --- |']
-    values = [('App', current['label']), ('App version', current['version']),
-              ('Android package', current['package']), ('Minimum Android API', current['min_sdk']),
-              ('Native code', current['arch']), ('Size', format(current['bytes']/1048576, '.1f') + ' MB'),
-              ('Patch providers', current['provider']), ('Primary bundle', current['bundle']),
-              ('Applied patch names', len(current['patches']))]
-    lines += ['| ' + name + ' | ' + text(value) + ' |' for name, value in values]
-    lines += ['', '## Works on', *works_on(current)]
-    lines += ['', '## Applied patches (' + str(len(current['patches'])) + ')',
-              '<details>', '<summary>All applied patch names</summary>', '',
-              *('- ' + text(name) for name in current['patches']),
-              '', '</details>', '', '## Download evidence', 'File: `' + current['apk'] + '`',
-              'SHA-256: `' + current['sha256'] + '`',
-              'CI signing certificate SHA-256: `' + current['signer'] + '`',
-              '[Build source](' + WEB + '/tree/' + current['source'] + ')']
-    suffix = '-b' + current['tag'].split('-b')[-1]
-    ident = parse(suffix)
-    if not ident['legacy']:
-        lines.append('[Exact build run](' + WEB + '/actions/runs/' + str(ident['run_id']) + '/attempts/' + str(ident['attempt']) + ')')
-    if previous:
-        lines.append('[Previous app release](' + WEB + '/releases/tag/' + previous['tag'] + ')')
-        if not previous.get('legacy') and previous['source'] != current['source']:
-            lines.append('[Source comparison](' + WEB + '/compare/' + previous['source'] + '...' + current['source'] + ')')
-    # W14 (owner, 11 Oct 2026): checks, limits and install help live once, in docs/guide.md
-    # "About these builds"; every release links there instead of repeating them.
-    lines += ['', '[' + ABOUT + '](' + guide + '#' + ABOUT_ANCHOR + ')',
-              '', '[pf-release-v1]: # "' + base64.b64encode(json.dumps(current, sort_keys=True, separators=(',', ':')).encode()).decode() + '"']
+    download = WEB + '/releases/download/' + current['tag'] + '/' + current['apk']
+    lines = ['## Changes', *('- ' + text(x) for x in changes(current, previous))]
+    provider_lines = provider_changelog(current)
+    if provider_lines:
+        lines += ['', '## Provider changelog', *('- ' + text(x) for x in provider_lines)]
+    lines += ['', '## Install', '- [Download and install the APK](' + download + ').']
+    lines += ['', '[pf-release-v1]: # "' + base64.b64encode(json.dumps(current, sort_keys=True, separators=(',', ':')).encode()).decode() + '"']
     body = '\n'.join(lines) + '\n'
     if len(body.encode()) > 120000:
         raise ValueError('release notes exceed safe size')

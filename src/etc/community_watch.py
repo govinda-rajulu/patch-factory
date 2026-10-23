@@ -138,6 +138,19 @@ def report_text(report):
         text += "\n".join(readable.details("Every patch name in the window", names)) + "\n"
     else:
         text += "- none\n"
+    ranks = report.get("provider_ranks") or []
+    text += "\n## Provider ranker\n"
+    text += "Official MorpheApp providers come first, then patch count, support for the current app version, supported versions, and freshness. A row is marked only when an alternative beats the configured provider.\n\n"
+    flagged = [row for row in ranks if row.get("better_exists")]
+    if flagged:
+        text += "**Needs you:** choose whether to switch the configured provider.\n\n"
+        for row in flagged:
+            winner = row["better"][0]
+            configured = ", ".join(row.get("configured") or ["none"])
+            text += "- **%s**: configured `%s`; better `%s` (%d patches, current version %s).\n" % (model.safe(row.get("app")), model.safe(configured), model.safe(winner.get("repo")), winner.get("patch_count", 0), model.safe("yes" if winner.get("supports_current") else "unknown"))
+    else:
+        text += "- no configured app has a better alternative today.\n"
+    text += "\n" + "\n".join("- %s: %s providers ranked; best `%s`" % (model.safe(row.get("app")), len(row.get("providers") or []), model.safe((row.get("providers") or [{"repo":"none"}])[0].get("repo"))) for row in ranks) + "\n"
     text += "\n## Evidence and recovery limits\n"
     text += "Source: " + INDEX_URL + "\nHistory: " + NEWS_URL + "\n"
     text += "Baseline SHA256: " + report["baseline_sha256"] + "\nObserved SHA256: " + report["index_sha256"] + "\n"
@@ -157,6 +170,10 @@ def collect(root, out, ident, reader=fetch):
         raw_index, raw_news = reader(INDEX_URL), reader(NEWS_URL)
         old, new = model.read_json(baseline), model.read_json(raw_index)
         report = model.compare(old, new, targets)
+        # Community watch is also the source for the provider ranker. Keep the
+        # complete index comparison, then rank the newly observed index against
+        # the providers configured for each enabled app.
+        report["provider_ranks"] = model.rank_providers(new, targets)
         report.update(ident, fetched_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                       baseline_sha256=sha(baseline), index_sha256=sha(raw_index),
                       targets_sha256=sha(targets_raw), news_sha256=sha(raw_news),
