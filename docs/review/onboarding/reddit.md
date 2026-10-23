@@ -44,7 +44,7 @@ Adobo choices with a Morphe match: ad and telemetry removal -> Hide ads; screens
 
 ## Risks
 
-- Morphe 2026.42.0 support is experimental in v1.48.0. If its build fails, the provider's supported 2026.41.0 path is the intended Morphe step-down; Adobo is the configured provider fallback.
+- Reddit 2026.42.0 needs Android 12 (SDK 32). The shelf ceiling is Android 10 (SDK 29), so the build steps down to 2026.41.0 (smoke run 40002216628 on 23 Oct: 27 of 27 patches applied on 41). Adobo is the configured provider fallback.
 - A re-signed Reddit APK can change account or server-visible behaviour. The signature-spoof patch is excluded. The live list-patches output, patch compatibility, and applied names must be checked before publishing.
 - Signature spoofing stays off by rule even though Morphe turns it on by default for Reddit; if sign-in or feeds fail on the phone, that is the first suspect (owner phone test).
 

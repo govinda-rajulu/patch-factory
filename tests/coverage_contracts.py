@@ -115,6 +115,21 @@ class Coverage(unittest.TestCase):
         self.assertEqual(x.returncode, 0, x.stdout)
         self.assertIn('COVERAGE_PICK=21.36.45', x.stdout)
 
+    def test_a_name_listed_twice_is_one_patch(self):
+        # W16 (23 Oct 2026): Morphe v1.48.0 lists "Spoof signature" universal and for Reddit.
+        dup = LISTING + block(6, 'A', pkg=None)
+        rc, kv, out = self.run_cov('3.0 6\n2.0 5\n', listing=dup)
+        self.assertEqual(rc, 0, out)
+        self.assertEqual((kv['COVERAGE_TOTAL'], kv['COVERAGE_PICK']), ('5', '2.0'), out)
+
+    def test_real_reddit_morphe_listing(self):
+        x = subprocess.run([PY, str(COV), '--listing', str(ROOT / 'docs/review/PATCHES-reddit-morphe.txt'),
+                            'com.reddit.frontpage', 'reddit', 'morphe', ''],
+                           input='2026.42.0 31\n2026.41.0 31\n', cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(x.returncode, 0, x.stdout)
+        self.assertIn('COVERAGE_TOTAL=27', x.stdout)
+        self.assertIn('COVERAGE_PICK=2026.42.0', x.stdout)
+
 
 class Resolver(unittest.TestCase):
     """resolve.sh end to end with a fake patcher: coverage decides, doubt keeps the newest."""

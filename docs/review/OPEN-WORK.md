@@ -6,8 +6,9 @@ W16 (one pull request from dev/w16): audit, Reddit on official Morphe v1.48.0 wi
 shadow jobs only for apps that build, plain release notes and cards, one daily Needs you issue,
 council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](SESSION-2026-10-24.md). Open, in order:
 
-0. Owner: after the merge, one Batch Patch for reddit with publish on; phone: install Morphe Reddit
-   42 over the current one (same key); sign-in and feeds are the test (Spoof signature is off by rule).
+0. Owner: after the merge, one Batch Patch for reddit with publish on. Phone: Morphe Reddit is
+   2026.41.0 (42 needs Android 12); if the installed patched Reddit is 42, uninstall it first, then
+   install 41. Sign-in and feeds are the test (Spoof signature is off by rule).
 1. Cache the patcher JAR and source APKs by exact version and sha (needs cache keys from the
    resolved packet); target Check new patch under 5 minutes.
 2. Read why Check new patch was red 49 of 118 runs (T1 per-app findings).

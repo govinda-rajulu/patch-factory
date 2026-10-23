@@ -50,8 +50,12 @@ def parse(text, package):
         if line.startswith('Name: '):
             names += 1
             name = line[6:].strip()
-            need(name and name not in out, 'duplicate or empty patch name')
-            cur = out[name] = {'enabled': None, 'versions': None, 'packages': False}
+            need(name, 'empty patch name')
+            # W16 (23 Oct 2026): Morphe v1.48.0 lists "Spoof signature" twice for Reddit, once
+            # universal and once for the app. Same name, same patch to the patcher: keep both
+            # entries and merge them after the parse.
+            cur = {'enabled': None, 'versions': None, 'packages': False}
+            out.setdefault(name, []).append(cur)
             pkg, collecting = None, False
             continue
         if cur is None:
@@ -74,10 +78,17 @@ def parse(text, package):
             collecting = False
     need(names > 0, 'no patch names in the listing')
     need(names == enabled, 'listing parse mismatch: %d names, %d enabled lines' % (names, enabled))
-    for v in out.values():
-        if v['versions'] is not None and not v['versions']:
-            v['versions'] = None
-    return out
+    merged = {}
+    for name, rows in out.items():
+        for v in rows:
+            if v['versions'] is not None and not v['versions']:
+                v['versions'] = None
+        # Any entry that is universal (any version) makes the name count at every version.
+        anyver = any(v['versions'] is None for v in rows)
+        merged[name] = {'enabled': any(v['enabled'] for v in rows),
+                        'versions': None if anyver else set().union(*(v['versions'] for v in rows)),
+                        'packages': any(v['packages'] for v in rows)}
+    return merged
 
 
 def lines(path):

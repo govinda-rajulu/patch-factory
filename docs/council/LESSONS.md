@@ -474,3 +474,9 @@ Tags: build, evidence
 morphe-desktop 1.19.0 prints its usage and exits 2 on `list-patches --help` because --patches is
 required. A probe that stopped on that exit code cost the owner a round trip (23 Oct). Record help
 text; gate on the real command's exit code and output (W16).
+
+### L082 · A version a provider lists is not a version the shelf can install
+Tags: build, release
+Morphe v1.48.0 lists Reddit 2026.42.0, and the owner was told W16 brings Morphe 42. The 42 APK needs
+Android 12 (SDK 32); the shelf ceiling is Android 10 (SDK 29), so the build stepped down to 41
+(23 Oct). Check the app's minimum SDK against min_sdk_ceiling before promising a version (W16).
