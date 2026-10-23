@@ -227,4 +227,8 @@ check('W15h: every patched entry pins the CI signing certificate; a missing, for
  for(const mutate of [s=>{delete s.allowedSigningCertHashes},s=>{s.allowedSigningCertHashes='b'.repeat(64)},s=>{s.allowedSigningCertHashes=pin+','+'b'.repeat(64)},s=>{s.allowedSigningCertHashes=pin.toUpperCase()},s=>{s.allowedSigningCertHashes=''}]){
   const d=structuredClone(pack),s=JSON.parse(d.apps[0].additionalSettings);mutate(s);d.apps[0].additionalSettings=JSON.stringify(s);assert.throws(()=>c.validateImport(d,targets));}
 });
+check('W15i: release notes lose every HTML comment, nested or unmatched (CodeQL)',()=>{
+ for(const body of ['a<!-- x -->b','a<!<!---->--b','a<!--<!-- x -->-->b','a<!-- open b','<!--x--><!--y-->a'])assert.ok(!c.noteText(body).includes('<!--'),body);
+ assert.equal(c.noteText('keep <b>text</b>'),'keep <b>text</b>');
+});
 console.log('PORTAL_CONTRACTS_PASS='+count);

@@ -11,6 +11,8 @@ tools. Added 10 Oct 2026 (packet H12) from the W9 to W12 controllers, which all 
 | `suite.sh` | Local copy of 3. Validate's offline steps. Run one instance at a time. |
 | `pf-t1.py` | The all-flows test: `PF_MAIN=<full main sha> python3 pf-t1.py`. One nonpublishing Batch Patch of every enabled app, then 2. Check new patch, Provider, Nightly, Community, Tooling and Selection watch, then the status page. Nothing merged or deleted. Added in W13. |
 | `render.cjs` | Headless render of `docs/index.html` (Playwright; set `PLAYWRIGHT_BROWSERS_PATH` if the browser lives elsewhere). |
+| `build_ctl.py` | W15i: fills the template from a CONFIG file, the packet branch, BASE, BASE_TREE and PREREQ (usage in its first lines). |
+| `owner-probes/pf-keys.py` | W15i: the owner's Cloud Shell probe: tests free AI keys live and saves only working ones as secrets, reads CodeQL alerts, runs morphe-desktop's list-versions to list the files it creates, dispatches a council probe and zips the logs. Rehearse new probes against fake APIs first. |
 
 ## Building one
 
@@ -23,7 +25,7 @@ tools. Added 10 Oct 2026 (packet H12) from the W9 to W12 controllers, which all 
    BODY, CHECKS, SMOKE, CLOSE. Replace the TREE placeholder with the packet tree id and the
    BUNDLE placeholder with the bundle in base64. Compile it, name it
    `pf-X-<first 8 of sha256>.py`.
-5. Rehearse: the happy path, a rerun after OK, and every stop you can provoke (main moved,
+5. Rehearse (W15i set, environment knobs of rehearse.sh): plain; `RERUN=1`; `DRIFT_MERGE=<a file the packet does not touch>`; `DRIFT=<file> DRIFT_MAIL=someone@example.com` (must STOP); `DRIFT=<a packet file>` (must STOP); a failed check; `PF_T1=run`. The happy path, a rerun after OK, and every stop you can provoke (main moved,
    a failed check, a failed or silent smoke build, a wrong merge tree, Pages never deploying).
    `rehearse.sh CONTROLLER.py REPO_DIR BASE_PARENT BASE_TREE '{"checks":{"Validate targets and scripts":"failure"}}'`
 6. Hand over a direct download link and one if/then launcher that checks count, regular file,

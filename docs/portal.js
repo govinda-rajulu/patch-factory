@@ -358,7 +358,11 @@ function releaseRows(rows,ts){
 function buildMeta(row){const t=row.tag;return 'Build '+t.day+(t.run?' · run '+t.run+' · attempt '+t.attempt:' · legacy tag');}
 function noteText(body){
  if(typeof body!=='string')return '';
- return body.replace(/<!--[\s\S]*?-->/g,'').replace(/^\[pf-release-v1\]: # "[A-Za-z0-9+/=]+"[ \t]*$/gm,'').trim();
+ // W15i (CodeQL js/incomplete-multi-character-sanitization): strip comments until none are
+ // left, then any unmatched opener, so "<!<!---->--" cannot leave a "<!--" behind.
+ let text=body,prev;
+ do{prev=text;text=text.replace(/<!--[\s\S]*?-->/g,'');}while(text!==prev);
+ return text.replace(/<!--/g,'').replace(/^\[pf-release-v1\]: # "[A-Za-z0-9+/=]+"[ \t]*$/gm,'').trim();
 }
 function readable(text){
  return text.replace(/\\([\\`*_[\]|])/g,'$1').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');

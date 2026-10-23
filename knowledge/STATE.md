@@ -6,7 +6,17 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 22 Oct 2026, night IST (packet W15h; start here)
+## 23 Oct 2026, midday IST (packet W15i; start here)
+
+- **Main** `3572ca71` (W15h #216) plus bot commits, plus W15i once merged.
+- **W15i**: shadow resolver tool folder (L076) and any-version locks; Facebook 584 with Hushfacebook
+  0.17.0; Reddit 2026.42.0 retired (src/etc/retired-builds.json); council Kilo + Z.AI, next model on
+  broken JSON, re-listed seats, Sunday model watch on the desk; CodeQL fixes and a data-only
+  onboarding head; T1 fallback finding (L077). Record `docs/review/SESSION-2026-10-23.md`; the whole 20 to 23 Oct chat is in
+  `docs/review/HANDOVER-2026-10-23.md` (the owner closed that chat). Wrong calls that chat: 48.
+- **Next**: OPEN-WORK 23 Oct: phone (Facebook 584, Reddit 41 reinstall), W15g signing split.
+
+## 22 Oct 2026, night IST (packet W15h)
 
 - **Main** `db32d516` (W15f #210) plus W15h once merged.
 - **W15h**: Obtainium certificate pin (`src/build/ci-signer.json`, one home), tooling watch v2

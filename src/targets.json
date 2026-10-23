@@ -227,7 +227,7 @@
     "package": "com.facebook.katana",
     "apk_name": "facebook",
     "apk_type": "bundle",
-    "max_app_version": "583.0.0.39.55",
+    "max_app_version": "584.0.0.51.56",
     "max_patch_age_days": 60,
     "min_sdk_ceiling": 30,
     "pin": null,
@@ -260,13 +260,13 @@
     ],
     "tag_prefix": "facebook",
     "arch": "arm64-v8a",
-    "dpi": "480-640dpi",
-    "version_code": "475614366",
+    "dpi": "480dpi",
+    "version_code": "475817393",
     "poll": true,
     "source": "apkmirror",
     "any_version": false,
     "label": "Facebook",
-    "note": "Ads, sponsored posts and tracking removed, downloads added. Facebook 583.0.0.39.55 with Hushfacebook 0.14.0 (91 patches; it supports only 583). De-Vanced on Facebook 580.0.0.51.74 is the fallback when a Hushfacebook build fails."
+    "note": "Ads, sponsored posts and tracking removed, downloads added. Facebook 584.0.0.51.56 (build 475817393, arm64-v8a, 480dpi, Android 11+; the only 584 download on APKMirror, read 23 Oct 2026) with Hushfacebook 0.17.0, which supports only 584 (owner decision 23 Oct 2026). De-Vanced on Facebook 580.0.0.51.74 is the fallback when a Hushfacebook build fails."
   },
   {
     "id": "instagram",

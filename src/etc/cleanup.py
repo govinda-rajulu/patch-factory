@@ -129,7 +129,35 @@ def prefixes(path=None):
     return out or None
 
 
-def plan(releases, tag_map, deploys=(), branch_rows=(), known=None):
+RETIRED = pathlib.Path(__file__).resolve().parent / 'retired-builds.json'
+
+
+def retired_builds(path=None):
+    """W15i (owner, 23 Oct 2026: "for reddit, we can delete v42"): builds the owner retired by
+    app, version and a published-before cutoff, so a later build of the same version stays."""
+    try:
+        rows = json.loads(pathlib.Path(path or RETIRED).read_text(encoding='utf-8'))
+    except FileNotFoundError:
+        return []
+    out = []
+    for r in rows:
+        if not (isinstance(r, dict) and re.fullmatch(r'[a-z0-9-]+', str(r.get('app', ''))) and
+                re.fullmatch(r'[0-9]+(?:[.][0-9]+)*', str(r.get('version', ''))) and
+                re.fullmatch(r'\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ', str(r.get('published_before', ''))) and r.get('why')):
+            raise SystemExit('STOP: src/etc/retired-builds.json has a malformed row; nothing changed')
+        out.append(r)
+    return out
+
+
+def is_retired(app, r, retire):
+    tag, when = str(r.get('tag_name') or ''), str(r.get('published_at') or r.get('created_at') or '')
+    for x in retire or ():
+        if app == x['app'] and tag.startswith(app + '-v' + x['version'] + '-b') and when and when < x['published_before']:
+            return x
+    return None
+
+
+def plan(releases, tag_map, deploys=(), branch_rows=(), known=None, retire=()):
     groups, kept, rel = {}, [], []
     for r in releases:
         m = APP_TAG.match(str(r.get('tag_name') or ''))
@@ -140,6 +168,11 @@ def plan(releases, tag_map, deploys=(), branch_rows=(), known=None):
     for app, rows in sorted(groups.items()):
         rows.sort(key=newest_first, reverse=True)
         retired = known is not None and app not in known
+        gone_builds = [r for r in rows if is_retired(app, r, retire)]
+        for r in gone_builds:
+            x = is_retired(app, r, retire)
+            rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': 'owner retired %s %s: %s' % (app, x['version'], x['why'])})
+        rows = [r for r in rows if r not in gone_builds]
         for i, r in enumerate(rows):
             if retired:
                 rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': 'retired app ' + app})
@@ -229,7 +262,7 @@ def main(argv=None, run=subprocess.run):
     if known is None:
         print('STOP: src/targets.json unreadable here; run cleanup.py from a repository checkout. Nothing changed.')
         return 1
-    p = plan(releases, tag_map, deploys, branch_rows, known)
+    p = plan(releases, tag_map, deploys, branch_rows, known, retired_builds())
     if a.mode == 'preview':
         show(p)
         if a.out:

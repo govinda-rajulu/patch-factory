@@ -1,7 +1,8 @@
 version: 2
 updates:
-  # Only github-actions. There is no Dockerfile and no package manifest in this repo,
-  # so the docker and pip ecosystems would find nothing.
+  # Only github-actions. There is no Dockerfile. The one Python manifest,
+  # src/build/helper/ggplay_dl/requirements.txt, names no versions and belongs to the Google
+  # Play helper that no build calls (W15i, 23 Oct 2026), so a pip entry would find nothing.
   - package-ecosystem: "github-actions"
     # W15b (20 Oct 2026, #188): composite actions live in .github/actions/*; "/" alone never
     # reaches them, so a bump left .github/actions/preparing on the old setup-java and Validate

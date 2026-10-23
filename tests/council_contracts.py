@@ -4,6 +4,7 @@ Every model call is faked; nothing here reaches a network. Mutants prove each gu
 """
 import importlib.util
 import json
+from urllib.parse import urlparse
 import re
 import unittest
 from pathlib import Path
@@ -89,6 +90,8 @@ LESSON_HASHES = {  # append a line for each new lesson; existing lines never cha
     'L073': '94927572c7868f83',
     'L074': '57c5b1cebaedd4a3',
     'L075': '28fcc7e1169a02d0',
+    'L076': '55145d5e95ca096d',
+    'L077': '3b7e4ab72b6fd059',
 }
 KEYS = {'GITHUB_TOKEN': 'ghs_FAKE_TOKEN_0001', 'GEMINI_API_KEY': 'AIza_FAKE_GEMINI_0002',
         'NVIDIA_API_KEY': 'nvapi-FAKE-NVIDIA-0003', 'OPENROUTER_API_KEY': 'sk-or-v1-FAKE-0004',
@@ -371,7 +374,7 @@ class Council(unittest.TestCase):
         council.http = fake
         env = self.env(PF_EVENT='pull_request', PF_PR='5')
         self.assertEqual(council.main(env), 0)
-        posts = [c for c in fake.calls if c[0] == 'POST' and 'api.github.com' in c[1]]
+        posts = [c for c in fake.calls if c[0] == 'POST' and urlparse(c[1]).hostname == 'api.github.com']
         self.assertEqual(len(posts), 1)
         body = posts[0][2]['body']
         self.assertIn(council.MARKER['review'], body)
@@ -388,7 +391,7 @@ class Council(unittest.TestCase):
         council._model_cache.clear()
         self.assertEqual(council.main(env), 0)
         self.assertTrue([c for c in fake2.calls if c[0] == 'PATCH' and c[1].endswith('/issues/comments/77')])
-        self.assertFalse([c for c in fake2.calls if c[0] == 'POST' and 'api.github.com' in c[1]])
+        self.assertFalse([c for c in fake2.calls if c[0] == 'POST' and urlparse(c[1]).hostname == 'api.github.com'])
 
     def test_findings_merge_by_file_and_nearby_line(self):
         a = {'severity': 'low', 'file': 'f', 'line': 10, 'issue': 'i', 'fix': '', 'rule': ''}
@@ -456,7 +459,7 @@ class Council(unittest.TestCase):
             if 'chat/completions' in url:
                 qid = re.search(r'question_id: (\w+)', body['messages'][1]['content'])[1]
                 v = vote(qid)
-                if 'mistral' in body['model']:
+                if body['model'].startswith(('mistral', 'codestral')):
                     v['reasons'] = ['Owner override']
                 return 200, json.dumps({'choices': [{'message': {'content': json.dumps(v)}}]})
             return fake(method, url, headers, body, timeout)
@@ -536,7 +539,7 @@ class Council(unittest.TestCase):
                 qid = re.search(r'question_id: (\w+)', text)[1]
                 keys = json.loads(re.search(r'FACT KEYS: (\[.*\])', text)[1])
                 seen['keys'], seen['text'] = keys, text
-                key = 'selection:invented/exclude' if 'mistral' in body['model'] else 'selection:youtube-morphe/exclude'
+                key = 'selection:invented/exclude' if body['model'].startswith(('mistral', 'codestral')) else 'selection:youtube-morphe/exclude'
                 return 200, json.dumps({'choices': [{'message': {'content': json.dumps(self.ask_reply(qid, keys, key=key))}}]})
             return fake(method, url, headers, body, timeout)
         council.http = replies
@@ -564,7 +567,7 @@ class Council(unittest.TestCase):
         perms = re.search(r'\n    permissions:\n((?:      .+\n)+)', wf)[1]
         self.assertEqual(sorted(l.strip() for l in perms.splitlines()),
                          ['contents: read', 'issues: write', 'pull-requests: write'])
-        self.assertEqual(wf.count('secrets.'), 8)  # W15h: + Cloudflare token and account id
+        self.assertEqual(wf.count('secrets.'), 10)  # W15h: + Cloudflare token and account id; W15i: + Kilo, Z.AI
         self.assertEqual(sorted(re.findall(r'secrets\.(\w+)', wf)),
                          sorted([p['key'] for p in council.PROVIDERS.values()] + ['CLOUDFLARE_ACCOUNT_ID']))
         self.assertIn('options: [probe, question, ask, audit, triage, shift]', wf)
@@ -590,7 +593,8 @@ class Council(unittest.TestCase):
         for name, p in council.PROVIDERS.items():
             self.assertTrue(p['chat'].startswith('https://') and p['chat'].endswith('/chat/completions'), name)
             # W15h: Cloudflare has no OpenAI-style catalogue; its seats name exact models.
-            self.assertTrue(name == 'cloudflare' or (p['models'].startswith('https://') and p['models'].endswith('/models')), name)
+            # W15i: Z.AI publishes no catalogue either.
+            self.assertTrue(name in ('cloudflare', 'zai') or (p['models'].startswith('https://') and p['models'].endswith('/models')), name)
             self.assertIsInstance(p['auth'], bool, name)
         self.assertFalse(council.PROVIDERS['openrouter']['auth'])
         env = dict(self.env(), GROQ_API_KEY='gsk_FAKE_GROQ_0005', COHERE_API_KEY='co-FAKE-0006')
@@ -785,7 +789,25 @@ class Council(unittest.TestCase):
         replies[:] = ['not json', 'still not json']
         got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
         self.assertTrue(got['status'].startswith('INVALID_SCHEMA'), got['status'])
-        self.assertEqual(len(sent), 2)  # never more than one repair
+        # W15i: never more than one repair per model; a model that stays invalid hands the
+        # seat to its next model, so every listed model gets exactly its two calls.
+        self.assertEqual(len(sent), 2 * len(SEAT['models']))
+        self.assertIn('model(s) answered invalid JSON', got['status'])
+
+    def test_w15i_invalid_reply_moves_the_seat_to_its_next_model(self):
+        replies = ['not json', 'still not json', '{"summary": "ok", "verdict": "looks_ok", "findings": []}']
+        sent = []
+
+        def http(method, url, headers, body=None, timeout=90):
+            if url.endswith('/models'):
+                return 200, json.dumps({'data': []})
+            sent.append(body['model'])
+            return self.reply(replies.pop(0) if replies else '{}')
+        council.http = http
+        got = council.run_seat(SEAT, 's', 'u', self.env(), council.check_review, 'C')
+        self.assertEqual(got['status'], 'OK')
+        self.assertEqual(sent, [SEAT['models'][0], SEAT['models'][0], SEAT['models'][1]])
+        self.assertEqual(got['model'], SEAT['models'][1])
 
     def test_json_candidates_skip_prompt_templates_and_think_blocks(self):
         text = ('<think>use {"a": 1}</think>Schema was {"summary": "...", "verdict": "x"}. Answer:\n'
@@ -831,7 +853,7 @@ class Council(unittest.TestCase):
 
     def test_triage_counts_only_cited_verdicts_and_posts_one_table(self):
         def votes(model, nums):
-            ev = ['green run 37580215235'] if 'mistral' not in model else ['looks fixed']
+            ev = ['green run 37580215235'] if not model.startswith(('mistral', 'codestral')) else ['looks fixed']
             return [{'issue': n, 'verdict': 'close' if n != 13 else 'keep', 'reason': 'target green again', 'evidence': ev}
                     for n in nums]
         fake = Fake()
@@ -893,6 +915,39 @@ class Council(unittest.TestCase):
         finally:
             council.desk_job = real
         self.assertEqual(called, [dt.timezone.utc])
+
+    def test_w15i_sunday_model_watch_edits_one_desk_comment(self):
+        import datetime as dt
+        cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
+        spec = json.loads((ROOT / 'src/council/shards.json').read_text())
+        sunday = dt.datetime(2026, 10, 25, 3, 17, tzinfo=dt.timezone.utc)
+        self.assertEqual(council.desk_job(cfg, spec, sunday), ('probe', {'PF_ISSUE': '154'}))
+        self.assertEqual(council.desk_job(cfg, spec, sunday + dt.timedelta(hours=12))[0], 'audit')
+        saved = (council.convene, council.probe_model, council.upsert, council.candidates)
+        posts = []
+        council.convene = lambda seats, *a: [{'seat': s['id'], 'provider': s['provider'], 'model': s['models'][0], 'status': 'OK' if i else 'UNAVAILABLE x', 'answer': None} for i, s in enumerate(seats)]
+        council.probe_model = lambda seat, provider, model, env: 'MISSING listed=no' if model == seat['models'][0] else 'SERVED listed=yes'
+        council.upsert = lambda env, n, marker, body: posts.append((n, marker, body))
+        council.candidates = lambda seat, env: seat['models'] + (['brand/new-model'] if seat['id'] == 'gpt' else [])
+        try:
+            seats = [s for s in cfg['seats'] if 'probe' in s.get('jobs', council.JOBS)]
+            env = dict(self.env(), PF_ISSUE='154', NVIDIA_API_KEY='nv-FAKE')
+            got = council.mode_probe(env, seats, cfg)
+        finally:
+            council.convene, council.probe_model, council.upsert, council.candidates = saved
+        self.assertEqual(got, '%d of %d seats ready' % (len(seats) - 1, len(seats)))
+        (n, marker, body), = posts
+        self.assertEqual((n, marker), (154, '<!-- pf-council:probe -->'))
+        self.assertIn('**Needs you:** %d item(s)' % (len(seats) + 1), body)
+        self.assertIn('openai/gpt-oss-20b on nvidia (MISSING)', body)
+        self.assertIn('brand/new-model on nvidia (gpt)', body)
+        posts.clear()
+        council.convene, council.probe_model, council.upsert = (lambda seats, *a: [], lambda *a: 'SERVED listed=yes', lambda *a: posts.append(a))
+        try:
+            council.mode_probe(self.env(), [], cfg)
+        finally:
+            council.convene, council.probe_model, council.upsert, council.candidates = saved
+        self.assertEqual(posts, [])  # a manual probe without an issue number writes nothing
 
     def test_one_seat_repeating_one_issue_is_one_row(self):
         f = {'severity': 'medium', 'file': 'w.sh', 'line': 1, 'quote': 'gh api x', 'issue': 'No error handling.',

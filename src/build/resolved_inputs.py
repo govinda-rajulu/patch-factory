@@ -64,6 +64,14 @@ def resolver_summary(stdout, returncode):
             hidden += 1
     return "; ".join(kept[:8] + ["exit=%d" % returncode, "%d other line(s) withheld" % hidden])
 
+def listed(names):
+    """W15i: file names for a public reason; only plain names are shown, others are counted."""
+    plain = sorted(n for n in names if re.fullmatch(r"[A-Za-z0-9._-]{1,80}", n))
+    rest = len(names) - len(plain)
+    return ", ".join(plain[:6] + (["%d more" % (len(plain) - 6)] if len(plain) > 6 else [])
+                     + (["%d unnamed" % rest] if rest else [])) or "none"
+
+
 def public_reason(error):
     """This script's own fixed reason text, or only the exception type."""
     text = str(error) if isinstance(error, ValueError) else ""
@@ -124,11 +132,16 @@ def fields(text):
     for line in text.splitlines():
         key, sep, value = line.partition("=")
         if sep and key in required:
-            need(key not in result and value, "duplicate or empty resolver field")
+            need(key not in result and (value or key == "VERSION"), "duplicate or empty resolver field")
             result[key] = value
     need(set(result) == set(required), "incomplete resolver output")
+    # W15i: an empty VERSION is resolve.sh's any-version answer (the store's newest is taken at
+    # build time, as the live build does). Accepted only when the resolver said so for this
+    # very winner; the lock then pins the patcher and bundles and records version "".
+    any_version = ("  - %s: any app version, the store's newest, " % result.get("WINNER", "")) in text
     need(re.fullmatch(r"[A-Za-z0-9_-]+", result["WINNER"]) and
-         re.fullmatch(r"[0-9]+(?:[.][0-9]+)*", result["VERSION"]) and
+         (re.fullmatch(r"[0-9]+(?:[.][0-9]+)*", result["VERSION"]) or
+          (result["VERSION"] == "" and any_version)) and
          re.fullmatch(r"[0-9a-f]{64}", result["MPP_SHA256"]), "malformed resolver identity")
     need(not any(ord(c) < 32 or ord(c) == 127 for c in result["BUNDLE_TAG"]), "invalid tag")
     return result
@@ -165,13 +178,25 @@ def prepare(root, ident, env, patcher_fetch=None, run=None, extra_fetch=None):
              "patcher changed after fetch")
         need(re.fullmatch(r"morphe-desktop-[A-Za-z0-9_.+-]+-all[.]jar", meta["name"]),
              "invalid patcher filename")
-        local_env = dict(clean, PF_RESOLVE_JAR=str(jar),
+        # W15i (L076): morphe-desktop 1.19.0 keeps its data beside its JAR ("Morphe data root:
+        # <jar dir>/morphe-data (JAR-adjacent)", owner Cloud Shell probe 23 Oct 2026), so running
+        # the payload JAR wrote morphe-data/ into the payload and verify refused every lock as an
+        # unlisted file. The resolver runs a byte-identical copy in its own tool folder.
+        tool = scratch / "tool"
+        tool.mkdir()
+        shutil.copyfile(jar, tool / meta["name"])
+        tool_record = regular(tool, meta["name"])
+        need(tool_record["sha256"] == record["sha256"] and tool_record["bytes"] == record["bytes"],
+             "resolver tool copy differs from the fetched patcher")
+        local_env = dict(clean, PF_RESOLVE_JAR=str(tool / meta["name"]),
                          PF_RESOLVE_DIR=str(scratch / "candidates"))
         result = execute(["bash", "src/build/resolve.sh", ident], cwd=root, env=local_env,
                          capture_output=True, text=True, timeout=1200, check=False)
         need(result.returncode == 0, "candidate resolution failed: " +
          resolver_summary(result.stdout, result.returncode))
         parsed = fields(result.stdout)
+        need(sorted(p.name for p in payload.iterdir()) == [meta["name"]],
+             "resolver wrote into the payload: " + listed(set(p.name for p in payload.iterdir()) - {meta["name"]}))
         winner = next((c for c in t["candidates"] if c["name"] == parsed["WINNER"]), None)
         need(winner is not None and (not t.get("pin") or t["pin"] == parsed["WINNER"]),
              "winner differs from candidate/pin policy")
@@ -249,7 +274,8 @@ def verify(root, ident, env):
     t = shadow_inputs.target(root, ident)
     need(any(c["name"] == m["winner"] for c in t["candidates"]), "winner not configured")
     need(not t.get("pin") or t["pin"] == m["winner"], "pin drift")
-    need(re.fullmatch(r"[0-9]+(?:[.][0-9]+)*", m["version"]), "invalid resolved version")
+    need(re.fullmatch(r"[0-9]+(?:[.][0-9]+)*", m["version"]) or m["version"] == "",
+         "invalid resolved version")
     need(re.fullmatch(r"morphe-desktop-[A-Za-z0-9_.+-]+-all[.]jar", m["patcher"]["path"]),
          "invalid patcher path")
     expected = {"09-" + m["winner"] + ".mpp": "winner"}
@@ -262,8 +288,9 @@ def verify(root, ident, env):
     records = [m["patcher"]] + m["bundles"]
     need(sum(r["bytes"] for r in records) <= MAX_TOTAL, "oversized locked payload")
     directory = root / "resolved-inputs"
-    need(set(p.name for p in directory.iterdir()) ==
-         {"lock.json"} | {r["path"] for r in records}, "unlisted/missing payload file")
+    present, wanted = set(p.name for p in directory.iterdir()), {"lock.json"} | {r["path"] for r in records}
+    need(present == wanted, "unlisted/missing payload file (unlisted: %s; missing: %s)"
+         % (listed(present - wanted), listed(wanted - present)))
     for r in records:
         actual = regular(directory, r["path"])
         need(type(r["bytes"]) is int and actual["bytes"] == r["bytes"] and

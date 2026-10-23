@@ -67,12 +67,26 @@ jobs:
           ref: ${{ steps.pr.outputs.base }}
           path: base
           persist-credentials: false
-      - name: Checkout the pull request (data only, never executed)
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ steps.pr.outputs.head }}
-          path: head
-          persist-credentials: false
+      - name: Fetch the pull request's data files only (no code on disk)
+        # W15i (CodeQL actions/cache-poisoning/poisonable-step, 23 Oct 2026): the checker only
+        # ever READ the head (src/targets.json, src/patches, docs/review/onboarding; stdlib only,
+        # run from base/), so the alert was a false alarm. The head is now not checked out at
+        # all: those three paths come out of the commit's tarball, nothing else lands on disk,
+        # and a link or a path outside them stops the job.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ steps.pr.outputs.head }}
+        run: |
+          if ! printf '%s' "$HEAD_SHA" | grep -Eq '^[0-9a-f]{40}$'; then echo "::error::head '$HEAD_SHA' is not a commit id"; exit 1; fi
+          gh api "repos/$REPO/tarball/$HEAD_SHA" > head.tgz
+          mkdir head
+          tar -xzf head.tgz -C head --strip-components=1 --no-same-owner --no-same-permissions --wildcards \
+            '*/src/targets.json' '*/src/patches/*' '*/docs/review/onboarding/*'
+          rm -f head.tgz
+          if [ -n "$(find head -type l -print -quit)" ]; then echo "::error::the pull request carries a link in its data files"; exit 1; fi
+          if [ -n "$(find head -type f ! -path 'head/src/targets.json' ! -path 'head/src/patches/*' ! -path 'head/docs/review/onboarding/*' -print -quit)" ]; then echo "::error::unexpected file outside the data paths"; exit 1; fi
+          test -f head/src/targets.json
       - name: Check onboarding records
         id: check
         run: |
@@ -131,6 +145,8 @@ jobs:
           COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          KILO_API_KEY: ${{ secrets.KILO_API_KEY }}
+          ZAI_API_KEY: ${{ secrets.ZAI_API_KEY }}
           PF_REPO: ${{ github.repository }}
           PF_PR: ${{ needs.record.outputs.pr }}
           PF_MANIFEST: onboard-manifest/manifest.json

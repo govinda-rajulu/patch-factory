@@ -5,6 +5,7 @@ W9: Pages deployment records (newest 5 stay) and merged packet branches are in t
 import importlib.util
 import io
 import json
+import pathlib
 import os
 import subprocess
 import sys
@@ -142,6 +143,24 @@ class Cleanup(unittest.TestCase):
         p = self.preview()
         self.assertEqual([r['tag'] for r in p['releases']], ['adguard-v1.8-b20260908'])
         self.assertEqual({k['tag'] for k in p['kept']}, {'adguard-v1.9-b20260909', 'tc-combo-v1.1-b20260901'})
+
+    def test_w15i_owner_retired_build_goes_and_the_next_newest_stays(self):
+        cl.KEEP = 1
+        retire = [{'app': 'adguard', 'version': '1.9', 'published_before': '2026-09-20T00:00:00Z', 'why': 'owner said so'}]
+        rows = [rel(8, 8), rel(9, 9), rel(1, 1, prefix='tc-combo')]
+        p = cl.plan(rows, {}, retire=retire)
+        self.assertEqual(sorted(r['tag'] for r in p['releases']), ['adguard-v1.9-b20260909'])
+        self.assertIn('owner retired adguard 1.9: owner said so', p['releases'][0]['why'])
+        self.assertEqual({k['tag'] for k in p['kept']}, {'adguard-v1.8-b20260908', 'tc-combo-v1.1-b20260901'})
+        late = dict(rel(9, 25), tag_name='adguard-v1.9-b20260925')  # a later build of 1.9 stays
+        p = cl.plan([rel(8, 8), late], {}, retire=retire)
+        self.assertEqual(p['releases'][0]['tag'], 'adguard-v1.8-b20260908')
+        live = cl.retired_builds()
+        self.assertEqual([(r['app'], r['version']) for r in live], [('reddit', '2026.42.0')])
+        bad = pathlib.Path(self.tmp.name if hasattr(self, 'tmp') else '/tmp') / 'retired.json'
+        bad.write_text('[{"app": "Reddit!", "version": "x"}]')
+        with self.assertRaises(SystemExit):
+            cl.retired_builds(bad)
 
     def test_a_new_release_after_preview_changes_the_token(self):
         p = self.preview()

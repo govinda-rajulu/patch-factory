@@ -160,13 +160,14 @@ class AnyVersionResolve(unittest.TestCase):
         x = self.resolve('*) echo "Any (4 patches)";;', maxver='26.34.0')
         self.assertIn('VERSION=26.34.0\n', x.stdout)
 
-    def test_plan_packet_refuses_an_empty_version(self):
-        # The shadow packet needs digits; an any-version target builds through the legacy path.
-        import importlib.util
-        spec = importlib.util.spec_from_file_location('ri', ROOT / 'src/build/resolved_inputs.py')
-        self.assertIn("any app version, the store's newest", (ROOT / 'src/build/resolved_inputs.py').read_text())
+    def test_plan_packet_takes_an_empty_version_only_from_the_any_version_answer(self):
+        # W15i: the shadow packet used to refuse an empty VERSION, so Amazon Music's shadow job was
+        # red on every Check new patch. An empty VERSION is now accepted only when resolve.sh said
+        # "any app version" for that very winner (tests/resolved_contracts.py covers both ways).
         text = (ROOT / 'src/build/resolved_inputs.py').read_text()
-        self.assertIn('need(key not in result and value, "duplicate or empty resolver field")', text)
+        self.assertIn("any app version, the store's newest", text)
+        self.assertIn('need(key not in result and (value or key == "VERSION"), "duplicate or empty resolver field")', text)
+        self.assertIn('(result["VERSION"] == "" and any_version)', text)
 
 
 if __name__ == '__main__':

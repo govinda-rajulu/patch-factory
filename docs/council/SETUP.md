@@ -20,6 +20,8 @@ repository, so free-tier prompt use for training costs nothing private.
 | `COHERE_API_KEY` | Cohere trial key | https://dashboard.cohere.com/api-keys | 1000 calls a month, 20 a minute; evaluation use | command |
 | `GROQ_API_KEY` | Groq | https://console.groq.com/keys | about 30 a minute, 1000 a day, 8000 tokens a minute | groq |
 | `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Workers AI (W15h, optional) | https://dash.cloudflare.com/profile/api-tokens (template "Workers AI", Read); the account id is on the dashboard Overview page (32 hex characters) | 10,000 neurons a day, reset 00:00 UTC; no training on inputs | backup for every seat |
+| `KILO_API_KEY` | Kilo Gateway (W15i, optional) | https://app.kilo.ai (API keys) | free models (ids end in :free, or kilo-auto/free) at 200 requests an hour (kilo.ai/docs/gateway/usage-and-billing) | backup for gpt, gemini, nemotron, open, groq |
+| `ZAI_API_KEY` | Z.AI (W15i, optional) | https://z.ai/manage-apikey/apikey-list | GLM-4.7-Flash and GLM-4.5-Flash free (docs.z.ai/guides/overview/pricing); limits shown only in the account; busy hours answer 429 code 1305 | backup for gemini, codestral, command |
 
 W15h (22 Oct 2026): Cloudflare has an OpenAI-style endpoint
 (`/client/v4/accounts/<id>/ai/v1/chat/completions`, developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility),
