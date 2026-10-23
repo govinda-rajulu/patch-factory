@@ -69,5 +69,27 @@ class Gate(unittest.TestCase):
         self.assertEqual(sorted(keys), sorted(['provider', 'community', 'tooling', 'selection', 'rulemerge', 'nightly']))
 
 
+    def test_w15i_fallback_builds_are_a_finding(self):
+        # L077: 23 Oct "17 of 17 worked" while Facebook and Instagram built on their fallbacks.
+        saved = (t1.dispatch_and_wait, t1.read_apps, t1.save, t1.R)
+        said = []
+        t1.R = {'apps': {}, 'phases': [], 'flows': {}}
+        t1.dispatch_and_wait = lambda *a, **k: {'id': 9}
+        t1.read_apps = lambda phase, r: {
+            'youtube': {'run': 9, 'result': 'success', 'coverage': 'COVERAGE youtube ok'},
+            'facebook': {'run': 9, 'result': 'success', 'fallback': '##[warning]PROVIDER_FALLBACK facebook: Built with fallback provider derevanced'}}
+        t1.save = lambda: None
+        old_say = t1.say
+        t1.say = lambda phase, status, detail: said.append((phase, status, detail))
+        try:
+            t1.batch('m' * 40, ['youtube', 'facebook'])
+        finally:
+            t1.dispatch_and_wait, t1.read_apps, t1.save, t1.R = saved
+            t1.say = old_say
+        self.assertEqual(said[0][1], 'FINDING')
+        self.assertIn('2 of 2 apps worked', said[0][2])
+        self.assertIn('on a fallback provider: facebook', said[0][2])
+
+
 if __name__ == '__main__':
     unittest.main()

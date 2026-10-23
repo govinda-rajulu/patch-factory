@@ -1,6 +1,31 @@
 # Open work
 
-## Current checkpoint: 22 October 2026, night IST (packet W15h)
+## Current checkpoint: 23 October 2026, midday IST (packet W15i)
+
+W15h merged (#216, `3572ca71`, RESULT OK; T1: 17 of 17 built without publishing, two on a
+fallback). Owner keys run (pf-keys): Kilo saved, Z.AI waiting on a working key (seats skip it until the secret exists), CodeQL default on
+(4 alerts), morphe 1.19.0 side folder found (L076), probe 12 of 31 models. W15i: shadow resolver
+runs its tool copy outside the packet (L076) and takes any-version apps; Facebook 584.0.0.51.56 with
+Hushfacebook 0.17.0 (owner); Reddit 2026.42.0 retired (owner: delete it; src/etc/retired-builds.json)
+so 2026.41.0 publishes again; council: Kilo and Z.AI, a seat with broken JSON moves to its next
+model, seats re-listed from the probe, the Sunday model watch on the desk; CodeQL: three fixes, the
+onboarding head is fetched as data only; T1 calls fallback builds a finding (L077).
+Record: [SESSION-2026-10-23.md](SESSION-2026-10-23.md). Open, in order:
+
+0. Owner, phone: Facebook 584 installs over the current patched Facebook (same key). Reddit 41 is
+   older than the installed 42: uninstall the patched Reddit first, then install 41 (sign in again).
+   Re-import the Obtainium JSON if not done since W15h.
+1. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`.
+2. docs/review/onboarding/facebook.md still says 583: the bot edited it after the W15i base, so the
+   record update rides the next packet built on the newer main.
+3. Instagram: piko's "Disable story auto flipping" no longer matches Instagram 452.1 (HushGram
+   built instead); watch piko for a fix, or hold that name.
+4. Second store: YT Music, AdGuard, Photos and Truecaller have no APKPure mapping, Key Mapper no
+   APKMirror one; the Google Play path (get_apk_chplay) is in utils.sh but nothing calls it.
+5. Combo planner and ceiling memory (LinkedIn step-downs); Tooling watch items (FlareSolverr,
+   pup to htmlq, apkeep); openskip and brain persona PRs; zizmor advisory job.
+
+## Checkpoint: 22 October 2026, night IST (packet W15h)
 
 W15f merged (#210, `db32d516`), published and cleaned up (one release per app). W15h: Obtainium
 certificate pin, tooling watch v2 over 13 upstreams (L074), empty API answers asked again (L075),

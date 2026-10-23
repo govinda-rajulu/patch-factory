@@ -145,7 +145,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=31', result.stdout)  # W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card; W15h: certificate pin
+        self.assertIn('PORTAL_CONTRACTS_PASS=32', result.stdout)  # W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card; W15h: certificate pin; W15i: comment stripper
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'

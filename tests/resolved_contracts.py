@@ -148,6 +148,54 @@ class ResolvedContracts(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(ValueError):
                 resolved.fields(value)
 
+    def test_w15i_patcher_side_files_stay_out_of_the_payload(self):
+        # L076: morphe-desktop 1.19.0 writes morphe-data/ beside the JAR it runs from.
+        def resolver(args, **kwargs):
+            jar = Path(kwargs["env"]["PF_RESOLVE_JAR"])
+            self.assertEqual(jar.parent.name, "tool")
+            (jar.parent / "morphe-data" / "tmp" / "shadow").mkdir(parents=True)
+            return self.resolver(args, **kwargs)
+        doc = resolved.prepare(self.r, self.ident, self.env, self.patcher, resolver, self.extra)
+        self.assertEqual(resolved.verify(self.r, self.ident, self.env), doc)
+        self.assertNotIn("morphe-data", [p.name for p in (self.r / "resolved-inputs").iterdir()])
+
+    def test_w15i_resolver_writing_into_the_payload_is_named(self):
+        def resolver(args, **kwargs):
+            (self.r / "pf-resolve-probe").mkdir(exist_ok=True)
+            payload = next(Path(self.r).glob("pf-resolve-*/payload"))
+            (payload / "morphe-data").mkdir()
+            return self.resolver(args, **kwargs)
+        with self.assertRaises(ValueError) as e:
+            resolved.prepare(self.r, self.ident, self.env, self.patcher, resolver, self.extra)
+        self.assertIn("resolver wrote into the payload: morphe-data", str(e.exception))
+        self.assertEqual(resolved.public_reason(e.exception), str(e.exception))
+        self.assertFalse((self.r / "resolved-inputs").exists())
+
+    def test_w15i_unlisted_file_is_named_in_the_public_reason(self):
+        self.prepare()
+        (self.r / "resolved-inputs" / "morphe-data").mkdir()
+        with self.assertRaises(ValueError) as e:
+            resolved.verify(self.r, self.ident, self.env)
+        self.assertIn("(unlisted: morphe-data; missing: none)", str(e.exception))
+        self.assertEqual(resolved.public_reason(e.exception), str(e.exception))
+        self.assertEqual(resolved.listed({"a b", "ok.txt"}), "ok.txt, 1 unnamed")
+
+    def test_w15i_any_version_winner_locks_tools_with_an_empty_version(self):
+        def resolver(args, **kwargs):
+            r = self.resolver(args, **kwargs)
+            winner = r.stdout.split("\n", 1)[0][7:]
+            out = ("  - %s: any app version, the store's newest, 3d ago\n" % winner) + r.stdout.replace("VERSION=4.2.1", "VERSION=")
+            return subprocess.CompletedProcess(args, 0, out, "")
+        doc = resolved.prepare(self.r, self.ident, self.env, self.patcher, resolver, self.extra)
+        self.assertEqual(doc["material"]["version"], "")
+        self.assertEqual(resolved.verify(self.r, self.ident, self.env), doc)
+        text = "WINNER=x\nVERSION=\nMPP=/a\nMPP_SHA256=" + "a" * 64 + "\nBUNDLE_TAG=v1\n"
+        with self.assertRaises(ValueError):
+            resolved.fields(text)  # empty VERSION without the any-version line
+        with self.assertRaises(ValueError):
+            resolved.fields("  - y: any app version, the store's newest, 1d ago\n" + text)  # another winner's line
+        self.assertEqual(resolved.fields("  - x: any app version, the store's newest, 1d ago\n" + text)["VERSION"], "")
+
     def test_prepare_failure_never_exposes_partial_packet_or_secrets(self):
         def failed(*args, **kwargs):
             return subprocess.CompletedProcess(args, 2, "SECRET", "SECRET")

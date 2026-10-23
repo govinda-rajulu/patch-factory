@@ -7,8 +7,8 @@
       "id": "gpt",
       "provider": "nvidia",
       "models": [
-        "openai/gpt-oss-120b",
-        "openai/gpt-oss-20b"
+        "openai/gpt-oss-20b",
+        "deepseek-ai/deepseek-v4-pro"
       ],
       "max_input_chars": 120000,
       "max_tokens": 8000,
@@ -43,8 +43,8 @@
           "model": "openai/gpt-oss-120b"
         },
         {
-          "provider": "openrouter",
-          "model": "openai/gpt-oss-120b:free"
+          "provider": "kilo",
+          "model": "kilo-auto/free"
         },
         {
           "provider": "cloudflare",
@@ -86,6 +86,14 @@
           "model": "google/gemma-4-31b-it:free"
         },
         {
+          "provider": "kilo",
+          "model": "kilo-auto/free"
+        },
+        {
+          "provider": "zai",
+          "model": "glm-4.7-flash"
+        },
+        {
           "provider": "cloudflare",
           "model": "@cf/openai/gpt-oss-120b"
         }
@@ -97,8 +105,8 @@
       "models": [
         "nvidia/nemotron-3-ultra-550b-a55b",
         "nvidia/nemotron-3.5-super-vl-120b-a12b",
-        "nvidia/nemotron-3-super-120b-a12b",
-        "nvidia/nemotron-3-nano-30b-a3b"
+        "minimaxai/minimax-m3",
+        "qwen/qwen3.5-397b-a17b"
       ],
       "max_input_chars": 120000,
       "max_tokens": 8000,
@@ -121,8 +129,8 @@
       ],
       "backups": [
         {
-          "provider": "openrouter",
-          "model": "nvidia/nemotron-3-super-120b-a12b:free"
+          "provider": "kilo",
+          "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
         },
         {
           "provider": "cloudflare",
@@ -135,9 +143,7 @@
       "provider": "openrouter",
       "models": [
         "cohere/north-mini-code:free",
-        "poolside/laguna-s-2.1:free",
         "google/gemma-4-31b-it:free",
-        "nvidia/nemotron-3-super-120b-a12b:free",
         "openrouter/free"
       ],
       "max_input_chars": 100000,
@@ -161,8 +167,12 @@
       ],
       "backups": [
         {
+          "provider": "kilo",
+          "model": "kilo-auto/free"
+        },
+        {
           "provider": "nvidia",
-          "model": "nvidia/nemotron-3-nano-30b-a3b"
+          "model": "moonshotai/kimi-k2.6"
         },
         {
           "provider": "groq",
@@ -178,7 +188,6 @@
       "id": "codestral",
       "provider": "mistral",
       "models": [
-        "mistral-large-latest",
         "codestral-latest",
         "mistral-small-latest"
       ],
@@ -205,6 +214,14 @@
         {
           "provider": "openrouter",
           "model": "openrouter/free"
+        },
+        {
+          "provider": "nvidia",
+          "model": "mistralai/mistral-medium-3.5-128b"
+        },
+        {
+          "provider": "zai",
+          "model": "glm-4.7-flash"
         },
         {
           "provider": "cloudflare",
@@ -241,6 +258,14 @@
         {
           "provider": "openrouter",
           "model": "openrouter/free"
+        },
+        {
+          "provider": "nvidia",
+          "model": "z-ai/glm-5.2"
+        },
+        {
+          "provider": "zai",
+          "model": "glm-4.5-flash"
         },
         {
           "provider": "cloudflare",
@@ -282,6 +307,14 @@
           "model": "openai/gpt-oss-20b"
         },
         {
+          "provider": "kilo",
+          "model": "kilo-auto/free"
+        },
+        {
+          "provider": "nvidia",
+          "model": "deepseek-ai/deepseek-v4-flash"
+        },
+        {
           "provider": "cloudflare",
           "model": "@cf/openai/gpt-oss-120b"
         }
@@ -292,52 +325,60 @@
   "probe_alternates": {
     "gpt": [
       {
-        "provider": "groq",
-        "model": "openai/gpt-oss-120b"
+        "provider": "kilo",
+        "model": "kilo-auto/free"
       },
       {
-        "provider": "openrouter",
-        "model": "openai/gpt-oss-120b:free"
+        "provider": "cloudflare",
+        "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
       }
     ],
     "gemini": [
       {
-        "provider": "openrouter",
-        "model": "google/gemma-4-31b-it:free"
+        "provider": "zai",
+        "model": "glm-4.7-flash"
+      },
+      {
+        "provider": "cloudflare",
+        "model": "@cf/openai/gpt-oss-120b"
       }
     ],
     "nemotron": [
       {
-        "provider": "openrouter",
-        "model": "nvidia/nemotron-3-super-120b-a12b:free"
+        "provider": "kilo",
+        "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
+      },
+      {
+        "provider": "nvidia",
+        "model": "minimaxai/minimax-m2.7"
       }
     ],
     "open": [
       {
         "provider": "nvidia",
-        "model": "nvidia/nemotron-3-nano-30b-a3b"
-      },
-      {
-        "provider": "groq",
-        "model": "qwen/qwen3.8-27b"
+        "model": "moonshotai/kimi-k2.6"
       }
     ],
     "codestral": [
       {
-        "provider": "openrouter",
-        "model": "openrouter/free"
+        "provider": "nvidia",
+        "model": "mistralai/mistral-medium-3.5-128b"
       }
     ],
     "command": [
       {
-        "provider": "openrouter",
-        "model": "openrouter/free"
+        "provider": "nvidia",
+        "model": "z-ai/glm-5.2"
+      },
+      {
+        "provider": "zai",
+        "model": "glm-4.5-flash"
       }
     ],
     "groq": [
       {
         "provider": "nvidia",
-        "model": "openai/gpt-oss-20b"
+        "model": "deepseek-ai/deepseek-v4-flash"
       }
     ]
   },
@@ -351,5 +392,5 @@
     "command",
     "groq"
   ],
-  "backups_note": "W15h (22 Oct 2026): a seat whose own models are all missing, busy or cut answers through its backups on other providers, in order (the W15b probe candidates plus Cloudflare Workers AI). A backup without a key is skipped. 'discover' adds up to two catalogue models matching the pattern after the seat's own list, so a retired model id no longer empties a seat."
+  "backups_note": "W15h (22 Oct 2026): a seat whose own models are all missing, busy or cut answers through its backups on other providers, in order (the W15b probe candidates plus Cloudflare Workers AI). A backup without a key is skipped. 'discover' adds up to two catalogue models matching the pattern after the seat's own list, so a retired model id no longer empties a seat. W15i (23 Oct 2026, owner probe 39905304677: 12 of 31 models served): ids the probe found MISSING or refused on the free plan are gone (NVIDIA gpt-oss-120b, Nemotron 3 Super and Nano, OpenRouter gpt-oss-120b:free, Nemotron Super :free and Laguna S, Mistral Large), and every seat gains Kilo or Z.AI plus one model of another family that NVIDIA serves (Kimi K2.6, GLM 5.2, MiniMax M3, Qwen 3.5, DeepSeek V4, Mistral Medium 3.5). The probe measures each candidate once (probe_alternates)."
 }

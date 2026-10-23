@@ -1,4 +1,4 @@
-# Packet Lessons (W5 to W14)
+# Packet Lessons (W5 to W15i)
 
 Generic lessons from patch-factory packets W5 to W14 (9 to 11 Oct 2026). Mirrored in both
 repositories; each copy arrives by that repository's own pull request.
@@ -44,3 +44,16 @@ repositories; each copy arrives by that repository's own pull request.
 - A detector matches message lines only; strip data (names, values) before matching words.
 - A proposal parked in a review doc is not work: schedule it in open work the day it lands, or decline it.
 - Any hand-kept list of workflows, apps or seats gets a test against the real files.
+
+## W15 to W15i (20 to 23 October 2026)
+
+- A verdict word ("gone", "worked", "OK") needs two readings; one empty API page is not "none".
+- A total that folds in fallbacks hides the primary's failure; report fallbacks as findings.
+- A tool may write beside its own binary; run tools from a scratch copy, never from a folder
+  you are sealing or hashing.
+- When the base cannot be rebuilt (a bot rewrote a file too large to fetch), build on the last
+  base you can rebuild exactly and touch none of the files the bots changed since.
+- Ask the owner's machine for facts only it can see with one rehearsed probe script, instead of
+  guessing; keys go in hidden and leave only as repository secrets.
+- Vendor limits come from the vendor's own page on the day; aggregator tables go stale.
+- `pkill -f PATTERN` also matches the shell running it; kill by pid.

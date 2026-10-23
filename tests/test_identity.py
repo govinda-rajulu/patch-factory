@@ -264,8 +264,8 @@ class Identity(unittest.TestCase):
         self.assertEqual(identity.check_input_variant({'version_code':'475019268'},meta),'MATCH 475019268')
         self.assertEqual(identity.check_input_variant({},meta),'NOT PINNED')
         fb=[t for t in json.loads((self.r/'src/targets.json').read_text()) if t['id']=='facebook'][0]
-        # W15 (17 Oct 2026): Hushfacebook 0.14.0 supports only 583.0.0.39.55; build 475614366 (arm64, 480-640dpi, Android 11+, APKMirror read 17 Oct).
-        self.assertEqual((fb['arch'],fb['dpi'],fb['version_code'],fb['max_app_version']),('arm64-v8a','480-640dpi','475614366','583.0.0.39.55'))
+        # W15i (owner 23 Oct 2026): Hushfacebook 0.17.0 supports only 584.0.0.51.56; build 475817393 (arm64, 480dpi, Android 11+, the only 584 row on APKMirror, read 23 Oct).
+        self.assertEqual((fb['arch'],fb['dpi'],fb['version_code'],fb['max_app_version']),('arm64-v8a','480dpi','475817393','584.0.0.51.56'))
         de=[c for c in fb['candidates'] if c['name']=='derevanced'][0]
         self.assertEqual((de['fallback'],de['overrides']['version_code'],de['overrides']['max_app_version']),(True,'475019344','580.0.0.51.74'))
         build=(self.r/'src/build/build.sh').read_text()

@@ -34,7 +34,7 @@ COUNCIL = ROOT / 'docs' / 'council'
 SENTINEL = '----- prompt below -----'
 MARKER = {'review': '<!-- pf-council:review -->', 'question': '<!-- pf-council:question -->',
           'ask': '<!-- pf-council:ask -->', 'audit': '<!-- pf-council:audit:%s -->',
-          'triage': '<!-- pf-council:triage -->'}
+          'triage': '<!-- pf-council:triage -->', 'probe': '<!-- pf-council:probe -->'}
 # Jobs a seat may take (seats.json "jobs"); a seat without the key takes every job.
 JOBS = ('review', 'question', 'ask', 'audit', 'triage', 'probe')
 TRIAGE_VERDICTS = ('close', 'keep', 'owner')
@@ -66,12 +66,20 @@ PROVIDERS = {
     # Used only as a backup seat model; nothing calls it until both secrets exist.
     'cloudflare': {'chat': 'https://api.cloudflare.com/client/v4/accounts/{account}/ai/v1/chat/completions',
                    'key': 'CLOUDFLARE_API_TOKEN', 'account': 'CLOUDFLARE_ACCOUNT_ID', 'auth': True},
+    # W15i (owner signed up 23 Oct 2026; pf-keys tested both live): Kilo Gateway, free models
+    # with a free key, 200 requests an hour (kilo.ai/docs/gateway/usage-and-billing); its
+    # catalogue listed 401 models, 16 free. Z.AI: GLM-4.7-Flash and GLM-4.5-Flash are free
+    # (docs.z.ai/guides/overview/pricing, read 23 Oct). Backup seat models only.
+    'kilo': {'chat': 'https://ai-gateway.kilo.ai/api/v1/chat/completions',
+             'models': 'https://ai-gateway.kilo.ai/api/v1/models', 'key': 'KILO_API_KEY', 'auth': True},
+    'zai': {'chat': 'https://api.z.ai/api/paas/v4/chat/completions', 'key': 'ZAI_API_KEY', 'auth': True},
 }
 # W15h: smallest gap between two calls to one provider, in seconds, from each free tier's
 # published per-minute limit (Gemini 3 Flash 5 RPM, Groq 30 RPM, OpenRouter free 20 RPM,
 # NVIDIA about 40 RPM, Cohere trial 20 RPM). Seats on one provider share one account limit,
 # so calls to a provider go one at a time. PF_PACE_SCALE=0 (or PF_RETRY_SLEEP=0) turns it off.
-PACE = {'gemini': 13.0, 'nvidia': 2.0, 'openrouter': 3.5, 'groq': 2.5, 'mistral': 1.5, 'cohere': 3.5, 'cloudflare': 1.5}
+PACE = {'gemini': 13.0, 'nvidia': 2.0, 'openrouter': 3.5, 'groq': 2.5, 'mistral': 1.5, 'cohere': 3.5, 'cloudflare': 1.5,
+        'kilo': 18.0, 'zai': 3.0}  # W15i: Kilo 200 an hour is one call per 18 s
 _pace_lock = {}
 _pace_last = {}
 VOTES = ('adopt', 'reject', 'hold', 'ask_owner')
@@ -434,6 +442,10 @@ def desk_job(cfg, spec, now):
         return 'shift', {'PF_ISSUE': str(desk), 'PF_SEAT': seat}
     if now.weekday() == 0 and now.hour < 12:
         return 'triage', {'PF_ISSUE': str(desk)}
+    # W15i (owner 23 Oct 2026: "routine checks on models"): Sunday morning is the model watch,
+    # every seat model and backup probed once, the result kept on the desk in one edited comment.
+    if now.weekday() == 6 and now.hour < 12:
+        return 'probe', {'PF_ISSUE': str(desk)}
     ids = [s['id'] for s in spec['shards']]
     slot = now.toordinal() * 2 + (now.hour >= 12)
     return 'audit', {'PF_ISSUE': str(desk), 'PF_SHARD': ids[slot % len(ids)]}
@@ -654,55 +666,54 @@ def run_seat(seat, system, user, env, checker, canary):
         # on other providers (seats.json 'backups'; a backup without a key is skipped).
         tries = [(seat, m) for m in own] + [(dict(seat, provider=b['provider']), b['model']) for b in backups
                                             if (b['provider'], b['model']) not in remembered('missing')]
+        invalid = []
         for index, (who, model) in enumerate(tries):
             row['model'] = model if who is seat else '%s via %s (backup)' % (model, who['provider'])
             try:
                 # A busy model is retried only when it is the seat's last preference.
                 text = complete(who, model, system, user, env, retry=index == len(tries) - 1)
-                seat = who
-                break
+                answered = who
             except ModelMissing:
                 remembered('missing').add((who['provider'], model))
                 missing.append(model)
+                continue
             except Truncated:
                 # W15h: reasoning models spend the output budget thinking ("cut at max_tokens").
                 # One more try with twice the room and low effort before moving on.
                 try:
-                    text = complete(dict(who, max_tokens=min(16000, 2 * int(who.get('max_tokens', 6000))),
-                                         reasoning_effort='low'), model, system, user, env, retry=False)
-                    seat = who
+                    answered = dict(who, max_tokens=min(16000, 2 * int(who.get('max_tokens', 6000))), reasoning_effort='low')
+                    text = complete(answered, model, system, user, env, retry=False)
                     row['model'] += ' (more room)'
-                    break
                 except (Truncated, Busy, ModelMissing):
                     cut.append(model)
+                    continue
             except Busy:
                 busy.append(model)
+                continue
+            # W15i (probe 23 Oct: nemotron ultra answered broken JSON twice and the seat sat out
+            # while its next model was served): a reply that stays invalid after its one repair
+            # turn moves the seat to its next model. The canary and uncited rules still end it.
+            try:
+                row['answer'] = valid_answer(answered, model, text, system, user, env, checker, canary, row)
+                break
+            except Uncited:
+                raise
+            except (ValueError, TypeError) as e:
+                invalid.append('%s: %s' % (model, str(e)[:40]))
         else:
             row['model'] = ''
+            if invalid:
+                row['status'] = 'INVALID_SCHEMA %s (%d model(s) answered invalid JSON)' % (invalid[0], len(invalid))
+                return row
             if busy or cut:
                 row['status'] = 'UNAVAILABLE no listed model answered (%d missing, %d busy%s)' % (
                     len(missing), len(busy), ', %d cut at max_tokens' % len(cut) if cut else '')
             else:
                 row['status'] = 'UNAVAILABLE no listed model is served (%d tried)' % len(missing)
             return row
-        for turn in (1, 2):
-            if canary in strip_think(text):
-                row['status'] = 'INVALID_CANARY'
-                return row
-            try:
-                row['answer'] = first_valid(json_candidates(text), checker)
-                break
-            except Uncited:
-                raise
-            except (ValueError, TypeError) as e:
-                if turn == 2:
-                    raise
-                # One repair turn: the seat sees exactly why its reply was refused.
-                text = complete(seat, model, system, user, env, retry=False, extra=(
-                    {'role': 'assistant', 'content': text[:6000]},
-                    {'role': 'user', 'content': 'Refused: %s. Reply with only the corrected JSON object.' % str(e)[:160]}))
-                row['model'] += ' (repaired)'
         row['status'] = 'OK'
+    except CanaryLeak:
+        row['status'] = 'INVALID_CANARY'
     except Refused as e:
         row['status'] = 'UNAVAILABLE ' + scrub(str(e), env)[:120]
     except Uncited:
@@ -710,6 +721,32 @@ def run_seat(seat, system, user, env, checker, canary):
     except (ValueError, TypeError) as e:
         row['status'] = 'INVALID_SCHEMA ' + str(e)[:40]
     return row
+
+
+class CanaryLeak(Exception):
+    pass
+
+
+def valid_answer(seat, model, text, system, user, env, checker, canary, row):
+    """The checked answer, with one repair turn; ValueError/TypeError when it stays invalid."""
+    for turn in (1, 2):
+        if canary in strip_think(text):
+            raise CanaryLeak()
+        try:
+            return first_valid(json_candidates(text), checker)
+        except Uncited:
+            raise
+        except (ValueError, TypeError) as e:
+            if turn == 2:
+                raise
+            # One repair turn: the seat sees exactly why its reply was refused.
+            try:
+                text = complete(seat, model, system, user, env, retry=False, extra=(
+                    {'role': 'assistant', 'content': text[:6000]},
+                    {'role': 'user', 'content': 'Refused: %s. Reply with only the corrected JSON object.' % str(e)[:160]}))
+            except Refused:
+                raise e
+            row['model'] += ' (repaired)'
 
 
 def first_valid(objects, checker):
@@ -1574,6 +1611,7 @@ def mode_probe(env, seats, cfg):
     # listed model, and every candidate backup in cfg probe_alternates, gets its own call, one
     # at a time (L039). Backups are wired in a later packet only for models measured SERVED.
     lines = ['', '### Every model', '', '| seat | provider | model | status |', '|---|---|---|---|']
+    dead, served = [], 0
     for seat in seats:
         pairs = [(seat['provider'], m) for m in seat['models']]
         pairs += [(a['provider'], a['model']) for a in cfg.get('probe_alternates', {}).get(seat['id'], [])]
@@ -1581,8 +1619,33 @@ def mode_probe(env, seats, cfg):
             status = probe_model(seat, provider, model, env)
             print('PROBE_MODEL seat=%s provider=%s model=%s status=%s' % (seat['id'], provider, model, status))
             lines.append('| %s | %s | %s | %s |' % (seat['id'], provider, clean(model, 80), clean(status, 90)))
-    summary(env, '\n'.join(['### Council probe', ''] + seat_table(rows) + lines))
-    return '%d of %d seats ready' % (sum(r['status'] == 'OK' for r in rows), len(rows))
+            served += status.startswith('SERVED')
+            if status.startswith(('MISSING', 'REFUSED')):
+                dead.append('%s on %s (%s)' % (clean(model, 80), provider, clean(status.split(' listed=')[0], 40)))
+    # W15i: catalogue models a seat's discover patterns match but no list names: candidates.
+    named = {(s['provider'], m) for s in seats for m in s['models']}
+    named |= {(a['provider'], a['model']) for v in cfg.get('probe_alternates', {}).values() for a in v}
+    fresh = []
+    for seat in seats:
+        if not keyed(seat['provider'], env):
+            continue
+        for m in candidates(seat, env)[len(seat['models']):]:
+            if (seat['provider'], m) not in named:
+                fresh.append('%s on %s (%s)' % (clean(m, 80), seat['provider'], seat['id']))
+    ready = sum(r['status'] == 'OK' for r in rows)
+    text = '\n'.join(['### Council probe', ''] + seat_table(rows) + lines)
+    summary(env, text)
+    if env.get('PF_ISSUE'):
+        need = len(dead) + (len(rows) - ready)
+        body = '\n'.join([MARKER['probe'], '### Model watch', '',
+                          '**Needs you:** %s' % ('nothing' if not need else '%d item(s): seats that sat out and models the providers no longer serve' % need),
+                          '', '%d of %d seats ready; %d model(s) served.' % (ready, len(rows), served), '',
+                          '**Gone or refused** (drop in the next packet): ' + ('; '.join(dead) or 'none'), '',
+                          '**New in the catalogues** (try in the next packet): ' + ('; '.join(fresh[:12]) or 'none'), '',
+                          '<details><summary>Every seat and model</summary>', '', text, '', '</details>', '',
+                          'Edited in place every Sunday morning (and on a manual probe with an issue number). Advisory only.'])
+        upsert(env, int(env['PF_ISSUE']), MARKER['probe'], body)
+    return '%d of %d seats ready' % (ready, len(rows))
 
 
 def sha(text):

@@ -1,0 +1,8 @@
+[
+  {
+    "app": "reddit",
+    "version": "2026.42.0",
+    "published_before": "2026-10-23T12:00:00Z",
+    "why": "owner 23 Oct 2026: Adobo patches only 2026.41.0, and the shelf's 42.0 made every newer 41.0 build refuse to publish (older than the shelf); delete it"
+  }
+]

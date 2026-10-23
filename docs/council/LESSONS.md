@@ -435,3 +435,17 @@ release is gone"; the W15f cleanup later deleted 20 that were there) and for thr
 100+ releases (AdGuard, ES File and Instagram builds failed "no matching release"). Minutes later the
 same calls returned full pages. The bundle fetch and the poll now ask three times and name the
 answer as transient; a person reading "0" checks a second way before acting on it (W15h).
+
+### L076 · A tool that keeps its data beside its own file writes into whatever folder holds it
+Tags: build, evidence
+morphe-desktop 1.19.0 (22 Oct) keeps "morphe-data" next to its JAR. The shadow resolver ran the JAR
+from the dependency packet it was sealing, so every packet gained an unlisted folder and all 17
+Check new patch shadow jobs refused their own lock (23 Oct). The owner's Cloud Shell probe printed
+"Morphe data root: .../payload/morphe-data (JAR-adjacent)". Tools now run from a byte-identical copy
+in their own folder, and the refusal names the unexpected files (W15i).
+
+### L077 · "Worked" that counts a fallback build hides the primary's failure
+Tags: ci, evidence
+T1 said "17 of 17 apps worked" on 23 Oct while Facebook had built on De-Vanced 580 (Hushfacebook
+0.17.0 had moved to Facebook 584) and Instagram on HushGram (a piko fingerprint failed). A fallback
+keeps the shelf stocked; it is still a finding, and T1 now reports it as one (W15i).

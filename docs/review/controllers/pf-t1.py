@@ -245,12 +245,18 @@ def batch(main, apps):
         row = found.get(app) or dict(run=r['id'], result='missing', error='no job for this app in the batch run')
         R['apps'][app] = dict(batch=row)
     bad = [a for a in apps if R['apps'][a]['batch'].get('result') != 'success']
-    say('batch', 'OK' if not bad else 'FINDING', 'run %s: %d of %d apps worked %s%s'
+    # W15i (L077): 23 Oct "17 of 17 worked" hid Facebook built on De-Vanced 580 and Instagram on
+    # HushGram after their primaries failed. A fallback build works, but it is a finding.
+    fell = [a for a in apps if a not in bad and R['apps'][a]['batch'].get('fallback')]
+    say('batch', 'OK' if not bad and not fell else 'FINDING', 'run %s: %d of %d apps worked %s%s%s'
         % (r['id'], len(apps) - len(bad), len(apps), 'and published' if PUBLISH else 'without publishing',
-           ('; failed: ' + ', '.join(bad)) if bad else ''))
+           ('; failed: ' + ', '.join(bad)) if bad else '',
+           ('; on a fallback provider: ' + ', '.join(fell)) if fell else ''))
     for a in apps:
         b = R['apps'][a]['batch']
         note = b.get('coverage') if b.get('result') == 'success' else (b.get('error') or b.get('coverage'))
+        if b.get('result') == 'success' and b.get('fallback'):
+            note = 'FALLBACK ' + b['fallback'][:160]
         print('   %-16s %-8s %-18s %s' % (a, b.get('result'), shown_version(b), note or ''), flush=True)
     save()
 
