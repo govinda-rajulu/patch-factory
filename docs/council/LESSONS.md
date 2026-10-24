@@ -506,3 +506,12 @@ Tags: evidence, release
 heval99 for Truecaller sat in the community index, a watch issue and an OPEN-WORK line from 19 Oct;
 the owner never saw it (24 Oct). Anything the watches find that the owner could take goes to Needs
 you as its own item with take, drop and hold, and take starts the next step (W16e).
+
+### L087 · The sandbox has no docker or network; Actions has both
+Tags: gates, ci, build
+W16g's store helpers started on a test's first Cloudflare fetch. The sandbox has no docker, so the
+suite passed; on the Validate runner the helpers really started, a fixture download worked, and a
+refusal test went red (24 Oct, PR #239). Side effects that need docker, network or secrets run only
+behind a flag the real job sets (PF_STORE_LAZY=1 on the Manual Patch build step). Validate's test
+steps also write their step summary to a scratch file: fixture tables (UNKNOWN,
+MISSING_OR_INVALID_OBSERVATION) are test data, not results, and were filling the run page.

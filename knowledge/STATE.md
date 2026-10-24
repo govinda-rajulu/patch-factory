@@ -15,7 +15,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
   `docs/review/W16-BRIEF.md`. Merged #222 as `e7b7dbfa`; W16b #226 `91c34e1c` (all watches green); W16c: weekly review issues, Instagram on piko again, dev branch cleanup, Reddit without Disable modern home, Photos package pinned, shadow SDK step-down, second stores for five apps, T1 publishes reddit and instagram. Wrong calls: 53 (L081 to L084).
 - **W16c** #228 `e73e7721` (Reddit and Instagram piko published). **W16d**: Needs you fixed, take/drop/hold by comment, shelf cards fold patches, cache pruning, Play helper removed. Wrong calls: 54 (L085).
 - **W16d** #231 `0b084181` (Needs you live #233). **W16e**: one Needs you item per unconfigured provider, take runs Explore. Wrong calls: 55 (L086).
-- **W16e** #238 `ba30c888`. **W16g** (absorbs W16f): Truecaller on heval99 26.41.5 with Enable Premium and GmsCore, Telegram on newuser7171 12.10.4, paid approvals in ADOPT, Needs you held names one item each with real fix reasons, docs drift, MCP scout manual-only, store services once.
+- **W16e** #238 `ba30c888`. **W16g** (absorbs W16f): Truecaller on heval99 26.41.5 with Enable Premium and GmsCore, Telegram on newuser7171 12.10.4, paid approvals in ADOPT, Needs you held names one item each with real fix reasons, docs drift, MCP scout manual-only, store services once (on demand only in the build step, L087; wrong call 56).
 - **Next**: owner dispatches MCP scout once; owner answers paid holds; phone: Truecaller (MicroG RE first), Telegram, Reddit 41, Instagram piko, Facebook 584; W15g.
 
 ## 23 Oct 2026, midday IST (packet W15i)

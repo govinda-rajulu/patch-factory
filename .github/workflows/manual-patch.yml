@@ -154,6 +154,8 @@ jobs:
           PF_PROVIDER: ${{ inputs.provider || '' }}
           PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' }}
           PF_SOURCE_READY: ${{ steps.source_verify.outcome == 'success' }}
+          # W16g: only this build step starts the store helpers, on demand (build_attempts.py, utils.sh).
+          PF_STORE_LAZY: '1'
           # Signing credentials only where the keystore is read (build.sh signs,
           # artifact_identity.py exports the public certificate). Not job-wide.
           KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}

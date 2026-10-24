@@ -86,6 +86,10 @@ def ensure_store_services(root, env):
     while a primary/fallback pair shares the same healthy services.
     """
     helper = root / "src/build/store_services.sh"
+    # W16g (L087): only the Manual Patch build step sets PF_STORE_LAZY=1. Tests and other callers
+    # never start containers; Validate went red when a test started real helpers on the runner.
+    if env.get("PF_STORE_LAZY") != "1":
+        return
     if not helper.exists():
         # Keep isolated controller fixtures and older checkouts usable; Actions
         # checkouts always contain the helper.

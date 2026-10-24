@@ -56,5 +56,25 @@ class StepDownStartsHelpers(unittest.TestCase):
         self.assertIn('_PF_STORE_SVC=0\n', utils)
 
 
+class OnlyTheBuildStepStartsHelpers(unittest.TestCase):
+    """W16g, L087: Validate went red when a test's store fetch started real helpers on the runner."""
+
+    def test_lazy_start_needs_the_build_step_flag(self):
+        utils = (ROOT / 'src/build/utils.sh').read_text()
+        self.assertIn('"${PF_STORE_LAZY:-0}" == "1"', utils.split('_cf_get() {', 1)[1].split('\n}', 1)[0])
+        attempts = (ROOT / 'src/build/build_attempts.py').read_text()
+        self.assertIn('if env.get("PF_STORE_LAZY") != "1":', attempts)
+        wf = (ROOT / '.github/workflows/manual-patch.yml').read_text()
+        self.assertEqual(wf.count("PF_STORE_LAZY: '1'"), 1)
+        step = wf.split("PF_STORE_LAZY: '1'", 1)[1].split('      - name:', 1)[0]
+        self.assertIn('build_attempts.py', step)
+
+    def test_validate_keeps_fixture_tables_off_the_run_page(self):
+        wf = (ROOT / '.github/workflows/validate.yml').read_text()
+        for line in wf.splitlines():
+            if 'python3 -m unittest discover' in line:
+                self.assertIn('GITHUB_STEP_SUMMARY="$RUNNER_TEMP/test-summary.md"', line)
+
+
 if __name__ == '__main__':
     unittest.main()
