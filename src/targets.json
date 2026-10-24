@@ -71,7 +71,7 @@
         "repo": "morphe-patches",
         "channel": "prerelease",
         "patch_dir": "adguard-rushiranpise",
-        "options": "rushiranpise"
+        "options": "rushiranpise-adguard"
       },
       {
         "name": "hoo-dles",
@@ -107,7 +107,7 @@
         "repo": "morphe-patches",
         "channel": "prerelease",
         "patch_dir": "gg-photos",
-        "options": "rushiranpise"
+        "options": "rushiranpise-photos"
       }
     ],
     "tag_prefix": "gg-photos",
@@ -475,7 +475,7 @@
         "host": "github",
         "channel": "prerelease",
         "patch_dir": "telegram-rushiranpise",
-        "options": "rushiranpise",
+        "options": "rushiranpise-telegram",
         "owner": "rushiranpise",
         "repo": "morphe-patches"
       }

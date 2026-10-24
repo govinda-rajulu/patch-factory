@@ -108,7 +108,8 @@ if p.startswith('repos/SysAdminDoc/') and p.endswith('/license'):
     out({'license': {'spdx_id': st.get('license', {}).get(p.split('/')[2], 'GPL-3.0')}})
 if m in ('DELETE',) or (m == 'POST' and '/statuses' in p): out({})
 if '/contents/src/targets.json' in p:
-    print(json.dumps([{'id': 'adguard', 'enabled': True}, {'id': 'instagram', 'enabled': True}])); save(); sys.exit(0)
+    # W16c: state key t1_apps lists the enabled apps (default adguard, instagram).
+    print(json.dumps([{'id': x, 'enabled': True} for x in st.get('t1_apps', ['adguard', 'instagram'])])); save(); sys.exit(0)
 if '/contents/status.json' in p:
     print(json.dumps({'generated_at': 'now', 'headline': {}, 'issues': []})); save(); sys.exit(0)
 if 'status.yml/runs' in p:

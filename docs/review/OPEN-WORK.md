@@ -9,14 +9,17 @@ council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](SESSION-2026-1
 0. Owner: after the merge, one Batch Patch for reddit with publish on. Phone: Morphe Reddit is
    2026.41.0 (42 needs Android 12); if the installed patched Reddit is 42, uninstall it first, then
    install 41. Sign-in and feeds are the test (Spoof signature is off by rule).
-1. Cache the patcher JAR and source APKs by exact version and sha (needs cache keys from the
-   resolved packet); target Check new patch under 5 minutes.
-2. Read why Check new patch was red 49 of 118 runs (T1 per-app findings). Community watch: if it
-   is still red after W16b, its stop line now names the code. The shadow source step does not step
-   down for SDK like the build does (Reddit is capped at 2026.41.0 instead).
-3. Weekly agent repo review: one issue per finding, label review (brief step 6, not built yet).
+1. Speed: a 1-app Check new patch takes 6 min (target 5). A tool cache saves under 15 s per app
+   (W16c measured, not built). W16c: the build now gets the prepared APK for over-ceiling apps too
+   (about 60 s). Left: the build still starts the store services (about 35 s) because a patch
+   step-down inside an attempt downloads again; start them on demand there first.
+2. Done in W16c: red runs read (AUDIT-W16.md; the only open cause is LinkedIn step-downs, item 5
+   combo planner); the shadow source step steps down for Android version like the build.
+3. Weekly agent repo review: shipped in W16c (one issue per verified finding, label review).
+   Owner, phone after W16c: Reddit 41 again (now without Disable modern home), Instagram on piko.
 4. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)), needs a phone test.
-5. Still open from 23 Oct and 20 Oct: Instagram piko on 452.1; five apps with one store;
+5. Still open from 23 Oct and 20 Oct: Instagram piko on 452.1 (W16c holds the broken brosssh patch); five apps with one store (W16c:
+   second store added for all five);
    Google Play helper unused; combo planner; zizmor; persona pull requests; openskip mirror of
    knowledge/handbook/PACKET-LESSONS.md by its own pull request; Cloudflare key optional; port
    fiorenmas store fixes; pup to htmlq; pf-vault (owner creates the private repository and token
@@ -42,7 +45,7 @@ Record: [SESSION-2026-10-23.md](SESSION-2026-10-23.md). Open, in order:
 1. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`.
 2. Done in this packet: docs/review/onboarding/facebook.md now records Facebook 584.0.0.51.56
    with HushFacebook 0.17.0; its older 583 entry remains only as history.
-3. Instagram: piko's "Disable story auto flipping" no longer matches Instagram 452.1 (HushGram
+3. (W16c: held in instagram-brosssh/exclude-patches; see onboarding/instagram.md.) Instagram: piko's "Disable story auto flipping" no longer matches Instagram 452.1 (HushGram
    built instead); watch piko for a fix, or hold that name.
 4. Second store: YT Music, AdGuard, Photos and Truecaller have no APKPure mapping, Key Mapper no
    APKMirror one; the Google Play path (get_apk_chplay) is in utils.sh but nothing calls it.

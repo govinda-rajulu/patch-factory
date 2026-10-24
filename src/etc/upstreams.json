@@ -8,7 +8,7 @@
   {"id": "apkeditor", "repo": "REAndroid/APKEditor", "kind": "release", "role": "merges split APKs", "pin": {"file": "src/build/TOOLING.sha256", "text": "/V1.4.9/APKEditor-1.4.9.jar", "tag": "V1.4.9"}},
   {"id": "pup", "repo": "ericchiang/pup", "kind": "release", "role": "reads store pages; unmaintained since 2016, htmlq is the candidate", "pin": {"file": "src/build/TOOLING.sha256", "text": "/v0.4.0/pup_v0.4.0_linux_amd64.zip", "tag": "v0.4.0"}},
   {"id": "htmlq", "repo": "mgdm/htmlq", "kind": "release", "role": "candidate replacement for pup (not used yet)"},
-  {"id": "usque", "repo": "Diniboy1123/usque", "kind": "release", "role": "WARP proxy for store downloads", "pin": {"file": ".github/actions/preparing/action.yml", "text": "/usque/releases/download/v4.2.0/", "tag": "v4.2.0"}},
+  {"id": "usque", "repo": "Diniboy1123/usque", "kind": "release", "role": "WARP proxy for store downloads", "pin": {"file": ".github/actions/preparing/action.yml", "text": "/usque/releases/download/v4.2.1/", "tag": "v4.2.1"}},
   {"id": "flaresolverr", "repo": "FlareSolverr/FlareSolverr", "kind": "release", "role": "Cloudflare page solver for store downloads; pinned by image digest (version not recorded)"},
   {"id": "cloudflarebypass", "repo": "sarperavci/CloudflareBypassForScraping", "kind": "commits", "role": "second Cloudflare solver; pinned by image digest; no releases"},
   {"id": "fiorenmas", "repo": "FiorenMas/Revanced-And-Revanced-Extended-Non-Root", "kind": "commits", "role": "the repository this one was forked from; store-download fixes to port"},

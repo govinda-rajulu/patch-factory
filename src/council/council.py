@@ -104,6 +104,11 @@ GH_ALLOWED = (
     ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/issues/\d+$')),
     ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/issues/\d+/comments\?per_page=100&page=\d$')),
     ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/issues\?state=open&per_page=100&page=\d$')),
+    # Weekly review filing reads every issue (open and closed) before creating one.
+    ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/issues\?state=all&per_page=100&page=\d+$')),
+    ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/labels/review$')),
+    ('POST', re.compile(r'^repos/[\w.-]+/[\w.-]+/labels$')),
+    ('POST', re.compile(r'^repos/[\w.-]+/[\w.-]+/issues$')),
     ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/actions/runs\?per_page=100$')),
     ('POST', re.compile(r'^repos/[\w.-]+/[\w.-]+/issues/\d+/comments$')),
     ('PATCH', re.compile(r'^repos/[\w.-]+/[\w.-]+/issues/comments/\d+$')),
@@ -450,7 +455,12 @@ def desk_job(cfg, spec, now):
         return 'probe', {'PF_ISSUE': str(desk)}
     ids = [s['id'] for s in spec['shards']]
     slot = now.toordinal() * 2 + (now.hour >= 12)
-    return 'audit', {'PF_ISSUE': str(desk), 'PF_SHARD': ids[slot % len(ids)]}
+    extra = {'PF_ISSUE': str(desk), 'PF_SHARD': ids[slot % len(ids)]}
+    # W16c: the Sunday afternoon audit is the only scheduled slot that files verified
+    # findings as review issues. It reuses the existing 15:17 UTC desk cron (L039).
+    if now.weekday() == 6 and now.hour >= 12:
+        extra['PF_FILE_REVIEW'] = '1'
+    return 'audit', extra
 
 
 def remembered(kind):
@@ -787,7 +797,7 @@ def verify_quotes(rows, sources):
             hits = [n for n, t in (lines or {}).items() if len(q) >= 6 and q in norm(t)]
             if hits:
                 want = f['line'] if isinstance(f['line'], int) else hits[0]
-                kept.append(dict(f, line=min(hits, key=lambda n: abs(n - want))))
+                kept.append(dict(f, line=min(hits, key=lambda n: abs(n - want)), _verified=True))
         r['dropped'] = len(r['answer']['findings']) - len(kept)
         # One seat repeating one issue on several lines of a file is one row with every line.
         first, out = {}, []
@@ -1011,6 +1021,129 @@ def render_ask(question, target, rows, result, prompt_hash, pack_hash):
                        clean(' / '.join(a['caveats']), 300) or '-'))
     out += ['', 'A factual answer, not a vote: it approves, changes and schedules nothing.']
     return '\n'.join(out + footer(rows, prompt_hash, pack_hash))
+
+
+# ---------- weekly review issues ----------
+
+REVIEW_ISSUE_CAP = 8
+REVIEW_MARKER = '<!-- pf-review:%s -->'
+TRIAGE_LINE = 'Triage: close if wrong; keep if true; the next packet picks open review issues.'
+
+
+def review_fingerprint(path, quote):
+    """Stable identity for one quoted repository finding (path + quote, first 16 hex)."""
+    return hashlib.sha256((str(path) + str(quote)).encode('utf-8')).hexdigest()[:16]
+
+
+def review_marker(path, quote):
+    return REVIEW_MARKER % review_fingerprint(path, quote)
+
+
+def _review_issues(env):
+    """Return all issues, oldest first, so an old closed issue also prevents a duplicate."""
+    issues = []
+    for page in range(1, 100):
+        raw = gh(env, 'GET', 'repos/%s/issues?state=all&per_page=100&page=%d' % (env['PF_REPO'], page))
+        rows = json.loads(raw)
+        if not isinstance(rows, list):
+            raise Refused('GitHub issues response was not a list')
+        issues.extend(rows)
+        if len(rows) < 100:
+            break
+    return sorted(issues, key=lambda x: (x.get('created_at') or '', int(x.get('number') or 0)))
+
+
+def _review_label(env):
+    """Ensure label review exists; lack of label permission only removes the label."""
+    path = 'repos/%s/labels/review' % env['PF_REPO']
+    try:
+        gh(env, 'GET', path)
+        return True, 'label review present'
+    except Refused as error:
+        if 'returned 404' not in str(error):
+            return False, 'label review unavailable (%s)' % clean(str(error), 100)
+        try:
+            gh(env, 'POST', 'repos/%s/labels' % env['PF_REPO'],
+               {'name': 'review', 'color': '6f42c1', 'description': 'Weekly verified repository review finding'})
+            return True, 'label review created'
+        except Refused as create_error:
+            return False, 'label review unavailable (%s)' % clean(str(create_error), 100)
+
+
+def _review_body(finding, reporters):
+    marker = review_marker(finding['file'], finding['quote'])
+    who = ', '.join('%s (%s)' % (clean(x.get('seat') or '?', 60), clean(x.get('model') or 'model unavailable', 100))
+                    for x in reporters) or 'seat/model unavailable'
+    evidence = '%s — "%s"' % (where(finding), clean(finding['quote'], 300))
+    lines = [marker, '## Weekly repo review', '', '**Evidence:** `%s`' % evidence,
+             '**Found by:** %s' % who, '**Finding:** %s' % clean(finding.get('issue', ''), 400)]
+    if finding.get('fix'):
+        lines.append('**Suggested fix:** %s' % clean(finding['fix'], 400))
+    lines += ['', TRIAGE_LINE]
+    return '\n'.join(lines)
+
+
+def file_review_issues(env, findings, rows):
+    """File up to eight new, verified findings; return a desk-note summary.
+
+    This function is called only by the Sunday scheduled audit. Existing issues are read
+    before any POST, including closed issues, and failures never turn into automatic closes
+    or edits. The desk comment remains the complete record when the cap is reached.
+    """
+    if env.get('PF_FILE_REVIEW') != '1':
+        return ''
+    if env.get('PF_COUNCIL_STAGED') == '1':
+        return 'Weekly review issue filing staged; no issues were created.'
+    findings = [f for f in findings if f.get('_verified') is True]
+    if not findings:
+        return 'Weekly review: no verified findings to file.'
+    try:
+        existing = _review_issues(env)
+    except (Refused, ValueError, TypeError) as error:
+        # Without a complete open+closed scan, creating could duplicate an old finding.
+        # Keep every finding in the desk comment instead.
+        return 'Weekly review: issue search unavailable; findings stayed on this desk comment (%s).' % clean(error, 140)
+    known = {m.group(1) for issue in existing for m in [re.search(r'<!-- pf-review:([0-9a-f]{16}) -->', issue.get('body') or '')] if m}
+    label_ok, label_note = _review_label(env)
+    reporter_map = {}
+    for row in rows:
+        if row.get('status') != 'OK':
+            continue
+        for finding in row.get('answer', {}).get('findings', []):
+            reporter_map.setdefault((finding.get('file'), norm(finding.get('quote'))), []).append(
+                {'seat': row.get('seat'), 'model': row.get('model')})
+    created, duplicate, overflow, cap_overflow = [], [], [], []
+    for finding in findings:
+        fingerprint = review_fingerprint(finding['file'], finding['quote'])
+        if fingerprint in known:
+            duplicate.append(fingerprint)
+            continue
+        if len(created) >= REVIEW_ISSUE_CAP:
+            overflow.append(fingerprint)
+            cap_overflow.append(fingerprint)
+            continue
+        body = _review_body(finding, reporter_map.get((finding.get('file'), norm(finding.get('quote'))),
+                                                        [{'seat': s, 'model': ''} for s in finding.get('seats', [])]))
+        payload = {'title': 'review: ' + clean(finding.get('issue', ''), 80), 'body': body}
+        # GitHub titles are capped defensively even if the model's issue text is shorter.
+        payload['title'] = payload['title'][:90]
+        if label_ok:
+            payload['labels'] = ['review']
+        try:
+            gh(env, 'POST', 'repos/%s/issues' % env['PF_REPO'], payload)
+        except Refused as error:
+            # A transient/API permission failure must not hide a verified finding.
+            overflow.append(fingerprint)
+            continue
+        known.add(fingerprint)
+        created.append(fingerprint)
+    note = 'Weekly review issues: %d created, %d already filed' % (len(created), len(duplicate))
+    if cap_overflow:
+        note += ', %d over cap kept on this desk comment' % len(cap_overflow)
+    failed = len(overflow) - len(cap_overflow)
+    if failed:
+        note += ', %d filing failure(s) kept on this desk comment' % failed
+    return note + '. ' + label_note + '.'
 
 
 # ---------- modes ----------
@@ -1473,7 +1606,11 @@ def mode_audit(env, seats, cfg):
     if SHIFT['seat']:
         marker = '<!-- pf-council:shift:%s -->' % SHIFT['seat']
         title = '### %s (%s), solo shift: shard `%s`' % (clean(env.get('PF_PERSONA', ''), 40), SHIFT['seat'], clean(shard, 40))
+    found = merge_findings(rows)
     body = render_audit(shard, rows, parts, skipped, unreached, sha(instructions), digest.hexdigest(), fixes, marker, title)
+    filing = file_review_issues(env, found, rows)
+    if filing:
+        body += '\n\n#### Review issue filing\n' + filing
     return upsert(env, number, marker, body)
 
 

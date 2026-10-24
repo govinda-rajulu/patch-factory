@@ -84,10 +84,27 @@
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=linkedin-linkedin",
    "org": "linkedin",
    "name": "linkedin-linkedin"
+  },
+  "io.github.sds100.keymapper": {
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=key-mapper-2",
+   "org": "sds100",
+   "name": "key-mapper-2"
   }
  },
  "apkpure": {
   "com.google.android.youtube": {},
+  "com.google.android.apps.youtube.music": {
+   "download_url": "https://apkpure.com/youtube-music/com.google.android.apps.youtube.music/download"
+  },
+  "com.adguard.android": {
+   "download_url": "https://apkpure.com/adguard/com.adguard.android/download"
+  },
+  "com.google.android.apps.photos": {
+   "download_url": "https://apkpure.com/google-photos/com.google.android.apps.photos/download"
+  },
+  "com.truecaller": {
+   "download_url": "https://apkpure.com/truecaller-caller-id-block-for-android-2024/com.truecaller/download"
+  },
   "com.amazon.avod.thirdpartyclient": {
    "download_url": "https://apkpure.com/x/com.amazon.avod.thirdpartyclient/download"
   },

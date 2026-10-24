@@ -37,7 +37,7 @@ BUILD_TAG = re.compile(r'^[a-z0-9-]+-v[0-9]+(?:\.[0-9]+)*-b[0-9]{8}(?:[0-9]{26})
 PAGES_ENV = 'github-pages'
 KEEP = 1  # owner, 22 Oct 2026: "delete all others"; the newest build per app stays
 KEEP_DEPLOYMENTS = 5
-PACKET = 'packet/'
+PACKET = ('packet/', 'dev/')  # W16c: a merged dev branch (dev/w16) goes the same way
 APP_TAG = re.compile(r'^([a-z0-9-]+?)-v[0-9][0-9.]*(?:-b[0-9]+)?$')
 
 

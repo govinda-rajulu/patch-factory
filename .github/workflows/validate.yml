@@ -175,6 +175,16 @@ jobs:
           shellcheck --version | sed -n 2p
           # SC1091 sourced file not followed, SC2086 word splitting we rely on for flag lists
           shellcheck -S error -e SC1091,SC2086 src/build/*.sh src/etc/*.sh
+      - name: Advisory zizmor workflow audit
+        continue-on-error: true
+        uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+        with:
+          collect: workflows
+          online-audits: false
+          advanced-security: false
+          annotations: false
+          color: false
+          fail-on-no-inputs: false
       # ACTION_COMPATIBILITY_SMOKE_START
       # Small synthetic files only. No APK, signing secrets, dispatch or API writes.
       # These steps are part of the existing mandatory Validate check, not advisory.

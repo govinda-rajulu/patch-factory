@@ -142,3 +142,11 @@ Removed from the piko list in W13: Remove build expired popup and Validate links
 
 ## Decision
 Owner, 10 Oct 2026 in chat: keep piko + brosssh as primary (piko-only features in use; HushGram is v0.0.x). Add SysAdminDoc/HushGram as the fallback candidate, excluding Change version code and Spoof location. Revisit HushGram as primary after HushGram 0.1 and the HushFacebook phone test. The owner pre-approved packet W13, merge included.
+
+## Held patch (W16c, 24 Oct 2026)
+
+`Disable story auto flipping` (brosssh extra bundle v2.8.3-dev.2, built for Instagram 439.0.0.37.89)
+no longer matches Instagram 452.1.0.53.64: "Failed to match the fingerprint:
+...distractionFree.OnStoryTimeoutActionFingerprint" (T1 batch run 40006383352), so every build fell
+back to HushGram. The name moves to `src/patches/instagram-brosssh/exclude-patches`; the other three
+brosssh names applied. Put it back when brosssh ships a build that lists Instagram 452 or newer.

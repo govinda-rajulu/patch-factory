@@ -77,6 +77,7 @@ PRECHECKS = ()      # (api path, field, expected value, why) read in gate; a mis
 CLEANUP_APPLY = False  # apply the cleanup preview at once (PF_CLEANUP=keep skips)
 RUN_T1 = False      # run docs/review/controllers/pf-t1.py on the merge at the end
 PUBLISH_ALL = False  # (W15f) T1's batch publishes every enabled app, and T1 runs before the cleanup
+PUBLISH_APPS = ()   # (W16c) T1 publishes only these apps after its no-publish batch, and runs before the cleanup
 TIDY = False        # (W14) src/etc/release_tidy.py on the merge: preview, then apply with a backup in the logs
 MIRROR = None       # (W13) dict(repo, files, manifest, anchor, branch, title[, replaces]): copy files from the
                     # merged tree into another repository of the owner by ITS OWN pull request
@@ -703,7 +704,8 @@ def t1(merge_sha):
         say('t1', 'SKIP', 'all-flows test not run here')
         return True
     script = CLONE / 'docs/review/controllers/pf-t1.py'
-    env = dict(os.environ, PF_MAIN=merge_sha, PF_T1_PUBLISH='1' if PUBLISH_ALL else '')
+    env = dict(os.environ, PF_MAIN=merge_sha, PF_T1_PUBLISH='1' if PUBLISH_ALL else '',
+               PF_T1_PUBLISH_APPS='' if PUBLISH_ALL else ','.join(PUBLISH_APPS))
     with open(LOGS / 'pf-t1.out', 'wb') as out:
         code = subprocess.run([sys.executable, str(script)], cwd=CLONE, env=env, stdout=out, stderr=subprocess.STDOUT).returncode
     lines = (LOGS / 'pf-t1.out').read_bytes().decode('utf-8', 'replace').splitlines()
@@ -750,12 +752,13 @@ def main():
     close_issues()
     deployed = pages(R['merge'])
     # W15f: with PUBLISH_ALL the fresh releases exist before the cleanup keeps the newest per app.
-    tested = t1(R['merge']) if PUBLISH_ALL else True
+    early = PUBLISH_ALL or bool(PUBLISH_APPS)  # W16c: fresh releases before the cleanup, too
+    tested = t1(R['merge']) if early else True
     previewed = preview()
     cleaned = previewed and cleanup(R['merge'])
     tidied = tidy(R['merge'])
     mirrored = mirror(R['merge'])
-    if not PUBLISH_ALL:
+    if not early:
         tested = t1(R['merge'])
     return finish(deployed and previewed and cleaned and tidied and mirrored and tested)
 

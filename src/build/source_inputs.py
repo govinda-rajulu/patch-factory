@@ -65,15 +65,46 @@ def observed_line(meta, row):
         fact(meta.get("min_sdk")), fact(row.get("bytes")))
 
 
-def validate_metadata(meta, target):
+def validate_metadata(meta, target, allow_over_ceiling=False):
     need(isinstance(meta, dict) and set(meta) == {"package", "version_name", "version_code", "min_sdk"},
          "invalid manifest coverage")
     need(meta["package"] == target["package"] and
          isinstance(meta["version_name"], str) and
          re.fullmatch(r"[0-9]+(?:[.][0-9]+)*", meta["version_name"]) and
          isinstance(meta["version_code"], str) and re.fullmatch(r"[0-9]+", meta["version_code"]) and
-         type(meta["min_sdk"]) is int and 1 <= meta["min_sdk"] <= target["min_sdk_ceiling"],
+         type(meta["min_sdk"]) is int and 1 <= meta["min_sdk"] and
+         (allow_over_ceiling or meta["min_sdk"] <= target["min_sdk_ceiling"]),
          "invalid APK identity/SDK")
+
+
+def _next_version(root, dep, target, env, current, step):
+    """Ask version_steps.sh for the next exact candidate, using the build's files/rules."""
+    bundles = [row for row in dep["material"]["bundles"] if row.get("role") == "winner"]
+    need(len(bundles) == 1, "dependency packet has no primary bundle")
+    with tempfile.TemporaryDirectory(prefix="pf-version-", dir=root) as directory:
+        work = Path(directory)
+        for record in (dep["material"]["patcher"], bundles[0]):
+            source = root / "resolved-inputs" / record["path"]
+            destination = work / Path(record["path"]).name
+            shutil.copyfile(source, destination)
+        script = ("set -u; set +u; source ./src/build/utils.sh; set -u; "
+                  "source ./src/build/version_steps.sh; "
+                  "pf_next_version_bounded \"$1\" \"$2\" \"$3\" \"$4\"")
+        result = subprocess.run(
+            ["bash", "-c", script, "source-version", str(step), target["package"], current,
+             target.get("max_app_version") or ""],
+            cwd=root, env=dict(env, PF_VERSION_WORKDIR=str(work), PF_VERSION_ROOT=str(root)),
+            capture_output=True, text=True, timeout=120, check=False)
+    if result.returncode == 3:
+        raise ValueError("source inputs: sdk ceiling %s exceeded after %s lower version(s)" %
+                         (target["min_sdk_ceiling"], step))
+    if result.returncode != 0:
+        raise ValueError("source inputs: sdk ceiling %s exceeded and no lower version to try (status %s)" %
+                         (target["min_sdk_ceiling"], result.returncode))
+    value = result.stdout.strip()
+    if not re.fullmatch(r"[0-9]+(?:[.][0-9]+)* (?:provider|store)", value):
+        raise ValueError("source inputs: version step-down returned invalid candidate")
+    return value.split()
 
 
 def verify(root, ident, env):
@@ -108,19 +139,41 @@ def prepare(root, ident, env, run=None, metadata=None, publisher=None):
         p = root / name
         need(not p.exists() and not p.is_symlink(), "existing preparation output")
     clean = clean_env(env)
-    started = time.monotonic()
-    result = (run or subprocess.run)(
-        ["bash", "src/build/source_download.sh", ident, dep["material"]["version"]],
-        cwd=root, env=clean, capture_output=True, timeout=1200, check=False)
-    need(result.returncode == 0, "existing store fetcher refused (exit %d after %ds, source %s, type %s)" % (
-        result.returncode, time.monotonic() - started, t.get("source", "apkmirror"), t.get("apk_type", "apk")))
     relative = "download/" + t["apk_name"] + ".apk"
-    before = apk_record(root, relative)
-    observed = (metadata or identity.metadata)(root, root / relative, clean)
-    meta = {k: observed[k] for k in ("package", "version_name", "version_code", "min_sdk")}
-    print(observed_line(meta, before), file=sys.stderr)
+    version = dep["material"]["version"]
+    step = 0
+    while True:
+        started = time.monotonic()
+        result = (run or subprocess.run)(
+            ["bash", "src/build/source_download.sh", ident, version],
+            cwd=root, env=clean, capture_output=True, timeout=1200, check=False)
+        need(result.returncode == 0, "existing store fetcher refused (exit %d after %ds, source %s, type %s)" % (
+            result.returncode, time.monotonic() - started, t.get("source", "apkmirror"), t.get("apk_type", "apk")))
+        before = apk_record(root, relative)
+        observed = (metadata or identity.metadata)(root, root / relative, clean)
+        meta = {k: observed[k] for k in ("package", "version_name", "version_code", "min_sdk")}
+        print(observed_line(meta, before), file=sys.stderr)
+        validate_metadata(meta, t, allow_over_ceiling=True)
+        need(before == apk_record(root, relative), "APK changed during inspection")
+        if meta["min_sdk"] <= t["min_sdk_ceiling"]:
+            break
+        # Keep the build's fixed rules: exact pins and any-version have no lower candidate.
+        need(version and not t.get("any_version", False) and not t.get("version_code"),
+             "sdk ceiling %s exceeded; exact version selection cannot step down" % t["min_sdk_ceiling"])
+        if publisher is None:
+            import publisher_cert
+            publisher = publisher_cert.check
+        need(publisher(root, ident, clean) == 0, "publisher certificate refused (see the PUBLISHER line)")
+        next_version, source = _next_version(root, dep, t, clean, version, step)
+        step += 1
+        print("::notice::VERSION_STEP_DOWN step=%d from=%s to=%s source=%s ceiling=%s" %
+              (step, version, next_version, source, t["min_sdk_ceiling"]))
+        for suffix in (".apk", ".apkm", ".xapk", ""):
+            (root / ("download/" + t["apk_name"] + suffix)).unlink(missing_ok=True)
+        fallback_receipt = root / ".source-fallback-receipt.json"
+        fallback_receipt.unlink(missing_ok=True)
+        version = next_version
     validate_metadata(meta, t)
-    need(before == apk_record(root, relative), "APK changed during inspection")
     # W15c (20 Oct 2026): the build only receives the merged APK, whose re-packed bytes no
     # longer match the original signature (Facebook, Check new patch run 39483060645). The
     # original store download is still here, so the publisher pin is checked now.

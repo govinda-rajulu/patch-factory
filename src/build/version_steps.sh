@@ -10,8 +10,8 @@ PF_MAX_STEPS=3
 # Versions the one primary bundle in the cwd supports for PKG, newest first.
 # Empty output with status 0 means the provider lists none (any version).
 pf_provider_versions() {
-  local pkg="$1" out
-  local jars=(morphe-desktop-*.jar) mpps=(./*.mpp)
+  local pkg="$1" out workdir="${PF_VERSION_WORKDIR:-.}"
+  local jars=("$workdir"/morphe-desktop-*.jar) mpps=("$workdir"/*.mpp)
   if [ "${#jars[@]}" -ne 1 ] || [ ! -f "${jars[0]}" ] || [ "${#mpps[@]}" -ne 1 ] || [ ! -f "${mpps[0]}" ]; then
     echo "STEP_DOWN needs exactly one patcher jar and one primary bundle" >&2; return 2
   fi
@@ -23,8 +23,8 @@ pf_provider_versions() {
 
 # Stable versions on the APKMirror listing for PKG (first two pages), newest first.
 pf_store_versions() {
-  local pkg="$1" list_url url page html="" text
-  list_url=$(jq -r --arg pkg "$pkg" '.apkmirror[$pkg].list_url // empty' ./src/build/helper/apps.json)
+  local pkg="$1" list_url url page html="" text root="${PF_VERSION_ROOT:-.}"
+  list_url=$(jq -r --arg pkg "$pkg" '.apkmirror[$pkg].list_url // empty' "$root/src/build/helper/apps.json")
   if [ -z "$list_url" ]; then echo "STEP_DOWN no APKMirror listing for $pkg" >&2; return 2; fi
   for page in 1 2; do
     url="$list_url"
@@ -44,6 +44,14 @@ pf_store_versions() {
 
 # Prints "VERSION SOURCE" for the next version below CURRENT (and not above MAXVER).
 # Status 1: nothing lower exists. Status 2: the version list could not be read.
+# Shared bounded entry point for non-build consumers. The build loop performs the same
+# PF_MAX_STEPS check inline; this wrapper exposes that exact limit without duplicating it.
+pf_next_version_bounded() {
+  local step="$1" pkg="$2" current="$3" maxver="$4"
+  [ "$step" -lt "$PF_MAX_STEPS" ] || return 3
+  pf_next_version "$pkg" "$current" "$maxver"
+}
+
 pf_next_version() {
   local pkg="$1" current="$2" maxver="$3" list src v
   list=$(pf_provider_versions "$pkg") || return 2

@@ -278,11 +278,42 @@ class SourceContracts(unittest.TestCase):
 
     def test_min_sdk_over_ceiling_is_reported_with_the_observed_value(self):
         self.meta['min_sdk']=30
-        with self.assertRaises(ValueError) as caught, patch('sys.stderr') as err:
-            self.prepare()
-        self.assertEqual(source.public_reason(caught.exception),'invalid APK identity/SDK')
+        with patch.object(source, '_next_version', side_effect=ValueError(
+                'source inputs: sdk ceiling 29 exceeded and no lower version to try (status 1)')):
+            with self.assertRaises(ValueError) as caught, patch('sys.stderr') as err:
+                self.prepare()
+        self.assertEqual(source.public_reason(caught.exception),
+                         'sdk ceiling 29 exceeded and no lower version to try (status 1)')
         self.assertIn('min_sdk=30',''.join(c.args[0] for c in err.write.call_args_list))
         self.assertFalse((self.r/'source-inputs').exists())
+
+    def test_min_sdk_over_ceiling_steps_down_and_rechecks_the_lower_apk(self):
+        self.dep = self.f.prepare(self.ident)
+        versions = []
+        metadata = {'4.2.1': dict(self.meta, min_sdk=30),
+                    '4.2.0': dict(self.meta, version_name='4.2.0', min_sdk=29)}
+
+        def downloader(args, **kwargs):
+            version = args[-1]
+            versions.append(version)
+            p = self.r / 'download' / (shadow.target(self.r, self.ident)['apk_name'] + '.apk')
+            p.parent.mkdir(exist_ok=True)
+            with zipfile.ZipFile(p, 'w') as z:
+                z.writestr('AndroidManifest.xml', b'manifest fixture')
+                z.writestr('classes.dex', b'x' * 1000100)
+            return subprocess.CompletedProcess(args, 0)
+
+        def read_metadata(root, path, env):
+            return metadata[versions[-1]]
+
+        with patch.object(source, '_next_version', return_value=('4.2.0', 'provider')) as step:
+            doc = source.prepare(self.r, self.ident, self.env, downloader, read_metadata,
+                                 publisher=self.publisher)
+        self.assertEqual(versions, ['4.2.1', '4.2.0'])
+        step.assert_called_once_with(self.r, self.dep, shadow.target(self.r, self.ident),
+                                     source.clean_env(self.env), '4.2.1', 0)
+        self.assertEqual(doc['metadata']['version_name'], '4.2.0')
+        self.assertEqual(self.publisher_calls, [self.ident, self.ident])
 
     def test_workflow_selection_publication_and_qualification_reader_preserved(self):
         ci=(self.r/'.github/workflows/ci.yml').read_text();manual=(self.r/'.github/workflows/manual-patch.yml').read_text()
