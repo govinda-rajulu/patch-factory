@@ -106,6 +106,85 @@ class NeedsYouDecisions(unittest.TestCase):
         self.assertEqual(n._review_item({"kind": "community", "first_line": "review: x"}), False)
 
 
+class ProviderItems(unittest.TestCase):
+    def setUp(self):
+        self.index = {
+            "compatibilities": [
+                {"com.example.app": ["1.9", "2.0"]},
+                [{"packageName": "com.example.app", "targets": [{"version": "3.1"}]}],
+            ],
+            "bundles": [
+                {"source": "github", "repo": "Us/ours", "targetApps": ["com.example.app"],
+                 "patches": [{"compatiblePackagesKey": 0}, {"compatiblePackagesKey": 0}]},
+                {"source": "github", "repo": "a/one", "targetApps": ["com.example.app"],
+                 "patches": [{"compatiblePackagesKey": 0}, {"compatiblePackagesKey": 1}]},
+                {"source": "github", "repo": "b/two", "targetApps": ["com.example.app"],
+                 "patches": [{"compatiblePackagesKey": 1}]},
+                {"source": "github", "repo": "c/three", "targetApps": ["com.example.app"],
+                 "patches": [{"compatiblePackagesKey": 0}]},
+                {"source": "github", "repo": "d/four", "targetApps": ["com.example.app"],
+                 "patches": [{"compatiblePackagesKey": 0}]},
+            ],
+        }
+        self.targets = [{"id": "example", "label": "Example", "enabled": True,
+                         "package": "com.example.app", "max_app_version": "1.9",
+                         "candidates": [{"owner": "us", "repo": "ours"}]}]
+
+    def test_per_app_counts_shapes_excludes_configured_caps_and_stable_ids(self):
+        rows = n.provider_items(self.index, self.targets)
+        self.assertEqual([row["first_line"].split(":", 1)[0] for row in rows], ["Example"] * 3)
+        self.assertEqual([row["first_line"].split(":", 2)[1].split()[0] for row in rows], ["a/one", "b/two", "c/three"])
+        self.assertIn("offers 2 patches", rows[0]["first_line"])
+        self.assertIn("newest listed app version 3.1", rows[0]["first_line"])
+        self.assertIn("we use: us/ours with 2", rows[0]["first_line"])
+        self.assertIn("take = run Explore", rows[0]["description"])
+        self.assertEqual(rows[0]["id"], n.item_id("decide", rows[0]["first_line"]))
+        self.assertEqual(rows[-1]["provider_more"], 1)
+
+    def test_no_version_provider_counts_as_any_version(self):
+        index = {"compatibilities": [[{"packageName": "com.example.app", "targets": [{}]}]],
+                 "bundles": [{"source": "github", "repo": "any/provider",
+                              "targetApps": ["com.example.app"],
+                              "patches": [{"compatiblePackagesKey": 0}, {"compatiblePackagesKey": 0},
+                                          {"compatiblePackagesKey": 0}]}]}
+        rows = n.provider_items(index, self.targets)
+        self.assertEqual(len(rows), 1)
+        self.assertIn("offers 3 patches", rows[0]["first_line"])
+        self.assertIn("newest listed app version any version", rows[0]["first_line"])
+
+    def test_take_dispatches_explore_and_refuses_bad_inputs(self):
+        calls = []
+        def run(args, **kwargs):
+            calls.append(args)
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+        item = {"action": "explore", "host": "github", "ident": "a/one", "package": "com.example.app"}
+        self.assertEqual(n.apply_effect("take", item, "o/r", run), "Explore dispatched: patches issue will open")
+        self.assertEqual(calls[0][1:3], ["workflow", "run"])
+        self.assertIn("-f", calls[0])
+        self.assertIn("host=github", calls[0])
+        self.assertIn("ident=a/one", calls[0])
+        self.assertIn("package=com.example.app", calls[0])
+        self.assertEqual(n.apply_effect("take", dict(item, ident="bad ident"), "o/r", run),
+                         "Explore refused: malformed provider or package")
+        self.assertEqual(len(calls), 1)
+
+    def test_render_has_one_provider_line_and_one_fyi_line_per_report(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d)
+            reports = {}
+            for name in n.ISSUES:
+                q = p / (name + ".md")
+                q.write_text("# report\nRun: https://github.com/o/r/actions/runs/123\n")
+                reports[name] = q
+            body = n.render(reports, bundles=self.index, targets=self.targets)
+        line = "Example: a/one offers 2 patches for it"
+        self.assertEqual(body.count(line), 1)
+        self.assertIn("- Example: and 1 more in the index", body)
+        self.assertEqual(body.count("https://github.com/o/r/actions/runs/123"), len(n.ISSUES))
+        self.assertNotIn("# report", body)
+        self.assertNotIn("needs-you-item", body.split("## FYI", 1)[1])
+
+
 class Contracts(unittest.TestCase):
     # These sets come from the GitHub CLI manuals:
     # https://cli.github.com/manual/gh_issue_list and https://cli.github.com/manual/gh_pr_list.

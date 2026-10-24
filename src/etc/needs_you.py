@@ -51,6 +51,9 @@ PR_JSON_FIELDS = {
 }
 ID_RE = re.compile(r"\bN-[0-9a-fA-F]{6}\b")
 DECISION_RE = re.compile(r"^\s*(take|drop|hold)\s+(N-[0-9a-fA-F]{6})\s*$", re.I)
+PACKAGE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*([.][A-Za-z][A-Za-z0-9_]*)+$")
+GITHUB_IDENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$")
+GITLAB_IDENT_RE = re.compile(r"^[0-9]{1,12}$")
 
 
 def clean(text: str) -> str:
@@ -98,6 +101,12 @@ def _section(text: str, heading: str) -> str:
     return m.group(1).strip() if m else ""
 
 
+def _run_url(text: str) -> str:
+    """Return the first Actions run URL embedded in a collector report."""
+    match = re.search(r"https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/actions/runs/[0-9]+(?:/attempts/[0-9]+)?", text or "")
+    return match.group(0) if match else ""
+
+
 def _source(path: Path | None, name: str, bucket: dict[str, list[str]]) -> None:
     text = read_report(path)
     data = load_json(path)
@@ -110,15 +119,15 @@ def _source(path: Path | None, name: str, bucket: dict[str, list[str]]) -> None:
         need = _section(plain, "Needs you")
         if need and "nothing blocked" not in need.lower():
             _add(bucket, "decide", need)
-    if name == "community":
-        rank = re.findall(r"(?mi)^[-*] \*\*(?:[^*]+)\*\*:.*(?:better|configured|provider).*", plain)
-        if rank or "choose whether to switch" in low:
-            _add(bucket, "decide", "\n".join(rank) or "Review the provider ranker and choose whether to switch.")
+    # Community provider candidates are rendered from the checkout's index,
+    # not from the report's old aggregate rank paragraph.
     if name == "tooling" and ("update" in low or "behind" in low or "to review" in low):
         _add(bucket, "install", "Review the tooling report and install any update listed there.")
     if name in ("nightly", "provider") and any(x in low for x in ("failed", "unknown", "not read", "missing")):
         _add(bucket, "fix", "%s reported a read or run problem; inspect and rerun it." % name.capitalize())
-    _add(bucket, "fyi", "### %s\n\n%s" % (name.capitalize(), plain))
+    url = _run_url(plain)
+    link = "[%s run](%s)" % (name.capitalize(), url) if url else "%s report (run link unavailable)" % name.capitalize()
+    _add(bucket, "fyi", "- " + link)
 
 
 def item_id(kind: str, first_line: str) -> str:
@@ -137,13 +146,162 @@ def _description(kind: str, first: str) -> str:
             "hold = hide it for 14 days.")
 
 
-def _load_targets(path: Path | None = None) -> list[dict]:
-    path = path or Path(__file__).resolve().parents[1] / "targets.json"
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return []
+def _load_targets(path: Path | list | None = None) -> list[dict]:
+    if isinstance(path, list):
+        data = path
+    else:
+        path = path or Path(__file__).resolve().parents[1] / "targets.json"
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return []
     return [row for row in data if isinstance(row, dict) and row.get("enabled")]
+
+
+def _load_value(value, default):
+    if value is None:
+        return default
+    if isinstance(value, (dict, list)):
+        return value
+    if isinstance(value, Path):
+        try:
+            return json.loads(value.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return default
+    return default
+
+
+def _compat_versions(record, package: str) -> list[str]:
+    """Extract versions for one package from either index compatibility shape."""
+    found = []
+    if isinstance(record, dict):
+        # New index shape: {"package.name": ["1.2.3"]}.
+        if package in record:
+            value = record[package]
+            if isinstance(value, list):
+                for row in value:
+                    if isinstance(row, str) and row.strip():
+                        found.append(row.strip())
+                    elif isinstance(row, dict):
+                        found.extend(_compat_versions(row, package))
+            elif isinstance(value, str) and value.strip():
+                found.append(value.strip())
+            elif isinstance(value, dict):
+                found.extend(_compat_versions(value, package))
+        # A target record in the list shape can also be encountered here.
+        if record.get("packageName") == package:
+            targets = record.get("targets", [])
+            for target in targets if isinstance(targets, list) else [targets]:
+                if isinstance(target, dict):
+                    value = target.get("version", target.get("versionName"))
+                    if isinstance(value, str) and value.strip():
+                        found.append(value.strip())
+                    elif not target:
+                        found.append("any version")
+    elif isinstance(record, list):
+        for row in record:
+            found.extend(_compat_versions(row, package))
+    return found
+
+
+def _version_key(value: str):
+    # Numeric components give a useful deterministic newest-version ordering;
+    # preserve lexical text for unusual provider version names.
+    return tuple(int(x) for x in re.findall(r"\d+", value)) or (0,)
+
+
+def _provider_patch_info(bundle: dict, package: str, compatibilities: list) -> tuple[int, list[str]]:
+    count, versions = 0, []
+    target_apps = bundle.get("targetApps") or []
+    for patch in bundle.get("patches", []):
+        if not isinstance(patch, dict):
+            continue
+        key = patch.get("compatiblePackagesKey", patch.get("compatibilityKey"))
+        applicable = False
+        patch_versions = []
+        if isinstance(key, int) and 0 <= key < len(compatibilities):
+            patch_versions = _compat_versions(compatibilities[key], package)
+            applicable = bool(patch_versions)
+        if applicable:
+            count += 1
+            versions.extend(patch_versions)
+    return count, versions
+
+
+def provider_items(index: Path | dict | None = None, targets: Path | list | None = None) -> list[dict]:
+    """Render one actionable item for each unconfigured indexed provider/app pair."""
+    if index is None:
+        index = Path(__file__).resolve().parents[1] / "community" / "bundles.json"
+    if targets is None:
+        targets = Path(__file__).resolve().parents[1] / "targets.json"
+    index_data = _load_value(index, {})
+    if not isinstance(index_data, dict):
+        index_data = {}
+    target_data = _load_value(targets, [])
+    if not isinstance(target_data, list):
+        target_data = []
+    compatibilities = index_data.get("compatibilities", [])
+    if not isinstance(compatibilities, list):
+        compatibilities = []
+    bundles = index_data.get("bundles", [])
+    if not isinstance(bundles, list):
+        bundles = []
+    out = []
+    for target in target_data:
+        if not isinstance(target, dict) or not target.get("enabled"):
+            continue
+        package = target.get("package")
+        if not isinstance(package, str) or not package:
+            continue
+        configured_rows = [p for p in (target.get("candidates", []) or []) + (target.get("extra_bundles", []) or [])
+                           if isinstance(p, dict)]
+        configured = {(str(p.get("owner", "")) + "/" + str(p.get("repo", ""))).lower()
+                      for p in configured_rows}
+        ours_row = configured_rows[0] if configured_rows else {}
+        ours = str(ours_row.get("owner", "")) + "/" + str(ours_row.get("repo", ""))
+        ours_count = None
+        for bundle in bundles:
+            if isinstance(bundle, dict) and str(bundle.get("repo", "")).lower() == ours.lower():
+                ours_count, _ = _provider_patch_info(bundle, package, compatibilities)
+                break
+        rows = []
+        for bundle in bundles:
+            if not isinstance(bundle, dict):
+                continue
+            repo = str(bundle.get("repo", ""))
+            if not repo or repo.lower() in configured:
+                continue
+            count, versions = _provider_patch_info(bundle, package, compatibilities)
+            if count < 1:
+                continue
+            newest = max(versions, key=lambda x: (_version_key(x), x)) if versions else "any version"
+            rows.append((count, repo.lower(), bundle, newest))
+        rows.sort(key=lambda row: (-row[0], row[1]))
+        remaining = max(0, len(rows) - 3)
+        label = str(target.get("label") or target.get("id") or package)
+        ours_text = ours if ours.strip("/") else "none configured"
+        ours_phrase = ours_text + (" (not in the index)" if ours_count is None else " with %d" % ours_count)
+        current = next((target.get(k) for k in ("current_version", "current_app_version", "app_version", "version", "max_app_version")
+                        if isinstance(target.get(k), str) and target.get(k).strip()), None)
+        selected = rows[:3]
+        for position, (count, _, bundle, newest) in enumerate(selected):
+            repo = str(bundle.get("repo"))
+            count_word = "patch" if count == 1 else "patches"
+            version_phrase = "its newest listed app version " + newest
+            if current:
+                version_phrase += ", ours " + current
+            first = "%s: %s offers %d %s for it (we use: %s; %s)" % (
+                label, repo, count, count_word, ours_phrase, version_phrase)
+            source = str(bundle.get("source", "github")).lower()
+            ident = bundle.get("project_id")
+            if ident is None:
+                ident = repo
+            item = {"id": item_id("decide", first), "kind": "decide", "first_line": first,
+                    "text": first, "description": first + " take = run Explore (a patches issue with the live list opens); drop = hide for good; hold = 14 days",
+                    "action": "explore", "host": source, "ident": str(ident), "package": package,
+                    "provider_label": label, "provider_more": remaining if position == len(selected) - 1 else 0}
+            out.append(item)
+    return out
 
 
 def _items(kind: str, texts: Iterable[str]) -> list[dict]:
@@ -249,7 +407,20 @@ def _review_item(item: dict) -> bool:
 
 
 def apply_effect(verb: str, item: dict, repo: str, run=subprocess.run) -> str:
-    """Apply the only live effects; all other item kinds are ledger-only."""
+    """Apply review effects and dispatch Explore for provider decisions."""
+    if item.get("action") == "explore" and verb == "take":
+        host = str(item.get("host", "")).lower()
+        ident = str(item.get("ident", ""))
+        package = str(item.get("package", ""))
+        valid_ident = ((host == "github" and bool(GITHUB_IDENT_RE.fullmatch(ident))) or
+                       (host == "gitlab" and bool(GITLAB_IDENT_RE.fullmatch(ident))))
+        if host not in ("github", "gitlab") or not valid_ident or not PACKAGE_RE.fullmatch(package) or len(package) > 120:
+            return "Explore refused: malformed provider or package"
+        result = gh(["workflow", "run", "explore.yml", "--repo", repo, "-f", "host=" + host,
+                     "-f", "ident=" + ident, "-f", "package=" + package, "-f", "channel=prerelease"], run)
+        if result.returncode != 0:
+            raise OSError("Needs you Explore dispatch failed")
+        return "Explore dispatched: patches issue will open"
     if not _review_item(item):
         return "recorded only"
     number = item.get("issue_number")
@@ -292,7 +463,7 @@ def _review_items(path: Path | None) -> list[dict]:
 
 def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = None,
            now: datetime | None = None, targets: Path | None = None,
-           review: Path | None = None) -> str:
+           review: Path | None = None, bundles: Path | dict | None = None) -> str:
     if isinstance(ledger, Path):
         ledger = load_ledger(ledger)
     ledger = ledger or []
@@ -302,6 +473,9 @@ def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = N
     all_items = []
     for kind in ORDER:
         all_items.extend(_items(kind, buckets[kind]))
+    # Provider choices come from the checked-out community index, not a stale
+    # collector paragraph. They remain in Decide and have stable ids.
+    all_items.extend(provider_items(bundles, targets))
     all_items.extend(_review_items(review or reports.get("review")))
     all_items.extend(app_items(targets))
     visible = [item for item in all_items if decision_state(item, ledger, now) == "visible"]
@@ -319,14 +493,27 @@ def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = N
             continue
         lines += ["## " + LABELS[kind], ""]
         for item in items:
-            metadata_row = {"id": item["id"], "kind": item["kind"], "first_line": item["first_line"]}
-            for field in ("title", "labels", "issue_number"):
+            if item["kind"] == "fyi":
+                lines += [item["first_line"], ""]
+                continue
+            # Keep the comment machine-readable without repeating the visible
+            # description in the rendered body.
+            metadata_row = {"id": item["id"], "kind": item["kind"]}
+            for field in ("title", "labels", "issue_number", "action", "host", "ident", "package"):
                 if field in item:
                     metadata_row[field] = item[field]
             metadata = json.dumps(metadata_row, separators=(",", ":"))
+            content = clean(item.get("text", ""))
+            content_lines = content.splitlines()
+            if content_lines and content_lines[0].strip() == item["first_line"].strip():
+                content = "\n".join(content_lines[1:]).strip()
             lines += ["<!-- needs-you-item:%s -->" % metadata,
-                      "<details><summary>%s</summary>" % readable.cell(item["first_line"], 180), "",
-                      "**%s** — %s" % (item["id"], item["description"]), "", item["text"], "", "</details>", ""]
+                      "<details><summary>**%s** — %s</summary>" % (item["id"], item["description"]), ""]
+            if content:
+                lines += [content, ""]
+            lines += ["</details>", ""]
+            if item.get("provider_more"):
+                lines += ["- %s: and %d more in the index" % (item.get("provider_label", "This app"), item["provider_more"]), ""]
     if taken:
         lines += ["## Taken, waiting for the next packet", "", "These items were taken and are hidden from the action list until the next packet.", ""]
         for item in taken:
@@ -524,6 +711,7 @@ def main(argv=None):
     r.add_argument("--output", type=Path)
     r.add_argument("--ledger", type=Path)
     r.add_argument("--targets", type=Path)
+    r.add_argument("--bundles", type=Path)
     r.add_argument("--review", type=Path)
     f = sub.add_parser("fetch")
     f.add_argument("--output-dir", type=Path, required=True)
@@ -539,7 +727,7 @@ def main(argv=None):
     q.add_argument("--owner", default=os.environ.get("GITHUB_REPOSITORY_OWNER", ""))
     a = ap.parse_args(argv)
     if a.command == "render":
-        body = render({name: getattr(a, name) for name in ISSUES}, ledger=a.ledger, targets=a.targets, review=a.review)
+        body = render({name: getattr(a, name) for name in ISSUES}, ledger=a.ledger, targets=a.targets, bundles=a.bundles, review=a.review)
         if a.output:
             a.output.write_text(body, encoding="utf-8")
         else:
