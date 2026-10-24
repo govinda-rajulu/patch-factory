@@ -14,7 +14,8 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
   issue, council caps removed, fewer runs. Record `docs/review/SESSION-2026-10-24.md`; brief
   `docs/review/W16-BRIEF.md`. Merged #222 as `e7b7dbfa`; W16b #226 `91c34e1c` (all watches green); W16c: weekly review issues, Instagram on piko again, dev branch cleanup, Reddit without Disable modern home, Photos package pinned, shadow SDK step-down, second stores for five apps, T1 publishes reddit and instagram. Wrong calls: 53 (L081 to L084).
 - **W16c** #228 `e73e7721` (Reddit and Instagram piko published). **W16d**: Needs you fixed, take/drop/hold by comment, shelf cards fold patches, cache pruning, Play helper removed. Wrong calls: 54 (L085).
-- **Next**: OPEN-WORK 24 Oct: Qualify baselines red (read its log), phone tests (Reddit, Instagram piko, Facebook 584), W15g.
+- **W16d** #231 `0b084181` (Needs you live #233). **W16e**: one Needs you item per unconfigured provider, take runs Explore. Wrong calls: 55 (L086).
+- **Next**: owner answers Needs you; MCP pilot (docs/review/MCP-PLAN.md); phone tests; W15g.
 
 ## 23 Oct 2026, midday IST (packet W15i)
 

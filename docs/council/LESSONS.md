@@ -500,3 +500,9 @@ Tags: tests, evidence
 Needs you asked `gh issue list --json` for `user`; gh has no such field, so the first real run
 failed (24 Oct). Its tests replaced gh with a fake that answered anything. A test that fakes a
 CLI also checks the arguments against that CLI's documented set (W16d).
+
+### L086 · A found provider is an owner decision, not a note
+Tags: evidence, release
+heval99 for Truecaller sat in the community index, a watch issue and an OPEN-WORK line from 19 Oct;
+the owner never saw it (24 Oct). Anything the watches find that the owner could take goes to Needs
+you as its own item with take, drop and hold, and take starts the next step (W16e).
