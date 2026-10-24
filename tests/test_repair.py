@@ -145,7 +145,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=32', result.stdout)  # W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card; W15h: certificate pin; W15i: comment stripper
+        self.assertIn('PORTAL_CONTRACTS_PASS=35', result.stdout)  # W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card; W15h: certificate pin; W15i: comment stripper; W16d: folded patches, meaningful badges, bundle order
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
@@ -621,7 +621,7 @@ transfer(){
 
     def test_apkpure_missing_link_emits_safe_stage_and_never_transfers(self):
         source=(ROOT/'src/build/utils.sh').read_text()
-        fn=source[source.index('get_apkpure() {'):source.index('\n# Download APK from Google Play Store')]
+        fn=source[source.index('get_apkpure() {'):source.index('\n#################################################', source.index('get_apkpure()'))]
         self.put('src/build/helper/apps.json',json.dumps({'apkpure':{'com.fixture':{'download_url':'https://apkpure.com/x/com.fixture/download'}}}))
         command="""
 green_log(){ printf '%s\\n' "$*"; }; yellow_log(){ printf '%s\\n' "$*"; }; red_log(){ printf '%s\\n' "$*"; }
@@ -640,7 +640,7 @@ version=1.0; prefer_version=; pup=fake_pup; user_agent=FAKE_UA_SECRET; FS_COOKIE
 
     def test_apkpure_valid_link_preserves_transfer_inputs_privately(self):
         source=(ROOT/'src/build/utils.sh').read_text()
-        fn=source[source.index('get_apkpure() {'):source.index('\n# Download APK from Google Play Store')]
+        fn=source[source.index('get_apkpure() {'):source.index('\n#################################################', source.index('get_apkpure()'))]
         self.put('src/build/helper/apps.json',json.dumps({'apkpure':{'com.fixture':{'download_url':'https://apkpure.com/x/com.fixture/download'}}}))
         command="""
 green_log(){ printf '%s\\n' "$*"; }; yellow_log(){ printf '%s\\n' "$*"; }; red_log(){ printf '%s\\n' "$*"; }
@@ -665,7 +665,7 @@ version=1.0; prefer_version=; pup=fake_pup; user_agent=FAKE_UA_SECRET; FS_COOKIE
 
     def test_store_url_echoes_removed_without_changing_selectors(self):
         source=(ROOT/'src/build/utils.sh').read_text()
-        block=source[source.index('_fs_get() {'):source.index('\n# Download APK from Google Play Store')]
+        block=source[source.index('_fs_get() {'):source.index('\n#################################################', source.index('get_apkpure()'))]
         for literal in ('echo "$base_url$final_href"','echo "$download_url"','echo "$dl_page_url"','failed: $url','HTTP $http_code: $url'):
             self.assertNotIn(literal,block)
         self.assertEqual(block.count('wget -q -O "./download/$base_apk"'),2)

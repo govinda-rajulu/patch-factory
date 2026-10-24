@@ -25,7 +25,7 @@ Preserve owner approvals for GmsCore support, PoToken provider and Spoof video s
 
 Current build chooses APKPure explicitly, otherwise APKMirror. Use verified app-scoped slugs/metadata from config and the actual download; Android TV and phone variants can share package IDs. A single 403 is not a permanent-block diagnosis. Owner browser evidence can resolve data unavailable to a public fetcher; never equate unavailable with nonexistent.
 
-Alternative APK sourcing is retained OPEN work: pilot exact version/package/ABI/SDK and original-signer evidence before replacing a working source. Dormant Play helper requests current metadata using an SDK35 profile and lacks the requested-version contract; it is not a ready fallback. apkeep historically listed versions but one download produced no file, so require actual bytes, size/shape/identity checks. Do not blindly switch to newest Play/APKPure, replace containers or promise timing savings from an unmeasured curl_cffi suggestion.
+Alternative APK sourcing is retained OPEN work: pilot exact version/package/ABI/SDK and original-signer evidence before replacing a working source. apkeep historically listed versions but one download produced no file, so require actual bytes, size/shape/identity checks. Do not blindly switch to newest Play/APKPure, replace containers or promise timing savings from an unmeasured curl_cffi suggestion.
 
 ## Discovery lessons
 

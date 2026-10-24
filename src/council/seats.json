@@ -1,5 +1,5 @@
 {
-  "note": "Advisory council seats. Each seat tries its listed models in order and uses the first one its provider serves. Free tiers only; a seat with no key is skipped. A seat whose budget (max_input_chars) is smaller than a job's pack abstains, so small seats serve ask and probe, large ones serve reviews and audits. desk: the standing Council desk issue that scheduled runs write to. Optional per seat: jobs (default all), reasoning_effort (sent only when set; dropped if a model refuses it). Provider output limits are not configured; calls omit max_tokens. GitHub Models retired on 30 Jul 2026. Keys and limits: docs/council/SETUP.md. W15e (owner, 22 Oct 2026): each seat has a persona (name, voice, council_lens) and a solo shift (job, shards, brief); see docs/council/PERSONAS.md.",
+  "note": "Advisory council seats. Each seat tries its listed models in order and uses the first one its provider serves. Free tiers only; a seat with no key is skipped. A seat whose budget (max_input_chars) is smaller than a job's pack abstains, so small seats serve ask and probe, large ones serve reviews and audits. desk: the standing Council desk issue that scheduled runs write to. Optional per seat: jobs (default all), reasoning_effort (sent only when set; dropped if a model refuses it). Provider output limits are not configured; calls omit max_tokens. GitHub Models retired on 30 Jul 2026. Keys and limits: docs/council/SETUP.md. W15e/W16d (owner, 22 Oct 2026): each seat has a persona (name, voice, council_lens) and a solo shift (job, shards, brief); see docs/council/PERSONAS.md.",
   "quorum": 3,
   "desk": 154,
   "seats": [
@@ -268,6 +268,84 @@
       ]
     },
     {
+      "id": "kilo",
+      "provider": "kilo",
+      "models": [
+        "kilo-auto/free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free"
+      ],
+      "max_input_chars": 200000,
+      "reasoning_effort": "low",
+      "persona": {
+        "name": "Surveyor",
+        "voice": "practical repository cartographer; follows a file from its input to its visible output",
+        "council_lens": "coverage: find the thinly reviewed path and the smallest concrete risk in it"
+      },
+      "shift": {
+        "job": "audit",
+        "shards": [
+          "portal"
+        ],
+        "brief": "App shelf coverage: inspect portal.js, index.html and generated portal data for drift"
+      },
+      "discover": [
+        ":free$"
+      ],
+      "backups": [
+        {
+          "provider": "zai",
+          "model": "glm-4.7-flash"
+        },
+        {
+          "provider": "openrouter",
+          "model": "openrouter/free"
+        },
+        {
+          "provider": "cloudflare",
+          "model": "@cf/openai/gpt-oss-120b"
+        }
+      ]
+    },
+    {
+      "id": "zai",
+      "provider": "zai",
+      "models": [
+        "glm-4.7-flash",
+        "glm-4.5-flash"
+      ],
+      "max_input_chars": 200000,
+      "reasoning_effort": "low",
+      "persona": {
+        "name": "Custodian",
+        "voice": "quiet maintenance steward; checks the path that keeps reports, caches and cleanup truthful",
+        "council_lens": "operability: expose stale state, silent skips and a test that would catch them"
+      },
+      "shift": {
+        "job": "audit",
+        "shards": [
+          "etc"
+        ],
+        "brief": "maintenance coverage: page generation, needs-you reports and cache pruning"
+      },
+      "discover": [
+        "^glm-[0-9.]+-flash$"
+      ],
+      "backups": [
+        {
+          "provider": "kilo",
+          "model": "kilo-auto/free"
+        },
+        {
+          "provider": "openrouter",
+          "model": "openrouter/free"
+        },
+        {
+          "provider": "cloudflare",
+          "model": "@cf/openai/gpt-oss-120b"
+        }
+      ]
+    },
+    {
       "id": "groq",
       "provider": "groq",
       "models": [
@@ -383,7 +461,9 @@
     "open",
     "codestral",
     "command",
-    "groq"
+    "groq",
+    "kilo",
+    "zai"
   ],
-  "backups_note": "W15h (22 Oct 2026): a seat whose own models are all missing, busy or cut answers through its backups on other providers, in order (the W15b probe candidates plus Cloudflare Workers AI). A backup without a key is skipped. 'discover' adds up to two catalogue models matching the pattern after the seat's own list, so a retired model id no longer empties a seat. W15i (23 Oct 2026, owner probe 39905304677: 12 of 31 models served): ids the probe found MISSING or refused on the free plan are gone (NVIDIA gpt-oss-120b, Nemotron 3 Super and Nano, OpenRouter gpt-oss-120b:free, Nemotron Super :free and Laguna S, Mistral Large), and every seat gains Kilo or Z.AI plus one model of another family that NVIDIA serves (Kimi K2.6, GLM 5.2, MiniMax M3, Qwen 3.5, DeepSeek V4, Mistral Medium 3.5). The probe measures each candidate once (probe_alternates)."
+  "backups_note": "W15h (22 Oct 2026): a seat whose own models are all missing, busy or cut answers through its backups on other providers, in order (the W15b probe candidates plus Cloudflare Workers AI). A backup without a key is skipped. 'discover' adds up to two catalogue models matching the pattern after the seat's own list, so a retired model id no longer empties a seat. W15i (23 Oct 2026, owner probe 39905304677: 12 of 31 models served): ids the probe found MISSING or refused on the free plan are gone (NVIDIA gpt-oss-120b, Nemotron 3 Super and Nano, OpenRouter gpt-oss-120b:free, Nemotron Super :free and Laguna S, Mistral Large), and every seat gains Kilo or Z.AI plus one model of another family that NVIDIA serves (Kimi K2.6, GLM 5.2, MiniMax M3, Qwen 3.5, DeepSeek V4, Mistral Medium 3.5). The probe measures each candidate once (probe_alternates). W16d (owner 24 Oct 2026): Kilo and Z.AI are full seats, with solo portal and etc shifts; Groq takes audit parts only when its 25000-character budget fits."
 }

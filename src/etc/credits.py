@@ -18,7 +18,6 @@ TOOLS=[("morphe-desktop","https://github.com/MorpheApp/morphe-desktop","GPL-3.0"
        ("CloudflareBypassForScraping","https://github.com/sarperavci/CloudflareBypassForScraping","MIT","second bypass path when FlareSolverr fails"),
        ("ncipollo/release-action","https://github.com/ncipollo/release-action","MIT","publishes each release"),
        ("Obtainium","https://github.com/ImranR98/Obtainium","GPL-3.0","how the phones track these releases"),
-       ("AuroraStore","https://gitlab.com/AuroraOSS/AuroraStore","GPL-3.0","reference for the rewritten anonymous Google Play helper; no client app vendored"),
        ("tdl","https://github.com/iyear/tdl","AGPL-3.0","optional Telegram source helper retained from the upstream workflow; review before enabling"),
        ("markdown-badges","https://github.com/Ileriayo/markdown-badges","MIT","badge style referenced by the upstream README; no badge assets vendored")]
 def build():

@@ -95,7 +95,7 @@ Laser-targeted fixes.
 
 Still open from earlier (OPEN-WORK 23 Oct): docs/review/onboarding/facebook.md still names 583;
 Instagram piko breakage on 452.1; five apps with one store only (ytmusic, adguard, photos,
-truecaller-combo on APKMirror; keymapper on APKPure); Google Play helper (ggplay_dl) never called;
+truecaller-combo on APKMirror; keymapper on APKPure);
 combo planner; zizmor; persona PRs; openskip mirror of knowledge/handbook/PACKET-LESSONS.md needs
 openskip's own PR; Cloudflare Workers AI key optional; port fiorenmas store fixes; pup -> htmlq.
 
@@ -116,7 +116,7 @@ direct (free amount not confirmed). The NVIDIA key already serves kimi-k2.6, min
 minimax-m2.7, glm-5.2, qwen3.5-397b, deepseek-v4-pro/flash, mistral-medium-3.5.
 Candidates not tried: xKiro, BazaarLink, Kilo without a key. OmniRoute = reference only (stale).
 Bots: CodeQL default setup on (owner); CodeRabbit not installed (overlaps council, noisy on bot
-PRs); Dependabot as is (its pip entry is pointless: ggplay_dl unpinned and unused).
+PRs); Dependabot as is.
 
 ## 7. Owner decisions in force
 

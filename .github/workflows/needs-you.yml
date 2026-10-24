@@ -1,19 +1,23 @@
 name: Needs you
 # One daily reader after Tooling watch. The collectors keep their evidence;
 # this is the only workflow that writes the merged Needs you issue.
-permissions:
-  contents: read
-  actions: read
-  issues: write
+permissions: {}
 on:
   schedule:
     - cron: "59 4 * * *"  # 10:29 IST daily, after Tooling watch at 09:59 IST
   workflow_dispatch:
+  issue_comment:
+    types: [created]
 concurrency:
   group: needs-you
   cancel-in-progress: false
 jobs:
   render:
+    if: github.event_name != 'issue_comment'
+    permissions:
+      contents: read
+      actions: read
+      issues: write
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -21,6 +25,17 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Read the decision ledger (watch-state branch)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if gh api -H "Accept: application/vnd.github.raw" "repos/$REPO/contents/needs-you-decisions.json?ref=watch-state" > "$RUNNER_TEMP/needs-you-decisions.json"; then
+            echo "decision ledger read: $(wc -c < "$RUNNER_TEMP/needs-you-decisions.json") bytes"
+          else
+            printf '[]\n' > "$RUNNER_TEMP/needs-you-decisions.json"
+            echo "no decision ledger yet"
+          fi
       - name: Read newest collector artifacts
         env:
           GH_TOKEN: ${{ github.token }}
@@ -34,6 +49,8 @@ jobs:
             --tooling "$RUNNER_TEMP/needs-you/tooling.md" \
             --selection "$RUNNER_TEMP/needs-you/selection.md" \
             --community "$RUNNER_TEMP/needs-you/community.md" \
+            --review "$RUNNER_TEMP/needs-you/review.json" \
+            --ledger "$RUNNER_TEMP/needs-you-decisions.json" \
             --output needs-you.md
       - name: Edit Needs you only when its body changed
         env:
@@ -48,3 +65,36 @@ jobs:
           path: needs-you.md
           if-no-files-found: error
           retention-days: 30
+
+  decide:
+    if: github.event_name == 'issue_comment' && github.event.issue.title == 'Needs you' && github.event.comment.user.login == github.repository_owner && github.event.comment.author_association == 'OWNER' && github.event.comment.user.type != 'Bot'
+    permissions:
+      issues: write
+      contents: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Record owner decisions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NEEDS_YOU_COMMENT_BODY: ${{ github.event.comment.body }}
+          NEEDS_YOU_COMMENT_URL: ${{ github.event.comment.html_url }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: python3 src/etc/needs_you.py decide --repo "$REPO" --comment-file "$RUNNER_TEMP/needs-you-comment.txt" --ledger "$RUNNER_TEMP/needs-you-decisions.json"
+      - name: Save the decision ledger (watch-state branch, never main)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/pub"
+          cp "$RUNNER_TEMP/needs-you-decisions.json" "$RUNNER_TEMP/pub/needs-you-decisions.json"
+          cd "$RUNNER_TEMP/pub"
+          git init -q -b watch-state
+          git add needs-you-decisions.json
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "needs you decisions $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" watch-state:watch-state

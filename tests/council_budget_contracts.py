@@ -101,8 +101,59 @@ class Pacing(unittest.TestCase):
     def test_every_provider_has_a_pace(self):
         self.assertEqual(set(council.PACE), set(council.PROVIDERS))
 
+    def test_different_providers_are_concurrent_while_each_provider_stays_serial(self):
+        active, peak = [], []
+        lock = threading.Lock()
 
-class Cloudflare(unittest.TestCase):
+        def http(method, url, headers, body=None, timeout=90):
+            if url.endswith('/models'):
+                return 200, json.dumps({'data': []})
+            with lock:
+                active.append(url.split('/')[2])
+                peak.append(len(active))
+            time.sleep(0.03)
+            with lock:
+                active.pop()
+            return 200, OK
+
+        council.http = http
+        council._model_cache.clear()
+        env = dict(ENV, PF_PACE_SCALE='0')
+        groq = dict(SEAT, id='g', provider='groq', models=['g1'])
+        threads = [threading.Thread(target=council.complete, args=(SEAT, 'm1', 's', 'u', env)),
+                   threading.Thread(target=council.complete, args=(groq, 'g1', 's', 'u', env))]
+        [t.start() for t in threads]
+        [t.join() for t in threads]
+        self.assertGreaterEqual(max(peak), 2, peak)
+
+    def test_convene_lanes_overlap_providers_and_serialize_shared_provider(self):
+        original = council.run_seat
+        active, max_active, same_provider_overlap = {}, [0], []
+        lock = threading.Lock()
+
+        def fake_run(seat, *args):
+            provider = seat['provider']
+            with lock:
+                if active.get(provider):
+                    same_provider_overlap.append(provider)
+                active[provider] = active.get(provider, 0) + 1
+                max_active[0] = max(max_active[0], sum(active.values()))
+            time.sleep(0.03)
+            with lock:
+                active[provider] -= 1
+            return {'seat': seat['id'], 'provider': provider, 'status': 'OK', 'answer': {}}
+
+        council.run_seat = fake_run
+        try:
+            seats = [dict(SEAT, id='a'), dict(SEAT, id='b'),
+                     dict(SEAT, id='c', provider='groq', models=['g1'])]
+            rows = council.convene(seats, 's', 'u', ENV, None, 'C')
+        finally:
+            council.run_seat = original
+        self.assertEqual([r['seat'] for r in rows], ['a', 'b', 'c'])
+        self.assertGreaterEqual(max_active[0], 2)
+        self.assertEqual(same_provider_overlap, [])
+
     def test_account_id_is_checked_and_scrubbed(self):
         acct = 'a' * 32
         env = dict(ENV, CLOUDFLARE_API_TOKEN='cf-FAKE-TOKEN-0009', CLOUDFLARE_ACCOUNT_ID=acct)
@@ -161,6 +212,22 @@ class AuditMemory(unittest.TestCase):
             raise OSError('down')
         council.gh = boom
         self.assertFalse(council.unchanged_since(dict(ENV), 154, 'm', 'a', 'b'))
+
+    def test_incomplete_desk_comment_carries_original_parts_in_order(self):
+        comments = [{'user': {'login': 'github-actions[bot]'},
+                     'body': '<!-- pf-council:audit:selection -->\n'
+                             'Not reviewed (time or part limit): part(s) 4, 2, 4. Run the shard again for them.'}]
+        old = council.gh
+        try:
+            council.gh = lambda *a, **k: json.dumps(comments)
+            self.assertEqual(council.audit_carryover(dict(ENV), 154,
+                             '<!-- pf-council:audit:selection -->', 5), [4, 2])
+            self.assertEqual(council.audit_carryover(dict(ENV), 154,
+                             '<!-- pf-council:audit:selection -->', 3), [2])
+            self.assertFalse(council.unchanged_since(dict(ENV), 154,
+                             '<!-- pf-council:audit:selection -->', 'a', 'b'))
+        finally:
+            council.gh = old
 
     def test_forced_and_staged_runs_audit(self):
         council.gh = lambda *a, **k: json.dumps(self.comment())

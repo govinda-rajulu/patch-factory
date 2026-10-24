@@ -4,6 +4,8 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from datetime import datetime, timezone, timedelta
+import re
 from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,8 +21,9 @@ class Renderer(unittest.TestCase):
             for name in n.ISSUES:
                 p = Path(d) / (name + '.md'); p.write_text('# report: OK\n'); paths[name] = p
             body = n.render(paths)
-        self.assertIn('**Needs you:** nothing needs you today.', body)
-        self.assertNotIn('## Decide', body)
+        self.assertIn('## Keep building', body)
+        self.assertIn('N-', body)
+        self.assertIn('take N-xxxxxx', body)
 
     def test_groups_decide_install_fix_and_keeps_reports(self):
         with tempfile.TemporaryDirectory() as d:
@@ -66,16 +69,85 @@ class Renderer(unittest.TestCase):
         def run(args, **kwargs):
             calls.append(args)
             if args[1:3] == ['issue', 'list']:
-                return SimpleNamespace(returncode=0, stdout=json.dumps([{'number': 9, 'title': 'Needs you', 'body': 'old', 'user': {'type': 'Bot'}}]), stderr='')
+                return SimpleNamespace(returncode=0, stdout=json.dumps([{'number': 9, 'title': 'Needs you', 'body': 'old', 'author': {'is_bot': True, 'login': 'github-actions[bot]'}}]), stderr='')
             return SimpleNamespace(returncode=0, stdout='', stderr='')
         self.assertEqual(n.deliver('new\n', run=run), 'EDITED')
         self.assertEqual([x[1:3] for x in calls], [['issue', 'list'], ['issue', 'edit'], ['issue', 'comment']])
         calls.clear()
         def same(args, **kwargs):
             calls.append(args)
-            return SimpleNamespace(returncode=0, stdout=json.dumps([{'number': 9, 'title': 'Needs you', 'body': 'new\n', 'user': {'type': 'Bot'}}]), stderr='')
+            return SimpleNamespace(returncode=0, stdout=json.dumps([{'number': 9, 'title': 'Needs you', 'body': 'new\n', 'author': {'is_bot': True, 'login': 'github-actions[bot]'}}]), stderr='')
         self.assertEqual(n.deliver('new\n', run=same), 'UNCHANGED')
         self.assertEqual(len(calls), 1)
+
+
+class NeedsYouDecisions(unittest.TestCase):
+    def test_parser_accepts_valid_mixed_case_and_ignores_unknown_ids(self):
+        self.assertEqual(n.parse_decisions("take N-a1B2c3\nDROP n-deadbe\nhello\nhold N-ffffff", ["N-A1B2C3", "N-DEADBE"]),
+                         [("take", "N-A1B2C3"), ("drop", "N-DEADBE")])
+
+    def test_ledger_hold_expires_after_fourteen_days(self):
+        stamp = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        row = {"id": "N-a1b2c3", "verb": "hold", "time": stamp.isoformat()}
+        item = {"id": "N-a1b2c3"}
+        self.assertEqual(n.decision_state(item, [row], stamp + timedelta(days=13, hours=23)), "held")
+        self.assertEqual(n.decision_state(item, [row], stamp + timedelta(days=14)), "visible")
+
+    def test_workflow_guards_owner_title_association_and_bot(self):
+        base = {"issue": {"title": "Needs you"}, "comment": {"user": {"login": "govinda-rajulu", "type": "User"}, "author_association": "OWNER"}}
+        self.assertTrue(n.authorized_comment(base, "govinda-rajulu"))
+        for mutate in ({"issue": {"title": "Other"}}, {"comment": {"user": {"login": "other", "type": "User"}}}, {"comment": {"author_association": "MEMBER"}}, {"comment": {"user": {"login": "govinda-rajulu", "type": "Bot"}}}):
+            event = {"issue": {"title": "Needs you"}, "comment": {"user": {"login": "govinda-rajulu", "type": "User"}, "author_association": "OWNER"}}
+            event.update(mutate)
+            self.assertFalse(n.authorized_comment(event, "govinda-rajulu"))
+
+    def test_effect_mapping_is_review_only(self):
+        self.assertEqual(n._review_item({"kind": "review", "first_line": "review: x"}), True)
+        self.assertEqual(n._review_item({"kind": "community", "first_line": "review: x"}), False)
+
+
+class Contracts(unittest.TestCase):
+    # These sets come from the GitHub CLI manuals:
+    # https://cli.github.com/manual/gh_issue_list and https://cli.github.com/manual/gh_pr_list.
+    ISSUE_JSON_FIELDS = {
+        "assignees", "author", "body", "closed", "closedAt", "closedByPullRequestsReferences",
+        "comments", "createdAt", "id", "isPinned", "labels", "milestone", "number",
+        "projectCards", "projectItems", "reactionGroups", "state", "stateReason", "title", "updatedAt", "url",
+    }
+    PR_JSON_FIELDS = {
+        "additions", "assignees", "author", "baseRefName", "baseRefOid", "body", "changedFiles",
+        "closed", "closedAt", "closingIssuesReferences", "commits", "createdAt", "deletions", "files",
+        "fullDatabaseId", "headRefName", "headRefOid", "id", "isCrossRepository", "isDraft", "labels",
+        "latestReviews", "maintainerCanModify", "mergeCommit", "mergeStateStatus", "mergeable", "mergedAt",
+        "mergedBy", "milestone", "number", "projectCards", "projectItems", "reactionGroups", "reviewDecision",
+        "reviewRequests", "reviews", "state", "statusCheckRollup", "title", "updatedAt", "url",
+    }
+    def test_every_gh_list_json_field_is_documented(self):
+        # Allow-lists copied from the gh issue/pr list manuals linked in needs_you.py.
+        patterns = re.compile(r"gh\s+(issue|pr)\s+list\b[^\n]*?--json\s+['\"]?([A-Za-z0-9_,]+)")
+        for root in (ROOT / "src", ROOT / ".github"):
+            for path in root.rglob("*"):
+                if not path.is_file() or path.suffix not in {".py", ".sh", ".yml", ".yaml"}:
+                    continue
+                text = path.read_text(encoding="utf-8", errors="replace")
+                for match in patterns.finditer(text):
+                    fields = set(match.group(2).split(","))
+                    allowed = self.ISSUE_JSON_FIELDS if match.group(1) == "issue" else self.PR_JSON_FIELDS
+                    self.assertTrue(fields <= allowed, "%s has undocumented %s fields: %s" % (path, match.group(1), fields - allowed))
+
+    def test_workflow_has_separate_guarded_comment_job_and_safe_body_transport(self):
+        text = (ROOT / ".github/workflows/needs-you.yml").read_text()
+        self.assertIn("issue_comment:", text)
+        self.assertIn("types: [created]", text)
+        self.assertIn("github.event.issue.title == 'Needs you'", text)
+        self.assertIn("github.event.comment.user.login == github.repository_owner", text)
+        self.assertIn("github.event.comment.author_association == 'OWNER'", text)
+        self.assertIn("github.event.comment.user.type != 'Bot'", text)
+        self.assertIn("if: github.event_name != 'issue_comment'", text)
+        self.assertIn("NEEDS_YOU_COMMENT_BODY: ${{ github.event.comment.body }}", text)
+        run_blocks = re.findall(r"(?ms)^\s+run:\s*(?:\|\n)?(.*?)(?=^\s+-?\s*name:|^\s+-?\s*uses:|\Z)", text)
+        self.assertTrue(all("github.event.comment.body" not in block for block in run_blocks))
+        self.assertIn("issues: write\n      contents: write", text)
 
 
 class Ranker(unittest.TestCase):

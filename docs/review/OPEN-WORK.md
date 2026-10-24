@@ -1,5 +1,18 @@
 # Open work
 
+Maintenance history: the unused source path was removed; its implementation remains in Git history.
+
+## Current checkpoint: 24 October 2026, evening IST (packet W16d)
+
+W16d: Needs you answered by comment, cleaner shelf, cache pruning, Qualify fix (Amazon Music),
+Kilo and Z.AI council seats. Open, in order:
+
+1. MCP pilot (docs/review/MCP-PLAN.md): one manual run of the read-only provider scout, then weekly
+   inside Community watch; candidates go to Needs you.
+2. Owner answers the Needs you items (take, drop, hold); dropped apps leave in the next packet.
+3. Build still starts store services twice (about 35 s); start them on demand inside attempts.
+4. Phone: Reddit 41, Instagram piko, Facebook 584. W15g signing split. Combo planner (LinkedIn).
+
 ## Current checkpoint: 24 October 2026 (W16 on dev/w16)
 
 W16 (one pull request from dev/w16): audit, Reddit on official Morphe v1.48.0 with Adobo fallback,
@@ -20,7 +33,7 @@ council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](SESSION-2026-1
 4. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)), needs a phone test.
 5. Still open from 23 Oct and 20 Oct: Instagram piko on 452.1 (W16c holds the broken brosssh patch); five apps with one store (W16c:
    second store added for all five);
-   Google Play helper unused; combo planner; zizmor; persona pull requests; openskip mirror of
+   Combo planner; zizmor; persona pull requests; openskip mirror of
    knowledge/handbook/PACKET-LESSONS.md by its own pull request; Cloudflare key optional; port
    fiorenmas store fixes; pup to htmlq; pf-vault (owner creates the private repository and token
    first). Carried from 20 Oct item 8: TDL_BACKUP secret delete (owner); Amazon Music keeps building,
@@ -48,7 +61,7 @@ Record: [SESSION-2026-10-23.md](SESSION-2026-10-23.md). Open, in order:
 3. (W16c: held in instagram-brosssh/exclude-patches; see onboarding/instagram.md.) Instagram: piko's "Disable story auto flipping" no longer matches Instagram 452.1 (HushGram
    built instead); watch piko for a fix, or hold that name.
 4. Second store: YT Music, AdGuard, Photos and Truecaller have no APKPure mapping, Key Mapper no
-   APKMirror one; the Google Play path (get_apk_chplay) is in utils.sh but nothing calls it.
+   APKMirror one.
 5. Combo planner and ceiling memory (LinkedIn step-downs); Tooling watch items (FlareSolverr,
    pup to htmlq, apkeep); openskip and brain persona PRs; zizmor advisory job.
 
@@ -57,7 +70,7 @@ Record: [SESSION-2026-10-23.md](SESSION-2026-10-23.md). Open, in order:
 W15f merged (#210, `db32d516`), published and cleaned up (one release per app). W15h: Obtainium
 certificate pin, tooling watch v2 over 13 upstreams (L074), empty API answers asked again (L075),
 council v4 (seat backups, model discovery, pacing, audit memory; Cloudflare wired).
-Record: [SESSION-2026-10-22.md](SESSION-2026-10-22.md), W15h section. Open, in order:
+Record: [SESSION-2026-10-22.md](history/SESSION-2026-10-22.md), W15h section. Open, in order:
 
 0. Owner, once: re-import the Obtainium JSON from the page (needs Obtainium 1.6.16 or newer) so
    the certificate pin reaches the phone.
@@ -95,7 +108,7 @@ reruns on main; council v3 from the outside-repo review ([OUTSIDE-REPOS-2026-10-
 
 W15d merged (#204, `ab8423a8`; T1 0 findings). W15e: readable bot reports, Rule merge fixed
 (#207 then merges itself), personas and solo shifts, one release kept per app, merged branches
-and superseded issues cleaned. Record: [SESSION-2026-10-22.md](SESSION-2026-10-22.md). Open, in order:
+and superseded issues cleaned. Record: [SESSION-2026-10-22.md](history/SESSION-2026-10-22.md). Open, in order:
 
 1. After the merge: Rule merge merges #207 within its 20 min patience or the next cron; read the
    RULE_MERGE line on the next run.
@@ -109,7 +122,7 @@ and superseded issues cleaned. Record: [SESSION-2026-10-22.md](SESSION-2026-10-2
 
 W15c merged (#199, `73d85522`; T1 0 findings). W15d: exact bundle version on release pages,
 11. Rule merge (owner yes: green rule pull requests merge themselves), reserved names, honest
-adopt records, #202 closed, history audit. Record: [SESSION-2026-10-21.md](SESSION-2026-10-21.md),
+adopt records, #202 closed, history audit. Record: [SESSION-2026-10-21.md](history/SESSION-2026-10-21.md),
 [HISTORY-AUDIT-2026-10-21.md](HISTORY-AUDIT-2026-10-21.md). Open, in order:
 
 1. Next Selection watch (07:41 IST, or the W15d T1 run): fresh adopt pull request under the
@@ -132,7 +145,7 @@ adopt records, #202 closed, history audit. Record: [SESSION-2026-10-21.md](SESSI
 ## Current checkpoint: 21 October 2026, morning IST (packet W15c)
 
 W15b merged (#193, `79f619ec`). W15c: publisher pin at preparation, adopt waits on a pending
-branch, longest build first, parallel smoke, audit. Record: [SESSION-2026-10-21.md](SESSION-2026-10-21.md),
+branch, longest build first, parallel smoke, audit. Record: [SESSION-2026-10-21.md](history/SESSION-2026-10-21.md),
 [AUDIT-2026-10-21.md](AUDIT-2026-10-21.md). Open, in order:
 
 1. Owner: allow Actions to create pull requests; then the pending adopt branch
@@ -154,7 +167,7 @@ W15b (one pull request): #188 bump applied and Dependabot covers composites; #14
 and reasons; transfer and merge reasons; pinned certificate fails closed; council probe per model;
 Selection watch auto-adopt by name and description (pull request, never merged by the bot);
 owner's 33 decisions; agent review honours the offline-unlock list; L062 to L065. Record:
-[SESSION-2026-10-20.md](SESSION-2026-10-20.md). Open, in order:
+[SESSION-2026-10-20.md](history/SESSION-2026-10-20.md). Open, in order:
 
 1. Read the W15b RESULT, then the first adopt pull request the Selection watch opens (expect
    about 53 older names, 38 for the HushGram fallback) and its test builds; merge or decline.
@@ -187,7 +200,7 @@ W15 merged (#187, main `8148af78`): publish guard (L059), Facebook 583 on Hushfa
 Obtainium tracks the build id, notify identity (L058), Dependabot bump applied and its test fixed,
 Reddit pin, SDK warnings, baseline reasons kept, council fix-lane guard, Nemotron 3.5 Super VL,
 pinned code picks the store row (L060), telegram_dl removed; 7 stale issues closed. H15: this
-record. Records: [SESSION-2026-10-17.md](SESSION-2026-10-17.md), [WIP-W15-2026-10-17.md](WIP-W15-2026-10-17.md). Open, in order:
+record. Records: [SESSION-2026-10-17.md](history/SESSION-2026-10-17.md), [WIP-W15-2026-10-17.md](WIP-W15-2026-10-17.md). Open, in order:
 
 1. Done 17 Oct: pf-t1 RESULT OK, 0 findings, 17 of 17 apps built; Facebook 583 published (run
    39055575670). Next: read the Selection watch issue and community issue #189 (new index report).
@@ -225,7 +238,7 @@ W13 merged (#178, main `45ff17ba`); cleanup and the openskip handbook copy (#107
 (universal APKMirror row, store-miss step-down), Nightly false UNKNOWN, Selection watch ranking,
 open-mode names and reminders, publisher pins seeded, agent review drops findings on excluded
 names, status reasons, two new patches decided, one home for repeated release and page text
-(old notes tidied), Obtainium card, automation lists wired, agent spec and fix lane. Record: [SESSION-2026-10-11.md](SESSION-2026-10-11.md).
+(old notes tidied), Obtainium card, automation lists wired, agent spec and fix lane. Record: [SESSION-2026-10-11.md](history/SESSION-2026-10-11.md).
 Open, in order:
 
 1. Owner runs `pf-w14` (smokes Reddit, Facebook, Amazon Music, YouTube, Instagram; merge; cleanup;
@@ -251,7 +264,7 @@ H12 merged (#176, main `e42b06d8`). W13 (one pull request, owner pre-approved): 
 dropped by name, provider fallback with per-provider pins (Facebook De-Vanced 580, Instagram
 HushGram), 10. Selection watch (removals, baselines, waiting patches, release digest incl. Morphe,
 better-provider line), pf-t1 in `controllers/`, Instagram and Amazon Music list fixes, Facebook
-"Share sheet items". Record: [SESSION-2026-10-10.md](SESSION-2026-10-10.md). Open, in order:
+"Share sheet items". Record: [SESSION-2026-10-10.md](history/SESSION-2026-10-10.md). Open, in order:
 
 1. Owner runs `pf-w13c` (fast-forwards packet/w13 with commit 3: brosssh patches kept, any-version
    smoke rule, L053; run 1 stopped on SIGPIPE, L052, run 2 at the Amazon Music smoke), which
@@ -279,7 +292,7 @@ W12 merged (#175, main `9a50d038`): coverage-first version choice, proven by non
 builds (YouTube 77 of 77, Instagram 46 of 46). #102 closed. The W12 cleanup apply stopped on
 a stale token (a Pages deploy landed after the preview); nothing was deleted. H12 records the
 owner's decisions and moves the controller tools into [controllers/README.md](controllers/README.md).
-Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (H12). Open, in order:
+Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (H12). Open, in order:
 
 1. Owner runs the H12 controller, then the cleanup apply line it prints (merged packet
  branches, old Pages records).
@@ -307,7 +320,7 @@ Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (H12). Open, in order:
 
 W11 merged (#174, main `a7f1f0af`) over the agent review block by owner decision; Facebook 581
 built (82 of 82). Cleanup applied. W12: coverage-first version choice, status page cancel fix,
-CHANGELOG, #102 closed. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W12). Open, in order:
+CHANGELOG, #102 closed. Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W12). Open, in order:
 
 1. Owner runs `pf-w12.py` (push, Validate, two nonpublishing builds on the packet branch that must
  print a COVERAGE line, merge) and uploads its logs. Phone-test Facebook.
@@ -325,7 +338,7 @@ CHANGELOG, #102 closed. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (
 
 W10 merged (#169, main `7838a4ce`), cleanup applied (one Truecaller). W11: 22 baselines
 re-seeded, Facebook on HushFacebook 581 (82 patches), repository-case hint, review correction.
-Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W11). Open, in order:
+Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W11). Open, in order:
 
 1. Owner runs `pf-w11.py` (merge after Validate and the Onboarding review, then one Facebook
  build) and uploads its logs. Phone-test Facebook: read receipts, typing and anonymous stories
@@ -343,7 +356,7 @@ Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W11). Open, in order:
 W9 merged (#167, main `a2c2ab27`). W10 (one pull request): cleanup marks Pages records inactive
 first and removes retired apps' releases (one Truecaller: `tc-combo`), the watch lists universal
 patches (#102), colour codes out of key lines, provider review. Record:
-[SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W10), [PROVIDERS-2026-10-09.md](PROVIDERS-2026-10-09.md). Open, in order:
+[SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W10), [PROVIDERS-2026-10-09.md](PROVIDERS-2026-10-09.md). Open, in order:
 
 1. Owner runs `pf-w10.py`, uploads its logs zip, then the printed cleanup apply line (it removes
  `truecaller-v26.10.6`, old Pages records and the merged packet branches).
@@ -359,7 +372,7 @@ patches (#102), colour codes out of key lines, provider review. Record:
 W8 merged (#166); Amazon Music 26.36.1 and LinkedIn 4.1.1255.1 built. W9 (one pull request):
 records, routine cleanup (releases, tags, Pages deployments, merged packet branches), old
 retention preview retired, run-log filter, agent docs to history, one home for notices,
-companions folded. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W9). Open, in order:
+companions folded. Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W9). Open, in order:
 
 1. Owner runs `pf-w9.py` and uploads its RESULT file and logs folder. Then the printed cleanup
  apply command, if the preview looks right; copy its receipt into `retention/` in W10.
@@ -376,7 +389,7 @@ companions folded. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W9). 
 
 W7 merged (#164, main `eebbb279`); LinkedIn stepped down to 4.1.1255.1 by itself and built.
 W8 (one pull request): Amazon Music's any-version backfill reads the APK with the SDK reader;
-one Validate run per packet branch. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md)
+one Validate run per packet branch. Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md)
 (W7 results and W8). Open, in order:
 
 1. Owner runs the W8 controller (merge, then Manual Patch `amazonmusic` on the store's newest).
@@ -391,7 +404,7 @@ one Validate run per packet branch. Record: [SESSION-2026-10-09.md](SESSION-2026
 W7 (one pull request on top of W6 #163): version step-down for apps above the phone cap,
 any-version providers take the store's newest, Amazon Music and LinkedIn unpinned, short MicroG
 card, `docs/status.html` deleted, launcher rule in the STATE opening message. Record:
-[SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W7 section). Open, in order:
+[SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W7 section). Open, in order:
 
 1. Owner runs the W7 controller (merges #163 and W7, builds Amazon Music and LinkedIn) and
  uploads its RESULT file. Phone-test both (Amazon on a throwaway account only); if Amazon will
@@ -411,7 +424,7 @@ cleanup applied a second time (22 releases, 22 tags; receipt
 `~/work/run-logs/cleanup-receipt-20261009T091933Z.json` on the owner box). W6 (one pull
 request): Amazon Music's `libInit.so` version marker (`4.6.14`) accepted by the native check,
 build workflows keyed by app on the status data and Pages. Record:
-[SESSION-2026-10-09.md](SESSION-2026-10-09.md). Open, in order:
+[SESSION-2026-10-09.md](history/SESSION-2026-10-09.md). Open, in order:
 
 1. Merge W6. Run `1. Manual Patch` for `amazonmusic`. If it stops at a new check, paste the
  reason line. Phone-test both apps (Amazon on a throwaway account only); if Amazon will not
@@ -449,7 +462,7 @@ keeps only each app's two newest builds, disabling an app passes the suite. Open
 W4 (one pull request): Pages Builds and Watch rebuilt on `status.json`, failures listed until
 fixed, MicroG RE six-file card, Obtainium import with icon choice, Amazon Music and LinkedIn,
 a working two-step app add, cleanup tool, obsolete files removed. Record:
-[SESSION-2026-10-08.md](SESSION-2026-10-08.md) (W4 section). Open, in order:
+[SESSION-2026-10-08.md](history/SESSION-2026-10-08.md) (W4 section). Open, in order:
 
 1. Merge W4 (#160). Its onboarding review blocks Amazon Music's "Unlock Unlimited" and
  "Unlimited track skipping" under rule 1; the owner keeps them for a throwaway-account test
@@ -468,7 +481,7 @@ a working two-step app add, cleanup tool, obsolete files removed. Record:
 W2 (one pull request) makes every app or patch change two steps (`5. Add target`, then merge),
 adds the plain status page, ships MicroG RE with the apps that need it, removes repeated notes,
 fixes four silent failures (shipped in W3), and carries W1's onboarding gate, tooling watch and decided leads
-([LEADS-2026-10-08.md](LEADS-2026-10-08.md)). Record: [SESSION-2026-10-08.md](SESSION-2026-10-08.md).
+([LEADS-2026-10-08.md](LEADS-2026-10-08.md)). Record: [SESSION-2026-10-08.md](history/SESSION-2026-10-08.md).
 Open, in order:
 
 1. W2 merged (#158, merge commit `5e648da5`), W3 follows. Run `Status page data` once; check the page and one `5. Add target` dry change.
@@ -484,7 +497,7 @@ Open, in order:
 ## Earlier checkpoint: 7 October 2026, evening (handover)
 
 V2 is on main (PR #156); the council works the pinned desk #154 on a schedule. Everything the
-6-7 Oct chat found is in the [session record](SESSION-2026-10-07.md). Open, in order:
+6-7 Oct chat found is in the [session record](history/SESSION-2026-10-07.md). Open, in order:
 
 1. Desk leads: verify each against the code before any packet. Confirmed but not fixed from the
    [audit ledger](AUDIT-COUNCIL-2026-10-06.md): ci.yml resolve `continue-on-error`; poll-only

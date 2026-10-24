@@ -2,7 +2,7 @@
 
 **Limits checked 23 Oct 2026:** the dated official-provider table is [PROVIDERS.md](PROVIDERS.md); values here are a quick operational summary.
 
-Written 6 Oct 2026 (packet T1). All six keys were stored in this repository and in openskip on
+Written 6 Oct 2026 (packet T1). The original six keys were stored in this repository and in openskip on
 7 Oct 2026, each tested against its provider first. Quotas and model names change without notice; the council
 copes (a missing key skips the seat, a retired model falls through), but re-check a provider's
 own page before relying on a number here. Keys live only in repository secrets
@@ -10,7 +10,7 @@ own page before relying on a number here. Keys live only in repository secrets
 
 ## Keys
 
-All six are free without a card. Everything the council sends is already public in this
+The seated providers are free-tier or optional free-model services; key availability and quotas can change. Everything the council sends is already public in this
 repository, so free-tier prompt use for training costs nothing private.
 
 | Secret | Provider | Where to create it | Free limit (checked 23 Oct 2026) | Seats |
@@ -22,8 +22,8 @@ repository, so free-tier prompt use for training costs nothing private.
 | `COHERE_API_KEY` | Cohere trial key | https://dashboard.cohere.com/api-keys | 1,000 calls/month, 20/min per chat model; evaluation use | command |
 | `GROQ_API_KEY` | Groq | https://console.groq.com/keys | 30/min, 1,000/day, 8,000 tokens/min (official table) | groq |
 | `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Workers AI (W15h, optional) | https://dash.cloudflare.com/profile/api-tokens (template "Workers AI", Read); the account id is on the dashboard Overview page (32 hex characters) | 10,000 neurons a day, reset 00:00 UTC; no training on inputs | backup for every seat |
-| `KILO_API_KEY` | Kilo Gateway (W15i, optional) | https://app.kilo.ai (API keys) | free models (ids end in :free, or kilo-auto/free) at 200 requests an hour (kilo.ai/docs/gateway/usage-and-billing) | backup for gpt, gemini, nemotron, open, groq |
-| `ZAI_API_KEY` | Z.AI (W15i, optional) | https://z.ai/manage-apikey/apikey-list | GLM-4.7-Flash and GLM-4.5-Flash free ([pricing](https://docs.z.ai/guides/overview/pricing)); numeric limits shown only in the account | backup for gemini, codestral, command |
+| `KILO_API_KEY` | Kilo Gateway (W16d full seat) | https://app.kilo.ai (API keys) | free models (ids end in :free, or kilo-auto/free) at 200 requests an hour (kilo.ai/docs/gateway/usage-and-billing) | full seat (plus backups) for the portal shard |
+| `ZAI_API_KEY` | Z.AI (W16d full seat) | https://z.ai/manage-apikey/apikey-list | GLM-4.7-Flash and GLM-4.5-Flash free ([pricing](https://docs.z.ai/guides/overview/pricing)); numeric limits shown only in the account | full seat (plus backups) for the etc shard |
 
 W15h (22 Oct 2026): Cloudflare has an OpenAI-style endpoint
 (`/client/v4/accounts/<id>/ai/v1/chat/completions`, developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility),
@@ -41,14 +41,15 @@ provider's own pricing or rate-limit page.
 
 ## Seats and budgets
 
-`src/council/seats.json`: seven seats on six providers. On 7 Oct 2026 the `kimi` seat was removed
+`src/council/seats.json`: nine seats on eight providers. On 7 Oct 2026 the `kimi` seat was removed
 (none of its four NVIDIA models is served to this key) and, earlier that day, the NVIDIA-hosted
 `mistral` seat was dropped (its model returned 404, and the `codestral` seat reaches Mistral
 directly) and `minimax` became `kimi` (none of its models was served). `max_input_chars` is each seat's budget;
 a pack larger than the budget makes that seat abstain instead of failing. So the Groq seat (8000
-tokens a minute) answers probes and small asks, while the large seats take reviews and audits.
-Quorum stays 3 valid answers. A seat's optional `jobs` list limits what it is sent (Groq: probe
-and ask), and `reasoning_effort` plus `max_tokens` keep reasoning models from spending their
+tokens a minute) answers probes and small asks; its 25000-character budget cannot hold the trained
+audit prompt, so it is not a default audit seat. The Kilo and Z.AI full seats take reviews and
+ audits when their keys are present.
+Quorum stays 3 valid answers. A seat's optional `jobs` list limits what it is sent (Groq: probe and ask), and `reasoning_effort` plus `max_tokens` keep reasoning models from spending their
 whole answer budget thinking (7 Oct 2026: four seats failed that way, see LESSONS 19).
 
 ### W15h: why seats failed, and what changed (22 Oct 2026)
@@ -63,7 +64,7 @@ spending the answer budget thinking (cut). Since W15h:
 - `backups` per seat: models on other providers, tried after the seat's own; a backup without a
   key is skipped. The desk names them `model via provider (backup)`.
 - A cut reply gets one more try with twice the room (at most 16000) and `reasoning_effort` low.
-- Calls to one provider go one at a time. `PACE` in `src/council/council.py` uses 80% of each
+- Seats run concurrently across providers; calls to one provider go one at a time and retain their pacing gap. `PACE` in `src/council/council.py` uses 80% of each
   documented request limit where available (Kilo 22.5s, OpenRouter/Cohere 3.75s, Groq 2.5s);
   providers with account-only limits retain a conservative gap.
 - Audit memory: a shard whose files and prompt match its last audit (valid answers, under 14
@@ -90,7 +91,9 @@ Audit shards (`src/council/shards.json`): workflows, council, selection, build-s
 build-python, etc, portal, docs, tests-build, tests, rest. Each shard is split into parts of at
 most 70000 characters, so every part fits a 100000-character seat with its trusted context.
 Records under `docs/review/`, generated files, the licence, the archive and binary files are
-never sent. A run stops starting new parts after 30 minutes and names the parts it did not reach.
+never sent. A run stops starting new parts after 30 minutes and names the parts it did not reach. The next run
+uses those recorded part numbers first, then resumes the normal path order; the line remains honest
+when the run reaches another limit.
 
 ## How results are used
 

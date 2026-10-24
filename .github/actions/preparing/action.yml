@@ -9,14 +9,6 @@ inputs:
     description: 'Install usque for Cloudflare WARP proxy'
     required: false
     default: 'false'
-  install_python_deps:
-    description: 'Install Python dependencies for Google Play downloader'
-    required: false
-    default: 'false'
-  python_requirements:
-    description: 'Path to Python requirements.txt file'
-    required: false
-    default: ''
 runs:
   using: "composite"
   steps:
@@ -78,18 +70,6 @@ runs:
           echo "::warning::CloudflareBypassForScraping did not start within 60 s; the second Cloudflare path is unavailable"
           echo "- CloudflareBypassForScraping did not start; the second Cloudflare path is unavailable" >> "$GITHUB_STEP_SUMMARY"
         fi
-    - name: Set up Python
-      if: inputs.install_python_deps == 'true'
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-      with:
-        python-version: '3.x'
-    - name: Install Python dependencies
-      if: inputs.install_python_deps == 'true'
-      shell: bash
-      # W15d (AUDIT 4): the input reaches the shell through env, never interpolated.
-      env:
-        PF_REQUIREMENTS: ${{ inputs.python_requirements }}
-      run: pip install -r "$PF_REQUIREMENTS"
     - name: Install Bouncy Castle provider for BKS keystore
       if: inputs.install_bouncy_castle == 'true'
       shell: bash

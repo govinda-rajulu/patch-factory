@@ -22,7 +22,7 @@ stood here (Facebook #118/#119, Dependabot #103, YouTube #114) is closed or supe
 
 - Method: [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill),
   pinned. Scope: `.github/workflows/**` and `.github/actions/**` (secrets, signing, untrusted
-  input), the fetchers (`src/build/fetch_bundle.sh`, `ggplay_dl`, store fetchers) and
+  input), the fetchers (`src/build/fetch_bundle.sh`, store fetchers) and
   `src/council/` (`AI-AND-LLM.md` classes).
 - Output: `docs/review/SECURITY-AUDIT-<date>/` with `findings.json` and `REPORT.md`, plus an
   OPEN-WORK entry. Fixes to protected files stay owner-reviewed packets.

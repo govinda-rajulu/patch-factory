@@ -844,9 +844,28 @@ def dropped_note(rows):
 
 
 def convene(seats, system, user, env, checker, canary):
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(seats) or 1) as pool:
-        jobs = [pool.submit(run_seat, s, system, user, env, checker, canary) for s in seats]
-        return [j.result() for j in jobs]
+    """Run seats in provider lanes, preserving seat order in the returned rows.
+
+    One lane per primary provider lets independent providers overlap inside an audit part,
+    while seats sharing an account (notably gpt and nemotron on NVIDIA) run one after the
+    other.  Backups can cross lanes safely because every actual provider call also takes the
+    provider pacing lock in ``complete``; no lane lock is held while waiting on another
+    provider.  The indexed result list keeps rendering deterministic despite the overlap.
+    """
+    groups = {}
+    for index, seat in enumerate(seats):
+        groups.setdefault(seat['provider'], []).append((index, seat))
+    rows = [None] * len(seats)
+
+    def lane(items):
+        for index, seat in items:
+            rows[index] = run_seat(seat, system, user, env, checker, canary)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(groups) or 1) as pool:
+        jobs = [pool.submit(lane, items) for items in groups.values()]
+        for job in jobs:
+            job.result()
+    return rows
 
 
 # ---------- decisions ----------
@@ -1179,29 +1198,77 @@ def upsert(env, number, marker, body):
 REAUDIT_DAYS = 14
 
 
+def _desk_comments(env, number, marker):
+    """Return bot comments carrying *marker*, oldest first, from the desk issue."""
+    comments = []
+    for page in (1, 2, 3):
+        rows = json.loads(gh(env, 'GET', 'repos/%s/issues/%d/comments?per_page=100&page=%d' %
+                             (env['PF_REPO'], number, page)))
+        if not isinstance(rows, list):
+            raise Refused('desk comments response was not a list')
+        comments.extend(c for c in rows if (c.get('user') or {}).get('login') == 'github-actions[bot]'
+                        and marker in (c.get('body') or ''))
+        if len(rows) < 100:
+            break
+    return comments
+
+
+def audit_carryover(env, number, marker, total_parts, pack_hash=None):
+    """Read the last incomplete audit marker and return its original part numbers.
+
+    The desk comment is the state record already used by the council.  Part numbers are
+    validated against the current partition, so a changed shard cannot make a run address
+    a non-existent or duplicated part.  A read failure means no preference, never a failed
+    audit; the current run remains honest about anything it cannot reach.
+    """
+    if env.get('PF_COUNCIL_STAGED') == '1' or not total_parts:
+        return []
+    try:
+        comments = _desk_comments(env, number, marker)
+        if not comments:
+            return []
+        body = comments[-1].get('body') or ''
+        m = re.search(r'Not reviewed \(time or part limit\): part\(s\) ([0-9, ]+)\.', body)
+        if not m:
+            return []
+        # A changed pack invalidates old part numbers: begin a fresh deterministic pass.
+        if pack_hash:
+            evidence = re.search(r'evidence sha256 `([0-9a-f]+)`', body)
+            if not evidence or not pack_hash.startswith(evidence.group(1)):
+                return []
+        out = []
+        for raw in m.group(1).split(','):
+            try:
+                part = int(raw.strip())
+            except ValueError:
+                continue
+            if 1 <= part <= total_parts and part not in out:
+                out.append(part)
+        return out
+    except (OSError, ValueError, KeyError, TypeError, Refused):
+        return []
+
+
 def unchanged_since(env, number, marker, prompt_hash, pack_hash, now=None):
     """W15h audit memory (owner 22 Oct: budget; the ai-memory idea from the outside-repo review):
     a shard whose files and prompt match the last audit comment, with at least one valid seat
-    answer and under REAUDIT_DAYS old, is not sent to the seats again. Any read problem means
-    'not known unchanged', so the audit runs."""
+    answer and under REAUDIT_DAYS old, is not sent to the seats again. An incomplete comment is
+    deliberately never considered unchanged: its part list is the carry-over state for the
+    next run. Any read problem means 'not known unchanged', so the audit runs."""
     import datetime
     if env.get('PF_COUNCIL_STAGED') == '1' or env.get('PF_REAUDIT') == '1':
         return False
     try:
-        for page in (1, 2, 3):
-            rows = json.loads(gh(env, 'GET', 'repos/%s/issues/%d/comments?per_page=100&page=%d' % (env['PF_REPO'], number, page)))
-            for c in rows:
-                body = c.get('body') or ''
-                if (c.get('user') or {}).get('login') != 'github-actions[bot]' or marker not in body:
-                    continue
-                m = re.search(r'prompt sha256 `([0-9a-f]+)`, evidence sha256 `([0-9a-f]+)`', body)
-                valid = re.search(r'; (\d+) of \d+ seat answers valid', body)
-                when = datetime.datetime.fromisoformat((c.get('updated_at') or '').replace('Z', '+00:00'))
-                age = ((now or datetime.datetime.now(datetime.timezone.utc)) - when).days
-                return bool(m and valid and int(valid.group(1)) > 0 and prompt_hash.startswith(m.group(1))
-                            and pack_hash.startswith(m.group(2)) and age < REAUDIT_DAYS)
-            if len(rows) < 100:
-                break
+        for c in _desk_comments(env, number, marker):
+            body = c.get('body') or ''
+            if re.search(r'Not reviewed \(time or part limit\): part\(s\) [0-9, ]+\.', body):
+                return False
+            m = re.search(r'prompt sha256 `([0-9a-f]+)`, evidence sha256 `([0-9a-f]+)`', body)
+            valid = re.search(r'; (\d+) of \d+ seat answers valid', body)
+            when = datetime.datetime.fromisoformat((c.get('updated_at') or '').replace('Z', '+00:00'))
+            age = ((now or datetime.datetime.now(datetime.timezone.utc)) - when).days
+            return bool(m and valid and int(valid.group(1)) > 0 and prompt_hash.startswith(m.group(1))
+                        and pack_hash.startswith(m.group(2)) and age < REAUDIT_DAYS)
     except (OSError, ValueError, KeyError, TypeError, Refused):
         return False
     return False
@@ -1575,21 +1642,31 @@ def mode_audit(env, seats, cfg):
                                    'LESSONS (trusted):\n' + '\n\n'.join(lessons(tags_for(files)))]))
     marker = '<!-- pf-council:shift:%s -->' % SHIFT['seat'] if SHIFT['seat'] else MARKER['audit'] % shard
     whole = hashlib.sha256()
-    for part in parts[:AUDIT_MAX_PARTS]:
+    for part in parts:
         whole.update(''.join(file_block(rel, body) for rel, body in part).encode())
     if len(parts) <= AUDIT_MAX_PARTS and unchanged_since(env, number, marker, sha(instructions), whole.hexdigest()):
         summary(env, '### council audit: shard `%s` unchanged since its last audit; no seat called\n' % clean(shard, 40))
         return 'unchanged'
+    # An incomplete desk comment is a durable checkpoint. Review only its original part
+    # numbers first: the other parts were already sent in the prior run, so re-sending them
+    # would make a shard with more than AUDIT_MAX_PARTS cycle forever. A changed pack has no
+    # carry-over and starts the normal deterministic order.
+    pending = audit_carryover(env, number, marker, len(parts), whole.hexdigest())
+    order = pending or list(range(1, len(parts) + 1))
     rows, unreached, digest = [], [], hashlib.sha256()
-    for index, part in enumerate(parts, 1):
-        if index > AUDIT_MAX_PARTS or time.time() > deadline:
+    # The evidence hash describes the complete shard, not the order in which carry-over parts
+    # happened to run.  This lets a completed carry-over become ordinary audit memory next time.
+    for part in parts:
+        digest.update(''.join(file_block(rel, body) for rel, body in part).encode())
+    for position, index in enumerate(order):
+        part = parts[index - 1]
+        if position >= AUDIT_MAX_PARTS or time.time() > deadline:
             unreached.append(index)
             continue
         text = ''.join(file_block(rel, body) for rel, body in part)
         block, cut = envelope('files', text, AUDIT_PART_CHARS)
         if cut:
             raise Refused('audit part over budget')  # audit_parts makes this unreachable
-        digest.update(text.encode())
         names = [rel for rel, _ in part]
         user = '\n\n'.join([instructions, context, 'Shard %s, part %d of %d. Files: %s' % (
             shard, index, len(parts), json.dumps(names)), block])

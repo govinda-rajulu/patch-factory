@@ -647,9 +647,9 @@ class Council(unittest.TestCase):
 
     def test_audit_parts_pack_in_order_and_name_every_skip(self):
         files = ['src/council/seats.json', 'src/council/shards.json', 'docs/assets/manrope-v4.504.woff2', 'src/council/council.py']
-        parts, skipped = council.audit_parts(files, part_chars=16000, file_max=16000)
+        parts, skipped = council.audit_parts(files, part_chars=20000, file_max=20000)
         self.assertEqual([[r for r, _ in p] for p in parts], [['src/council/seats.json', 'src/council/shards.json']])
-        self.assertEqual(skipped, [('docs/assets/manrope-v4.504.woff2', 'binary'), ('src/council/council.py', 'over 16000 characters')])
+        self.assertEqual(skipped, [('docs/assets/manrope-v4.504.woff2', 'binary'), ('src/council/council.py', 'over 20000 characters')])
         for part in council.audit_parts(council.shard_files(json.loads((ROOT / 'src/council/shards.json').read_text()), 'tests'))[0]:
             self.assertLessEqual(sum(len(council.file_block(r, t)) for r, t in part), council.AUDIT_PART_CHARS)
 
@@ -829,6 +829,7 @@ class Council(unittest.TestCase):
         groq = [s for s in cfg['seats'] if s['id'] == 'groq'][0]
         self.assertNotIn('audit', groq['jobs'])
         self.assertNotIn('review', groq['jobs'])
+        self.assertEqual(groq['max_input_chars'], 25000)
 
     def triage_http(self, fake, votes):
         issues = [{'number': n, 'title': 'Workflow failure: %d' % n, 'body': 'run failed', 'labels': [],

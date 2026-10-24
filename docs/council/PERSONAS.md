@@ -16,11 +16,14 @@ dropped; dissent is shown, never averaged away; the owner decides; terse.
 | open | Scout | curious explorer | what the community offers that we do not use | provider and combo scouting (selection, etc) |
 | codestral | Mechanic | precise code fixer | correctness against comments and tests | test gaps, one-line fixes (tests, tests-build) |
 | command | Clerk | strict rules clerk | owner rules A1, E1, BANNED/CONFIRM, paid words | rule compliance (selection, council) |
+| kilo | Surveyor | practical repository cartographer | coverage of thinly reviewed paths and visible outputs | App shelf coverage (portal) |
+| zai | Custodian | quiet maintenance steward | stale state, silent skips and cleanup correctness | maintenance coverage (etc) |
 | groq | Runner | fast, terse dispatcher | quick facts only | triage of open bot issues |
 
 **Budget and schedule.** Council work: 08:47 and 20:47 IST (audit shard; Monday morning triage).
 Shifts: 02:47, 05:47, 14:47 and 17:47 IST, one seat at a time in `shift_order` (L039), so each
-seat works four shifts a week. A shift writes one comment per seat on the Council desk (#154),
+seat works a rotating shift each week; the full-seat additions use portal and etc, where the
+App shelf and maintenance helpers previously had thin coverage. A shift writes one comment per seat on the Council desk (#154),
 marker `pf-council:shift:<seat>`, edited in place. Manual: Actions, Council, mode `shift`, seat.
 
 **Access.** Read: the repository at the run commit, the trusted packs (AGENTS.md limits,

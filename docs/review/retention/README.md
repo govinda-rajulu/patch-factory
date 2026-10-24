@@ -17,4 +17,4 @@ boundaries: [RECOVERY.md](../../../RECOVERY.md#cleanup-boundaries).
 
 Two earlier receipts stay on the owner box only: `cleanup-receipt-20261009.json` (W5, 4
 releases and 96 tags) and `cleanup-receipt-20261009T091933Z.json` (W6, 22 releases and 22
-tags); their counts are in `../SESSION-2026-10-08.md` and `../SESSION-2026-10-09.md`.
+tags); their counts are in `../history/SESSION-2026-10-08.md` and `../history/SESSION-2026-10-09.md`.

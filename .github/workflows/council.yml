@@ -31,7 +31,7 @@ on:
         required: false
         default: ''
       seat:
-        description: 'Shift mode: seat id from src/council/seats.json (gpt, gemini, nemotron, open, codestral, command, groq)'
+        description: 'Shift mode: seat id from src/council/seats.json (gpt, gemini, nemotron, open, codestral, command, groq, kilo, zai)'
         required: false
         default: ''
       target:
@@ -71,6 +71,7 @@ jobs:
     if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]')
     runs-on: ubuntu-24.04
     # Audit mode stops starting new parts after 30 minutes, leaving 20 for the last part (PF_AUDIT_SECONDS in council.py).
+    # Kilo and Z.AI are optional full seats; their keys are passed only to this council step.
     timeout-minutes: 50
     permissions:
       contents: read

@@ -467,26 +467,71 @@ function changeSummary(top,previous){
 function field(article,label,value){
  const p=el('p',undefined,'card-field');p.append(el('strong',label+': '));p.append(document.createTextNode(value));article.append(p);
 }
+function patchList(record){return record&&Array.isArray(record.patches)?record.patches:null;}
 function patchText(record){
- if(!record||!Array.isArray(record.patches))return 'Not recorded';
- return record.patches.length?record.patches.join(', '):'none';
+ const patches=patchList(record);
+ if(!patches)return 'Not recorded';
+ return patches.length?patches.join(', '):'none';
+}
+function patchField(article,record){
+ const patches=patchList(record),p=el('p',undefined,'card-field patch-field');p.append(el('strong','Patches: '));
+ if(!patches){p.append(document.createTextNode('Not recorded'));article.append(p);return;}
+ p.append(document.createTextNode(String(patches.length)+' · '+(patches.slice(0,6).join(', ')||'none')));article.append(p);
+ const all=el('details',undefined,'patch-details'),summary=el('summary','All '+patches.length+' patches'),list=el('ul');
+ for(const name of patches)list.append(el('li',name));all.append(summary,list);article.append(all);
+}
+function configuredProviders(target){
+ const primary=(target&&Array.isArray(target.candidates)?target.candidates:[]).find(x=>x&&x.fallback!==true)
+   ||((target&&Array.isArray(target.candidates)?target.candidates:[])[0]);
+ return [primary,...(target&&Array.isArray(target.extra_bundles)?target.extra_bundles:[])].filter(x=>x&&plain(x.name,200)).map(x=>x.name);
+}
+function providerNames(record,target){
+ const seen=new Set(),raw=record&&typeof record.provider==='string'?record.provider.split(/\s*\+\s*/).map(x=>x.trim()).filter(Boolean):[];
+ const ordered=[];for(const name of configuredProviders(target))if(raw.includes(name)&&!seen.has(name)){ordered.push(name);seen.add(name);}
+ for(const name of raw)if(!seen.has(name)){ordered.push(name);seen.add(name);}
+ return ordered;
+}
+function bundleVersions(record){
+ const out=new Map(), data=record&&(record.bundle_versions||record.bundles);
+ if(Array.isArray(data))for(const row of data){
+  const name=row&&typeof row==='object'&&(row.provider||row.name),version=row&&typeof row==='object'&&(row.version||row.bundle);
+  if(plain(name,200)&&plain(version,200))out.set(name,version);
+ }
+ else if(data&&typeof data==='object')for(const [name,version] of Object.entries(data))if(plain(name,200)&&plain(version,200))out.set(name,version);
+ return out;
+}
+function bundleText(record,target){
+ const names=providerNames(record,target),versions=bundleVersions(record);
+ if(!names.length)return record&&plain(record.bundle,200)?record.bundle:'Not recorded';
+ return names.map((name,i)=>name+' '+(versions.get(name)||(i===0&&plain(record.bundle,200)?record.bundle:'version not recorded'))).join('; ');
+}
+function badgeLabels(top,record,statusRow){
+ const labels=[];
+ if(record&&typeof record.fallback==='string'&&record.fallback)labels.push('Fallback provider');
+ const build=statusRow&&statusRow.last_build;
+ if(build&&BAD_RUN.has(build.result))labels.push(build.words||'Build needs attention');
+ const stamp=top&&top.asset&&(top.asset.updated_at||top.rel&&top.rel.published_at)||top&&top.rel&&top.rel.published_at;
+ const age=stamp?Date.now()-Date.parse(stamp):NaN;
+ if(Number.isFinite(age)&&age>=0&&age<24*60*60*1000)labels.push('New');
+ return labels;
 }
 async function appsPanel(root){
- const [ts,releaseResult]=await Promise.all([getTargets(),pages('releases').then(rows=>({rows})).catch(error=>({error}))]);
+ const [ts,releaseResult,statusResult]=await Promise.all([getTargets(),pages('releases').then(rows=>({rows})).catch(error=>({error})),readStatus().then(data=>({data})).catch(error=>({error}))]);
  const {map,rejected}=releaseRows(releaseResult.rows||[],ts);
+ const statusApps=statusResult.data&&Array.isArray(statusResult.data.apps)?statusResult.data.apps:[];
  if(releaseResult.error)root.append(el('p','Patched releases unavailable: '+releaseResult.error.message+' Catalog and upstream companion remain usable.','notice'));
  if(rejected)root.append(el('p',rejected+' ambiguous or incomplete APK releases withheld; inspect All releases.','notice'));
  for(const t of ts){const article=el('article');article.dataset.target=t.id;article.dataset.type='patched';const heading=el('div',undefined,'app-title');heading.append(el('h3',t.label||t.id));article.append(heading);
  if(!t.enabled){heading.append(el('span','Disabled','badge'));article.append(el('p','Not eligible for new builds. Existing release history is available on GitHub.','meta'));root.append(article);continue;}
  const rows=map.get(t.tag_prefix||t.id)||[];
  if(!rows.length){article.append(el('p',releaseResult.error?'Release availability unknown.':'No matching published APK in the complete release inventory.','meta'));root.append(article);continue;}
- const top=rows[0],age=Date.now()-Date.parse(top.asset.updated_at||top.rel.published_at),record=releaseRecord(top.rel.body);
+ const top=rows[0],record=releaseRecord(top.rel.body),statusRow=statusApps.find(a=>a&&a.id===t.id);
  article.dataset.published=top.rel.published_at;
- if(Number.isFinite(age)&&age>=0&&age<3*86400000)heading.append(el('span','Recently built','badge'));
+ for(const label of badgeLabels(top,record,statusRow))heading.append(el('span',label,'badge'));
  article.append(el('p',top.tag.version,'app-version'));
- field(article,'Patches',patchText(record));
- field(article,'Provider',record?record.provider:'Not recorded');
- field(article,'Bundle',record?record.bundle:'Not recorded');
+ patchField(article,record);
+ field(article,'Provider',record?providerNames(record,t).join(' + '):'Not recorded');
+ field(article,'Bundle',record?bundleText(record,t):'Not recorded');
  field(article,'Last built',buildMeta(top).replace('Last built ',''));
  const actions=el('div',undefined,'actions');actions.append(link('Install APK',top.asset.browser_download_url,'download'));article.append(actions);
  root.append(article);
@@ -674,7 +719,7 @@ function organizePanel(root,activeTab){
   const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta')&&!n.classList.contains('channel-status'));
   if(version)version.classList.add('app-version');
   // Keep the main download action visible; detailed provenance/history goes under one disclosure.
-  const extra=Array.from(article.children).filter(n=>n.matches('p.meta:not(.release-facts),details'));
+  const extra=Array.from(article.children).filter(n=>n.matches('p.meta:not(.release-facts),details:not(.patch-details)'));
   if(extra.length){
    const details=el('details',undefined,'app-details');details.append(el('summary','Evidence, notes & older versions'));
    for(const node of extra)details.append(node);
@@ -713,7 +758,7 @@ function filterApps(){
  $('appCount').textContent=shown+' app'+(shown===1?'':'s');
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,obtainiumRelease,obtainiumName,microgConfig,microgRelease,microgLatest,microgName,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,reportIdentity,reportBinding,checkCompleteness};
+window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,obtainiumRelease,obtainiumName,microgConfig,microgRelease,microgLatest,microgName,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,reportIdentity,reportBinding,checkCompleteness,patchList,providerNames,bundleText,badgeLabels};
 const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
 const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
 search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});
