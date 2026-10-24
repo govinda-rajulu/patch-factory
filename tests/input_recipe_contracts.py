@@ -49,17 +49,22 @@ class InputRecipeTests(unittest.TestCase):
         self.assertEqual(self.recipe()['resource_paths'],['src/options/hosts.txt'])
 
     def test_configured_extra_is_not_claimed_consumed(self):
-        d=self.recipe('truecaller-combo','bufferk')
-        row=next(x for x in d['bundle_roles'] if x['name']=='binarymend')
+        # W16g: no live target has an extra with options; give Instagram's extra one.
+        (self.r/'src/options/brosssh-fixture.json').write_text('[]\n')
+        def change(ts):
+            next(t for t in ts if t['id']=='instagram')['extra_bundles'][0]['options']='brosssh-fixture'
+        self.edit_json('src/targets.json',change)
+        d=self.recipe('instagram','piko')
+        row=next(x for x in d['bundle_roles'] if x['name']=='brosssh')
         self.assertEqual(row['options_state'],'configured-not-passed-by-current-argv')
 
     def test_primary_and_extra_changes_are_both_detected(self):
         for path, ident, winner in (
             ('src/options/adobo.json','reddit','adobo'),
-            ('src/options/binarymend.json','truecaller-combo','bufferk'),
+            ('src/options/combo.json','truecaller-combo','bufferk'),
             ('src/patches/reddit-adobo/include-patches','reddit','adobo'),
             ('src/patches/reddit-adobo/exclude-patches','reddit','adobo'),
-            ('src/patches/truecaller-paresh/include-patches','truecaller-combo','bufferk')):
+            ('src/patches/instagram-brosssh/include-patches','instagram','piko')):
             with self.subTest(path=path):
                 p=self.r/path;old=p.read_bytes();a=self.recipe(ident,winner)
                 try:
@@ -82,12 +87,12 @@ class InputRecipeTests(unittest.TestCase):
         p=self.r/'src/targets.json';old=p.read_bytes()
         for role in ('candidates','extra_bundles'):
             with self.subTest(role=role):
-                a=self.recipe('truecaller-combo','bufferk')
+                a=self.recipe('instagram','piko')  # W16g: Truecaller has no extra now
                 def change(ts):
-                    t=next(t for t in ts if t['id']=='truecaller-combo')
+                    t=next(t for t in ts if t['id']=='instagram')
                     t[role][0]['channel']='latest'
                 self.edit_json('src/targets.json',change)
-                self.assertNotEqual(a['sha256'],self.recipe('truecaller-combo','bufferk')['sha256'])
+                self.assertNotEqual(a['sha256'],self.recipe('instagram','piko')['sha256'])
                 p.write_bytes(old)
 
     def test_shared_recipe_changes_each_consumer(self):
@@ -145,8 +150,11 @@ class InputRecipeTests(unittest.TestCase):
                 finally:p.write_bytes(old);p.chmod(mode)
 
     def test_missing_configured_extra_options_refused(self):
-        (self.r/'src/options/binarymend.json').unlink()
-        with self.assertRaises(ValueError):self.recipe('truecaller-combo','bufferk')
+        # W16g: no live target has an extra with options; give Instagram's extra a missing one.
+        def change(ts):
+            next(t for t in ts if t['id']=='instagram')['extra_bundles'][0]['options']='brosssh-fixture'
+        self.edit_json('src/targets.json',change)
+        with self.assertRaises(ValueError):self.recipe('instagram','piko')
 
     def test_symlink_file_and_parent_refused(self):
         p=self.r/'src/options/hosts.txt';p.rename(self.r/'hosts-copy');p.symlink_to(self.r/'hosts-copy')
@@ -259,11 +267,16 @@ class InputRecipeTests(unittest.TestCase):
         self.assertEqual(b,input_recipe.create(self.r,'reddit','adobo',{'COE':'different-nonempty'}))
 
     def test_extra_order_is_preserved(self):
-        a=self.recipe('truecaller-combo','bufferk')
+        # W16g: no live target has two extras; give Instagram a second one first.
+        def two(ts):
+            ex=next(t for t in ts if t['id']=='instagram')['extra_bundles']
+            ex.append(dict(ex[0],name='brosssh-second',repo='second-fixture'))
+        self.edit_json('src/targets.json',two)
+        a=self.recipe('instagram','piko')
         def change(ts):
-            next(t for t in ts if t['id']=='truecaller-combo')['extra_bundles'].reverse()
+            next(t for t in ts if t['id']=='instagram')['extra_bundles'].reverse()
         self.edit_json('src/targets.json',change)
-        self.assertNotEqual(a['sha256'],self.recipe('truecaller-combo','bufferk')['sha256'])
+        self.assertNotEqual(a['sha256'],self.recipe('instagram','piko')['sha256'])
 
     def test_manifest_is_not_provider_or_published_identity(self):
         doc=input_recipe.__doc__

@@ -48,9 +48,10 @@ directly) and `minimax` became `kimi` (none of its models was served). `max_inpu
 a pack larger than the budget makes that seat abstain instead of failing. So the Groq seat (8000
 tokens a minute) answers probes and small asks; its 25000-character budget cannot hold the trained
 audit prompt, so it is not a default audit seat. The Kilo and Z.AI full seats take reviews and
- audits when their keys are present.
-Quorum stays 3 valid answers. A seat's optional `jobs` list limits what it is sent (Groq: probe and ask), and `reasoning_effort` plus `max_tokens` keep reasoning models from spending their
-whole answer budget thinking (7 Oct 2026: four seats failed that way, see LESSONS 19).
+audits when their keys are present.
+Quorum stays 3 valid answers. A seat's optional `jobs` list limits what it is sent (Groq: probe and ask),
+and the configured low `reasoning_effort` keeps reasoning models from spending their whole answer
+budget thinking. Calls do not set `max_tokens`; the provider controls output limits.
 
 ### W15h: why seats failed, and what changed (22 Oct 2026)
 

@@ -1,6 +1,6 @@
 # Using Patch Factory
 
-This guide is the one home for what the site, imports and updates mean (W9, 9 Oct 2026). The page, README and release notes keep one short line each and link here. Safety boundaries: [SECURITY.md](../SECURITY.md); cleanup and recovery: [RECOVERY.md](../RECOVERY.md).
+Checked 24 October 2026 (W16f). This guide is the one home for what the site, imports and updates mean. The page, README and release notes keep one short line each and link here. Safety boundaries: [SECURITY.md](../SECURITY.md); cleanup and recovery: [RECOVERY.md](../RECOVERY.md).
 
 ## Start with the download
 
@@ -9,6 +9,10 @@ The [app shelf](https://govinda-rajulu.github.io/patch-factory/) shows the newes
 Patched apps are built here. Morphe MicroG RE is an optional upstream companion from MorpheApp, not patched or re-signed here. Its channel offers stable only or stable plus dev prereleases. Universal is the default; the import panel also offers Auto architecture, ARM64 and ARMv7. Exact architecture choices refuse a different CPU file; if upstream has no matching asset, the selection can be unavailable. No no-icon variant is silently substituted.
 
 See [Optional companions and review queue](companions.md) for PotHelper, Helper for Morphe and the other Morphe Workspace suggestions. They are separate apps, not patch bundles or additional Patch Factory build targets. The guide records what is available, what needs review and what is deliberately not a default.
+
+The generated inventory in [README.md](../README.md#current-state) is the current app list: 17
+enabled targets, all polled by the scheduled build. `src/targets.json` is the source for each
+app's store, primary providers, fallback providers and poll flag. Do not use an older copied list.
 
 ## What changed?
 
@@ -63,9 +67,32 @@ Missing, rate-limited, failed or truncated reads remain unknown. Timestamps desc
 ## Schedules
 
 Every scheduled automation with its IST time, generated from the workflow files: [SCHEDULES.md](SCHEDULES.md).
+There is no keepalive cron. `keepalive.yml` is a manual fallback only.
+
+## Needs you
+
+`needs-you.yml` runs daily at 10:29 IST after Tooling watch. It combines the five standing watch
+reports, provider candidates from the checked-in community index, review items and enabled-app
+items into one issue. Only an owner comment on that issue is accepted. Comment one complete command
+per line: `take N-xxxxxx`, `drop N-xxxxxx` or `hold N-xxxxxx`.
+
+For a provider candidate, `take` dispatches Explore; `drop` or `hold` records the decision. For a
+review item, `take` adds `accepted`, `drop` closes the review issue and `hold` adds the `hold`
+label. Other choices are recorded in the watch-state ledger. A hold hides an ordinary item for 14
+days. An app item is retired after an owner answer; the next packet applies its keep-building or
+stop-building decision.
 
 ## Maintaining dependencies
 
 The Reddit source page diagnostic was removed on 8 October 2026 (packet W4): Reddit builds from APKPure again and the probe had no remaining use. Its history stays in git and `docs/review/`.
+
+The old Google Play APK helper was removed in W16d because no build called it. The
+`src/build/helper/ggplay_dl/` path and its preparation dependency hooks no longer exist. APK
+sources come from each target's `source` and store fields; there is no Google Play fallback.
+
+Status page data also runs `cache-prune`. It reads every Actions cache page, keeps the newest
+cache for each conservative key prefix, and deletes only a non-newest cache that is older than
+24 hours and has not been accessed for more than 7 days. Missing or malformed timestamps are
+kept. This is automatic stale-cache cleanup, not release cleanup.
 
 Dependabot groups minor/patch action updates, while major action upgrades receive individual PRs. Structural tests check action identity, pin format, production/smoke agreement, permissions and order instead of hardcoding yesterday's version number. The mandatory runtime smoke still has to execute the proposed versions successfully. No automatic merge and no promise that every future action upgrade is compatible.

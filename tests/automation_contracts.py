@@ -41,7 +41,7 @@ class Automations(unittest.TestCase):
         wanted = {
             '1. Manual Patch', '2. Check new patch', '4. Explore patches', '5. Add target',
             '6. Provider watch', '7. Nightly watch', '8. Community watch', '9. Batch Patch',
-            'Tooling watch', '10. Selection watch', 'Needs you',
+            'Tooling watch', '10. Selection watch', 'MCP scout', 'Needs you',
         }
         self.assertEqual(set(listed(own['text'])), wanted)
 

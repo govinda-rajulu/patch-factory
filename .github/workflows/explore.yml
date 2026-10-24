@@ -77,7 +77,14 @@ jobs:
           PKG: ${{ inputs.package }}
           CHAN: ${{ inputs.channel }}
         run: |
-          bash src/build/fetch_bundle.sh "$HOST" "$IDENT" "$CHAN" ./explore.mpp
+          # W16f: oxbow and legendsciber (24 Oct) had no bundle on the asked channel; try the other one once.
+          bash src/build/fetch_bundle.sh "$HOST" "$IDENT" "$CHAN" ./explore.mpp || true
+          if [ ! -f ./explore.mpp ] || [ "$(wc -c < ./explore.mpp)" -le 10000 ]; then
+            if [ "$CHAN" = "prerelease" ]; then OTHER=latest; else OTHER=prerelease; fi
+            echo "::warning::no bundle on $CHAN; trying $OTHER"
+            rm -f ./explore.mpp
+            bash src/build/fetch_bundle.sh "$HOST" "$IDENT" "$OTHER" ./explore.mpp
+          fi
           S=$(wc -c < ./explore.mpp); echo "bundle bytes: $S"
           [ "$S" -gt 10000 ] || { echo "::error::bundle too small, fetch failed"; exit 1; }
       - name: List patches

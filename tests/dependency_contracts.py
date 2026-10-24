@@ -234,7 +234,7 @@ class DependencyContracts(unittest.TestCase):
         self.assertNotIn("private detail",json.dumps(doc))
 
     def test_resealed_scope_digest_bool_size_and_order_corruption_refuse(self):
-        current=self.current("truecaller-combo")
+        current=self.current("instagram")  # W16g: a target with two bundles
         mutations=[
             lambda d:d.update(run=[]),
             lambda d:d.update(authority="skip builds"),

@@ -135,8 +135,8 @@ that leaves this block stale, so it cannot drift.
 | MX Player Pro | `mxplayer` | `mx-player` | apkmirror | ftl + paresh | yes |
 | Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |
 | Reddit | `reddit` | `reddit` | apkpure | morphe (fallback: adobo) | yes |
-| Telegram | `telegram` | `telegram` | apkmirror | rushiranpise | yes |
-| Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | bufferk + paresh + binarymend | yes |
+| Telegram | `telegram` | `telegram` | apkmirror | newuser7171 (fallback: rushiranpise) | yes |
+| Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | heval99 (fallback: bufferk) | yes |
 | YouTube | `youtube` | `youtube-morphe` | apkmirror | morphe | yes |
 | YouTube Music | `ytmusic` | `yt-music` | apkmirror | morphe | yes |
 

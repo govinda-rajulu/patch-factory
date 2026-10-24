@@ -269,7 +269,15 @@ _cfb_get() {
 
 _FFS_FAILED=0
 
+_PF_STORE_SVC=0
+
 _cf_get() {
+	# W16g: the build no longer starts the store helpers up front. Start (or reuse) them the first
+	# time this shell needs one, so a step-down inside an attempt still finds them.
+	if [[ "$_PF_STORE_SVC" -eq 0 && -f src/build/store_services.sh ]]; then
+		_PF_STORE_SVC=1
+		bash src/build/store_services.sh >&2 || yellow_log "[!] store helpers could not be started"
+	fi
 	if [[ "$_FFS_FAILED" -eq 0 ]]; then
 		_fs_get "$@" && return 0
 		yellow_log "[!] FlareSolverr failed, falling back to CFB"

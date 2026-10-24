@@ -12,3 +12,4 @@ Provider: durgesh0505/chiggi_morphe_patches (chiggi, channel latest; bundle: the
 
 ## Decision
 Selection watch adopt rule (src/patches/ADOPT.json) on 2026-10-22; 11. Rule merge merges the pull request only when every check, the Onboarding review and every test build are green.
+2026-10-24 (packet W16g): owner excludes chiggi "Premium unlock" (a paid-tier UI unlock on an account app; Hotstar checks subscriptions on its servers). Listed in `src/patches/hotstar-chiggi/exclude-patches` so the Selection watch never adopts it.

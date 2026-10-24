@@ -50,7 +50,7 @@ class ProviderWatch(unittest.TestCase):
         self.assertEqual(len(self.rows), ROWS)
         self.assertEqual(sum(r["host"] == "github" for r in self.rows), GITHUB_ROWS)
         self.assertEqual([(r["target"], r["role"]) for r in self.rows if r["host"] == "gitlab"],
-                         [("truecaller-combo", "extra"), ("mxplayer", "extra")])
+                         [("mxplayer", "extra")])  # W16g: Truecaller has no paresh extra
 
     def test_good_deltas_and_coverage(self):
         result = self.collect()

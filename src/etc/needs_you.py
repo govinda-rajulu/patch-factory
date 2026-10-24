@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import json
 import os
 from pathlib import Path
@@ -54,6 +55,7 @@ DECISION_RE = re.compile(r"^\s*(take|drop|hold)\s+(N-[0-9a-fA-F]{6})\s*$", re.I)
 PACKAGE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*([.][A-Za-z][A-Za-z0-9_]*)+$")
 GITHUB_IDENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$")
 GITLAB_IDENT_RE = re.compile(r"^[0-9]{1,12}$")
+TARGET_IDENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 
 
 def clean(text: str) -> str:
@@ -107,6 +109,115 @@ def _run_url(text: str) -> str:
     return match.group(0) if match else ""
 
 
+def _one_line(value: object) -> str:
+    """Turn recorded evidence into one safe, readable issue line."""
+    text = re.sub(r"\s+", " ", html.unescape(str(value or ""))).strip()
+    return text.replace("|", " / ")[:500]
+
+
+def _evidence_reason(text: str, data) -> str:
+    """Return a recorded failure reason, never a guess based on the status word."""
+    candidates = []
+    if isinstance(data, dict):
+        for key in ("stop_code", "stopCode", "failure_reason", "failureReason", "reason", "reasons", "error", "message", "detail"):
+            value = data.get(key)
+            if isinstance(value, list):
+                candidates.extend(value)
+            elif value not in (None, "", {}):
+                candidates.append(value)
+        for key in ("watch", "report", "result", "failure"):
+            value = data.get(key)
+            if isinstance(value, dict):
+                nested = _evidence_reason("", value)
+                if nested:
+                    candidates.append(nested)
+    # Reports deliberately print machine-readable stop codes and error lines.
+    # Do not turn a bare FAILED/UNKNOWN heading into a made-up explanation.
+    for line in (text or "").splitlines():
+        stripped = re.sub(r"^[#>*`\-\s]+", "", line).strip()
+        # A fetched artifact can contain a JSON report beside its Markdown
+        # report. Read scalar/list values without treating JSON punctuation as
+        # a reason.
+        json_match = re.match(r"^\"(?:stop_code|stopCode|failure_reason|failureReason|reason|error|message|detail|reasons)\"\s*:\s*(.*?)[,]?$", stripped)
+        if json_match:
+            try:
+                value = json.loads(json_match.group(1))
+                if isinstance(value, list):
+                    candidates.extend(value)
+                else:
+                    candidates.append(value)
+            except (TypeError, ValueError):
+                pass
+        elif re.fullmatch(r'\"[^\"]+\"[,]?', stripped):
+            try:
+                candidates.append(json.loads(stripped.rstrip(',')))
+            except (TypeError, ValueError):
+                pass
+        if re.search(r"(?i)\b(stop[_ -]?code|failure[_ -]?reason|error|reason|could not|unable|exception)\b", stripped):
+            value = re.sub(r"(?i)^[^:]{0,80}:\s*", "", stripped).strip()
+            if value and value.lower() not in {"none", "unknown", "not recorded"}:
+                candidates.append(value)
+    for value in candidates:
+        result = _one_line(value)
+        if result and result.lower() not in {"failed", "failure", "unknown", "missing", "not read", "no reason recorded", "[]"}:
+            return result
+    return "no reason recorded"
+
+
+def _held_row_from_line(line: str) -> dict | None:
+    """Parse one detailed Selection row, not its grouped summary table."""
+    if "held:" not in line.lower() or "`" not in line:
+        return None
+    match = re.search(r"[|\-]\s*(?:[^|]+\|\s*)?(?:\*\*[^*]+\*\*\s*)?([^|:/]+?)\s*/\s*([^:|]+):\s*`([^`]+)`", line)
+    if not match:
+        return None
+    tail = line[match.end():]
+    held = re.search(r"(?i)\(.*?held:\s*(.*?)\)\s*\|?\s*$", tail)
+    if not held:
+        return None
+    reason = held.group(1).strip()
+    target, provider, patch = (html.unescape(x).strip() for x in match.groups())
+    if not target or not provider or not patch or not reason:
+        return None
+    return {"target": target, "provider": provider, "name": patch, "why": _one_line(reason)}
+
+
+def _held_rows(text: str, data=None) -> list[dict]:
+    rows = []
+    for line in (text or "").splitlines():
+        row = _held_row_from_line(line)
+        if row:
+            rows.append(row)
+    if isinstance(data, dict):
+        for key in ("waiting", "backlog"):
+            values = data.get(key) or []
+            if not isinstance(values, list):
+                continue
+            for value in values:
+                if not isinstance(value, dict) or not value.get("why") or not value.get("name"):
+                    continue
+                rows.append({"target": str(value.get("target", "")), "provider": str(value.get("provider", "")),
+                             "name": str(value.get("name", "")), "why": _one_line(value.get("why"))})
+    unique, seen = [], set()
+    for row in rows:
+        key = tuple(row.get(x, "") for x in ("target", "provider", "name"))
+        if all(key) and key not in seen:
+            seen.add(key)
+            unique.append(row)
+    return unique
+
+
+def _selection_without_held(text: str) -> str:
+    """Keep other Selection findings while removing per-name held rows."""
+    lines = [line for line in (text or "").splitlines() if not _held_row_from_line(line)]
+    # A table made solely of held rows should not become a useless aggregate item.
+    meaningful = [line for line in lines if line.strip() and not re.match(r"^\|?\s*:?-{3,}", line)]
+    if not any("|" not in line or not re.match(r"^\s*\|?\s*(kind|what to do)\s*\|", line, re.I)
+               for line in meaningful):
+        return ""
+    return "\n".join(lines).strip()
+
+
 def _source(path: Path | None, name: str, bucket: dict[str, list[str]]) -> None:
     text = read_report(path)
     data = load_json(path)
@@ -118,13 +229,17 @@ def _source(path: Path | None, name: str, bucket: dict[str, list[str]]) -> None:
     if name == "selection":
         need = _section(plain, "Needs you")
         if need and "nothing blocked" not in need.lower():
-            _add(bucket, "decide", need)
+            _add(bucket, "decide", _selection_without_held(need))
     # Community provider candidates are rendered from the checkout's index,
     # not from the report's old aggregate rank paragraph.
     if name == "tooling" and ("update" in low or "behind" in low or "to review" in low):
         _add(bucket, "install", "Review the tooling report and install any update listed there.")
     if name in ("nightly", "provider") and any(x in low for x in ("failed", "unknown", "not read", "missing")):
-        _add(bucket, "fix", "%s reported a read or run problem; inspect and rerun it." % name.capitalize())
+        reason = _evidence_reason(plain, data)
+        recorded_url = data.get("run_url") if isinstance(data, dict) else ""
+        url = _run_url(plain) or (recorded_url if isinstance(recorded_url, str) else "")
+        suffix = " [run](%s)" % url if url else ""
+        _add(bucket, "fix", "%s reported %s; inspect and rerun it.%s" % (name.capitalize(), reason, suffix))
     url = _run_url(plain)
     link = "[%s run](%s)" % (name.capitalize(), url) if url else "%s report (run link unavailable)" % name.capitalize()
     _add(bucket, "fyi", "- " + link)
@@ -304,6 +419,46 @@ def provider_items(index: Path | dict | None = None, targets: Path | list | None
     return out
 
 
+def _held_route(row: dict, targets: Path | list | None) -> dict:
+    """Return the existing 5. Add target route when it can address this provider."""
+    for target in _load_targets(targets):
+        if str(target.get("id", "")) != row.get("target"):
+            continue
+        candidates = target.get("candidates", []) or []
+        primary = candidates[0] if candidates and isinstance(candidates[0], dict) else {}
+        if str(primary.get("name", "")) != row.get("provider") or not primary.get("patch_dir"):
+            return {}
+        if not TARGET_IDENT_RE.fullmatch(row.get("target", "")):
+            return {}
+        name = row.get("name", "")
+        if not name or any(ord(c) < 32 or ord(c) == 127 or c == ";" for c in name):
+            return {}
+        return {"action": "patch", "target": row["target"], "patches": name}
+    return {}
+
+
+def held_items(path: Path | None, targets: Path | list | None = None) -> list[dict]:
+    """Render each recorded held Selection name as its own actionable item."""
+    text = read_report(path)
+    data = load_json(path)
+    out = []
+    for row in _held_rows(text, data):
+        first = "%s: %s offers '%s' (held: %s)" % (row["target"], row["provider"], row["name"], row["why"])
+        # The key deliberately excludes the reason: a changed explanation must
+        # not erase an owner's prior take/drop/hold ledger decision.
+        ident = item_id("decide", "held|%s|%s|%s" % (row["target"], row["provider"], row["name"]))
+        route = _held_route(row, targets)
+        if route:
+            description = (first + " Take = run 5. Add target to add it to this provider; "
+                           "drop = hide for good; hold = 14 days.")
+        else:
+            description = (first + " Take = reply take and the next packet adds it; "
+                           "drop = hide for good; hold = 14 days.")
+        out.append({"id": ident, "kind": "decide", "first_line": first, "text": first,
+                    "description": description, **route})
+    return out
+
+
 def _items(kind: str, texts: Iterable[str]) -> list[dict]:
     out = []
     for text in texts:
@@ -407,7 +562,17 @@ def _review_item(item: dict) -> bool:
 
 
 def apply_effect(verb: str, item: dict, repo: str, run=subprocess.run) -> str:
-    """Apply review effects and dispatch Explore for provider decisions."""
+    """Apply review effects and dispatch Explore or the existing patch route."""
+    if item.get("action") == "patch" and verb == "take":
+        target = str(item.get("target", ""))
+        patches = str(item.get("patches", ""))
+        if not TARGET_IDENT_RE.fullmatch(target) or not patches or any(ord(c) < 32 or ord(c) == 127 or c == ";" for c in patches):
+            return "patch refused: malformed app or patch name"
+        result = gh(["workflow", "run", "add-target.yml", "--repo", repo, "-f", "action=patch",
+                     "-f", "id=" + target, "-f", "patches=" + patches], run)
+        if result.returncode != 0:
+            raise OSError("Needs you patch dispatch failed")
+        return "patch dispatched: next packet will add it"
     if item.get("action") == "explore" and verb == "take":
         host = str(item.get("host", "")).lower()
         ident = str(item.get("ident", ""))
@@ -476,6 +641,7 @@ def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = N
     # Provider choices come from the checked-out community index, not a stale
     # collector paragraph. They remain in Decide and have stable ids.
     all_items.extend(provider_items(bundles, targets))
+    all_items.extend(held_items(reports.get("selection"), targets))
     all_items.extend(_review_items(review or reports.get("review")))
     all_items.extend(app_items(targets))
     visible = [item for item in all_items if decision_state(item, ledger, now) == "visible"]
@@ -499,7 +665,7 @@ def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = N
             # Keep the comment machine-readable without repeating the visible
             # description in the rendered body.
             metadata_row = {"id": item["id"], "kind": item["kind"]}
-            for field in ("title", "labels", "issue_number", "action", "host", "ident", "package"):
+            for field in ("title", "labels", "issue_number", "action", "host", "ident", "package", "target", "patches"):
                 if field in item:
                     metadata_row[field] = item[field]
             metadata = json.dumps(metadata_row, separators=(",", ":"))
@@ -527,8 +693,8 @@ def gh(args: list[str], run=subprocess.run):
 
 
 WORKFLOWS = {
-    "nightly": ("watch.yml", ("nightly-report-",), ("nightly-report.txt",)),
-    "provider": ("agent-watch.yml", ("provider-watch-",), ("report.md",)),
+    "nightly": ("watch.yml", ("nightly-report-",), ("nightly-report.txt", "nightly-report.json")),
+    "provider": ("agent-watch.yml", ("provider-watch-",), ("report.md", "report.json")),
     "tooling": ("tooling-watch.yml", ("tooling-watch-",), ("tooling-report.md", "tooling-upstreams.md")),
     "selection": ("selection-watch.yml", ("selection-watch-",), ("report.md",)),
     # Community must retain its issue readback: advance() uses it as the receipt

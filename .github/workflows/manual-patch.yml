@@ -135,7 +135,11 @@ jobs:
           key: morphe-jar-${{ hashFiles('src/targets.json') }}
           restore-keys: morphe-jar-
       - name: Preparing to patch
+        # JDK setup stays here; store services are started lazily by the attempt
+        # that actually needs a store download and reused by later attempts.
         uses: ./.github/actions/preparing
+        with:
+          start_store_services: false
       - name: Check github connection
         id: check-gh
         run: bash src/etc/connection.sh

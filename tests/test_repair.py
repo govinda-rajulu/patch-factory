@@ -942,9 +942,11 @@ transfer(){
             block = x.stdout.split('\n' + target, 1)[1].split('\n\n', 1)[0]
             self.assertIn('you have 1 wired', block)
             self.assertIn('MISSING', block)
-        for target in ('truecaller-combo', 'mxplayer'):
-            block = x.stdout.split('\n' + target, 1)[1].split('\n\n', 1)[0]
-            self.assertNotIn('MISSING  Paresh-Maheshwari', block)
+        block = x.stdout.split('\nmxplayer', 1)[1].split('\n\n', 1)[0]
+        self.assertNotIn('MISSING  Paresh-Maheshwari', block)
+        # W16g: Truecaller left paresh (heval99 covers it), so discovery lists it again.
+        block = x.stdout.split('\ntruecaller-combo', 1)[1].split('\n\n', 1)[0]
+        self.assertIn('MISSING  Paresh-Maheshwari', block)
 
     def test_writer_moves_both_sides(self):
         self.decide([('esfile-ftl', 'Remove Ads Ultra Lite', 'IN', False)])

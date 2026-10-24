@@ -476,8 +476,10 @@ function patchText(record){
 function patchField(article,record){
  const patches=patchList(record),p=el('p',undefined,'card-field patch-field');p.append(el('strong','Patches: '));
  if(!patches){p.append(document.createTextNode('Not recorded'));article.append(p);return;}
- p.append(document.createTextNode(String(patches.length)+' · '+(patches.slice(0,6).join(', ')||'none')));article.append(p);
- const all=el('details',undefined,'patch-details'),summary=el('summary','All '+patches.length+' patches'),list=el('ul');
+ // W16f (owner, 24 Oct): the total only; the names live in the dropdown below.
+ p.append(document.createTextNode(String(patches.length)));article.append(p);
+ if(!patches.length)return;
+ const all=el('details',undefined,'patch-details'),summary=el('summary','Show the '+patches.length+' patch names'),list=el('ul');
  for(const name of patches)list.append(el('li',name));all.append(summary,list);article.append(all);
 }
 function configuredProviders(target){
@@ -503,7 +505,7 @@ function bundleVersions(record){
 function bundleText(record,target){
  const names=providerNames(record,target),versions=bundleVersions(record);
  if(!names.length)return record&&plain(record.bundle,200)?record.bundle:'Not recorded';
- return names.map((name,i)=>name+' '+(versions.get(name)||(i===0&&plain(record.bundle,200)?record.bundle:'version not recorded'))).join('; ');
+ return names.map((name,i)=>name+' '+(versions.get(name)||(i===0&&plain(record.bundle,200)?record.bundle:''))).map(s=>s.trim()).join('; ');
 }
 function badgeLabels(top,record,statusRow){
  const labels=[];
@@ -579,7 +581,7 @@ const STATUS=RAW.replace('/main/','/status/')+'status.json';
 const BAD_RUN=new Set(['failure','timed_out','startup_failure','action_required','cancelled']);
 const STALE_DAYS=14,STALE_DATA_HOURS=26;
 const BUILD_FLOWS=['1. Manual Patch','2. Check new patch','9. Batch Patch'];
-const WATCH_FLOWS=['6. Provider watch','7. Nightly watch','8. Community watch','Tooling watch','10. Selection watch'];
+const WATCH_FLOWS=['6. Provider watch','7. Nightly watch','8. Community watch','MCP scout','Tooling watch','10. Selection watch'];
 const WATCH=[['agent-watch.yml','6. Provider watch','provider watch:'],['community-watch.yml','8. Community watch','community: index changed for apps you build'],['watch.yml','7. Nightly watch','watch: repo and provider status'],['selection-watch.yml','10. Selection watch','Selection watch']];
 function daysOld(v){const t=Date.parse(v);return Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/86400000)):null;}
 // W6: a build run whose only failures are app jobs is keyed by app; the app row carries it.

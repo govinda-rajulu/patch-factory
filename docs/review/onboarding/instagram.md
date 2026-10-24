@@ -135,6 +135,10 @@ Not included (exclude list):
 
 Removed from the piko list in W13: Remove build expired popup and Validate links. piko 3.10.0-dev.14 (10 Oct 2026) applies both always and no longer lists them; Nightly watch 10 Oct reported them MISSING. brosssh still applies Remove build expired popup.
 
+- Focus Lock: owner approved 24 Oct 2026 (packet W16g). Not a paid unlock: a self-limit mode the user turns on (blocks Reels or Explore for a chosen time); the community index matched the word "unlock" in its description. Once locked it cannot be switched off early without a 24 hour cooling-off.
+
+Owner approved: Focus Lock
+
 ## Risks
 - View stories anonymously and View DM photos and videos anonymously hold back reports Instagram normally receives. Instagram can notice that, and an account could be limited. The owner uses the same behaviour with piko today without problems.
 - HushGram is at version 0.0.x and is a fallback only. If a fallback build ships, its release notes say so, and the names lost compared with piko show as removed patches.

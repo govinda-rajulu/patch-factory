@@ -1,9 +1,10 @@
 # patch-factory cross-session lessons
 
 Council-facing lessons live in `../docs/council/LESSONS.md` (numbered, hash-pinned).
-Per-session wrong calls live in `../docs/review/SESSION-*.md`. The full historical list is
+Per-session records live in `../docs/review/`, with older records under `../docs/review/history/`. The full historical list is
 [archive/skills/MY-WRONG-CALLS-ON-PATCH-FACTORY.md](archive/skills/MY-WRONG-CALLS-ON-PATCH-FACTORY.md).
-This file keeps only what fits in neither.
+`docs/council/LESSONS.md` is the canonical numbered council ledger; this file keeps cross-session
+lessons that are not in that ledger.
 
 ## 29 Sep 2026
 
@@ -29,9 +30,10 @@ This file keeps only what fits in neither.
    push. v2 pinned every before and after blob from main's own tree and ran clean.
 8. **Dependabot `directory: "/"` skips composite actions.** #103 bumped five workflows and missed
    `.github/actions/preparing/action.yml`; Validate's action-ref contract caught the mismatch.
-9. **The keepalive bot moves main on the 1st of each month.** It only rewrites `.keepalive`, but a
-   controller pinned to main before it stops with MAIN_MOVED (final-handover-v1, 3 Oct). Repin and
-   rerun; the per-file blob gates are what protect the content.
+9. **Historical keepalive commits moved main on the 1st of each month.** The bot only rewrote
+   `.keepalive`, but a controller pinned to main before it stopped with MAIN_MOVED (final-handover-v1,
+   3 Oct). Since W16d, `keepalive.yml` is manual only and has no cron. Repin and rerun when a bot
+   moves main; the per-file blob gates are what protect the content.
 
 ## 6 Oct 2026
 
@@ -178,3 +180,10 @@ This file keeps only what fits in neither.
 - A bot side effect waiting on a refusal is found again and reused, never repeated daily (W15c, L067).
 - A lesson that is only a note comes back: lesson 8 (1 Oct, Dependabot skips composites) returned as #188 until a test enforced it (W15b).
 - An agent's "missing" is read against the named file before it is planned; 1 of 8 history claims was false, 2 by design (W15d, L068).
+
+## 24 October 2026 (W16d documentation corrections)
+
+- The Google Play APK helper was removed because no build called it. Do not document `src/build/helper/ggplay_dl/` as a live source or fallback.
+- Status page data now prunes stale Actions caches. It keeps the newest cache in each conservative key-prefix group and removes only non-newest caches older than 24 hours and unused for more than 7 days; bad timestamps stay.
+- Needs you is one daily issue. The owner answers exact `take`, `drop` or `hold` commands by item id. Provider `take` starts Explore; review `take`, `drop` and `hold` add their recorded effects; other decisions stay in the watch-state ledger.
+- The generated README inventory and `src/targets.json` are authoritative for the 17 enabled apps and their providers. Council seats come from `src/council/seats.json`; do not keep a second historical roster.

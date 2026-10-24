@@ -49,7 +49,8 @@ class Classify(unittest.TestCase):
 
     def test_paid_words_only_on_offline_apps(self):
         self.assertEqual(self.call(row('esfile', 'rushiranpise', 'morphe-patches'), 'com.estrongs.android.pop', 'Unlock VIP Lifetime'), 'adopt')
-        self.assertEqual(self.call(row('telegram', 'rushiranpise', 'morphe-patches'), 'org.telegram.messenger', 'Unlock Premium'), 'hold')
+        self.assertEqual(self.call(row('telegram', 'rushiranpise', 'morphe-patches'), 'org.telegram.messenger', 'Unlock Premium'), 'adopt')  # W16g owner approval
+        self.assertEqual(self.call(row('hotstar', 'durgesh0505', 'chiggi_morphe_patches'), 'in.startv.hotstar', 'Premium unlock'), 'hold')
 
     def test_unsure_means_wait(self):
         ig = row('instagram', 'SysAdminDoc', 'HushGram')
@@ -59,7 +60,7 @@ class Classify(unittest.TestCase):
         self.assertEqual(self.call(ig, 'com.instagram.android', 'Hide paid partnership Reels', 'CFM'), 'hold')
 
     def test_policy_keeps_the_owner_veto_and_offline_list(self):
-        self.assertEqual(sorted(POLICY['paid_ok_targets']), ['esfile', 'keymapper', 'mxplayer'])
+        self.assertEqual(sorted(POLICY['paid_ok_targets']), ['esfile', 'keymapper', 'mxplayer', 'telegram', 'truecaller-combo'])
         targets = {t['id'] for t in json.loads((ROOT / 'src/targets.json').read_text())}
         self.assertTrue(set(POLICY['paid_ok_targets']) <= targets)
         for w in ('package name', 'clone', 'signature', 'spoof', 'version code'):
