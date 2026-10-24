@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,obtainiumRelease,obtainiumName,ago,isOld,headline,reportIdentity,reportBinding,checkCompleteness};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,obtainiumRelease,obtainiumName,ago,isOld,headline,reportIdentity,reportBinding,checkCompleteness,patchList,providerNames,bundleText,badgeLabels};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 const ENABLED=targets.filter(t=>t.enabled===true).length; // W4: counts follow src/targets.json
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
@@ -230,5 +230,27 @@ check('W15h: every patched entry pins the CI signing certificate; a missing, for
 check('W15i: release notes lose every HTML comment, nested or unmatched (CodeQL)',()=>{
  for(const body of ['a<!-- x -->b','a<!<!---->--b','a<!--<!-- x -->-->b','a<!-- open b','<!--x--><!--y-->a'])assert.ok(!c.noteText(body).includes('<!--'),body);
  assert.equal(c.noteText('keep <b>text</b>'),'keep <b>text</b>');
+});
+check('app cards disclose a short patch preview and a native full list',()=>{
+ const names=Array.from({length:8},(_,i)=>'Patch '+(i+1)),record={patches:names};
+ assert.deepEqual(c.patchList(record),names);
+ assert.equal(c.patchList({}),null);assert.equal(c.patchList(null),null);
+ assert.ok(html.includes('<details')&&html.includes('patch-details'));
+ assert.ok(source.includes("summary=el('summary','All '+patches.length+' patches')"));
+ assert.ok(source.includes("patches.slice(0,6).join(', ')"));
+});
+check('multi-bundle cards put the configured primary first and do not invent extra versions',()=>{
+ const target={candidates:[{name:'piko'},{name:'hushgram',fallback:true}],extra_bundles:[{name:'brosssh'}]};
+ const record={provider:'brosssh + piko',bundle:'3.11.0-dev.1'};
+ assert.equal(JSON.stringify(c.providerNames(record,target)),JSON.stringify(['piko','brosssh']));
+ assert.equal(c.bundleText(record,target),'piko 3.11.0-dev.1; brosssh version not recorded');
+ assert.equal(c.bundleText({provider:'piko',bundle:'3.11.0-dev.1',bundle_versions:{piko:'3.11.0-dev.1',brosssh:'3.10.0'}},target),'piko 3.11.0-dev.1');
+});
+check('badges are reserved for fallback, failed/held builds, or a release newer than 24 hours',()=>{
+ const top={rel:{published_at:new Date(Date.now()-25*60*60*1000).toISOString()}};
+ assert.equal(JSON.stringify(c.badgeLabels(top,{},{id:'instagram'})),JSON.stringify([]));
+ assert.equal(JSON.stringify(c.badgeLabels(top,{fallback:'Built with fallback provider hushgram'},null)),JSON.stringify(['Fallback provider']));
+ assert.equal(JSON.stringify(c.badgeLabels(top,null,{last_build:{result:'failure',words:'Failed'}})),JSON.stringify(['Failed']));
+ assert.equal(JSON.stringify(c.badgeLabels({rel:{published_at:new Date(Date.now()-2*60*60*1000).toISOString()}},null,null)),JSON.stringify(['New']));
 });
 console.log('PORTAL_CONTRACTS_PASS='+count);

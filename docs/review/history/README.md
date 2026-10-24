@@ -5,6 +5,15 @@ first. Nothing here is current; `knowledge/STATE.md` and `../OPEN-WORK.md` are.
 
 | File | What it was |
 |---|---|
+| [SESSION-2026-10-07.md](SESSION-2026-10-07.md) | Session record, 7 October 2026 (archived). |
+| [SESSION-2026-10-08.md](SESSION-2026-10-08.md) | Session record, 8 October 2026 (archived). |
+| [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | Session record, 9 October 2026 (archived). |
+| [SESSION-2026-10-10.md](SESSION-2026-10-10.md) | Session record, 10 October 2026 (archived). |
+| [SESSION-2026-10-11.md](SESSION-2026-10-11.md) | Session record, 11 October 2026 (archived). |
+| [SESSION-2026-10-17.md](SESSION-2026-10-17.md) | Session record, 17 October 2026 (archived). |
+| [SESSION-2026-10-20.md](SESSION-2026-10-20.md) | Session record, 20 October 2026 (archived). |
+| [SESSION-2026-10-21.md](SESSION-2026-10-21.md) | Session record, 21 October 2026 (archived). |
+| [SESSION-2026-10-22.md](SESSION-2026-10-22.md) | Session record, 22 October 2026 (archived). |
 | [HANDOVER-2026-09-26.md](HANDOVER-2026-09-26.md) | 26 September session handover |
 | [SESSION-2026-09-29.md](SESSION-2026-09-29.md) | Packet L session record |
 | [AUDIT-2026-09-07.md](AUDIT-2026-09-07.md) | First repository audit |

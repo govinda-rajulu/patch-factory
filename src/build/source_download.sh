@@ -2,7 +2,9 @@
 # Secret-free preparation adapter to the existing store routines.
 set -uo pipefail
 ID="${1:?target required}"
-RVER="${2:?resolved version required}"
+# W16d: an empty version is legal (the provider lists none, e.g. Amazon Music), as in build.sh;
+# the argument must still be given. ":?" refused it in 0 s and Qualify went red (24 Oct).
+RVER="${2?resolved version required}"
 T=$(jq -ce --arg id "$ID" '.[] | select(.id==$id and .enabled==true)' src/targets.json) || exit 1
 PKG=$(jq -r '.package' <<<"$T")
 APK_NAME=$(jq -r '.apk_name' <<<"$T")

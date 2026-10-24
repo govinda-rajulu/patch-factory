@@ -12,7 +12,7 @@ provider accepts: [PROVIDERS.md](PROVIDERS.md). Agent runners and MCP plan: [RUN
 
 ## Seats
 
-Seven seats on six providers, all on free tiers (since 7 Oct 2026). Each seat
+Nine seats on eight providers, all on free tiers where seated (since 7 Oct 2026). Each seat
 uses the first model on its list that the provider still serves, because free catalogues change
 without notice.
 
@@ -23,7 +23,9 @@ without notice.
 | open | OpenRouter free models | `OPENROUTER_API_KEY` |
 | codestral | Mistral La Plateforme (free plan) | `MISTRAL_API_KEY` |
 | command | Cohere (trial key) | `COHERE_API_KEY` |
-| groq | Groq (small budget: probes and small asks) | `GROQ_API_KEY` |
+| groq | Groq (25,000-character ask/probe budget) | `GROQ_API_KEY` |
+| kilo | Kilo Gateway free models | `KILO_API_KEY` |
+| zai | Z.AI GLM Flash | `ZAI_API_KEY` |
 
 A seat without its key is skipped, never an error. A model the provider reports retired
 (410) or not served falls through to the next one on the seat's list. Since 29 Sep 2026 so
@@ -45,8 +47,10 @@ error still stops the seat. GitHub Models retired on 30 Jul 2026, so no seat use
   for "is X excluded?" questions.
 - **Audit** (mode `audit`, inputs `shard` and `issue`): one shard of the repository from
   `src/council/shards.json`, read at the dispatched commit and reviewed in parts of at most
-  70000 characters with [AUDIT.md](AUDIT.md). One comment per shard on the chosen issue, edited
-  on a rerun. Running every shard on one issue is a whole-repository audit.
+  70000 characters with [AUDIT.md](AUDIT.md). Seats run concurrently across providers while
+  calls sharing one provider remain serialized and paced. One comment per shard on the chosen issue,
+  edited on a rerun. If the time or ten-part cap leaves work, the next run starts with the exact
+  `Not reviewed` part numbers recorded in that desk comment. Running every shard on one issue is a whole-repository audit.
   Since W14 (11 Oct 2026) each seat is trained by [AGENT-SPEC.md](AGENT-SPEC.md) and also
   reads the newest `knowledge/STATE.md` entry and the current OPEN-WORK checkpoint. A finding may
   carry a one-line `replacement`; it applies only when the quoted line occurs once and the file
@@ -70,7 +74,7 @@ error still stops the seat. GitHub Models retired on 30 Jul 2026, so no seat use
 Since 7 Oct 2026 (packet V1) every reply is asked for in JSON mode, reasoning seats run with low
 effort and room to answer, a 404 moves to the seat's next model, a refused reply gets one repair
 turn, and every review or audit finding must quote a line that really is in the cited file
-(else it is dropped and counted). Seats may list `jobs` in seats.json; Groq takes only probe and ask.
+(else it is dropped and counted). Seats may list `jobs` in seats.json; Groq takes probe and ask only; its 25,000-character budget is too small for the trained audit prompt, so it is not a default audit seat.
 
 ## Outcomes
 

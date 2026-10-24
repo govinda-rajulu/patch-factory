@@ -494,3 +494,9 @@ Reddit on Morphe shipped "Disable modern home" through four builds of 2026.41.0 
 "does not work with Reddit 2026.25.0+" and Morphe's own description says it works up to 2026.24.0.
 A patch the patcher says does nothing on the built version is left out, and the release notes stop
 listing it (W16c, 24 Oct).
+
+### L085 · A faked command line proves the code, not the command
+Tags: tests, evidence
+Needs you asked `gh issue list --json` for `user`; gh has no such field, so the first real run
+failed (24 Oct). Its tests replaced gh with a fake that answered anything. A test that fakes a
+CLI also checks the arguments against that CLI's documented set (W16d).

@@ -13,7 +13,8 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
   L080), shadow jobs only for apps that build, plain release notes and app cards, one daily Needs you
   issue, council caps removed, fewer runs. Record `docs/review/SESSION-2026-10-24.md`; brief
   `docs/review/W16-BRIEF.md`. Merged #222 as `e7b7dbfa`; W16b #226 `91c34e1c` (all watches green); W16c: weekly review issues, Instagram on piko again, dev branch cleanup, Reddit without Disable modern home, Photos package pinned, shadow SDK step-down, second stores for five apps, T1 publishes reddit and instagram. Wrong calls: 53 (L081 to L084).
-- **Next**: OPEN-WORK 24 Oct: phone tests (Reddit, Instagram piko, Facebook 584), build reuses the prepared APK (the real speed win), W15g.
+- **W16c** #228 `e73e7721` (Reddit and Instagram piko published). **W16d**: Needs you fixed, take/drop/hold by comment, shelf cards fold patches, cache pruning, Play helper removed. Wrong calls: 54 (L085).
+- **Next**: OPEN-WORK 24 Oct: Qualify baselines red (read its log), phone tests (Reddit, Instagram piko, Facebook 584), W15g.
 
 ## 23 Oct 2026, midday IST (packet W15i)
 
@@ -31,7 +32,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 - **W15h**: Obtainium certificate pin (`src/build/ci-signer.json`, one home), tooling watch v2
   (`src/etc/upstreams.json`, standing issue "Tooling watch", L074), empty release lists asked
   again (L075), council v4 (seat backups, model discovery, pacing, audit memory, Cloudflare wired).
-  Record `docs/review/SESSION-2026-10-22.md` (both W15h sections). Wrong calls this chat: 48.
+  Record `docs/review/history/SESSION-2026-10-22.md` (both W15h sections). Wrong calls this chat: 48.
 - **Next**: OPEN-WORK 22 Oct night: owner re-import, Reddit question, W15g signing split.
 
 ## 22 Oct 2026, midday IST (packet W15f)
@@ -39,7 +40,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 - **Main** `c1fa3d3d` (W15e #208 `f3d91337`, then Rule merge #207 by the bot) plus W15f once merged.
 - **W15f**: Rule merges count as bot drift in the controller and T1 (L072); T1 rerun on main;
   council v3 from the outside-repo review (docs/review/OUTSIDE-REPOS-2026-10-22.md, L073).
-  Record `docs/review/SESSION-2026-10-22.md` (W15f section). Wrong calls this chat: 46.
+  Record `docs/review/history/SESSION-2026-10-22.md` (W15f section). Wrong calls this chat: 46.
 - **Next**: OPEN-WORK 22 Oct midday: W15g signing split (needs a phone test), then combo planner.
 
 ## 22 Oct 2026, late morning IST (packet W15e)
@@ -47,7 +48,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 - **Main** `47bcf796` (W15d #204 `ab8423a8` plus bot commits) plus W15e once merged.
 - **W15e**: readable bot reports (docs/review/REPORT-STYLE.md), Rule merge fixed (L069, L070),
   agent personas and solo shifts (docs/council/PERSONAS.md), cleanup keeps one release per app,
-  T1 built version, controllers merge over bot-only drift on main (L071). Record `docs/review/SESSION-2026-10-22.md`. Wrong calls this chat: 45.
+  T1 built version, controllers merge over bot-only drift on main (L071). Record `docs/review/history/SESSION-2026-10-22.md`. Wrong calls this chat: 45.
 - **Next**: OPEN-WORK 22 Oct: W15g signing split, then combo planner.
 
 ## 21 Oct 2026, midday IST (packet W15d)
@@ -62,7 +63,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 
 - **Main** `0119e54f` (W15b #193 `79f619ec` plus a bot commit) plus W15c once merged.
 - **W15c**: publisher pin at source preparation, adopt waits on a pending branch, longest build
-  first, parallel smoke builds, audit. Record `docs/review/SESSION-2026-10-21.md`, audit
+  first, parallel smoke builds, audit. Record `docs/review/history/SESSION-2026-10-21.md`, audit
   `docs/review/AUDIT-2026-10-21.md`, L066 and L067.
 - **Next**: OPEN-WORK 21 Oct: owner allows Actions pull requests, W15d signing isolation
   (owner yes), W15e tool pins, then speed items and combos.
@@ -74,7 +75,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
   receipt reasons, split list), transfer and merge reasons, pinned cert fails closed, council
   probe per model, Selection watch auto-adopt (src/patches/ADOPT.json; pull request, never
   merged by the bot), the owner's 33 decisions, agent review offline-unlock list, L062 to L065.
-  Record `docs/review/SESSION-2026-10-20.md`.
+  Record `docs/review/history/SESSION-2026-10-20.md`.
 - **Next**: OPEN-WORK 20 Oct, in order: W15b RESULT and the first adopt pull request, then W15c
   (provider combos, Truecaller measured, pf-vault after the owner's token).
 
@@ -86,7 +87,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
   with version detection off (owner re-imports once), notify identity by workflow record and main
   only (L058), Dependabot bump applied and the hardcoded-sha test fixed, Reddit pin, SDK warnings,
   baseline reasons, council fix-lane guard (two seats), Nemotron 3.5 Super VL. Records:
-  `docs/review/SESSION-2026-10-17.md`, `docs/review/WIP-W15-2026-10-17.md`.
+  `docs/review/history/SESSION-2026-10-17.md`, `docs/review/WIP-W15-2026-10-17.md`.
 - **Rules (owner, 17 Oct, L061)**: nothing is suppressed; "impossible" is not a finding.
 - **Next**: OPEN-WORK 17 Oct, in order: pf-t1 logs, Facebook 583 publish, then cleanup.
 
@@ -98,7 +99,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
  publisher pins for 16 packages, agent review ignores findings on excluded names, status reasons;
  one home for repeated text (guide "About these builds", old notes tidied by `release_tidy.py`),
  Obtainium card, automation lists tested (L057), council trained by `docs/council/AGENT-SPEC.md`
- with a fix lane (artifact `council-fixes`, never pushed). Record `docs/review/SESSION-2026-10-11.md`.
+ with a fix lane (artifact `council-fixes`, never pushed). Record `docs/review/history/SESSION-2026-10-11.md`.
 - **Next**: OPEN-WORK "packet W14", in order: the pf-w14 RESULT and pf-t1 findings first.
 
 ## 10 Oct 2026, evening IST (packet W13)
@@ -106,7 +107,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 - **Main** `e42b06d8` (H12 #176) plus W13 once merged. Owner pre-approved W13, merge included.
 - **W13**: lost patches dropped by name (`lost_patches.py`), provider fallback with per-provider
  pins (`build_attempts.py`; Facebook De-Vanced 580, Instagram HushGram), 10. Selection watch
- daily 07:41 IST, pf-t1 in `docs/review/controllers/`. Record `docs/review/SESSION-2026-10-10.md`.
+ daily 07:41 IST, pf-t1 in `docs/review/controllers/`. Record `docs/review/history/SESSION-2026-10-10.md`.
 - **First run** stopped at the Instagram smoke (SIGPIPE under the Python wrapper, L052); fixed in
  W13 commit 2 (`pf-w13b`). Run 2 stopped at the Amazon Music smoke; commit 3 keeps brosssh
  patches the --force patcher applies and accepts any-version smokes (L053, `pf-w13c`).
@@ -173,7 +174,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 - **Base** W6 (#163, head `3e14e809`) plus packet W7 (one pull request). The owner runs one
  controller, `pf-w7.py`: merge #163, push and merge W7 after its checks, dispatch Manual Patch
  for `amazonmusic` and `linkedin`, collect their log lines and a repository inventory. Record:
- the W7 section of `docs/review/SESSION-2026-10-09.md`.
+ the W7 section of `docs/review/history/SESSION-2026-10-09.md`.
 - **Versions** (owner design): newest the provider supports, or the store's newest when the
  provider lists none. Above the phone cap the build steps down, at most 3 lower versions
  (`src/build/version_steps.sh`, notice `VERSION_STEP_DOWN`). Fixed: `min_sdk_ceiling`,
@@ -188,7 +189,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 ## 9 Oct 2026, afternoon (packet W6)
 
 - **Base** main `1e08ef02` (W5 #162 merged). Packet W6 is one pull request on top. Record:
- `docs/review/SESSION-2026-10-09.md`; open items: `docs/review/OPEN-WORK.md` (9 Oct, W6).
+ `docs/review/history/SESSION-2026-10-09.md`; open items: `docs/review/OPEN-WORK.md` (9 Oct, W6).
 - **Builds since W5**: LinkedIn built (run 37912428867, 4.1.1255.1); phone test pending.
  Amazon Music failed the native check (run 37912474736): `lib/arm64-v8a/libInit.so` is the six
  bytes `4.6.14`, unchanged by patching. W6 accepts only that shape under that file name.
@@ -201,7 +202,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 ## 9 Oct 2026 (packet W5, session close)
 
 - **Base** main `be8aaa44` (W4 #160 merged). Packet W5 is one pull request on top. Record: the W5
- section of `docs/review/SESSION-2026-10-08.md`; open items: `docs/review/OPEN-WORK.md` (9 Oct).
+ section of `docs/review/history/SESSION-2026-10-08.md`; open items: `docs/review/OPEN-WORK.md` (9 Oct).
 - **Start every packet** by asking the owner for `git bundle --all` of main; run the full suite
  and a headless Pages render in the sandbox before handing anything over.
 - **Apps**: 17 targets. LinkedIn pinned to 4.1.1255.1 (4.1.1258 needs Android 12L); Amazon Music
@@ -218,7 +219,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 ## 8 Oct 2026, afternoon (packet W4)
 
 - **Base** main `18670c23` (W2 #158 and W3 #159 merged). Record: the W4 section of
- `docs/review/SESSION-2026-10-08.md`.
+ `docs/review/history/SESSION-2026-10-08.md`.
 - **Sandbox sees the whole repo now.** The owner uploads `git bundle --all` of main; the
  assistant runs every test and renders Pages in a headless browser before handing a packet over.
 - **Pages**: Builds and Watch read `status.json` (grouped, newest first, capped lists, the data's
@@ -240,7 +241,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 
 ## 8 Oct 2026 (packet W2)
 
-- **Base** main `4bdb82b8`. Record: `docs/review/SESSION-2026-10-08.md` (applied and dropped
+- **Base** main `4bdb82b8`. Record: `docs/review/history/SESSION-2026-10-08.md` (applied and dropped
  hunks at its end). Leads decided: `docs/review/LEADS-2026-10-08.md`.
 - **App changes are two steps**: run `5. Add target` (add, patch, disable, enable, remove),
  merge its pull request. Tool: `src/etc/app.py`; how-to `docs/APPS.md`. `1. Manual Patch`
@@ -263,7 +264,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
   providers; probe after V2: 6 of 7 ready (open seat flaky). Desk #154 pinned: the schedule posts
   one audit shard at 08:47 and 20:47 IST and triage on Monday 08:47 IST. Open issues: #27
   (standing nightly report), #102, #142, #154.
-- **Session record**: `docs/review/SESSION-2026-10-07.md` (what shipped, findings, wrong calls 1-8,
+- **Session record**: `docs/review/history/SESSION-2026-10-07.md` (what shipped, findings, wrong calls 1-8,
   coverage limits). Audit ledger: `docs/review/AUDIT-COUNCIL-2026-10-06.md`. Clutter plan:
   `docs/review/CLUTTER-2026-10-07.md`. Provider facts: `docs/council/PROVIDERS.md`. Runner plan:
   `docs/council/RUNNERS.md`. Generic lessons: `knowledge/handbook/FREE-LLM-AGENTS.md`.

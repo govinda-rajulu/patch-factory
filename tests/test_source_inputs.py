@@ -186,6 +186,17 @@ class SourceContracts(unittest.TestCase):
             self.assertEqual(parts[4:6],['','1'] if target.get('any_version') else ['4.2.1',''])
             if parts[0]=='mirror':self.assertEqual(parts[-1],'1')
 
+    def test_w16d_empty_provider_version_downloads_latest(self):
+        # Amazon Music (24 Oct): the provider lists no versions, the Plan version is "", and
+        # ${2:?} refused it in 0 s, so the shadow step never prepared an APK and Qualify went red.
+        (self.r/'src/build/utils.sh').write_text('get_apk(){ printf "mirror|%s|%s|%s\\n" "$1" "$version" "$lock_version"; }\nget_apkpure(){ printf "pure|%s|%s\\n" "$1" "$version"; }\n')
+        target=json.loads((self.r/'src/targets.json').read_text())[0]
+        r=subprocess.run(['bash','src/build/source_download.sh',target['id'],''],cwd=self.r,env=source.clean_env(self.env),capture_output=True,text=True)
+        self.assertEqual(r.returncode,0,r.stdout+r.stderr)
+        self.assertIn('|'+target['package']+'||',r.stdout)
+        r=subprocess.run(['bash','src/build/source_download.sh',target['id']],cwd=self.r,env=source.clean_env(self.env),capture_output=True,text=True)
+        self.assertNotEqual(r.returncode,0)
+
     def test_failed_store_tries_the_other_mapped_store_before_the_qualified_fallback(self):
         (self.r/'src/build/utils.sh').write_text('get_apk(){ if [ -n "${MIRROR_FAIL:-}" ]; then return 3; fi; printf "mirror|%s|%s|%s|%s\\n" "$1" "$version" "$4" "$5"; }\nget_apkpure(){ if [ -n "${PURE_FAIL:-}" ]; then return 4; fi; printf "pure|%s|%s\\n" "$1" "$version"; }\n')
         stub=self.r/'src/build/source_fallback.py';stub.write_text('import sys\nprint("QUALIFIED_FALLBACK")\nsys.exit(9)\n')

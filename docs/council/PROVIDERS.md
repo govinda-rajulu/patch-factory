@@ -9,8 +9,8 @@ published request limit when it can, with one call at a time per provider.
 
 | Provider / models used by this repo | RPM | RPD | TPM / TPD | Other free cap | Official source and exact quote |
 |---|---:|---:|---:|---|---|
-| **Kilo Gateway** — `kilo-auto/free`, `nvidia/nemotron-3-ultra-550b-a55b:free` | **not stated** (200/hour = 3.33 RPM arithmetic) | not documented | not documented | Free models: **200 requests/hour/IP** | [Usage & Billing](https://kilo.ai/docs/gateway/usage-and-billing): “**Free models per IP \| 200 requests per hour**.” |
-| **Z.AI** — `glm-4.7-flash`, `glm-4.5-flash` | not documented | not documented | not documented | Both listed as free; quota is account-specific | [Pricing](https://docs.z.ai/guides/overview/pricing): “**GLM-4.7-Flash \| Free \| Free \| Free \| Free**” and “**GLM-4.5-Flash \| Free \| Free \| Free \| Free**.” [FAQ](https://docs.z.ai/help/faq): “**You can check the rate limits from here: https://z.ai/manage-apikey/rate-limits**.” |
+| **Kilo Gateway** — `kilo-auto/free`, `nvidia/nemotron-3-ultra-550b-a55b:free` (full `kilo` seat) | **not stated** (200/hour = 3.33 RPM arithmetic) | not documented | not documented | Free models: **200 requests/hour/IP** | [Usage & Billing](https://kilo.ai/docs/gateway/usage-and-billing): “**Free models per IP \| 200 requests per hour**.” |
+| **Z.AI** — `glm-4.7-flash`, `glm-4.5-flash` (full `zai` seat) | not documented | not documented | not documented | Both listed as free; quota is account-specific | [Pricing](https://docs.z.ai/guides/overview/pricing): “**GLM-4.7-Flash \| Free \| Free \| Free \| Free**” and “**GLM-4.5-Flash \| Free \| Free \| Free \| Free**.” [FAQ](https://docs.z.ai/help/faq): “**You can check the rate limits from here: https://z.ai/manage-apikey/rate-limits**.” |
 | **Groq** — `qwen/qwen3.8-27b`, `openai/gpt-oss-120b`, `openai/gpt-oss-20b` | **30** | **1,000** | **8,000 TPM / 200,000 TPD** | Limits apply at organization level; cached tokens do not count | [Rate Limits](https://console.groq.com/docs/rate-limits): the exact rows are “**openai/gpt-oss-120b \| 30 \| 1K \| 8K \| 200K**”, “**openai/gpt-oss-20b \| 30 \| 1K \| 8K \| 200K**”, and “**qwen/qwen3.8-27b \| 30 \| 1K \| 8K \| 200K**”; the page also says “**Rate limits apply at the organization level, not individual users.**” |
 | **OpenRouter** — `cohere/north-mini-code:free`, `google/gemma-4-31b-it:free`, `openrouter/free` | **20** | **50** without purchased credits; **1,000** after at least 10 credits | token limits not documented for free variants | Free-model cap is account-wide; `GET /api/v1/key` reports the daily counter | [API Credit & Rate Limits](https://openrouter.ai/docs/api_reference/limits): free-model table says “**Less than 10 \| 20 \| 50**” and “**At least 10 \| 20 \| 1000**.” |
 | **NVIDIA NIM** — `openai/gpt-oss-20b`, `deepseek-ai/deepseek-v4-pro`, `nvidia/nemotron-3-ultra-550b-a55b`, `nvidia/nemotron-3.5-super-vl-120b-a12b`, `minimaxai/minimax-m3`, `qwen/qwen3.5-397b-a17b` | not documented | not documented | not documented | Free trial, no card; per-model limits are account/model-specific | [NVIDIA API Catalog FAQ](https://build.nvidia.com/llms.txt): “**All models offer a free trial tier with no credit card required.**” NVIDIA's official forum answer says: “**The rate limits vary for each model, and we do not publish those.**” ([source](https://forums.developer.nvidia.com/t/request-more-4-000-credits-option-on-build-nvidia-com/344567)). |
@@ -27,14 +27,17 @@ OpenRouter 3.75 seconds (16/minute), Cohere 3.75 seconds (16/minute), and Groq 2
 and Cloudflare publish no usable public number for this account/model combination, so their
 conservative existing gaps remain and are explicitly not described as quota guarantees.
 
-`max_input_chars` was raised for the review/audit seats to 200,000 characters (Groq to 25,000
-because its documented 8K TPM is the tightest seated cap). No seat sets `max_tokens`: the request
+`max_input_chars` is 200,000 characters for the full review/audit seats (Groq remains 25,000 because
+its documented 8K TPM is the tightest seated cap). Groq remains on ask/probe only: its 25,000-character budget cannot hold the trained audit prompt, so it is not a default audit seat. Larger audit work is handled by the full seats. Kilo is a
+full seat on the portal shard and Z.AI is a full seat on the etc shard, targeting the previously thin
+App shelf and maintenance paths. No seat sets `max_tokens`: the request
 omits that field so each provider enforces its own model output maximum. Groq remains restricted to
-small ask/probe jobs by its `jobs` list, pacing, and 8K TPM—not an artificial completion cap. An
+small ask/probe jobs by its `jobs` list, 25,000-character budget, pacing, and 8K TPM—not an
+artificial completion cap; it is not a default audit seat because the trained audit prompt does not fit. An
 explicit cap supplied by a caller is still honored and doubled once after truncation. A busy/exhausted
 response (429/5xx or timeout) moves through the seat's own models and then its keyed backups.
 
-The schedule remains two audit slots daily, Monday triage, Sunday probes, and four solo shifts;
+The schedule remains two audit slots daily, Monday triage, Sunday probes, and rotating solo shifts;
 `L039` keeps one heavy job per run. Audit parts remain capped at 10 and 70,000 characters, and
 the 30-minute audit deadline remains the per-run wall-clock cap. The workflow's concurrency group
 prevents a newer run for the same PR/desk invocation from racing an older one.
@@ -64,10 +67,11 @@ stale, not a source for these limits.
 | OpenRouter `:free` | JSON object where the endpoint supports it | Free models can disappear or be busy; provider fallback then seat backups are tried. |
 | Mistral | JSON object (prompt also says JSON) | Model-specific limits are account-visible; failures move to the next preference. |
 | Cohere compatibility | JSON object; reasoning effort only when accepted | Trial calls stay on the scheduled lanes; busy/refused calls move to the next model. |
-| Groq | JSON object; gpt-oss low effort and Qwen no reasoning effort | The small fact seat is limited to ask/probe and is paced against 8K TPM. |
-| Kilo Gateway / Z.AI | OpenAI-compatible JSON requests | Backups only; 429/busy responses fall through to the next model/provider. |
+| Groq | JSON object; gpt-oss low effort and Qwen no reasoning effort | The 25,000-character seat handles ask/probe only; the trained audit prompt does not fit, so Groq is excluded from default audits and calls remain paced against 8K TPM. |
+| Kilo Gateway / Z.AI | OpenAI-compatible JSON requests | Full portal/etc seats (and backups); 429/busy responses fall through to the next model/provider. |
 
 Every request asks for JSON mode. If a model rejects `response_format` or `reasoning_effort`, that
 optional field is dropped for the rest of the run. A cut reply gets one larger retry, then moves
 to the next model. Invalid or uncited answers do not count toward quorum. The scheduled heavy
-lanes remain one audit shard per run, with one provider call at a time.
+lanes remain one audit shard per run. Parts are dispatched concurrently across providers, while
+provider-shared seats (notably gpt and nemotron on NVIDIA) remain serialized and paced.

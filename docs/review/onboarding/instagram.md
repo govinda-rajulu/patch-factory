@@ -104,7 +104,7 @@ HushGram builds only when a piko build fails (packet W13 provider fallback); pik
 - Story ring size: piko equivalent: Customise story ring size
 - Show a story's exact time: piko equivalent: Customise story timestamp
 - Stop Reels scrolling: piko equivalent: Disable Reels scrolling
-- Stop Story auto-advance: piko equivalent: Disable story flipping
+- Stop Story auto-advance: piko equivalent: Disable story flipping (W16d: held by the owner, 24 Oct: "i dont use this"; in instagram-piko/exclude-patches, like brosssh's Disable story auto flipping)
 - Stop swipe to create: piko equivalent: Disable swipe to create
 - Tap to play: piko equivalent: Disable video autoplay
 - Turn off double tap to like: piko equivalent: Disable double tap like

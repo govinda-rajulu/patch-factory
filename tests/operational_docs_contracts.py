@@ -104,7 +104,7 @@ class OperationalDocs(unittest.TestCase):
                        '733e91b6fe90dace2295ac6a27ca66481c945e7d',
                        'PR168/churn','public signing material','broad CI permissions',
                        'Morphe NOTICE','Link third-party text/assets instead of copying them',
-                       'AuroraStore','AGPL-3.0','markdown-badges'):
+                       'AGPL-3.0','markdown-badges'):
             self.assertIn(phrase,text)
         self.assertNotIn('totally safe',text.lower())
 

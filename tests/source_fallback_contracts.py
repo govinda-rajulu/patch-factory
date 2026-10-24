@@ -296,7 +296,8 @@ class FallbackContracts(unittest.TestCase):
     def test_raw_hook_precedes_both_mergers_and_primary_forces_normal_mode(self):
         text=(ROOT/'src/build/utils.sh').read_text()
         mirror=text[text.index('get_apk() {'):text.index('get_apkpure() {')]
-        pure=text[text.index('get_apkpure() {'):text.index('get_apk_chplay() {')]
+        start=text.index('get_apkpure() {')
+        pure=text[start:text.index('#################################################', start)]
         for body in (mirror,pure):
             raw_hook='if [[ "${PF_APK_RAW_ONLY:-0}" == "1" ]]; then return 0; fi'
             self.assertEqual(body.count(raw_hook),1)
