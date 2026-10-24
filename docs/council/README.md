@@ -18,20 +18,21 @@ without notice.
 
 | Seat | Provider | Key |
 |---|---|---|
-| gpt, nemotron | NVIDIA build | `NVIDIA_API_KEY` |
+| gpt | NVIDIA | `NVIDIA_API_KEY` |
 | gemini | Google AI Studio | `GEMINI_API_KEY` |
-| open | OpenRouter free models | `OPENROUTER_API_KEY` |
-| codestral | Mistral La Plateforme (free plan) | `MISTRAL_API_KEY` |
-| command | Cohere (trial key) | `COHERE_API_KEY` |
+| nemotron | NVIDIA | `NVIDIA_API_KEY` |
+| open | OpenRouter | `OPENROUTER_API_KEY` |
+| codestral | Mistral | `MISTRAL_API_KEY` |
+| command | Cohere | `COHERE_API_KEY` |
+| kilo | Kilo Gateway | `KILO_API_KEY` |
+| zai | Z.AI | `ZAI_API_KEY` |
 | groq | Groq (25,000-character ask/probe budget) | `GROQ_API_KEY` |
-| kilo | Kilo Gateway free models | `KILO_API_KEY` |
-| zai | Z.AI GLM Flash | `ZAI_API_KEY` |
 
-A seat without its key is skipped, never an error. A model the provider reports retired
-(410) or not served falls through to the next one on the seat's list. Since 29 Sep 2026 so
-does a busy or unreachable model (429, 5xx or timeout); only the seat's last model is
-retried, which keeps a slow provider inside the job's time limit. An authentication or other
-error still stops the seat. GitHub Models retired on 30 Jul 2026, so no seat uses it.
+This nine-seat, eight-provider roster is read from `src/council/seats.json`; the provider key
+mapping is in `src/council/council.py`. A seat without its key is skipped, never an error. A
+retired, busy or unreachable model falls through the seat's own models and then its configured
+backups on other providers when a key is available. An authentication or other terminal error
+still stops that seat. GitHub Models retired on 30 July 2026, so no seat uses it.
 
 ## Jobs
 

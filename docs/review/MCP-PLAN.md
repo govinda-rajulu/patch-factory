@@ -3,6 +3,10 @@ APIs on that day; re-read them before any packet uses them. Nothing here runs ye
 
 # MCP groundwork pilot for patch-factory
 
+## Status (W16g)
+
+Built manual-only in W16g; first owner-dispatched run proves lockdown.
+
 ## 1. CI host/client
 
 **Recommendation:** keep the existing Actions integration and pin

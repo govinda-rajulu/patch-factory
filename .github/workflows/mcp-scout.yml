@@ -1,0 +1,100 @@
+name: MCP scout
+
+# Manual-only by design: the owner dispatches discovery and promotes candidates later.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcp-scout
+  cancel-in-progress: false
+
+jobs:
+  scout:
+    name: Read-only community scout
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check for Gemini API key
+        id: key
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [[ -n "${GEMINI_API_KEY:-}" ]]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "GEMINI_API_KEY is not configured; the manual MCP scout will not run." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Gemini CLI 0.65.0 documents tools.core as an all-built-in allowlist and
+      # tools.exclude as its explicit blocklist: https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/docs/tools/shell.md
+      - name: Read-only GitHub MCP scout
+        id: gemini
+        if: steps.key.outputs.present == 'true'
+        uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0.1.22
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_cli_version: '0.65.0'
+          settings: |-
+            {"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3","stdio","--read-only","--toolsets=repos"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
+          prompt: >-
+            You are a read-only discovery scout. Using only the configured GitHub MCP server,
+            inspect the repository ${{ github.repository }} files src/targets.json and
+            src/community/bundles.json. For every app id in targets.json, find community
+            Morphe or ReVanced patch repositories relevant to that app that are not already
+            present in that target's candidates or extra_bundles (including bundle entries).
+            Return ONLY newline-delimited JSON objects with exactly these keys:
+            {"app":"target id","repo":"owner/name","reason":"brief evidence-based reason"}.
+            Use the target app id, not its package name. Do not return Markdown fences,
+            headings, URLs, duplicate prose, or anything except JSON lines. Never modify
+            files, issues, pull requests, or any GitHub content; never use shell or file-write tools.
+
+      - name: Validate scout output
+        if: always()
+        env:
+          MODEL_OUTPUT: ${{ steps.gemini.outputs.summary }}
+          SCOUT_DIR: ${{ runner.temp }}/mcp-scout-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          mkdir -p "$SCOUT_DIR"
+          printf '%s' "${MODEL_OUTPUT:-}" > "$SCOUT_DIR/model-output.txt"
+          python3 src/etc/mcp_scout_check.py \
+            --input "$SCOUT_DIR/model-output.txt" \
+            --output "$SCOUT_DIR/results.jsonl" \
+            --summary "$GITHUB_STEP_SUMMARY"
+
+      # The action creates only its temporary .gemini configuration in this checkout.
+      # Remove that known runner-local material before checking for agent-created changes.
+      - name: Remove runner-local Gemini configuration
+        if: always()
+        run: rm -rf .gemini
+
+      - name: Prove the agent left the checkout unchanged
+        if: always()
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "::error::MCP scout changed the checkout; lockdown proof failed."
+            git status --short
+            exit 1
+          fi
+          echo "Lockdown proof passed: git status is clean." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload validated scout result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: mcp-scout-results-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/mcp-scout-${{ github.run_id }}-${{ github.run_attempt }}/results.jsonl
+          if-no-files-found: error
+          retention-days: 30

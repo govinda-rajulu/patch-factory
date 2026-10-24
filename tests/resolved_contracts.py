@@ -349,7 +349,7 @@ class ResolvedContracts(unittest.TestCase):
             "get_patches_key(){ :; }\n"
             "get_apk(){ echo STORE_BOUNDARY_REACHED; return 77; }\n"
             "get_apkpure(){ echo STORE_BOUNDARY_REACHED; return 77; }\n")
-        doc = self.prepare("truecaller-combo")
+        doc = self.prepare("instagram")  # W16g: a target with an extra bundle (Truecaller primary has none)
         bin_dir = self.r / "bin";bin_dir.mkdir()
         launcher = bin_dir / "python3"
         launcher.write_text(
@@ -363,7 +363,7 @@ class ResolvedContracts(unittest.TestCase):
         env = dict(self.env, PATH=str(bin_dir) + ":" + os.environ["PATH"],
                    PF_RESOLVED_REQUESTED="true", PF_RESOLVED_READY="true")
         env.pop("JAVA_TOOL_OPTIONS", None);env.pop("COE", None)
-        result = subprocess.run(["bash", "src/build/build.sh", "truecaller-combo"], cwd=self.r,
+        result = subprocess.run(["bash", "src/build/build.sh", "instagram"], cwd=self.r,
                                 env=env, capture_output=True, text=True, timeout=30)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("STORE_BOUNDARY_REACHED", result.stdout)
@@ -371,7 +371,7 @@ class ResolvedContracts(unittest.TestCase):
         self.assertNotIn("SECOND_FETCH_FORBIDDEN", result.stdout + result.stderr)
         files = list(self.r.glob("*.mpp")) + list((self.r / "extra").glob("*.mpp"))
         self.assertEqual({p.name for p in files}, {r["slot"] for r in doc["material"]["bundles"]})
-        self.assertEqual(sorted(p.name for p in self.r.glob("*.mpp")), ["01-paresh.mpp"])
+        self.assertEqual(sorted(p.name for p in self.r.glob("*.mpp")), ["01-brosssh.mpp"])
         for p in files:
             row = next(r for r in doc["material"]["bundles"] if r["slot"] == p.name)
             self.assertEqual(hashlib.sha256(p.read_bytes()).hexdigest(), row["sha256"])

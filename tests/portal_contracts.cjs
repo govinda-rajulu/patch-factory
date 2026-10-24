@@ -236,14 +236,14 @@ check('app cards disclose a short patch preview and a native full list',()=>{
  assert.deepEqual(c.patchList(record),names);
  assert.equal(c.patchList({}),null);assert.equal(c.patchList(null),null);
  assert.ok(html.includes('<details')&&html.includes('patch-details'));
- assert.ok(source.includes("summary=el('summary','All '+patches.length+' patches')"));
- assert.ok(source.includes("patches.slice(0,6).join(', ')"));
+ assert.ok(source.includes("summary=el('summary','Show the '+patches.length+' patch names')"));
+ assert.ok(!source.includes("patches.slice(0,6)")&&source.includes("p.append(document.createTextNode(String(patches.length)))"));
 });
 check('multi-bundle cards put the configured primary first and do not invent extra versions',()=>{
  const target={candidates:[{name:'piko'},{name:'hushgram',fallback:true}],extra_bundles:[{name:'brosssh'}]};
  const record={provider:'brosssh + piko',bundle:'3.11.0-dev.1'};
  assert.equal(JSON.stringify(c.providerNames(record,target)),JSON.stringify(['piko','brosssh']));
- assert.equal(c.bundleText(record,target),'piko 3.11.0-dev.1; brosssh version not recorded');
+ assert.equal(c.bundleText(record,target),'piko 3.11.0-dev.1; brosssh');
  assert.equal(c.bundleText({provider:'piko',bundle:'3.11.0-dev.1',bundle_versions:{piko:'3.11.0-dev.1',brosssh:'3.10.0'}},target),'piko 3.11.0-dev.1');
 });
 check('badges are reserved for fallback, failed/held builds, or a release newer than 24 hours',()=>{

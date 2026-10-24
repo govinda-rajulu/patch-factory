@@ -64,6 +64,65 @@ class Renderer(unittest.TestCase):
         self.assertIn("Nightly reported", body)
         self.assertIn("Provider reported", body)
 
+    def test_fix_item_uses_recorded_reason_and_run_link_or_explicitly_says_none(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            reports = {}
+            for name in n.ISSUES:
+                path = root / (name + '.md')
+                path.write_text('# %s report\nRun: https://github.com/o/r/actions/runs/1\n' % name)
+                reports[name] = path
+            reports['nightly'].write_text(
+                '# Nightly Watch: UNKNOWN\nstop code: COVERAGE_UNAVAILABLE\n'
+                'Run: https://github.com/o/r/actions/runs/99\n')
+            body = n.render(reports, targets=[])
+        self.assertIn('Nightly reported COVERAGE_UNAVAILABLE; inspect and rerun it.', body)
+        self.assertIn('[run](https://github.com/o/r/actions/runs/99)', body)
+        self.assertNotIn('read or run problem', body)
+
+    def test_held_selection_names_are_separate_stable_decisions(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            selection = root / 'selection.md'
+            selection.write_text("""# Selection watch: NEEDS YOU
+
+## Needs you
+
+- nothing blocked
+
+## Older names never chosen, held by the rule (3)
+
+| Why held | Names | Apps |
+|---|---|---|
+| paid word on an account app | 3 (amazonmusic, hotstar, instagram) | amazonmusic, hotstar, instagram |
+<details><summary>Every held name with its reason</summary>
+
+- amazonmusic / rookieenough: `Skip account` (held: paid word "account")
+- hotstar / chiggi: `Premium` (held: paid word "account")
+- instagram / piko: `Open account` (held: paid word "account")
+
+</details>
+""")
+            reports = {name: root / (name + '.md') for name in n.ISSUES}
+            for name, path in reports.items():
+                if name != 'selection':
+                    path.write_text('# %s report\n' % name)
+            reports['selection'] = selection
+            targets = [{'id': 'amazonmusic', 'enabled': True,
+                        'candidates': [{'name': 'rookieenough', 'patch_dir': 'amazonmusic-rookieenough'}]}]
+            body = n.render(reports, targets=targets)
+            rows = n.held_items(selection, targets)
+            changed = root / 'selection-changed.md'
+            changed.write_text(selection.read_text().replace('paid word "account"', 'matches CONFIRM'))
+            changed_rows = n.held_items(changed, targets)
+        self.assertEqual(len(rows), 3)
+        self.assertIn("amazonmusic: rookieenough offers 'Skip account' (held: paid word", body)
+        self.assertIn("hotstar: chiggi offers 'Premium' (held: paid word", body)
+        self.assertIn("instagram: piko offers 'Open account' (held: paid word", body)
+        self.assertNotIn('paid word on an account app | 3 (amazonmusic, hotstar, instagram)', body)
+        self.assertIn('reply take and the next packet adds it', body)
+        self.assertEqual([row['id'] for row in rows], [row['id'] for row in changed_rows])
+
     def test_changed_issue_edits_then_comments_and_unchanged_is_quiet(self):
         calls = []
         def run(args, **kwargs):
@@ -104,6 +163,18 @@ class NeedsYouDecisions(unittest.TestCase):
     def test_effect_mapping_is_review_only(self):
         self.assertEqual(n._review_item({"kind": "review", "first_line": "review: x"}), True)
         self.assertEqual(n._review_item({"kind": "community", "first_line": "review: x"}), False)
+
+    def test_take_held_name_dispatches_existing_patch_route(self):
+        calls = []
+        def run(args, **kwargs):
+            calls.append(args)
+            return SimpleNamespace(returncode=0, stdout='', stderr='')
+        result = n.apply_effect('take', {'action': 'patch', 'target': 'amazonmusic', 'patches': 'Skip account'}, 'o/r', run)
+        self.assertEqual(result, 'patch dispatched: next packet will add it')
+        self.assertEqual(calls[0][1:3], ['workflow', 'run'])
+        self.assertIn('action=patch', calls[0])
+        self.assertIn('id=amazonmusic', calls[0])
+        self.assertIn('patches=Skip account', calls[0])
 
 
 class ProviderItems(unittest.TestCase):

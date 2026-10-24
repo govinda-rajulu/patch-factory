@@ -9,6 +9,10 @@ inputs:
     description: 'Install usque for Cloudflare WARP proxy'
     required: false
     default: 'false'
+  start_store_services:
+    description: 'Start or reuse the local store download services'
+    required: false
+    default: 'true'
 runs:
   using: "composite"
   steps:
@@ -38,38 +42,10 @@ runs:
           echo "::warning::usque proxy did not answer; downloads that need the WARP proxy will fail"
           echo "- usque WARP proxy did not answer; downloads that need it will fail" >> "$GITHUB_STEP_SUMMARY"
         fi
-    - name: Start FlareSolverr
+    - name: Start or reuse store download services
+      if: inputs.start_store_services == 'true'
       shell: bash
-      run: |
-        docker run -d --name flaresolverr -p 8191:8191 ghcr.io/flaresolverr/flaresolverr@sha256:139dfee1c6f89249c8d665d1333a42e8ec74ec0a86bc6bb1c8461e10d3a66a47
-        echo "[*] Waiting for FlareSolverr to start..."
-        for i in $(seq 1 30); do
-          if curl -s http://localhost:8191/ > /dev/null 2>&1; then
-            echo "[+] FlareSolverr is ready."
-            break
-          fi
-          sleep 2
-        done
-        if ! curl -s http://localhost:8191/ > /dev/null 2>&1; then
-          echo "::warning::FlareSolverr did not start within 60 s; store pages behind a Cloudflare check may fail to download"
-          echo "- FlareSolverr did not start; store pages behind a Cloudflare check may fail to download" >> "$GITHUB_STEP_SUMMARY"
-        fi
-    - name: Start CloudflareBypassForScraping
-      shell: bash
-      run: |
-        docker run -d --name cloudflarebypass -p 8000:8000 ghcr.io/sarperavci/cloudflarebypassforscraping@sha256:0e679c1c0f6ac3209d233c2b7e99737f39a137987171b5bf30b15ef53a01ce33
-        echo "[*] Waiting for CloudflareBypassForScraping to start..."
-        for i in $(seq 1 30); do
-          if curl -s http://localhost:8000/ > /dev/null 2>&1; then
-            echo "[+] CloudflareBypassForScraping is ready."
-            break
-          fi
-          sleep 2
-        done
-        if ! curl -s http://localhost:8000/ > /dev/null 2>&1; then
-          echo "::warning::CloudflareBypassForScraping did not start within 60 s; the second Cloudflare path is unavailable"
-          echo "- CloudflareBypassForScraping did not start; the second Cloudflare path is unavailable" >> "$GITHUB_STEP_SUMMARY"
-        fi
+      run: bash src/build/store_services.sh
     - name: Install Bouncy Castle provider for BKS keystore
       if: inputs.install_bouncy_castle == 'true'
       shell: bash

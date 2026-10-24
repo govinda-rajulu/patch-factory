@@ -2,6 +2,21 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
+## Current checkpoint: 24 October 2026, night IST (packet W16g)
+
+W16g: Truecaller heval99 (fallback: bufferk), Telegram newuser7171 (fallback: rushiranpise),
+paid approvals, Needs you polish, docs drift, MCP scout (manual), store services once. Open, in order:
+
+1. Owner: run MCP scout once from the Actions tab; a green run with "checkout unchanged" proves
+   the lockdown; then it may go weekly inside Community watch.
+2. Paid holds decided 24 Oct: Focus Lock in, Hotstar Premium unlock out. Amazon Music Unlimited
+   track skipping and Unlock Unlimited wait: the 10 Oct throwaway account was banned with them.
+3. Explore again for oxbow (Instagram) and legendsciber (Key Mapper): the channel fallback is in;
+   close Failing issue #237 after a green run.
+4. Phone: Truecaller heval99 (install MicroG RE first; compare with the old build), Telegram 12.10.4.
+5. Tooling pins: Obtainium (src/etc/upstreams.json, reviewed against v1.7.1) and pup v0.4.0
+   (src/build/TOOLING.sha256) need a networked sha check before any bump.
+
 ## Current checkpoint: 24 October 2026, evening IST (packet W16d)
 
 W16d: Needs you answered by comment, cleaner shelf, cache pruning, Qualify fix (Amazon Music),

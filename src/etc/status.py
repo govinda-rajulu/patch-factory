@@ -48,6 +48,7 @@ PURPOSE = {
     'agent-watch.yml': 'Provider watch: looks for new or changed patch releases.',
     'watch.yml': 'Nightly watch: one report on the repository and every provider.',
     'community-watch.yml': 'Community watch: scans the community patch index for apps built here.',
+    'mcp-scout.yml': 'Manual-only MCP scout: finds unlisted community patch repositories for owner review.',
     'explore.yml': 'Lists the patch names a provider offers.',
     'add-target.yml': 'Adds, changes, disables or removes an app; opens a pull request.',
     'notify-failure.yml': 'Opens one issue per failing automation and closes it on the next success.',

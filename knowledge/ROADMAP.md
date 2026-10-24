@@ -1,51 +1,47 @@
 # patch-factory roadmap
 
-Written 1 Oct 2026. One lane in flight at a time. New ideas go to the parking lot with a date.
-Tool verdicts and agent rules: [handbook/AGENT-TOOLING.md](handbook/AGENT-TOOLING.md).
-AGENTS.md hard limits, STATE.md and `docs/review/OPEN-WORK.md` win over this file.
+Updated 24 October 2026 (W16d/W16f). This is a short planning view, not a second source of
+truth. `src/targets.json`, the workflow files, `src/council/seats.json` and the newest
+[STATE.md](STATE.md) checkpoint win over this file. Owner rules and the live queue are in
+[AGENTS.md](../AGENTS.md) and [OPEN-WORK.md](../docs/review/OPEN-WORK.md).
 
-## Now: the open build work
+## Current system to preserve
 
-See the newest checkpoint in [STATE.md](STATE.md) (6 Oct 2026, packet R). The 1 Oct list that
-stood here (Facebook #118/#119, Dependabot #103, YouTube #114) is closed or superseded.
+- The generated README inventory covers 17 enabled apps. Providers, fallbacks, stores and poll
+  flags come from `src/targets.json`; run the generators instead of hand-editing their outputs.
+- Scheduled automations and IST times come from `.github/workflows/` through
+  [`schedules.py`](../src/etc/schedules.py) and [SCHEDULES.md](../docs/SCHEDULES.md). The old
+  keepalive cron is gone; `keepalive.yml` is manual only.
+- `Needs you` runs daily at 10:29 IST. It joins the five watch reports and accepts only the owner’s
+  `take`, `drop` or `hold` commands by item id. Provider `take` runs Explore; review effects are
+  recorded on the review issue; other decisions go to the watch-state ledger.
+- Status page data includes stale Actions-cache pruning. It keeps the newest cache in each
+  conservative key-prefix group and removes only old, unused non-newest caches.
+- The council has nine seats on eight providers, with personas and shifts defined in
+  `src/council/seats.json`. Keep [PERSONAS.md](../docs/council/PERSONAS.md), [SETUP.md](../docs/council/SETUP.md)
+  and the roster aligned with that file.
 
-## Lane 1: settings, no code (owner, in the browser)
+## Now: owner work
 
-- CodeRabbit on this repository, advisory only, with path instructions for workflows and
-  signing. Never a required check (it passes when rate-limited).
-- Council seats: 6 Oct 2026, packet T1 seats Mistral free mode, Cohere and Groq (eight seats, six
-  providers) and adds the `audit` lane; keys, limits and lanes in
-  [docs/council/SETUP.md](../docs/council/SETUP.md). Cerebras has no lasting free tier; Cloudflare
-  Workers AI is not the OpenAI chat shape. The owner adds each secret in Settings; keys never go in chat.
+Follow the newest [OPEN-WORK.md](../docs/review/OPEN-WORK.md) checkpoint. The current first items
+are the read-only MCP pilot, owner decisions in Needs you, the store-service speed work and phone
+checks. The MCP plan is [MCP-PLAN.md](../docs/review/MCP-PLAN.md); it adds no schedule and must not
+replace deterministic store scraping or feed model output into a build.
 
-## Lane 2: security audit (read-only)
+## Security and maintenance lanes
 
-- Method: [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill),
-  pinned. Scope: `.github/workflows/**` and `.github/actions/**` (secrets, signing, untrusted
-  input), the fetchers (`src/build/fetch_bundle.sh`, store fetchers) and
-  `src/council/` (`AI-AND-LLM.md` classes).
-- Output: `docs/review/SECURITY-AUDIT-<date>/` with `findings.json` and `REPORT.md`, plus an
-  OPEN-WORK entry. Fixes to protected files stay owner-reviewed packets.
-- The executor holds no secrets. Read-only means no dispatch and no issue writes.
-
-## Lane 3: fewer owner touches, same guardrails
-
-- Morning report: one pinned issue that folds the per-run failure issues (#118 and #119 are the
-  same Facebook failure twice) into one daily line per target. Packet V1 (7 Oct 2026) does the
-  first half: one standing "Failing:" issue per workflow, closed by the next green run.
-- Agent runner pilot (V2, plan in [docs/council/RUNNERS.md](../docs/council/RUNNERS.md)): OpenCode
-  with the official GitHub MCP server, owner-triggered, read-only token, output an artifact only.
-- Limited worker: may touch only what AGENTS.md "What you may propose" allows
-  (`include-patches`, `extra_bundles`, `note`), enforced by a path guard. BANNED and CONFIRM
-  still apply; CONFIRM means the owner decides. No workflows, signing or releases.
-
-- Pages, release notes and review desk: one home per notice, generated text only where tests
-  pin it; plan in [docs/review/CLUTTER-2026-10-07.md](../docs/review/CLUTTER-2026-10-07.md).
+- Keep the read-only security review focused on `.github/workflows/`, `.github/actions/`, the
+  fetchers under `src/build/` and the council code and prompts. Do not refer to the removed
+  `src/build/helper/ggplay_dl/` helper or the nonexistent `src/council/AI-AND-LLM.md` file.
+- Keep the generated README, Pages catalog, Obtainium imports, credits and schedule table under
+  their existing generator checks. A source change is incomplete until its generated outputs and
+  the full suite agree.
+- Keep one owner-reviewed packet in flight. No workflow, signing, release, target or patch change
+  belongs in this roadmap without an approved packet.
 
 ## Parking lot
 
-- 7 Oct 2026: scrapers as MCP tools (lmorg/mcp-web-scraper, self-hosted Firecrawl) only after
-  the read-only runner pilot works; allow-listed URLs.
-
-- 1 Oct 2026: council `ask` mode answering the morning report's questions.
-- 1 Oct 2026: competing drafts, only if the limited worker proves useful.
+- Weekly read-only provider research through the existing Community watch lane, only after the
+  MCP pilot is proven. Candidates go to Needs you; deterministic `list-patches` remains the
+  authority.
+- Council and agent-runner improvements that have an owner-approved packet and a concrete test.

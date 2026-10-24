@@ -77,6 +77,28 @@ def view(root, ident, name, original):
     (root / 'src/targets.json').write_text(json.dumps(rows, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
 
 
+def ensure_store_services(root, env):
+    """Start store helpers only when this attempt may download an APK.
+
+    store_services.sh performs the health check and reuses healthy containers;
+    a failed check is the only path that starts a fresh container.  Keeping this
+    at the attempt boundary means a prepared source APK costs no service startup,
+    while a primary/fallback pair shares the same healthy services.
+    """
+    helper = root / "src/build/store_services.sh"
+    # W16g (L087): only the Manual Patch build step sets PF_STORE_LAZY=1. Tests and other callers
+    # never start containers; Validate went red when a test started real helpers on the runner.
+    if env.get("PF_STORE_LAZY") != "1":
+        return
+    if not helper.exists():
+        # Keep isolated controller fixtures and older checkouts usable; Actions
+        # checkouts always contain the helper.
+        return
+    result = subprocess.run(["bash", str(helper)], cwd=root, env=env, check=False)
+    if result.returncode != 0:
+        raise RuntimeError("store download services could not be started or reused")
+
+
 def attempt(root, ident, env, log):
     winner, reason = None, None
     # restore_signals=False: build.sh keeps SIGPIPE ignored, as in a plain Actions step. Python's
@@ -143,6 +165,11 @@ def main(argv, env=None, root=None):
             view(root, ident, name, original)
             e.update(PF_RESOLVED_READY='false', PF_SOURCE_READY='false')
         print('ATTEMPT %d %s: %s' % (n, ident, name or 'primary candidates as configured'), flush=True)
+        # A checked/prepared APK does not use the stores.  Unprepared primary
+        # attempts and every later provider attempt do; the helper's health
+        # check makes the latter reuse the primary attempt's services.
+        if e.get('PF_SOURCE_READY', 'false') != 'true' or n > 1:
+            ensure_store_services(root, e)
         rc, winner, reason = attempt(root, ident, e, logdir / ('attempt-%d.log' % n))
         if rc == 0:
             if n > 1:

@@ -1,10 +1,11 @@
 # Optional companions and review queue
 
-> **Checked 9 October 2026 (packet W9).** Nothing below was re-reviewed after 22 September.
-> MicroG RE and Obtainium are the only companions wired into the site. The unchecked
-> candidate rows are folded; open them only for a concrete need.
+> **Checked 24 October 2026 (W16d).** MicroG RE and Obtainium remain the only companions wired
+> into the site. The candidate rows below were last reviewed on 22 September and remain folded;
+> open one only for a concrete need. The old Google Play APK helper was removed in W16d; no
+> Play downloader or fallback is wired into Patch Factory.
 
-Reviewed 22 September 2026. This is a decision record, not an installer, app
+This is a decision record, not an installer, app
 bundle, security certification or approval to change a phone.
 
 The community [Morphe Workspace collection and discussion](https://www.reddit.com/r/MorpheApp/comments/1wiowwa/morphe_workspace_a_collection_of_android_apps/)

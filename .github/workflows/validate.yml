@@ -27,13 +27,17 @@ jobs:
       - name: Shared preflight
         run: python3 src/etc/preflight.py
       - name: Local regression contracts
-        run: python3 -m unittest discover -s tests -p 'test_repair.py' -v
+        # W16g (L087): test fixtures write tables to the step summary; keep them out of the run page.
+        run: GITHUB_STEP_SUMMARY="$RUNNER_TEMP/test-summary.md" python3 -m unittest discover -s tests -p 'test_repair.py' -v
       - name: Finished APK identity contracts
-        run: python3 -m unittest discover -s tests -p 'test_identity.py' -v
+        # W16g (L087): test fixtures write tables to the step summary; keep them out of the run page.
+        run: GITHUB_STEP_SUMMARY="$RUNNER_TEMP/test-summary.md" python3 -m unittest discover -s tests -p 'test_identity.py' -v
       - name: Exact bundle transport contracts
-        run: python3 -m unittest discover -s tests -p 'test_transport.py' -v
+        # W16g (L087): test fixtures write tables to the step summary; keep them out of the run page.
+        run: GITHUB_STEP_SUMMARY="$RUNNER_TEMP/test-summary.md" python3 -m unittest discover -s tests -p 'test_transport.py' -v
       - name: Workflow and watcher contracts
-        run: python3 -m unittest discover -s tests -p '*_contracts.py' -v
+        # W16g (L087): test fixtures write tables to the step summary; keep them out of the run page.
+        run: GITHUB_STEP_SUMMARY="$RUNNER_TEMP/test-summary.md" python3 -m unittest discover -s tests -p '*_contracts.py' -v
       - name: Page and notifier contracts
         run: |
           node tests/portal_contracts.cjs
@@ -163,7 +167,8 @@ jobs:
       - name: README state block matches targets.json
         run: python3 src/etc/readmegen.py --check
       - name: Exact source and execution input contracts
-        run: python3 -m unittest discover -s tests -p 'test_source_inputs.py' -v
+        # W16g (L087): test fixtures write tables to the step summary; keep them out of the run page.
+        run: GITHUB_STEP_SUMMARY="$RUNNER_TEMP/test-summary.md" python3 -m unittest discover -s tests -p 'test_source_inputs.py' -v
       - name: Obtainium generator runs
         run: python3 src/etc/obtainium.py --check
       - name: No workflow_dispatch input interpolated into a shell command

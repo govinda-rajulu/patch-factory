@@ -170,7 +170,8 @@ async function main(){
   const hook=source.match(/workflows: (\[[^\n]+\])/);
   assert.ok(hook);
   const names=JSON.parse(hook[1]);
-  assert.equal(names.length,12);assert.equal(new Set(names).size,12);  // W14: + Tooling watch, Selection watch, Keepalive
+  assert.equal(names.length,13);assert.equal(new Set(names).size,13);  // W16g: + MCP scout (manual-only)
+  assert.ok(names.includes("MCP scout"));
   for(const [file,name] of watches){
    assert.ok(names.includes(name));
    assert.ok(fs.readFileSync(path.join(ROOT,'.github/workflows',file),'utf8').startsWith('name: '+name+'\n'));
