@@ -60,6 +60,12 @@ error still stops the seat. GitHub Models retired on 30 Jul 2026, so no seat use
 - **Probe** (mode `probe`): shows which seats answer and which model each picked. Posts nothing.
 - **Desk rotation** (schedule): twice a day one audit shard, on Monday mornings triage, all on
   the Council desk issue named in seats.json. Each comment is edited in place, never repeated.
+  Sunday afternoon (the existing 15:17 UTC audit slot) is the weekly repo review slot: after
+  quote verification, it creates at most eight issues titled `review: ...`, each with the
+  `review` label, a stable `<!-- pf-review:<fingerprint> -->` marker, evidence and the triage
+  instruction. It searches open and closed issues before creating anything, so reruns and old
+  findings are deduplicated. Findings beyond eight stay in the desk comment; no issue is closed
+  or edited automatically. Other audit slots, shifts and manual runs only update the desk.
 
 Since 7 Oct 2026 (packet V1) every reply is asked for in JSON mode, reasoning seats run with low
 effort and room to answer, a 404 moves to the seat's next model, a refused reply gets one repair

@@ -9,6 +9,9 @@ Nothing is merged or deleted. One dispatch at a time, each waited for. Phases:
   batch      9. Batch Patch, publish=false, every enabled app: builds all apps with the new
              version rule and publishes nothing. W15f: PF_T1_PUBLISH=1 publishes instead (a
              fresh set of releases, owner 22 Oct after every release was gone)
+  publish    W16c: PF_T1_PUBLISH_APPS=a,b publishes only those apps after the batch, and only
+             the ones that built on their primary provider in it (a selection change is not
+             an upstream change, so Check new patch would never rebuild them, L080)
   check      2. Check new patch: the daily flow, run now (it publishes only apps whose
              provider or store changed, exactly as the 17:53 IST schedule does)
   provider   6. Provider watch    nightly  7. Nightly watch
@@ -34,6 +37,7 @@ GH = os.environ.get('PF_GH', 'gh')
 POLL = int(os.environ.get('PF_POLL', '30'))
 BUILD_WAIT = int(os.environ.get('PF_BUILD_WAIT', '9000'))
 PUBLISH = os.environ.get('PF_T1_PUBLISH') == '1'  # W15f: the batch publishes every enabled app
+PUBLISH_APPS = [a for a in os.environ.get('PF_T1_PUBLISH_APPS', '').split(',') if a]  # W16c: publish only these
 WAIT = int(os.environ.get('PF_WAIT', '3600'))
 JOB = re.compile(r'(?:^|/ )Patch ([a-z0-9][a-z0-9-]*)$')
 FLOWS = [('provider', 'agent-watch.yml', '6. Provider watch'),
@@ -43,7 +47,9 @@ FLOWS = [('provider', 'agent-watch.yml', '6. Provider watch'),
          ('rulemerge', 'rule-merge.yml', '11. Rule merge'),
          # W15d: the Nightly watch last. Its name check fails on names a provider dropped until the
          # Selection watch has taken them out (21 Oct: HushGram dropped two, #203).
-         ('nightly', 'watch.yml', '7. Nightly watch')]
+         ('nightly', 'watch.yml', '7. Nightly watch'),
+         # W16c: Needs you reads the newest artifact of every collector above, so it goes last.
+         ('needsyou', 'needs-you.yml', 'Needs you')]
 
 STAMP = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
 HOME = pathlib.Path(os.environ.get('PF_HOME', str(pathlib.Path.home())))
@@ -261,6 +267,32 @@ def batch(main, apps):
     save()
 
 
+def publish(main, apps):
+    # W16c: publish named apps once the no-publish batch proved them on their primary provider.
+    if not PUBLISH_APPS or PUBLISH:
+        return
+    unknown = [a for a in PUBLISH_APPS if a not in apps]
+    if unknown:
+        stop('publish', 'not an enabled app: %s. Nothing published.' % ', '.join(unknown))
+    ok = [a for a in PUBLISH_APPS if R['apps'][a]['batch'].get('result') == 'success' and not R['apps'][a]['batch'].get('fallback')]
+    held = [a for a in PUBLISH_APPS if a not in ok]
+    if held:
+        say('publish', 'FINDING', 'not published, failed or on a fallback in the test batch: ' + ', '.join(held))
+    if not ok:
+        return
+    title = 'Batch %s / publish=true' % ','.join(ok)
+    r = dispatch_and_wait('publish', 'batch-patch.yml', main, [('targets', ','.join(ok)), ('publish', 'true')], BUILD_WAIT,
+                          want=lambda x: (x.get('display_title') or x.get('name') or '') == title)
+    found = read_apps('publish', r)
+    bad = [a for a in ok if (found.get(a) or {}).get('result') != 'success']
+    fell = [a for a in ok if a not in bad and (found.get(a) or {}).get('fallback')]
+    R['flows']['publish'] = dict(run=r['id'], conclusion=r.get('conclusion'), url=r.get('html_url'), apps=ok, failed=bad, fallback=fell)
+    say('publish', 'OK' if r.get('conclusion') == 'success' and not bad and not fell else 'FINDING',
+        'run %s: published %s%s%s' % (r['id'], ', '.join(a for a in ok if a not in bad), ('; failed: ' + ', '.join(bad)) if bad else '',
+                                      ('; on a fallback provider: ' + ', '.join(fell)) if fell else ''))
+    save()
+
+
 def check(main):
     r = dispatch_and_wait('check', 'ci.yml', main, [], BUILD_WAIT)
     found = read_apps('check', r)
@@ -308,6 +340,7 @@ def main():
     save()
     m, apps = gate()
     batch(m, apps)
+    publish(m, apps)
     check(m)
     after = flows(m)
     status(after)

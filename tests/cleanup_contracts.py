@@ -199,6 +199,16 @@ class Cleanup(unittest.TestCase):
         compared = [r for r in self.fake.reads if '/compare/' in r]
         self.assertEqual(len(compared), 2)
 
+    def test_a_merged_dev_branch_goes_like_a_packet_branch(self):
+        # W16c (24 Oct 2026): dev/w16 merged as #222 stayed behind as "not a packet branch".
+        self.with_more()
+        self.fake.branches.append({'name': 'dev/w16', 'commit': {'sha': IN_MAIN}})
+        self.fake.branches.append({'name': 'dev/w17', 'commit': {'sha': NOT_IN_MAIN}})
+        p = self.preview()
+        self.assertEqual(p['branches'], [{'name': 'dev/w16', 'sha': IN_MAIN}, {'name': 'packet/w8', 'sha': IN_MAIN}])
+        kept = {k['name']: k['reason'] for k in p['kept_branches']}
+        self.assertEqual(kept['dev/w17'], 'head is not in main')
+
     def test_apply_deletes_in_order_and_the_receipt_can_restore_branches(self):
         self.with_more()
         p = self.preview()

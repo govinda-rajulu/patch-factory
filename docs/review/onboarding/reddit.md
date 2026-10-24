@@ -8,7 +8,7 @@ Provider: jkennethcarino/adobo (fallback only; licence: the LICENSE file at http
 
 ## Patches
 
-Rule: the same as YouTube and YouTube Music on Morphe: the provider's default-on Reddit patches, minus the banned and branding ones. Reddit is an exclusive target, so the 27 names are listed in `src/patches/reddit-morphe/include-patches`:
+Rule: the same as YouTube and YouTube Music on Morphe: the provider's default-on Reddit patches, minus the banned and branding ones. Reddit is an exclusive target, so the 26 names are listed in `src/patches/reddit-morphe/include-patches`:
 
 - Hide ads
 - Custom font
@@ -23,7 +23,6 @@ Rule: the same as YouTube and YouTube Music on Morphe: the provider's default-on
 - Hide media viewer components
 - Media viewer black background
 - Media viewer fade
-- Disable modern home
 - Hide navigation buttons
 - Customize post layout
 - Disable screenshot popup
@@ -38,7 +37,7 @@ Rule: the same as YouTube and YouTube Music on Morphe: the provider's default-on
 - Sanitize sharing links
 - Redgifs audio
 
-Left out: `Spoof signature` (default on; BANNED rule `spoof signature`), `App icon` (default on; branding, left out as Custom branding is on YouTube), and the default-off ones (`Custom branding name for Reddit`, `Hide Reddit search`, and the five universal patches Clone app, Change installer source, Override certificate pinning, Spoof signature, Disable Play Store updates).
+Left out: `Disable modern home` (default on, but Morphe says it works only up to Reddit 2026.24.0 and every build of 41 printed "does not work with Reddit 2026.25.0+"; W16c), `Spoof signature` (default on; BANNED rule `spoof signature`), `App icon` (default on; branding, left out as Custom branding is on YouTube), and the default-off ones (`Custom branding name for Reddit`, `Hide Reddit search`, and the five universal patches Clone app, Change installer source, Override certificate pinning, Spoof signature, Disable Play Store updates).
 
 Adobo choices with a Morphe match: ad and telemetry removal -> Hide ads; screenshot banner -> Disable screenshot popup; guest mode -> Start as guest; external links -> Open links directly; share links -> Sanitize sharing links. Adobo-only choices (Firebase and WebView telemetry switches, feed refresh and swipe switches, comment indent colours, transparent navigation bar) stay available on the Adobo fallback.
 

@@ -12,8 +12,8 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 - **W16**: audit (docs/review/AUDIT-W16.md), Reddit on official Morphe with Adobo fallback (L078 to
   L080), shadow jobs only for apps that build, plain release notes and app cards, one daily Needs you
   issue, council caps removed, fewer runs. Record `docs/review/SESSION-2026-10-24.md`; brief
-  `docs/review/W16-BRIEF.md`. Merged #222 as `e7b7dbfa`; W16b fixes the watches. Wrong calls: 53 (L081 to L083).
-- **Next**: OPEN-WORK 24 Oct: Reddit Morphe publish and phone test, cache by version, W15g.
+  `docs/review/W16-BRIEF.md`. Merged #222 as `e7b7dbfa`; W16b #226 `91c34e1c` (all watches green); W16c: weekly review issues, Instagram on piko again, dev branch cleanup, Reddit without Disable modern home, Photos package pinned, shadow SDK step-down, second stores for five apps, T1 publishes reddit and instagram. Wrong calls: 53 (L081 to L084).
+- **Next**: OPEN-WORK 24 Oct: phone tests (Reddit, Instagram piko, Facebook 584), build reuses the prepared APK (the real speed win), W15g.
 
 ## 23 Oct 2026, midday IST (packet W15i)
 

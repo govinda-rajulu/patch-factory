@@ -127,7 +127,8 @@ class Coverage(unittest.TestCase):
                             'com.reddit.frontpage', 'reddit', 'morphe', ''],
                            input='2026.42.0 31\n2026.41.0 31\n', cwd=ROOT, capture_output=True, text=True)
         self.assertEqual(x.returncode, 0, x.stdout)
-        self.assertIn('COVERAGE_TOTAL=27', x.stdout)
+        # W16c: 26 after Disable modern home left the list (it stops at Reddit 2026.24.0).
+        self.assertIn('COVERAGE_TOTAL=26', x.stdout)
         self.assertIn('COVERAGE_PICK=2026.42.0', x.stdout)
 
 

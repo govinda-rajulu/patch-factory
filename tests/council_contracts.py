@@ -1016,6 +1016,115 @@ class ProbeEveryModel(unittest.TestCase):
         self.assertIn('| nemotron | nvidia | m2 | MISSING listed=no |', table)
         self.assertIn('| nemotron | groq | g1 | NO_KEY |', table)
 
+
+
+class WeeklyReviewIssues(unittest.TestCase):
+    """W16c: Sunday files verified findings as bounded, deduped review issues."""
+    def setUp(self):
+        self.old_http = council.http
+        council._model_cache.clear()
+
+    def tearDown(self):
+        council.http = self.old_http
+        council._model_cache.clear()
+
+    def env(self, **extra):
+        return dict(GITHUB_TOKEN='ghs-FAKE', PF_REPO='o/r', PF_FILE_REVIEW='1', **extra)
+
+    @staticmethod
+    def finding(n, quote=None):
+        return {'severity': 'medium', 'file': 'src/a.py', 'line': n,
+                'quote': quote or 'verified line %d' % n, 'issue': 'finding %d' % n,
+                'fix': '', 'rule': ''}
+
+    def test_fingerprint_is_stable_and_uses_path_and_quote(self):
+        import hashlib
+        want = hashlib.sha256(b'src/a.pyverified line').hexdigest()[:16]
+        self.assertEqual(council.review_fingerprint('src/a.py', 'verified line'), want)
+        self.assertEqual(council.review_marker('src/a.py', 'verified line'), '<!-- pf-review:%s -->' % want)
+        self.assertEqual(council.review_fingerprint('src/a.py', 'verified line'),
+                         council.review_fingerprint('src/a.py', 'verified line'))
+
+    def test_unverified_finding_is_not_filed(self):
+        good, bad = self.finding(1), self.finding(2, 'not in source')
+        rows = [{'seat': 's', 'model': 'm', 'status': 'OK', 'answer': {'findings': [good, bad]}}]
+        council.verify_quotes(rows, {'src/a.py': {1: 'verified line 1'}})
+        posts = []
+        def http(method, url, headers, body=None, timeout=90):
+            if 'issues?state=all' in url:
+                return 200, '[]'
+            if method == 'GET' and '/labels/review' in url:
+                return 200, '{}'
+            if method == 'POST' and url.endswith('/issues'):
+                posts.append(body)
+                return 201, '{}'
+            return 404, ''
+        council.http = http
+        council.file_review_issues(self.env(), council.merge_findings(rows), rows)
+        self.assertEqual(len(posts), 1)
+        self.assertNotIn('not in source', posts[0]['body'])
+
+    def test_cap_of_eight_keeps_overflow_on_desk_and_titles_fit(self):
+        findings = [dict(self.finding(i), file='src/a%d.py' % i) for i in range(10)]
+        for f in findings:
+            f['_verified'] = True
+        rows = [{'seat': 'seat', 'model': 'model-x', 'status': 'OK',
+                 'answer': {'findings': findings}}]
+        posts = []
+        def http(method, url, headers, body=None, timeout=90):
+            if 'issues?state=all' in url:
+                return 200, '[]'
+            if method == 'GET' and '/labels/review' in url:
+                return 200, '{}'
+            if method == 'POST' and url.endswith('/issues'):
+                posts.append(body)
+                return 201, '{}'
+            return 404, ''
+        council.http = http
+        note = council.file_review_issues(self.env(), findings, rows)
+        self.assertEqual(len(posts), 8)
+        self.assertIn('over cap', note)
+        self.assertTrue(all(len(x['title']) <= 90 for x in posts))
+        self.assertTrue(all(x['labels'] == ['review'] for x in posts))
+        self.assertIn('Triage: close if wrong; keep if true', posts[0]['body'])
+        self.assertIn('seat (model-x)', posts[0]['body'])
+
+    def test_open_and_closed_marker_dedupes_before_posting(self):
+        old = self.finding(1)
+        marker = council.review_marker(old['file'], old['quote'])
+        findings = [old, self.finding(2)]
+        for f in findings:
+            f['_verified'] = True
+        posts, requested = [], []
+        def http(method, url, headers, body=None, timeout=90):
+            if 'issues?state=all' in url:
+                requested.append(url)
+                return 200, json.dumps([{'number': 3, 'created_at': '2026-01-01T00:00:00Z',
+                                         'body': marker, 'state': 'closed'}])
+            if method == 'GET' and '/labels/review' in url:
+                return 200, '{}'
+            if method == 'POST' and url.endswith('/issues'):
+                posts.append(body)
+                return 201, '{}'
+            return 404, ''
+        council.http = http
+        note = council.file_review_issues(self.env(), findings,
+                                          [{'seat': 's', 'model': 'm', 'status': 'OK', 'answer': {'findings': findings}}])
+        self.assertEqual(len(requested), 1)
+        self.assertEqual(len(posts), 1)
+        self.assertIn('already filed', note)
+
+    def test_only_sunday_afternoon_audit_slot_files(self):
+        import datetime as dt
+        cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
+        spec = json.loads((ROOT / 'src/council/shards.json').read_text())
+        sunday_morning = dt.datetime(2026, 10, 25, 3, 17, tzinfo=dt.timezone.utc)
+        sunday_afternoon = sunday_morning + dt.timedelta(hours=12)
+        monday_afternoon = sunday_afternoon + dt.timedelta(days=1)
+        self.assertNotIn('PF_FILE_REVIEW', council.desk_job(cfg, spec, sunday_morning)[1])
+        self.assertEqual(council.desk_job(cfg, spec, sunday_afternoon)[1]['PF_FILE_REVIEW'], '1')
+        self.assertNotIn('PF_FILE_REVIEW', council.desk_job(cfg, spec, monday_afternoon)[1])
+
 if __name__ == '__main__':
     unittest.main()
 

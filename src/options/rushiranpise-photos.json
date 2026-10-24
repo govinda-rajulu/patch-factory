@@ -4,6 +4,7 @@
       "Change package name": {
         "enabled": true,
         "options": {
+          "googlePhotosPackageName": "app.morphe.android.apps.photos",
           "googlePhotosAppName": "Photos"
         }
       }

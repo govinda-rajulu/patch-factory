@@ -60,13 +60,48 @@ class Gate(unittest.TestCase):
         tmpl = (ROOT / 'docs/review/controllers/packet.tmpl.py').read_text()
         self.assertIn("PF_T1_PUBLISH='1' if PUBLISH_ALL else ''", tmpl)
         body = tmpl[tmpl.index('def main():'):]
-        self.assertLess(body.index("tested = t1(R['merge']) if PUBLISH_ALL else True"), body.index('previewed = preview()'))
+        self.assertLess(body.index("tested = t1(R['merge']) if early else True"), body.index('previewed = preview()'))
+        self.assertIn('early = PUBLISH_ALL or bool(PUBLISH_APPS)', body)
+
+    def test_w16c_publish_only_named_apps_that_built_on_their_primary(self):
+        saved = (t1.dispatch_and_wait, t1.read_apps, t1.save, t1.R, t1.PUBLISH_APPS, t1.say)
+        calls, said = [], []
+        t1.R = {'apps': {'reddit': {'batch': {'result': 'success'}},
+                         'instagram': {'batch': {'result': 'success', 'fallback': 'hushgram'}},
+                         'photos': {'batch': {'result': 'success'}}}, 'phases': [], 'flows': {}}
+        t1.dispatch_and_wait = lambda phase, file, main, fields, limit, want=None: calls.append((phase, file, fields, want)) or {
+            'id': 7, 'conclusion': 'success', 'display_title': 'Batch reddit / publish=true'}
+        t1.read_apps = lambda phase, r: {'reddit': {'result': 'success'}}
+        t1.save = lambda: None
+        t1.say = lambda phase, status, text: said.append((phase, status, text))
+        try:
+            t1.PUBLISH_APPS = ['reddit', 'instagram']
+            t1.publish('m' * 40, ['reddit', 'instagram', 'photos'])
+            self.assertEqual(len(calls), 1)
+            phase, file, fields, want = calls[0]
+            self.assertEqual((phase, file, fields), ('publish', 'batch-patch.yml', [('targets', 'reddit'), ('publish', 'true')]))
+            self.assertTrue(want({'display_title': 'Batch reddit / publish=true'}))
+            self.assertFalse(want({'display_title': 'Batch reddit / publish=false'}))
+            self.assertIn(('publish', 'FINDING', 'not published, failed or on a fallback in the test batch: instagram'), said)
+            self.assertEqual(said[-1][:2], ('publish', 'OK'))
+            calls.clear()
+            t1.PUBLISH_APPS = []
+            t1.publish('m' * 40, ['reddit'])
+            self.assertEqual(calls, [])
+            t1.PUBLISH_APPS = ['nope']
+            with self.assertRaises(SystemExit):
+                t1.publish('m' * 40, ['reddit'])
+            self.assertEqual(calls, [])
+        finally:
+            t1.dispatch_and_wait, t1.read_apps, t1.save, t1.R, t1.PUBLISH_APPS, t1.say = saved
 
     def test_nightly_runs_after_selection(self):
         keys = [k for k, _, _ in t1.FLOWS]
         self.assertLess(keys.index('selection'), keys.index('nightly'))
         self.assertLess(keys.index('rulemerge'), keys.index('nightly'))
-        self.assertEqual(sorted(keys), sorted(['provider', 'community', 'tooling', 'selection', 'rulemerge', 'nightly']))
+        self.assertEqual(sorted(keys), sorted(['provider', 'community', 'tooling', 'selection', 'rulemerge', 'nightly', 'needsyou']))
+        # W16c: Needs you reads every collector's newest artifact, so it runs last.
+        self.assertEqual(keys[-1], 'needsyou')
 
 
     def test_w15i_fallback_builds_are_a_finding(self):

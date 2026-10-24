@@ -63,3 +63,27 @@ runs that show 99 or 1455 minutes are left out: their end time moved when the pu
 
 - Why each of the 49 red Check new patch runs failed: needs job logs; T1 after W16 reports per app.
 - Pages wording beyond the release card and footer (W16 words change covers the card and notes).
+
+## Why Check new patch went red (49 of 118, 23 Sep to 23 Oct)
+
+The audit lists 49 failed runs. An agent read the audit files and the public job records (W16c, 24 Oct); it checked the recorded jobs first and used the public Actions job records where the audit did not include the failed step. A run is counted once below, by the main stop that made that run red.
+
+| cause | runs | first-last date | failing job/step | fixed by (packet) or OPEN |
+|---|---:|---|---|---|
+| Prime Video output identity check rejected the release marker | 4 | 2026-09-28 to 2026-09-28 | build (primevideo) / Patch primevideo / Verify finished APK identity | fixed before W15 (28 Sep records) |
+| Facebook patch could not match the AMOLED-theme fingerprint (De-Vanced Settings pulled it in) | 30 | 2026-09-29 to 2026-10-06 | build (facebook) / Patch facebook / Patch apk | fixed before W15 (29 Sep to 6 Oct records) |
+| Amazon Music resolver returned an empty/duplicate version field | 4 | 2026-10-10 to 2026-10-10 | Resolve shadow dependencies (amazonmusic) / Resolve exact dependency files (no APK or signing) | W15i |
+| LinkedIn shadow input did not match the version the build had to step down to | 2 | 2026-10-11 to 2026-10-11 | Resolve shadow dependencies (linkedin) / Resolve exact patcher-input APK (shadow only) | OPEN (combo planner and ceiling memory) |
+| Several source-download checks failed together: Photos transfer was incomplete and Telegram/Facebook certificates could not be read | 1 | 2026-10-14 to 2026-10-14 | Resolve shadow dependencies (photos); build (telegram) / Patch telegram; build (facebook) / Patch facebook / Resolve exact patcher-input APK (shadow only); Verify source APK before signing secrets; Patch apk | W15b (transfer retry); W15c (read certificate from original source) |
+| Facebook fallback built, but publishing refused the older fallback because the merged source could not prove the pinned certificate | 2 | 2026-10-20 to 2026-10-20 | build (facebook) / Patch facebook / Releasing APK files | W15c |
+| Reddit release was refused because 2026.41.0 was older than the published 2026.42.0 | 1 | 2026-10-22 to 2026-10-22 | build (reddit) / Patch reddit / Releasing APK files | W15f; W16b caps Reddit at 2026.41.0 |
+| The polling step got a temporary empty provider-date answer | 2 | 2026-10-22 to 2026-10-22 | Plan / Poll every opted-in target | W15h |
+| Reddit could not use the newer 2026.42.0 input on this phone ceiling; its older release was also refused by the shelf guard | 1 | 2026-10-22 to 2026-10-22 | Resolve shadow dependencies (reddit); build (reddit) / Patch reddit / Resolve exact patcher-input APK (shadow only); Releasing APK files | W16b |
+| Morphe created an extra data folder beside its patcher; the resolver treated those unlisted files as an invalid packet | 2 | 2026-10-23 to 2026-10-23 | Resolve shadow dependencies (every app) / Resolve exact dependency files (no APK or signing) | W15i |
+
+### Takeaways
+- Most failures came from one old Facebook 580 patch dependency; the workflow correctly stopped instead of publishing a bad APK.
+- A second cluster was input selection: Prime Video’s marker, Amazon Music’s empty version, LinkedIn’s step-down, and Reddit’s Android ceiling.
+- Some red runs were real download/signing problems, not patcher bugs: Photos transfer and unreadable certificates.
+- GitHub sometimes returned empty transient provider data; later retries made that visible instead of treating it as a real change.
+- By W15i/W16b, the resolver and Reddit/Facebook safeguards were explicit; LinkedIn ceiling memory and the signing split remain open.

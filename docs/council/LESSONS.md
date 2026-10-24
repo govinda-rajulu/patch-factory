@@ -487,3 +487,10 @@ The version chooser refused Morphe's Reddit listing for a repeated name; W16 fix
 only. The provider watch has its own copy (DUPLICATE_PATCH_NAME), so after the merge Provider and
 Nightly watch went red on the same listing (23 Oct). Before fixing a refusal, grep every reader of
 the same input for the same check (W16b).
+
+### L084 · Read the build's own warnings before calling a selection done
+Tags: build, evidence
+Reddit on Morphe shipped "Disable modern home" through four builds of 2026.41.0 while every log said
+"does not work with Reddit 2026.25.0+" and Morphe's own description says it works up to 2026.24.0.
+A patch the patcher says does nothing on the built version is left out, and the release notes stop
+listing it (W16c, 24 Oct).
