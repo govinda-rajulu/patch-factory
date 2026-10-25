@@ -12,7 +12,8 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md;
 - **W16l**: Status page data no longer red (Notify skips events it never reports); Validate's
   selection-watch test repo has no auto gc (a detached gc raced the temp cleanup). CCleaner: the
   owner keeps Unlock Premium (paid_ok_targets, DECISIONS take, record licence GPL-3.0; Disable
-  Telemetry failed on 26.08.0 and the owner removed it), card line "Premium unlocked"; "5. Add
+  Telemetry failed on 26.08.0 and the owner removed it), card line "Premium unlocked". CCleaner is disabled until MightyMichs fixes
+  its issue #18: both patches miss their fingerprints on 26.08.0 (bundle v1.12.0). "5. Add
   target" now writes the patch names as the card line. Instagram piko holds Hide feed posts and
   Reddit Alastor holds "Reddit native post-menu originals (2026.41.0)": each failed on the app
   version we build, so both apps had shipped from their fallback (W16k smoke and publish batch

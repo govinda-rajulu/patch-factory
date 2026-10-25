@@ -21,7 +21,6 @@ as code or APKs to copy.
 | AdGuard | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | AdGuard | hoo-dles | https://github.com/hoo-dles/morphe-patches |
 | Amazon Music | rookieenough | https://github.com/RookieEnough/De-Vanced |
-| CCleaner | mich111discord | https://github.com/mich111discord/MightyMichs-Patches |
 | ES File Explorer | ftl | https://github.com/BlazeFTL/FTL-Patches |
 | ES File Explorer | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | Facebook | hushfacebook | https://github.com/SysAdminDoc/HushFacebook |

@@ -9,8 +9,9 @@ Maintenance history: the unused source path was removed; its implementation rema
 - W15g signing split (docs/review/SIGNING-SPLIT.md).
 - Held names to retry when the provider updates: Instagram piko Hide feed posts; Reddit Alastor
   "Reddit native post-menu originals (2026.41.0)"; brosssh Disable story auto flipping (W16c).
-- CCleaner: Unlock Premium is one day old; phone-test the first build. Disable Telemetry is out
-  (fails on 26.08.0); re-add only if the owner asks after a provider fix.
+- CCleaner is disabled: MightyMichs v1.12.0 misses both fingerprints on 26.08.0 (provider issue
+  #18). After a newer release: Explore it, enable ccleaner, smoke, phone-test. Disable Telemetry is
+  out by the owner's call; ask before re-adding it.
 - Key Mapper ships the APKMirror 4.5.0 build through VARIANT_RETRY while source-fallbacks.json says
   the APKMirror variant is not qualified as equivalent; qualify it or keep APKPure-only.
 

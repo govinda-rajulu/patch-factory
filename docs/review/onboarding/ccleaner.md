@@ -21,3 +21,10 @@ Owner, 25 Oct 2026: "its ok to remove that telemetry patch".
 
 ## Decision
 Owner request through "5. Add target" on 2026-10-25; merging the pull request is the approval.
+
+Disabled 2026-10-25 (packet W16l): the second W16l smoke (run 40217711438) failed on Unlock Premium too:
+"Failed to match the fingerprint: Fingerprint(definingClass=Lcom/avast/cleaner/billing/api/AclLicenseInfo;...)" on
+CCleaner 26.08.0. The provider's own tracker has the same report for Disable Telemetry on 26.08.0 from a phone
+(https://github.com/mich111discord/MightyMichs-Patches/issues/18, opened 25 Oct 2026 15:38 UTC), so bundle v1.12.0 does
+not fit this CCleaner; the APK is not the cause. Nothing was ever published. Enable again ("5. Add target", action
+enable) after a newer MightyMichs release fixes it; Unlock Premium stays chosen and owner approved.
