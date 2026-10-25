@@ -70,3 +70,7 @@ Restored names (as built on main until W16g; each is back in its W16f list):
 - Hide Scams tab: paresh extra, restored from the combo built since 9 Oct 2026.
 - Remove Ads: binarymend extra, restored from the combo built since 9 Oct 2026.
 - Disable Telemetry: binarymend extra, restored from the combo built since 9 Oct 2026.
+
+## Patches
+- Restore classic call log: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Use SMS for verification codes: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description

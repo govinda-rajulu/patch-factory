@@ -12,6 +12,7 @@ Owner decision, 24 Oct 2026 (packet W16g): newest version and most patches wins.
 Owner approved: Unlock Premium
 
 ## Patches
+- Bypass channel restrictions: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 
 Exclusive target; the newuser7171 fallback's names are in `src/patches/telegram-newuser7171/include-patches` (W16h removed Bypass channel restrictions from this list):
 

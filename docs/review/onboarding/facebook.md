@@ -6,6 +6,13 @@ Provider: SysAdminDoc/HushFacebook (licence: GPL-3.0, bundle: the one .mpp asset
 Provider: RookieEnough/De-Vanced (fallback only, packet W13; licence: GPL-3.0, the same repository the Amazon Music record cites; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Built only when a Hushfacebook build fails, on Facebook 580.0.0.51.74 (version code 475019344, 240-640dpi): its own pins, so the 581 pins above stay Hushfacebook's. Patches: src/patches/facebook-derevanced (Disable all ads, Disable analytics and telemetry, Messenger install compatibility; Change package name excluded).
 
 ## Patches
+- Double tap to skip: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Hide profile notes: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Home header text: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Longer music on photo stories: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Newest reels first: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Pinch to zoom: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Tap shows the controls: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Keep feed videos muted: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Don't save search history: added 2026-10-22 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - AMOLED dark theme: added 2026-10-22 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
