@@ -18,6 +18,7 @@ posts or edits one pull request comment and exits 1 otherwise. It never pushes,
 merges, labels or dispatches. Transport and seat plumbing come from council.py.
 """
 import concurrent.futures
+import hashlib
 import json
 import os
 import re
@@ -171,48 +172,77 @@ def decide(rows, deterministic_ok):
 
 
 def render(rows, ok, why, m):
+    # W16k (owner, 25 Oct 2026): one line per (item, quote) however many seats said it; seat
+    # plumbing (no key, busy, no model, invalid answer) folds into one footer, never a finding.
+    answered = [r for r in rows if r['answer']]
+    plumbing = [r for r in rows if not r['answer']]
     lines = [MARKER, '## Onboarding review: %s' % ('PASS' if ok else 'FAIL'), '',
              'Agent review required by AGENTS.md for every new app, provider or patch name. ' + why[0].upper() + why[1:] + '.',
              'Advisory seats; the owner still decides and merges. Deterministic problems: %d.' % len(m.get('problems') or []),
-             '', '| seat | model | status | verdict | counted findings |', '| --- | --- | --- | --- | --- |']
-    for r in rows:
-        a = r['answer'] or {}
-        lines.append('| %s | %s | %s | %s | %s |' % (r['seat'], r['model'] or '-', r['status'][:60],
-                                                   a.get('verdict', '-'), len(a.get('findings') or [])))
-    # W15e (owner, 22 Oct 2026): blocks stay visible; approvals' reasons fold (REPORT-STYLE.md).
-    def said(r):
+             '', '| seat | model | verdict | counted findings |', '| --- | --- | --- | --- |']
+    for r in answered:
         a = r['answer']
-        out = ['**%s** (%s): %s' % (r['seat'], a['verdict'], a['summary'])]
-        out += ['- %s `%s`: %s (quote: "%s")' % (f['severity'], f['item'], f['issue'], f['quote'][:160]) for f in a['findings']]
-        if a.get('dropped'):
-            out.append('- %d finding(s) dropped: quote not found in the manifest' % a['dropped'])
-        if a.get('unshipped'):
-            out.append('- %d finding(s) dropped: they quote a patch this change excludes or removes' % a['unshipped'])
-        return out
-    answered = [r for r in rows if r['answer']]
-    loud = [r for r in answered if r['answer']['verdict'] != 'approve' or r['answer']['findings']]
-    quiet = [r for r in answered if r not in loud]
+        lines.append('| %s | %s | %s | %s |' % (r['seat'], r['model'] or '-', a.get('verdict', '-'), len(a.get('findings') or [])))
+    merged = {}
+    for r in answered:
+        for f in r['answer']['findings']:
+            key = (f['item'].strip().lower(), f['quote'].strip())
+            row = merged.setdefault(key, {'f': f, 'seats': [], 'worst': f['severity']})
+            row['seats'].append(r['seat'])
+            if SEVERITIES.index(f['severity']) < SEVERITIES.index(row['worst']):
+                row['worst'] = f['severity']
+    if merged:
+        lines += ['', '**Findings** (one line each, with the seats that raised it):']
+        for key in sorted(merged, key=lambda k: (SEVERITIES.index(merged[k]['worst']), k)):
+            row = merged[key]
+            f = row['f']
+            lines.append('- %s `%s`: %s (quote: "%s"; %s)' % (row['worst'], f['item'], f['issue'], f['quote'][:160],
+                                                           ', '.join(sorted(set(row['seats'])))))
+    # W15e (owner, 22 Oct 2026): blocks stay visible; approvals' reasons fold (REPORT-STYLE.md).
+    loud = [r for r in answered if r['answer']['verdict'] != 'approve']
     for r in loud:
-        lines += [''] + said(r)
+        a = r['answer']
+        lines += ['', '**%s** (%s): %s' % (r['seat'], a['verdict'], a['summary'])]
+    dropped = sum(r['answer'].get('dropped') or 0 for r in answered)
+    unshipped = sum(r['answer'].get('unshipped') or 0 for r in answered)
+    if dropped or unshipped:
+        lines.append('')
+        if dropped:
+            lines.append('- %d finding(s) dropped: quote not found in the manifest' % dropped)
+        if unshipped:
+            lines.append('- %d finding(s) dropped: they quote a patch this change excludes or removes' % unshipped)
+    quiet = [r for r in answered if r not in loud]
     if quiet:
         lines += ['', '<details><summary>%d approving seat(s): their reasons</summary>' % len(quiet), '']
         for r in quiet:
-            lines += said(r) + ['']
+            lines += ['**%s** (approve): %s' % (r['seat'], r['answer']['summary']), '']
         lines += ['</details>']
     for p in m.get('problems') or []:
         lines.append('- deterministic: ' + p)
+    if plumbing:
+        lines += ['', '<details><summary>%d seat(s) did not answer (seat plumbing, not about this change)</summary>' % len(plumbing), '']
+        lines += ['- %s: %s' % (r['seat'], r['status'][:80]) for r in plumbing]
+        lines += ['', '</details>']
+    key = json.dumps([ok, sorted('%s|%s|%s' % (k[0], k[1], merged[k]['worst']) for k in merged),
+                      sorted(m.get('problems') or [])], sort_keys=True)
+    lines.append('<!-- pf-onboard-key:%s -->' % hashlib.sha256(key.encode()).hexdigest()[:16])
     return '\n'.join(lines) + '\n'
 
 
 def post(env, repo, pr, body):
-    found = None
+    found, old = None, ''
     for page in (1, 2, 3):
         rows = gh(env, 'GET', 'repos/%s/issues/%s/comments?per_page=100&page=%d' % (repo, pr, page)) or []
         for c in rows:
             if MARKER in (c.get('body') or '') and (c.get('user') or {}).get('type') == 'Bot':
-                found = c['id']
+                found, old = c['id'], c.get('body') or ''
         if len(rows) < 100:
             break
+    # W16k: same verdict, same findings, same problems: leave the comment as it is (no new ping).
+    key = re.search(r'<!-- pf-onboard-key:[0-9a-f]{16} -->', body)
+    if found and key and key.group(0) in old:
+        print('ONBOARD_REVIEW comment unchanged; not edited')
+        return
     if found:
         gh(env, 'PATCH', 'repos/%s/issues/comments/%d' % (repo, found), {'body': body})
     else:

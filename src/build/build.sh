@@ -163,22 +163,28 @@ green_log "[+] extra -p flags:$EXTRA_P"
 # Steps 4 and 5 repeat only when the APK needs a newer Android than the cap (W7).
 # W15: the one error line of an SDK give-up (check_sdk.sh only warns).
 sdk_fail() { echo "::error::needs SDK above the device cap $CEIL: $1. Set max_app_version in src/targets.json."; red_log "[-] $1"; exit 1; }
+# W16k: stores already tried for this version; an APK that needs a newer Android than the phone
+# first sends the build to the other store for the SAME version, then to a lower version.
+TRIED=""; FORCE_STORE=""
 STEP=0
 while :; do
+USE_SRC="${FORCE_STORE:-$SRC}"
 if [ "${PF_SOURCE_READY:-false}" = "true" ]; then
 version=$(python3 src/build/source_inputs.py install "$ID") || { red_log "[-] checked source APK refused"; exit 1; }
 green_log "[+] using exact prepared source APK; no second store download"
 else
 version="$RVER"
 if [ "$ANYVER" = "true" ]; then version=""; lock_version=1; yellow_log "[!] any_version on, taking the store latest"; fi
-if [ "$SRC" = "apkpure" ]; then
+TRIED="$TRIED $USE_SRC"
+if [ "$USE_SRC" = "apkpure" ]; then
   set +u; get_apkpure "$PKG" "$APK_NAME" "$APK_TYPE"; GA=$?; set -u
 else
 near_version=1
 set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"; GA=$?; set -u
 fi
-if [ "$GA" -ne 0 ]; then
-  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$SRC" "$RVER" "$ANYVER" "$ARCH" "$DPI"; GA=$?
+if [ "$GA" -ne 0 ] && [ -z "$FORCE_STORE" ]; then
+  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$USE_SRC" "$RVER" "$ANYVER" "$ARCH" "$DPI"; GA=$?
+  if [ "$USE_SRC" = "apkpure" ]; then TRIED="$TRIED apkmirror"; else TRIED="$TRIED apkpure"; fi
 fi
 if [ "$GA" -ne 0 ]; then
   if python3 src/build/source_fallback.py "$ID" "$RVER"; then
@@ -196,7 +202,7 @@ if [ "$GA" -ne 0 ]; then
     STEP=$((STEP+1))
     echo "::notice::VERSION_STEP_DOWN step=$STEP from=$RVER to=${NEXT%% *} source=${NEXT#* } reason=store"
     rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME.xapk" "./download/$APK_NAME"
-    RVER="${NEXT%% *}"; lock_version=""; prefer_version=""
+    RVER="${NEXT%% *}"; lock_version=""; prefer_version=""; TRIED=""; FORCE_STORE=""
     continue
   fi
 fi
@@ -258,6 +264,13 @@ if [ "$SDK_RC" -eq 0 ]; then break; fi
 if [ "$SDK_RC" -ne 3 ]; then red_log "[-] SDK ceiling $CEIL exceeded"; exit 1; fi
 if [ "${PF_SOURCE_READY:-false}" = "true" ]; then sdk_fail "SDK ceiling $CEIL exceeded by the exact prepared APK; no step-down"; fi
 if [ -n "$(jq -r '.version_code // ""' <<<"$T")" ]; then sdk_fail "SDK ceiling $CEIL exceeded; $ID pins an exact version_code, so no step-down"; fi
+OTHER=apkpure; [ "$USE_SRC" = "apkpure" ] && OTHER=apkmirror
+if [[ " $TRIED " != *" $OTHER "* ]] && jq -e --arg p "$PKG" --arg s "$OTHER" '(.[$s][$p] // {}) | ((.list_url // .download_url) // "") | length > 0' src/build/helper/apps.json > /dev/null 2>&1; then
+  echo "::notice::VARIANT_RETRY same version ${version:-latest} from $OTHER: the $USE_SRC file needs a newer Android than API $CEIL"
+  rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME.xapk" "./download/$APK_NAME"
+  FORCE_STORE="$OTHER"; RVER="${version:-$RVER}"
+  continue
+fi
 if [ "$STEP" -ge "$PF_MAX_STEPS" ]; then sdk_fail "SDK ceiling $CEIL still exceeded after $STEP lower version(s)"; fi
 set +u; NEXT=$(pf_next_version "$PKG" "$version" "$MAXVER"); NRC=$?; set -u
 # W16h: say which status it was (W16g heval99 lists only 26.41.5, so status 1 was by design).
@@ -266,7 +279,7 @@ if [ "$NRC" -ne 0 ] || [ -z "$NEXT" ]; then sdk_fail "SDK ceiling $CEIL exceeded
 STEP=$((STEP+1))
 echo "::notice::VERSION_STEP_DOWN step=$STEP from=$version to=${NEXT%% *} source=${NEXT#* } ceiling=$CEIL"
 rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME"
-RVER="${NEXT%% *}"; ANYVER=false; lock_version=""; prefer_version=""
+RVER="${NEXT%% *}"; ANYVER=false; lock_version=""; prefer_version=""; TRIED=""; FORCE_STORE=""
 done
 # --- 5b. lost patches (W13, owner yes 10 Oct 2026): a chosen patch this bundle no longer
 # offers for this app version is dropped by name instead of failing the build ----------

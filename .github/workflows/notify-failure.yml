@@ -1,19 +1,19 @@
 name: Notify on failure
+# W16k (owner, 25 Oct 2026): called by Status page data (status.yml), which lists the runs that
+# wake it, so one finished run starts one follower run, not two. The event is still that workflow_run.
 on:
-  workflow_run:
-    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "MCP scout", "9. Batch Patch", "Tooling watch", "10. Selection watch", "Keepalive", "Needs you"]
-    types: [completed]
+  workflow_call:
 permissions:
   issues: write
   actions: read
-concurrency:
-  group: notify-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
-  cancel-in-progress: false
 jobs:
   open-issue:
     # Failures report into one standing issue per workflow; a success closes it.
     if: ${{ contains(fromJSON('["failure","timed_out","startup_failure","action_required","success"]'), github.event.workflow_run.conclusion) }}
     runs-on: ubuntu-24.04
+    concurrency:
+      group: notify-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+      cancel-in-progress: false
     steps:
       # No checkout, artifact download, external script or raw log copying in this
       # privileged workflow_run context. Only trusted inline code and API metadata.
@@ -36,7 +36,9 @@ jobs:
               [".github/workflows/tooling-watch.yml", "Tooling watch"],
               [".github/workflows/selection-watch.yml", "10. Selection watch"],
               [".github/workflows/keepalive.yml", "Keepalive"],
-              [".github/workflows/needs-you.yml", "Needs you"]
+              [".github/workflows/needs-you.yml", "Needs you"],
+              // W16k: schedule and manual only now, so its failures need an issue too.
+              [".github/workflows/rule-merge.yml", "11. Rule merge"]
             ]);
             const failures = new Set(["failure", "timed_out", "startup_failure", "action_required"]);
             const validConclusions = new Set([...failures, "success", "neutral", "cancelled", "skipped", "stale"]);

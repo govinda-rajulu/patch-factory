@@ -79,6 +79,10 @@ CLEANUP_APPLY = False  # apply the cleanup preview at once (PF_CLEANUP=keep skip
 RUN_T1 = False      # run docs/review/controllers/pf-t1.py on the merge at the end
 PUBLISH_ALL = False  # (W15f) T1's batch publishes every enabled app, and T1 runs before the cleanup
 PUBLISH_APPS = ()   # (W16c) T1 publishes only these apps after its no-publish batch, and runs before the cleanup
+PUBLISH_DISPATCH = ()  # (W16k) after the cleanup, dispatch ONE publishing Batch Patch on main for these apps and
+                       # exit without waiting: W16j's controller died waiting (Cloud Shell idle timeout)
+DELETE_BRANCHES = ()  # (W16k) merged branches deleted after the merge ('packet/w16j', BRANCH); a miss is a NOTE
+SMOKES_PER_APP = 2  # (W16k) Manual Patch keeps one running and one pending run per app; a third is cancelled
 TIDY = False        # (W14) src/etc/release_tidy.py on the merge: preview, then apply with a backup in the logs
 MIRROR = None       # (W13) dict(repo, files, manifest, anchor, branch, title[, replaces]): copy files from the
                     # merged tree into another repository of the owner by ITS OWN pull request
@@ -168,6 +172,13 @@ def find_pr(phase):
 
 
 def gate():
+    per = {}
+    for t in SMOKE:
+        per[t.split('/', 1)[0]] = per.get(t.split('/', 1)[0], 0) + 1
+    over = sorted(a for a, n in per.items() if n > SMOKES_PER_APP)
+    if over:
+        stop('gate', 'more than %d smokes for %s: the Manual Patch queue cancels the third (W16j Instagram oxbow). '
+             'Nothing pushed.' % (SMOKES_PER_APP, ', '.join(over)))
     code, out, err = run([GH, 'auth', 'status'], timeout=60)
     if code != 0:
         stop('gate', 'gh is not logged in: ' + (err or out).decode('utf-8', 'replace').strip()[:200])
@@ -495,6 +506,20 @@ def smoke():
         say('smoke', 'OK', '%s: run %s worked; %s%s' % (t, r['id'], cov[-1], ('; dropped %d' % len(dropped)) if dropped else ''))
 
 
+def delete_branches():
+    """W16k (owner rule: delete merged branches): one DELETE per branch; a branch already gone is a NOTE."""
+    for name in DELETE_BRANCHES:
+        if name in ('main', 'status', 'gh-pages'):
+            say('branches', 'NOTE', 'refusing to delete %s' % name)
+            continue
+        data, err = api('repos/%s/git/refs/heads/%s' % (REPO, name), 'DELETE', None, 'branches')
+        if data is None:
+            say('branches', 'NOTE', '%s not deleted: %s' % (name, str(err)[:160]))
+        else:
+            say('branches', 'OK', 'deleted branch %s' % name)
+    return True
+
+
 def close_issues():
     for number, text in CLOSE:
         phase = 'close'
@@ -724,6 +749,46 @@ def t1(merge_sha):
     return code == 0
 
 
+def publish_dispatch(merge_sha):
+    """W16k: one publishing Batch Patch on main, dispatched and not waited for; its run link is kept."""
+    if not PUBLISH_DISPATCH:
+        return True
+    # A rerun never publishes twice: a done file in WORK, and any publishing batch already on the merge.
+    done = WORK / ('pf-%s-publish.done' % PACKET)
+    if done.is_file() and done.read_text(encoding='utf-8').strip() == merge_sha:
+        say('publish', 'SKIP', 'already dispatched for %s (%s)' % (merge_sha[:12], done.name))
+        return True
+    rows = must('repos/%s/actions/workflows/batch-patch.yml/runs?event=workflow_dispatch&branch=main&head_sha=%s&per_page=20'
+                % (REPO, merge_sha), 'publish').get('workflow_runs', [])
+    mine = [r for r in rows if r.get('head_sha') == merge_sha and str(r.get('display_title', '')).endswith('/ publish=true')]
+    if mine:
+        done.write_text(merge_sha + '\n', encoding='utf-8')
+        say('publish', 'SKIP', 'a publishing batch already runs on %s: %s' % (merge_sha[:12], mine[0].get('html_url')))
+        return True
+    started = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    cmd = [GH, 'workflow', 'run', 'batch-patch.yml', '--repo', REPO, '--ref', 'main',
+           '-f', 'targets=' + ','.join(PUBLISH_DISPATCH), '-f', 'publish=true']
+    code, out, err = run(cmd, timeout=120)
+    if code != 0:
+        say('publish', 'FAIL', 'dispatch failed: %s' % (err or out).decode('utf-8', 'replace')[:200])
+        return False
+    found = None
+    for _ in range(12):
+        time.sleep(10)
+        rows = must('repos/%s/actions/workflows/batch-patch.yml/runs?event=workflow_dispatch&branch=main&per_page=10' % REPO,
+                    'publish').get('workflow_runs', [])
+        rows = [r for r in rows if str(r.get('created_at', '')) >= started]
+        if rows:
+            found = rows[-1]
+            break
+    done.write_text(merge_sha + '\n', encoding='utf-8')
+    R['publish_dispatch'] = dict(apps=list(PUBLISH_DISPATCH), run=found and found.get('id'), url=found and found.get('html_url'),
+                                 merge=merge_sha)
+    say('publish', 'OK', 'dispatched one publishing batch for %s on main (%s); not waiting, it runs in GitHub'
+        % (', '.join(PUBLISH_DISPATCH), (found or {}).get('html_url') or 'run link not seen yet'))
+    return True
+
+
 def finish(good):
     if not good:
         R['result'] = 'STOP'
@@ -757,6 +822,7 @@ def main():
         smoke()
     R['merge'] = merge(pr)
     close_issues()
+    delete_branches()
     deployed = pages(R['merge'])
     # W15f: with PUBLISH_ALL the fresh releases exist before the cleanup keeps the newest per app.
     early = PUBLISH_ALL or bool(PUBLISH_APPS)  # W16c: fresh releases before the cleanup, too
@@ -767,7 +833,8 @@ def main():
     mirrored = mirror(R['merge'])
     if not early:
         tested = t1(R['merge'])
-    return finish(deployed and previewed and cleaned and tidied and mirrored and tested)
+    dispatched = publish_dispatch(R['merge'])  # W16k: last, and not waited for
+    return finish(deployed and previewed and cleaned and tidied and mirrored and tested and dispatched)
 
 
 if __name__ == '__main__':

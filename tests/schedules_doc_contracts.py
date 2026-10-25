@@ -33,7 +33,7 @@ class Schedules(unittest.TestCase):
     def test_stale_table_fails_the_check(self):
         text = sch.render()
         self.assertIn('| 17:53 | daily | 2. Check new patch (`ci.yml`) | Full daily check', text)
-        self.assertEqual(text.count('Quick poll'), 3)
+        self.assertEqual(text.count('Quick poll'), 1)  # W16k: one poll-only check (05:53 IST)
         original = sch.OUT.read_bytes()
         try:
             sch.OUT.write_bytes(original.replace(b'17:53', b'17:54'))

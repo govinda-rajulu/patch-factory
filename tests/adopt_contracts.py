@@ -60,7 +60,7 @@ class Classify(unittest.TestCase):
         self.assertEqual(self.call(ig, 'com.instagram.android', 'Hide paid partnership Reels', 'CFM'), 'hold')
 
     def test_policy_keeps_the_owner_veto_and_offline_list(self):
-        self.assertEqual(sorted(POLICY['paid_ok_targets']), ['amazonmusic', 'esfile', 'keymapper', 'mxplayer', 'telegram', 'truecaller-combo'])
+        self.assertEqual(sorted(POLICY['paid_ok_targets']), ['amazonmusic', 'esfile', 'facebook', 'keymapper', 'mxplayer', 'telegram', 'truecaller-combo'])  # W16k: facebook (Unlock app icons, owner)
         targets = {t['id'] for t in json.loads((ROOT / 'src/targets.json').read_text())}
         self.assertTrue(set(POLICY['paid_ok_targets']) <= targets)
         for w in ('package name', 'clone', 'signature', 'spoof', 'version code'):

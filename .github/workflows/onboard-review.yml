@@ -60,6 +60,7 @@ jobs:
             echo "base=$(jq -r .base.sha pr.json)"
             echo "head=$(jq -r .head.sha pr.json)"
             echo "head_repo=$(jq -r .head.repo.full_name pr.json)"
+            echo "author=$(jq -r .user.login pr.json)"
           } >> "$GITHUB_OUTPUT"
       - name: Checkout the base (the checker that runs)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -89,6 +90,11 @@ jobs:
           test -f head/src/targets.json
       - name: Check onboarding records
         id: check
+        env:
+          PR_AUTHOR: ${{ steps.pr.outputs.author }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          HEAD_REPO: ${{ steps.pr.outputs.head_repo }}
+          THIS_REPO: ${{ github.repository }}
         run: |
           mkdir -p onboard-manifest
           if [ ! -f base/src/etc/onboard_check.py ]; then
@@ -98,7 +104,12 @@ jobs:
             exit 0
           fi
           echo "ready=true" >> "$GITHUB_OUTPUT"
-          python3 base/src/etc/onboard_check.py --base base --head head --manifest onboard-manifest/manifest.json
+          # W16k: the owner's own pull request also reads its head policy (ADOPT paid_ok, DECISIONS takes).
+          OWNER_FLAG=""
+          if [ "$PR_AUTHOR" = "$REPO_OWNER" ] && [ "$HEAD_REPO" = "$THIS_REPO" ]; then OWNER_FLAG="--owner-pr"; fi
+          # The checker runs from the BASE: a base older than W16k has no such flag, so it is not passed.
+          if ! grep -q -- "--owner-pr" base/src/etc/onboard_check.py; then OWNER_FLAG=""; fi
+          python3 base/src/etc/onboard_check.py --base base --head head --manifest onboard-manifest/manifest.json $OWNER_FLAG
       - name: Keep the manifest for the agent review
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

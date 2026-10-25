@@ -145,7 +145,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=35', result.stdout)  # W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card; W15h: certificate pin; W15i: comment stripper; W16d: folded patches, meaningful badges, bundle order
+        self.assertIn('PORTAL_CONTRACTS_PASS=36', result.stdout)  # W16k: real history fold; W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card; W15h: certificate pin; W15i: comment stripper; W16d: folded patches, meaningful badges, bundle order
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'

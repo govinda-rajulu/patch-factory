@@ -199,15 +199,18 @@ class QualifiedContracts(unittest.TestCase):
         self.assertEqual(qualified.finalize(self.r, self.event(), self.api, self.uploader), [])
         self.assertEqual(self.uploads, 0)
 
-    def test_missing_receipt_reports_unknown_without_apk_or_tag_changes(self):
+    def test_missing_receipt_is_a_warning_state_without_apk_or_tag_changes(self):
+        # W16k: a release with no receipt (fallback builds store none) is NO_RECEIPT, kept and
+        # warned, but the run is not red; any other unknown still fails (see the next lines).
         self.api.get = self.event_api
         self.api.rows = [a for a in self.api.rows if not a["name"].startswith("pf-publication")]
         old = copy.deepcopy(self.api.rows)
-        with self.assertRaises(ValueError):
-            qualified.finalize(self.r, self.event(), self.api, self.uploader)
+        results = qualified.finalize(self.r, self.event(), self.api, self.uploader)
+        self.assertEqual([r["state"] for r in results], ["NO_RECEIPT"])
+        self.assertEqual(self.uploads, 0)
         self.assertEqual(self.api.rows, old)
         report = json.loads((self.r / "shadow-qualified/result.json").read_text())
-        self.assertEqual(report["targets"], [{"target": "keymapper", "state": "UNKNOWN",
+        self.assertEqual(report["targets"], [{"target": "keymapper", "state": "NO_RECEIPT",
                                               "reason": "ValueError: qualified baseline: no publication receipt on the release; the publishing run warning publication receipt not stored names the reason"}])
 
     def test_trusted_workflow_does_not_checkout_source_head_or_download_run_artifacts(self):

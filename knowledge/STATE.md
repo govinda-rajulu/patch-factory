@@ -6,7 +6,26 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 25 Oct 2026, evening IST (packet W16j; start here)
+## 25 Oct 2026, night IST (packet W16k; start here)
+
+- **Main** `9ad6af15` (W16j #247) plus bot commits, plus W16k once merged.
+- **W16k**: APK picker judges chip, Android and screen together (src/build/variant_pick.py) and
+  never keeps a build that does not fit; an APK that needs a newer Android tries the SAME version
+  from the other store before any lower one (Key Mapper: APKPure's one 12L file, APKMirror's
+  arm64 Android 10+ build). Workflow diet: followers wake only for runs on main, Notify runs
+  inside Status page data, Rule merge on its two crons only, Check new patch 2 crons, Council 2
+  crons (solo shifts on request); 25 Oct replayed: 299 runs to about 173, a quiet day about 37 to
+  21. Agents: an owner-written PR reads the owner's head policy, rule 4 is one build, one line per
+  finding, seat plumbing folded, an unchanged review is not re-posted. Failures: Qualify
+  NO_RECEIPT is a warning; MCP scout trusts its fresh checkout; Community and Nightly name why.
+  Pages: built cards fold real history (what changed, notes, 4 older APKs), Obtainium and MicroG
+  cards with one download, date and time everywhere; release notes open with "Built ...".
+  Facebook Unlock app icons kept (owner); Photos AMOLED kept from Akash. Controller: at most 2
+  smokes per app, publish dispatched after the merge, not waited for. Record
+  docs/review/SESSION-2026-10-25.md (W16k part). Wrong calls: 65.
+- **Next**: W15g signing split; owner phone tests; W17 combo planner.
+
+## 25 Oct 2026, evening IST (packet W16j)
 
 - **Main** `829ec099` (W16i #244) plus W16j once merged.
 - **W16j**: owner decision memory (src/patches/DECISIONS.json), Needs you v2 (groups, tables,

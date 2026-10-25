@@ -42,12 +42,13 @@ class Automations(unittest.TestCase):
             '1. Manual Patch', '2. Check new patch', '4. Explore patches', '5. Add target',
             '6. Provider watch', '7. Nightly watch', '8. Community watch', '9. Batch Patch',
             'Tooling watch', '10. Selection watch', 'MCP scout', 'Needs you',
+            'Keepalive', '11. Rule merge',  # W16k: Notify runs inside Status page data, so Status lists its flows too
         }
         self.assertEqual(set(listed(own['text'])), wanted)
 
     def test_failure_issues_cover_every_scheduled_or_dispatched_flow_they_can_read(self):
         text = self.f['notify-failure.yml']['text']
-        names = listed(text)
+        names = listed(self.f['status.yml']['text'])  # W16k: the called Notify's triggers live in status.yml
         permitted = dict(re.findall(r'\["\.github/workflows/([a-z-]+\.yml)", "([^"]+)"\]', text))
         self.assertEqual(sorted(permitted.values()), sorted(names))
         for file, name in permitted.items():

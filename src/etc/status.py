@@ -51,7 +51,7 @@ PURPOSE = {
     'mcp-scout.yml': 'Manual-only MCP scout: finds unlisted community patch repositories for owner review.',
     'explore.yml': 'Lists the patch names a provider offers.',
     'add-target.yml': 'Adds, changes, disables or removes an app; opens a pull request.',
-    'notify-failure.yml': 'Opens one issue per failing automation and closes it on the next success.',
+    'notify-failure.yml': 'Runs inside Status page data: opens one issue per failing automation and closes it on the next success.',
     'tooling-watch.yml': 'Checks the pinned build tools for new versions, pre-releases included.',
     'onboard-review.yml': 'Agent review of every new app, provider or patch name.',
     'status.yml': 'Writes the data for this page.',

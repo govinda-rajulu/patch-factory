@@ -68,7 +68,12 @@ if __name__ == '__main__':
             import execution_inputs
             execution_inputs.capture(pathlib.Path('.'), sys.argv[1], sys.argv[2], os.environ)
         # Never print argv: it carries signing passwords.
-        sys.exit(subprocess.run(args, check=False).returncode)
+        import time
+        started = time.monotonic()
+        rc = subprocess.run(args, check=False).returncode
+        # W16k: measure before tuning the JVM (desktop already runs a full HotSpot VM in fast mode).
+        print('::notice::PATCH_TIME %s %s %ds rc=%d' % (sys.argv[1], sys.argv[2], round(time.monotonic() - started), rc), file=sys.stderr)
+        sys.exit(rc)
     except (ValueError, KeyError, OSError, StopIteration, IndexError) as e:
         print('::error::cannot construct patch command: ' + str(e), file=sys.stderr)
         sys.exit(1)

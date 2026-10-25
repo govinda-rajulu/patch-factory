@@ -22,14 +22,22 @@ def job(text, name):
 
 class Settle(unittest.TestCase):
     def test_status_waits_and_the_newest_run_wins(self):
+        # W16k: no cancel-in-progress (Notify runs inside and must never be cancelled); after the
+        # wait an older run sees a newer one and stops quietly, so no run ends "cancelled".
         text = (WF / 'status.yml').read_text()
         head = text[:text.index('\njobs:')]
-        self.assertIn('group: status-page\n  cancel-in-progress: true', head)
+        self.assertNotIn('cancel-in-progress', head)
+        self.assertIn('    branches: [main]\n', head)
         self.assertIn("- name: Let related runs settle\n        if: github.event_name == 'workflow_run'\n        run: sleep 180", text)
-        self.assertLess(text.index('Let related runs settle'), text.index('Checkout main (the reader that runs)'))
+        self.assertLess(text.index('Let related runs settle'), text.index('- name: Newest run publishes'))
+        self.assertLess(text.index('- name: Newest run publishes'), text.index('Checkout main (the reader that runs)'))
+        gate = "if: steps.newest.outputs.newer == '0' || github.event_name != 'workflow_run'"
+        self.assertEqual(text.count(gate), 3)
+        self.assertIn('|| newer=0', text)  # an API hiccup publishes rather than hiding the page
 
     def test_qualify_settles_only_on_main_successes(self):
         text = (WF / 'qualify-baselines.yml').read_text()
+        self.assertIn('    branches: [main]\n', text[:text.index('\njobs:')])  # W16k
         settle, qualify = job(text, 'settle'), job(text, 'qualify')
         self.assertIn('if: ' + MAIN_ONLY, settle)
         self.assertIn('group: qualify-settle\n      cancel-in-progress: true', settle)
@@ -38,20 +46,22 @@ class Settle(unittest.TestCase):
         self.assertIn("if: needs.settle.result == 'success'", qualify)
         self.assertIn('group: qualify\n      cancel-in-progress: false', qualify)
 
-    def test_rule_merge_settles_on_triggers_and_merges_at_once_on_schedule(self):
+    def test_rule_merge_runs_on_schedule_and_request_only(self):
+        # W16k: bot-started runs never woke it (L069); owner smokes started 30 passes a day for nothing.
         text = (WF / 'rule-merge.yml').read_text()
-        self.assertNotIn('\nconcurrency:', text[:text.index('\njobs:')])
-        settle, merge = job(text, 'settle'), job(text, 'merge')
-        self.assertIn("if: github.event_name == 'workflow_run'", settle)
-        self.assertIn('group: rule-merge-settle\n      cancel-in-progress: true', settle)
-        self.assertIn("needs.settle.result == 'skipped'", merge)
+        head = text[:text.index('\njobs:')]
+        self.assertNotIn('workflow_run', head)
+        self.assertNotIn('\nconcurrency:', head)
+        self.assertEqual(head.count('- cron:'), 2)
+        merge = job(text, 'merge')
+        self.assertNotIn('needs:', merge)
         self.assertIn('group: rule-merge\n      cancel-in-progress: false', merge)
         self.assertIn('PF_RULE_MERGE_PATIENCE', merge)
 
     def test_failure_notices_are_never_merged(self):
         # One notify run per finished run: merging them could hide app A's failure behind app B's success.
         text = (WF / 'notify-failure.yml').read_text()
-        self.assertIn('group: notify-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}', text)
+        self.assertIn('group: notify-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}\n      cancel-in-progress: false', text)
         self.assertNotIn('sleep', text)
 
 

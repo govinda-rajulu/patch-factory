@@ -14,11 +14,8 @@ on:
     # All jobs write on the desk issue in seats.json. One job at a time keeps free tiers answering.
     - cron: "17 3 * * *"  # 08:47 IST daily: one audit shard (Monday: triage)
     - cron: "17 15 * * *"  # 20:47 IST daily: one audit shard
-    # W15e (owner, 22 Oct 2026): solo shifts, one seat at a time in persona order (PERSONAS.md).
-    - cron: "17 21 * * *"  # 02:47 IST daily: one seat's solo shift
-    - cron: "17 0 * * *"  # 05:47 IST daily: one seat's solo shift
-    - cron: "17 9 * * *"  # 14:47 IST daily: one seat's solo shift
-    - cron: "17 12 * * *"  # 17:47 IST daily: one seat's solo shift
+    # W16k (owner, 25 Oct 2026: cut runs): the four daily solo-shift crons are gone; a shift
+    # still runs on request (mode shift). W15e shifts are kept as a manual mode.
   workflow_dispatch:
     inputs:
       mode:

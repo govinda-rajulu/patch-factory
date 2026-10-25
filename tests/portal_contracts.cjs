@@ -38,7 +38,7 @@ check('legacy date tags accepted; malformed tags rejected',()=>{assert.equal(c.p
 check('unsafe and cross-repository links refused',()=>{for(const url of ['javascript:alert(1)','http://github.com/'+ 'govinda-rajulu/patch-factory/releases','https://github.com/other/repo/releases','https://github.com.evil.invalid/govinda-rajulu/patch-factory/releases','https://user:pass@github.com/govinda-rajulu/patch-factory/releases'])assert.equal(c.safeLink(url),null)});
 check('release grouping stays per target and ambiguous assets withheld',()=>{const tag='youtube-morphe-v21.36.45-b20260913',r={id:1,tag_name:tag,draft:false,prerelease:false,published_at:'2026-09-13T00:00:00Z',assets:[{name:'youtube-v21.36.45-arm64-v8a.apk',state:'uploaded',size:2000000,browser_download_url:'https://github.com/govinda-rajulu/patch-factory/releases/download/'+tag+'/youtube-v21.36.45-arm64-v8a.apk'}]};assert.equal(c.releaseRows([r],targets).map.get('youtube-morphe').length,1);assert.equal(c.releaseRows([r],targets).map.get('instagram').length,0);r.assets.push(r.assets[0]);assert.equal(c.releaseRows([r],targets).rejected,1)});
 check('no credential input, persistent-token use or API write path',()=>{for(const s of ['localStorage','sessionStorage','innerHTML','insertAdjacentHTML','/dispatches','Authorization','method:'])assert.ok(!source.includes(s),s);assert.ok(!html.includes('type="password"'));assert.ok(html.includes('portal.js'));assert.ok(source.includes('credentials:\'omit\''))});
-check('disabled or duplicate targets refused for full imports',()=>{let t=structuredClone(targets);t[0].enabled=false;assert.throws(()=>c.validateImport(pack,t));t=structuredClone(targets);t.push(t[0]);assert.throws(()=>c.validateTargets(t));assert.equal(c.appGroup('youtube')[0],'media');assert.equal(c.appGroup('instagram')[0],'social');assert.equal(c.appGroup('keymapper')[0],'tools');assert.equal(c.appGroup('future-app')[0],'other');for(const marker of ['Search apps','Filter app category','Evidence, notes & older versions','No matching apps.'])assert.ok(source.includes(marker),marker)});
+check('disabled or duplicate targets refused for full imports',()=>{let t=structuredClone(targets);t[0].enabled=false;assert.throws(()=>c.validateImport(pack,t));t=structuredClone(targets);t.push(t[0]);assert.throws(()=>c.validateTargets(t));assert.equal(c.appGroup('youtube')[0],'media');assert.equal(c.appGroup('instagram')[0],'social');assert.equal(c.appGroup('keymapper')[0],'tools');assert.equal(c.appGroup('future-app')[0],'other');for(const marker of ['Search apps','Filter app category','What changed & older versions (','No matching apps.'])assert.ok(source.includes(marker),marker)});
 check('labels allow hyphens but refuse controls and empty strings',()=>{
  assert.equal(c.plain('MicroG-RE'),true);
  for(const value of ['',null,'bad\nname','bad\tname','bad\u0000name','bad\u001fname','bad\u007fname'])assert.equal(c.plain(value),false);
@@ -145,8 +145,10 @@ check('build runs keyed by app: an app-only failure is not a failed automation',
 check('MicroG card is short: one download for the chosen file, every file folded away',()=>{
  const card=source.slice(source.indexOf('async function microgCard(root){'),source.indexOf('function clearImportLinks'));
  assert.ok(card.includes("article.append(microgPick(rows))"));
- assert.ok(card.includes("el('details',undefined,'app-details');all.append(el('summary','All six files and SHA-256 checksums'))"));
- assert.ok(card.includes('all.append(microgChannelBlock(rows,\'stable\'))'));
+ // W16k (owner, 25 Oct 2026: "too much stuffed"): each extra in its own closed fold.
+ for(const fold of ["miniFold('Other files (CPU, icon'","miniFold('SHA-256 checksums',","miniFold('Help',"])assert.ok(card.includes(fold),fold);
+ assert.ok(card.includes("microgChannelBlock(rows,'stable')"));
+ assert.ok(!/\.open=true/.test(source.slice(source.indexOf('function miniFold('),source.indexOf('function microgChannelBlock('))),'folds start closed');
  assert.ok(!card.includes('article.append(stable)')&&!card.includes('releaseNotes(article'));
  for(const hook of ["microgChannel=value;$('microgChannel').value=value;\n refreshMicrogPick();","microgArch=$('microgArch').value;refreshMicrogPick();","microgIcon=$('microgIcon').value;refreshMicrogPick();","microgIcon='icon';refreshMicrogPick();"])assert.ok(source.includes(hook),hook);
 });
@@ -158,7 +160,7 @@ check('MicroG card lists every upstream file by icon and CPU, and the toolbar ke
  assert.throws(()=>c.microgName('7.2.1','big','universal'));
  assert.ok(source.includes("async function changeMicrogChannel(value)"));
  assert.ok(source.includes("microgChannel=value;$('microgChannel').value=value"));
- assert.ok(source.includes('Open Obtainium import settings'));
+ assert.ok(source.includes('Change icon, CPU or channel for Obtainium'));
  assert.ok(source.includes('tracked apps are unchanged'));
  assert.ok(source.includes('can show the same version when stable is newest'));
  assert.ok(source.includes('SHA-256 checksums'));
@@ -214,7 +216,7 @@ check('Obtainium card offers the standard upstream flavor only, with exact ident
  assert.throws(()=>c.obtainiumName('x86'));assert.throws(()=>c.obtainiumRelease([pre],'universal'));
  for(const mutate of [r=>r.assets.push(r.assets[0]),r=>r.assets[0].browser_download_url+='?x',r=>r.html_url=web+'/releases/tag/other',r=>r.assets[0].state='new',r=>r.assets[0].size=10,r=>r.tag_name='nightly'])
   {const x=structuredClone(stable);mutate(x);assert.throws(()=>c.obtainiumRelease([x],'universal'));}
- assert.equal(c.appGroup('obtainium')[0],'tools');assert.equal(c.safeLink(web+'/releases','upstream'),web+'/releases');assert.equal(c.safeLink(web+'/releases/tag/v1','upstream'),null);
+ assert.equal(c.appGroup('obtainium')[0],'start');assert.equal(c.appGroup('microg')[0],'start');assert.ok(source.includes("if(group.dataset.group!=='start')cards.sort("));assert.ok(fs.readFileSync(path.join(root,'docs/index.html'),'utf8').includes('@media(prefers-color-scheme:dark)'));assert.equal(c.safeLink(web+'/releases','upstream'),web+'/releases');assert.equal(c.safeLink(web+'/releases/tag/v1','upstream'),null);
  assert.ok(source.includes("id==='obtainium'?'assets/obtainium.svg'"));assert.ok(source.includes(' await obtainiumCard(root);\n await microgCard(root);'));
  const svg=fs.readFileSync(path.join(root,'docs/assets/obtainium.svg'));assert.equal(svg.length,4239);
  assert.equal(require('crypto').createHash('sha1').update('blob '+svg.length+'\0').update(svg).digest('hex'),'091d8253af3ef7a6333c6a0b147f41d570dca964');
@@ -245,6 +247,14 @@ check('multi-bundle cards put the configured primary first and do not invent ext
  assert.equal(JSON.stringify(c.providerNames(record,target)),JSON.stringify(['piko','brosssh']));
  assert.equal(c.bundleText(record,target),'piko 3.11.0-dev.1; brosssh');
  assert.equal(c.bundleText({provider:'piko',bundle:'3.11.0-dev.1',bundle_versions:{piko:'3.11.0-dev.1',brosssh:'3.10.0'}},target),'piko 3.11.0-dev.1');
+});
+check('W16k: built cards fold real history (changes, notes, up to 4 older APKs); no empty Evidence fold',()=>{
+ assert.ok(!source.includes("el('summary','Evidence, notes & older versions')"));
+ assert.ok(source.includes('olderFold(article,rows);'));
+ const fold=source.slice(source.indexOf('function olderFold('),source.indexOf('function field('));
+ assert.ok(source.includes("/^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\dZ$/.test(record.built)?stamp(record.built)"),'card prefers the recorded build time');
+ assert.ok(fold.includes('rows.slice(1,5)')&&fold.includes("changeSummary(top,rows[1])")&&fold.includes("'Full release notes'"));
+ assert.ok(!fs.readFileSync(path.join(root,'docs/index.html'),'utf8').includes('.variant-grid'),'old misaligned CPU grid CSS gone');
 });
 check('badges are reserved for fallback, failed/held builds, or a release newer than 24 hours',()=>{
  const top={rel:{published_at:new Date(Date.now()-25*60*60*1000).toISOString()}};

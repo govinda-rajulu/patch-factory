@@ -41,7 +41,9 @@ TRIAGE_VERDICTS = ('close', 'keep', 'owner')
 # W15e (owner, 22 Oct 2026): seats have a persona and a solo shift (docs/council/PERSONAS.md).
 # SHIFT holds the seat id while one seat works its shift alone; None means council work.
 SHIFT = {'seat': None, 'voice': ''}
-SHIFT_HOURS_UTC = (21, 0, 9, 12)  # 02:47, 05:47, 14:47, 17:47 IST: one seat alone, one at a time (L039)
+# W16k (owner, 25 Oct 2026: cut runs): no scheduled solo shifts; a late desk cron must never turn
+# into one. Shifts run on request (mode shift, input seat). Was (21, 0, 9, 12).
+SHIFT_HOURS_UTC = ()
 TRIAGE_CHUNK = 6
 # Every provider speaks OpenAI-style chat completions. 'auth' marks a model catalogue that
 # needs the key; OpenRouter's is public. Every one accepts response_format json_object

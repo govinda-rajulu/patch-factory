@@ -40,8 +40,12 @@ def analyze(text, rc, setup_ok, targets, env):
         if PATCH_ROW.match(line):
             continue
         msgs.append(line.split(': ', 1)[0] if line.startswith('~~ ') else line)
-    if re.search(r'(?i)(?:UNVERIFIED|unreadable|skipping|returned nothing)', '\n'.join(msgs)):
+    incomplete = [m for m in msgs if re.search(r'(?i)(?:UNVERIFIED|unreadable|skipping|returned nothing)', m)]
+    if incomplete:
         reasons.append('legacy reader reported incomplete inputs')
+        # W16k (owner, 25 Oct 2026: run 40195009005 said UNKNOWN and nothing else): name the lines.
+        for line in incomplete[:3]:
+            reasons.append('reader line: ' + re.sub(r'[^ -~]', ' ', line).strip()[:200])
     if not isinstance(targets, list) or not targets or any(not isinstance(t,dict) for t in targets):
         reasons.append('target coverage inventory unavailable')
         targets = []
@@ -110,6 +114,8 @@ def collect(root, env):
     if env.get('GITHUB_STEP_SUMMARY'):
         with open(env['GITHUB_STEP_SUMMARY'],'a',encoding='utf-8') as out: out.write(summary(data))
     print('NIGHTLY_STATUS='+data['status'])
+    for reason in data['reasons']:
+        print('::warning::Nightly ' + data['status'] + ' because: ' + reason)
     return data
 
 def enforce(root):
@@ -119,7 +125,8 @@ def enforce(root):
             or data.get('report_bytes') != len(raw)):
         raise ValueError('missing or changed Nightly Watch evidence')
     if data.get('status') in ('FAILED', 'UNKNOWN'):
-        print('::error::Nightly Watch '+str(data.get('status'))+'; read the full artifact and job summary')
+        why = '; '.join(str(r) for r in (data.get('reasons') or [])[:4]) or 'no reason recorded'
+        print('::error::Nightly Watch '+str(data.get('status'))+': '+why[:600]+'. Full text: the nightly-report artifact')
         return 1
     if data.get('status') != 'PARTIAL' or data.get('coverage') != 'partial':
         raise ValueError('unsupported Nightly Watch state')

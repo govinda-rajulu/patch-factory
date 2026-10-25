@@ -382,9 +382,10 @@
     {
       "target": "photos",
       "name": "AMOLED dark theme",
-      "call": "drop",
+      "call": "take",
       "id": "N-c5397f",
-      "date": "2026-10-25"
+      "date": "2026-10-25",
+      "note": "W16k owner: KEEP it everywhere. Shipped from Akash (one provider per name in one build, ADOPT reserved); rushiranpise's copy stays excluded in the same build."
     },
     {
       "target": "photos",
@@ -748,6 +749,13 @@
       "name": "AR Effects Slimmer",
       "call": "drop",
       "id": "N-3f4993",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Unlock app icons",
+      "call": "take",
+      "id": "W16k-fb-icons",
       "date": "2026-10-25"
     }
   ],

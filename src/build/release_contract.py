@@ -91,6 +91,8 @@ def verify(root, ident):
         fields['dropped'] = '\n'.join(dropped)
     if optional.get('fallback'):
         fields['fallback'] = one_line(optional['fallback'], 'fallback')
+    if re.fullmatch(r'20[0-9]{2}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]Z', os.environ.get('PF_BUILT_AT', '')):
+        fields['built'] = os.environ['PF_BUILT_AT']  # W16k: set once per job (manual-patch.yml)
     summary = release_notes.snapshot(fields, d, t)
     fields['summary'] = json.dumps(summary, sort_keys=True)
     fields['notes'] = release_notes.render(summary)

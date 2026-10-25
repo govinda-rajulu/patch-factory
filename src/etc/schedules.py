@@ -68,8 +68,9 @@ def render():
             what, note = 'Quick poll: builds only the apps whose providers changed.', ''
         lines.append('| %02d:%02d | %s | %s (`%s`) | %s |' % (total // 60, total % 60, days, name, file, what))
     lines += ['', 'Everything else runs on request or after another run: Manual Patch, Batch Patch, '
-              'Explore, Add target, Validate (every change), Notify on failure, Status page data '
-              '(after each listed run), Onboarding review, Qualify published shadow baselines.', '']
+              'Explore, Add target, Validate (every change), Status page data with Notify on failure '
+              'inside it (one follower after each run on main), Onboarding review, Qualify published '
+              'shadow baselines (after build runs on main). Branch smokes wake no follower (W16k).', '']
     return '\n'.join(lines)
 
 

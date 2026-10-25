@@ -23,8 +23,11 @@ const GROUPS=[
  ['social','Social & communities',['instagram','facebook','reddit','telegram','linkedin']],
  ['tools','Everyday essentials',['adguard','photos','truecaller-combo','esfile','edge','keymapper']]
 ];
+// W16k (owner, 25 Oct 2026: "so it doesn't look like a treasure hunt"): the two upstream companions
+// open the shelf in their own group, Obtainium then MicroG RE, before the app categories.
+const START=['start','Start here: Obtainium, then MicroG RE',['obtainium','microg']];
 function appGroup(id){
- if(id==='microg'||id==='obtainium')return ['tools','Everyday essentials',[]];
+ if(id==='microg'||id==='obtainium')return START;
  return GROUPS.find(g=>g[2].includes(id))||['other','More apps',[]];
 }
 const cache=new Map();
@@ -33,6 +36,10 @@ function el(tag,text,className){const n=document.createElement(tag);if(text!==un
 function plain(v,max=500){return typeof v==='string'&&v.length>0&&v.length<=max&&!/[\u0000-\u001f\u007f]/.test(v);}
 function date(v){return typeof v==='string'&&Number.isFinite(Date.parse(v))?new Date(v):null;}
 function ago(v){const t=Date.parse(v);if(!Number.isFinite(t))return 'time unknown';const m=Math.round((Date.now()-t)/60000);if(m<1)return 'just now';if(m<60)return m+' min ago';const h=Math.round(m/60);if(h<48)return h+' h ago';return Math.round(h/24)+' days ago';}
+// W16k (owner, 25 Oct 2026: "showing release date and time ... so i know when last built").
+function stamp(v){const d=date(v);if(!d)return 'time unknown';return d.toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+' ('+ago(v)+')';}
+// W16k: small inline file links instead of a grid of big buttons (owner: "lot of clicks").
+function fileLinks(items){const p=el('p',undefined,'file-links');for(const [text,url,title] of items){const a=el('a',text);a.href=url;a.target='_blank';a.rel='noopener noreferrer';if(title)a.title=title;p.append(a);}return p;}
 function when(v){const d=date(v);return d?d.toLocaleString(): 'Date unknown';}
 function safeLink(url,kind='repo'){
  try{const u=new URL(url);if(u.protocol!=='https:'||u.hostname!=='github.com'||u.port||u.username||u.password)return null;
@@ -178,24 +185,22 @@ function microgRelease(rows,channel,arch='universal',icon='icon'){
  return {rel,asset:a,version};
 }
 function mb(bytes){return Math.round(bytes/1048576)+' MB';}
+// W16k (owner, 25 Oct 2026: "too much stuffed ... foldable, so people select to see what they
+// want"): every extra is its own closed fold with a one-line title; the card shows one download.
+function miniFold(title,...nodes){const d=el('details',undefined,'app-details mini-fold');d.append(el('summary',title),...nodes);return d;}
 function microgChannelBlock(rows,channel){
- const box=el('section',undefined,'microg-channel');
- let latest;try{latest=microgLatest(rows,channel);}catch(e){box.append(el('h4',channel==='stable'?'Stable':'Pre-release'),el('p',e.message,'meta'));return box;}
- const head=el('h4',(channel==='stable'?'Stable ':'Pre-release ')+latest.version);head.append(el('span',' · '+ago(latest.rel.published_at),'meta'));box.append(head);
- const grid=el('div',undefined,'variant-grid'),sums=[];
- grid.append(el('span',''));for(const [,label,hint] of MICROG_ICONS){const h=el('span',label,'variant-head');h.title=hint;grid.append(h);}
- for(const [arch,label,hint] of MICROG_ARCHES){
-  const rowHead=el('span',undefined,'variant-row');rowHead.append(el('strong',label),el('small',hint));grid.append(rowHead);
-  for(const [icon] of MICROG_ICONS){
-   try{const {asset}=microgRelease(rows,channel,arch,icon);const a=el('a','Download · '+mb(asset.size),'button');a.href=asset.browser_download_url;a.target='_blank';a.rel='noopener noreferrer';a.title=asset.name;grid.append(a);
-    if(/^sha256:[a-f0-9]{64}$/.test(asset.digest||''))sums.push(asset.name+'  '+asset.digest.slice(7));}
-   catch(e){grid.append(el('span','Not in this release','meta'));}
-  }
+ const box=el('section',undefined,'microg-channel'),sums=[];
+ let latest;try{latest=microgLatest(rows,channel);}catch(e){box.append(el('p',e.message,'meta'));return {box,sums};}
+ box.append(el('p',(channel==='stable'?'Stable ':'Pre-release ')+latest.version+' · '+stamp(latest.rel.published_at),'meta'));
+ const items=[];
+ for(const [arch,label] of MICROG_ARCHES)for(const [icon,iconLabel] of MICROG_ICONS){
+  try{const {asset}=microgRelease(rows,channel,arch,icon);items.push([label+' · '+iconLabel.toLowerCase()+' · '+mb(asset.size),asset.browser_download_url,asset.name]);
+   if(/^sha256:[a-f0-9]{64}$/.test(asset.digest||''))sums.push(asset.name+'  '+asset.digest.slice(7));}catch(e){}
  }
- box.append(grid);
- const d=el('details');d.append(el('summary','SHA-256 checksums'),el('pre',sums.join('\n')||'Not published for this release.'));box.append(d);
- return box;
+ box.append(items.length?fileLinks(items):el('p','No files in this release.','meta'));
+ return {box,sums};
 }
+function sumsBlock(sums){return sums.length?el('pre',sums.join('\n')):el('p','Checksums not published for this release.','meta');}
 // W7 (owner, 9 Oct 2026): the card is short. It shows the one file the Obtainium panel's
 // choices pick (icon, CPU, channel) and folds every file and checksum away.
 let microgRows=null;
@@ -207,38 +212,41 @@ function microgPickChannel(rows){
 }
 function microgPick(rows){
  const box=el('div',undefined,'microg-pick');box.id='microgPick';
- box.append(el('p','Your choice: '+microgChoice(),'meta'));
+ const choice=el('p','Your choice: '+microgChoice()+' ','meta');
+ const change=el('button','Change','link-button');change.type='button';
+ change.title='Change icon, CPU or channel for Obtainium';
+ change.addEventListener('click',()=>{$('importPanel').open=true;$('microgIcon').focus();$('importPanel').scrollIntoView({block:'center'});});
+ choice.append(change);box.append(choice);
  try{
   const channel=microgPickChannel(rows),{asset,version,rel}=microgRelease(rows,channel,microgArch==='auto'?'universal':microgArch,microgIcon);
   const a=el('a','Download '+version+' · '+mb(asset.size),'button primary');a.href=asset.browser_download_url;a.target='_blank';a.rel='noopener noreferrer';a.title=asset.name;
-  box.append(a,el('p',(channel==='stable'?'Stable':'Pre-release')+', '+ago(rel.published_at)+'.','meta'));
+  box.append(a,el('p',(channel==='stable'?'Stable':'Pre-release')+' · released '+stamp(rel.published_at),'meta release-facts'));
  }catch(e){box.append(el('p',e.message,'meta'));}
  return box;
 }
 function refreshMicrogPick(){const old=document.getElementById('microgPick');if(old&&microgRows)old.replaceWith(microgPick(microgRows));}
 async function microgCard(root){
+ // W16k (owner, 25 Oct 2026): one download; other files, checksums and help each in a closed fold.
  const article=el('article');article.dataset.target='microg';article.dataset.type='upstream';
  const heading=el('div',undefined,'app-title');heading.append(el('h3','MicroG RE'),el('span','Upstream','badge'));article.append(heading);
- article.append(el('p','Needed by YouTube, YouTube Music and Google Photos. Straight from MorpheApp, not rebuilt here.','meta release-facts'));
+ article.append(el('p','Install before YouTube, YouTube Music and Google Photos.','meta release-facts'));
  try{
   const rows=await read(MICROG_API+'?per_page=100');microgRows=rows;
   article.append(microgPick(rows));
   try{article.dataset.published=microgLatest(rows,'stable').rel.published_at;}catch(e){}
   let newer=false;try{newer=Date.parse(microgLatest(rows,'prerelease').rel.published_at)>Date.parse(microgLatest(rows,'stable').rel.published_at);}catch(e){}
-  const all=el('details',undefined,'app-details');all.append(el('summary','All six files and SHA-256 checksums'));
-  all.append(el('p','No icon or With icon: same app, the icon only changes whether it shows in your app drawer. ARM64 fits most phones.','meta'));
-  all.append(microgChannelBlock(rows,'stable'));
-  if(newer)all.append(microgChannelBlock(rows,'prerelease'));
-  const more=el('p',undefined,'meta');more.append(link('All MicroG RE releases and notes',MICROG_WEB+'/releases','upstream'));all.append(more);
-  article.append(all);
+  const stable=microgChannelBlock(rows,'stable'),pre=newer?microgChannelBlock(rows,'prerelease'):null;
+  const folds=el('div',undefined,'mini-folds');
+  folds.append(miniFold('Other files (CPU, icon'+(pre?', pre-release':'')+')',stable.box,...(pre?[pre.box]:[])));
+  folds.append(miniFold('SHA-256 checksums',sumsBlock(stable.sums.concat(pre?pre.sums:[]))));
+  folds.append(miniFold('Help',
+   el('p','No icon or with icon: same app; the icon only decides whether it shows in your app drawer. To switch, install the other file over it (never uninstall: you would lose its data). ARM64 fits most phones.','meta'),
+   el('p','Pre-releases are tested less. The page shows one only when it is newer than the stable release; Stable + dev prereleases can show the same version when stable is newest.','meta')));
+  article.append(folds);
+  const more=el('p',undefined,'meta card-foot');const a=el('a','All releases');a.href=safeLink(MICROG_WEB+'/releases','upstream');a.target='_blank';a.rel='noopener noreferrer';more.append(a);
+  article.append(more);
  }catch(e){article.append(el('p','MicroG RE releases unavailable: '+e.message,'notice'));}
- const details=el('details',undefined,'app-details');details.append(el('summary','Installing and updating'),
- el('p','Install MicroG RE before the Google apps. Updating keeps its data. Do not uninstall it to switch between icon and no-icon: both are the same app, install the other file over it.'),
- el('p','Pre-releases are tested less. The page shows one only when it is newer than the stable release; Stable + dev prereleases can show the same version when stable is newest.'));
- article.append(details);root.append(article);
- const channelButton=el('button','Open Obtainium import settings');channelButton.type='button';
- channelButton.addEventListener('click',()=>{$('importPanel').open=true;$('microgIcon').focus();$('importPanel').scrollIntoView({block:'center'});});
- article.append(channelButton);
+ root.append(article);
 }
 // W14 (owner, 11 Oct 2026): Obtainium itself, straight from its upstream releases, so nobody
 // has to find it elsewhere before importing. Standard flavor only (package dev.imranr.obtainium):
@@ -259,31 +267,31 @@ function obtainiumRelease(rows,arch='universal'){
  return {rel,asset:a,version:rel.tag_name.slice(1)};
 }
 async function obtainiumCard(root){
+ // W16k (owner, 25 Oct 2026): one download; smaller files and checksums each in a closed fold.
  const article=el('article');article.dataset.target='obtainium';article.dataset.type='upstream';
  const heading=el('div',undefined,'app-title');heading.append(el('h3','Obtainium'),el('span','Upstream','badge'));article.append(heading);
- article.append(el('p','Install it first, then import your apps with Track with Obtainium. Straight from ImranR98, not rebuilt here.','meta release-facts'));
+ article.append(el('p','Install it first, then track your apps with it.','meta release-facts'));
  try{
   const rows=await read(OBTAINIUM_API+'?per_page=100'),{asset,version,rel}=obtainiumRelease(rows,'universal');
   article.dataset.published=rel.published_at;
   const box=el('div',undefined,'microg-pick'),a=el('a','Download '+version+' · '+mb(asset.size),'button primary');
   a.href=asset.browser_download_url;a.target='_blank';a.rel='noopener noreferrer';a.title=asset.name;
-  box.append(a,el('p','Universal, stable, '+ago(rel.published_at)+'.','meta'));article.append(box);
-  const all=el('details',undefined,'app-details');all.append(el('summary','Every CPU file and SHA-256 checksums'));
-  const grid=el('div',undefined,'variant-grid'),sums=[];
+  box.append(a,el('p','Universal, stable · released '+stamp(rel.published_at),'meta release-facts'));article.append(box);
+  const items=[],sums=[];
   for(const [arch,label,hint] of OBTAINIUM_ARCHES){
-   const rowHead=el('span',undefined,'variant-row');rowHead.append(el('strong',label),el('small',hint));grid.append(rowHead);
-   try{const {asset:f}=obtainiumRelease(rows,arch),b=el('a','Download · '+mb(f.size),'button');b.href=f.browser_download_url;b.target='_blank';b.rel='noopener noreferrer';b.title=f.name;grid.append(b);
-    if(/^sha256:[a-f0-9]{64}$/.test(f.digest||''))sums.push(f.name+'  '+f.digest.slice(7));}
-   catch(e){grid.append(el('span','Not in this release','meta'));}
+   try{const {asset:f}=obtainiumRelease(rows,arch);if(arch!=='universal')items.push([label+' ('+hint+') · '+mb(f.size),f.browser_download_url,f.name]);
+    if(/^sha256:[a-f0-9]{64}$/.test(f.digest||''))sums.push(f.name+'  '+f.digest.slice(7));}catch(e){}
   }
-  all.append(grid);
-  const d=el('details');d.append(el('summary','SHA-256 checksums'),el('pre',sums.join('\n')||'Not published for this release.'));all.append(d);
-  const more=el('p',undefined,'meta');more.append(link('All Obtainium releases and notes',OBTAINIUM_WEB+'/releases','upstream'));all.append(more);
-  article.append(all);
+  const folds=el('div',undefined,'mini-folds');
+  folds.append(miniFold('Smaller files for one CPU',items.length?fileLinks(items):el('p','Only the universal file is in this release.','meta')));
+  folds.append(miniFold('SHA-256 checksums',sumsBlock(sums)));
+  article.append(folds);
  }catch(e){article.append(el('p','Obtainium releases unavailable: '+e.message,'notice'));}
- const next=el('button','Next: import apps');next.type='button';
+ const foot=el('p',undefined,'meta card-foot');
+ const next=el('button','Next: import apps','link-button');next.type='button';
  next.addEventListener('click',()=>{$('importPanel').open=true;$('pack').focus();$('importPanel').scrollIntoView({block:'center'});});
- article.append(next);root.append(article);
+ const all=el('a','All releases');all.href=safeLink(OBTAINIUM_WEB+'/releases','upstream');all.target='_blank';all.rel='noopener noreferrer';
+ foot.append(next,document.createTextNode(' · '),all);article.append(foot);root.append(article);
 }
 async function changeMicrogChannel(value){
  need(['stable','prerelease'].includes(value),'Unknown MicroG channel');
@@ -355,7 +363,7 @@ function releaseRows(rows,ts){
  for(const rows of map.values())rows.sort((a,b)=>b.tag.build.localeCompare(a.tag.build)||Date.parse(b.rel.published_at)-Date.parse(a.rel.published_at));
  return {map,rejected};
 }
-function buildMeta(row){return 'Last built '+row.tag.day;}
+function buildMeta(row){return 'Last built '+(row.rel&&date(row.rel.published_at)?stamp(row.rel.published_at):row.tag.day);}
 function releaseRecord(body){
  const m=typeof body==='string'&&body.match(/^\[pf-release-v1\]: # \"([A-Za-z0-9+/=]+)\"[ \t]*$/m);
  if(!m||typeof atob!=='function')return null;
@@ -464,6 +472,15 @@ function changeSummary(top,previous){
  if(previous)return [previous.tag.version===top.tag.version?'App version: '+top.tag.version+' -> '+top.tag.version+'.':'App version: '+previous.tag.version+' -> '+top.tag.version+'.'];
  return ['App version: unknown -> '+top.tag.version+'.'];
 }
+// W16k (owner, 25 Oct): the fold must hold something real: what changed, the notes, older APKs.
+function olderFold(article,rows){
+ const top=rows[0],older=rows.slice(1,5),box=el('details',undefined,'app-details older-fold');
+ box.append(el('summary',older.length?'What changed & older versions ('+older.length+')':'What changed'));
+ const changes=el('ul');for(const line of changeSummary(top,rows[1]))changes.append(el('li',line));box.append(changes);
+ if(safeLink(top.rel.html_url))box.append(fileLinks([['Full release notes',top.rel.html_url]]));
+ if(older.length)box.append(fileLinks(older.map(r=>[r.tag.version+' · '+stamp(r.rel.published_at),r.asset.browser_download_url,r.asset.name])));
+ article.append(box);
+}
 function field(article,label,value){
  const p=el('p',undefined,'card-field');p.append(el('strong',label+': '));p.append(document.createTextNode(value));article.append(p);
 }
@@ -534,8 +551,9 @@ async function appsPanel(root){
  patchField(article,record);
  field(article,'Provider',record?providerNames(record,t).join(' + '):'Not recorded');
  field(article,'Bundle',record?bundleText(record,t):'Not recorded');
- field(article,'Last built',buildMeta(top).replace('Last built ',''));
+ field(article,'Last built',record&&typeof record.built==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\dZ$/.test(record.built)?stamp(record.built):buildMeta(top).replace('Last built ',''));
  const actions=el('div',undefined,'actions');actions.append(link('Install APK',top.asset.browser_download_url,'download'));article.append(actions);
+ olderFold(article,rows);
  root.append(article);
  }
  await obtainiumCard(root);
@@ -642,7 +660,7 @@ async function buildsPanel(root){
   const g=groups.get(id);if(!g)continue;
   const box=el('section',undefined,'status-group');box.append(el('h3',g.label));
   g.rows.sort((a,b)=>(unresolved(b.last_build)-unresolved(a.last_build))||(a.label||'').localeCompare(b.label||''));
-  for(const a of g.rows){const rel=a.release?a.release.version+' · released '+ago(a.release.published_at):a.release_known?'no release yet':'release unknown';box.append(statusRow(a.label,rel,a.last_build));}
+  for(const a of g.rows){const rel=a.release?a.release.version+' · released '+stamp(a.release.published_at):a.release_known?'no release yet':'release unknown';box.append(statusRow(a.label,rel,a.last_build));}
   root.append(box);
  }
  const runs=[];for(const w of d.workflows)if(BUILD_FLOWS.includes(w.name))for(const r of (w.recent||[]))runs.push(Object.assign({flow:w.name},r));
@@ -720,13 +738,8 @@ function organizePanel(root,activeTab){
   }
   const version=Array.from(article.children).find(n=>n.tagName==='P'&&!n.classList.contains('meta')&&!n.classList.contains('channel-status'));
   if(version)version.classList.add('app-version');
-  // Keep the main download action visible; detailed provenance/history goes under one disclosure.
-  const extra=Array.from(article.children).filter(n=>n.matches('p.meta:not(.release-facts),details:not(.patch-details)'));
-  if(extra.length){
-   const details=el('details',undefined,'app-details');details.append(el('summary','Evidence, notes & older versions'));
-   for(const node of extra)details.append(node);
-   article.append(details);
-  }
+  // W16k: the old "Evidence, notes & older versions" fold opened onto one line or nothing; removed.
+  // Status lines stay visible; history lives in olderFold() on each built card.
   const group=appGroup(id);
   if(!groups.has(group[0])){
    const box=el('details',undefined,'app-group');box.open=true;box.dataset.group=group[0];
@@ -735,7 +748,7 @@ function organizePanel(root,activeTab){
   }
   groups.get(group[0]).querySelector('.app-grid').append(article);
  }
- for(const [id] of [...GROUPS,['other']])if(groups.has(id))root.append(groups.get(id));
+ for(const [id] of [START,...GROUPS,['other']])if(groups.has(id))root.append(groups.get(id));
  const empty=el('p','No matching apps. Try a different name or category.','notice');empty.id='noApps';empty.hidden=true;root.append(empty);
 }
 function filterApps(){
@@ -751,7 +764,8 @@ function filterApps(){
   const count=Array.from(group.querySelectorAll('.app-card')).filter(c=>!c.hidden).length;
   group.hidden=count===0;group.querySelector('.group-count').textContent=count+' app'+(count===1?'':'s');
   const grid=group.querySelector('.app-grid'),cards=Array.from(grid.children);
-  cards.sort((a,b)=>appSort==='date'?((Date.parse(b.dataset.published)||0)-(Date.parse(a.dataset.published)||0)):
+  // The start group keeps its order (Obtainium first, then MicroG RE); the categories sort as chosen.
+  if(group.dataset.group!=='start')cards.sort((a,b)=>appSort==='date'?((Date.parse(b.dataset.published)||0)-(Date.parse(a.dataset.published)||0)):
    (a.querySelector('h3')?.textContent||'').localeCompare(b.querySelector('h3')?.textContent||''));
   for(const card of cards)grid.append(card);
   if(appQuery||appCategory!=='all')group.open=true;
