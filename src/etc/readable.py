@@ -47,10 +47,17 @@ def names(values, limit=12):
     return shown + (' and %d more' % (len(values) - limit) if len(values) > limit else '')
 
 
-def headline(title, status, needs):
-    """'# Title: STATUS' and the one line that says whether the owner must act."""
+def headline(title, status, needs, happened=None, todo=None):
+    """'# Title: STATUS' and three plain lines: what happened, whether the owner must act, what to do.
+
+    W16j (owner, 25 Oct 2026: "I don't want to get dizzy reading"): every report opens the same
+    way. The middle line keeps its '**Needs you:**' wording; readers and tests key on it."""
+    happened = happened or '%s ran; result %s.' % (title, status)
+    todo = todo or ('nothing.' if not needs else 'answer the items below (they are also on the Needs you issue).')
     return ['# %s: %s' % (title, status), '',
-            '**Needs you:** ' + ('nothing' if not needs else '%d item(s), listed first below' % needs), '']
+            '**What happened:** ' + happened,
+            '**Needs you:** ' + ('nothing' if not needs else '%d item(s), listed first below' % needs),
+            '**What to do:** ' + todo, '']
 
 
 def changed_lines(old, new, limit=15):

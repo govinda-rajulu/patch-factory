@@ -41,6 +41,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'src/etc'))
 import provider_watch
+import decisions
 import readable  # noqa: E402
 
 OUT = ROOT / 'selection-watch-evidence'
@@ -351,8 +352,8 @@ def held_kind(why):
 def report(p, dig, rank, run_url, due=()):
     """W15e (owner, 22 Oct 2026): tables first, long lists folded. Style: docs/review/REPORT-STYLE.md."""
     adopt = [w for w in p['waiting'] + p.get('backlog', []) if w.get('call') == 'adopt']
-    held = [w for w in p['waiting'] if w.get('call') != 'adopt']
-    old_held = [w for w in p.get('backlog', []) if w.get('call') != 'adopt']
+    held = [w for w in p['waiting'] if w.get('call') not in ('adopt', 'skip')]
+    old_held = [w for w in p.get('backlog', []) if w.get('call') not in ('adopt', 'skip')]
     defaults = p.get('defaults') or []
     needs = len(p['blocked']) + len(held) + len(due)
     removed = sum(len(e['include']) for e in p['edits'].values())
@@ -427,6 +428,26 @@ def report(p, dig, rank, run_url, due=()):
     return '\n'.join(L) + '\n'
 
 
+KEEP_HOLD = ('another bundle', 'reserved for', 'paid word')
+
+
+def remember(memory, rows):
+    """W16j: the owner decides a name once per app (src/patches/DECISIONS.json). take adopts a held
+    name from any provider; drop keeps it out quietly. BANNED, one bundle per name, reserved names
+    and paid words outside paid_ok_targets still win."""
+    for w in rows:
+        verdict, row = decisions.call(memory, w['target'], w['name'])
+        if not verdict or w.get('tag') == 'BAN':
+            continue
+        why = 'owner decided %s on %s (%s, src/patches/DECISIONS.json)' % (verdict, row.get('date', '?'), row.get('id', '?'))
+        if verdict == 'drop':
+            w['call'], w['why'] = 'skip', why
+        elif w.get('call') == 'hold' and not str(w.get('why', '')).startswith(KEEP_HOLD):
+            w['call'], w['why'] = 'adopt', why + '; the rule alone held it: ' + str(w.get('why', ''))
+            if w.get('tag') == 'CFM':
+                w['approved'] = True
+
+
 def collect(root, out, observe, reader=gh_json, state_text=None, identity=None):
     targets = json.loads((root / 'src/targets.json').read_text(encoding='utf-8'))
     rows = provider_watch.inventory(targets)
@@ -446,6 +467,7 @@ def collect(root, out, observe, reader=gh_json, state_text=None, identity=None):
     for w in p['waiting'] + p['backlog']:
         w['call'], w['why'] = classify(policy, descriptions, w, packages.get(w['target']), w['name'], w['tag'],
                                        peer_names(root, rows, observed, w))
+    remember(decisions.load(root), p['waiting'] + p['backlog'])
     chosen = set()
     for row in rows:
         chosen |= {l.split('|', 1)[0] for l in lines(root / 'src/patches' / row['patch_dir'] / 'include-patches')}
@@ -592,6 +614,8 @@ def adopt(root, out, repo, runner=None, stamp=None):
         cmd = ['python3', 'src/etc/app.py', 'patch', target, '--bundle', provider,
                '--patches', '; '.join(w['name'] for w in ws),
                '--why', json.dumps({w['name']: w['why'] for w in ws})]
+        if any(w.get('approved') for w in ws):
+            cmd.append('--approve-confirm')  # W16j: a CONFIRM name the owner already took (DECISIONS.json)
         r = run(cmd)
         if r.returncode != 0:
             print('::warning::SELECTION_ADOPT %s/%s refused by app.py: %s' % (target, provider, (r.stderr or r.stdout)[-300:]))

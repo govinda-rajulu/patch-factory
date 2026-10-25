@@ -215,8 +215,9 @@ class Audit(unittest.TestCase):
 
     def test_m1_controls_job_wide_or_missing_secrets_are_detected(self):
         text = self.read('.github/workflows/manual-patch.yml')
-        wide = text.replace('      COE: ${{ vars.COE }}\n',
-                            '      KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}\n      COE: ${{ vars.COE }}\n', 1)
+        anchor = "      COE: ${{ (inputs.keep_going && !inputs.publish) && 'true' || vars.COE }}\n"  # W16j
+        self.assertIn(anchor, text)
+        wide = text.replace(anchor, '      KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}\n' + anchor, 1)
         self.assertIn('signing secret in job-wide env', signing_problems(wide))
         verify = text.index('      - name: Verify finished APK identity\n')
         lost = text[:verify] + text[verify:].replace(

@@ -66,8 +66,10 @@ class Quiet(unittest.TestCase):
 
 class RemovedStaysOut(unittest.TestCase):
     def test_pr_243_names_are_decided(self):
-        for folder, name in (('telegram-newuser7171', 'Bypass channel restrictions'),
-                             ('truecaller-heval99', 'Restore classic call log'),
+        # W16j: newuser7171 left the repo (never built on 12.10.4) and is a dropped provider.
+        self.assertFalse((ROOT / 'src/patches/telegram-newuser7171').exists())
+        self.assertIn('newuser7171/telegram-morphe-patches-', (ROOT / 'src/patches/DECISIONS.json').read_text())
+        for folder, name in (('truecaller-heval99', 'Restore classic call log'),
                              ('truecaller-heval99', 'Use SMS for verification codes')):
             exc = sw.lines(ROOT / 'src/patches' / folder / 'exclude-patches')
             inc = [l.split('|', 1)[0] for l in sw.lines(ROOT / 'src/patches' / folder / 'include-patches')]

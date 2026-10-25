@@ -3,8 +3,8 @@
 Package: com.truecaller
 Source APK: the target's current source mapping (unchanged); the version follows the provider's compatible list.
 
-**Current (W16h, 25 Oct 2026):** bufferk/morphe-patches is primary with the paresh-patches and binarymend/morphe-patches extras (19 names, 26.10.6): `src/patches/truecaller-combo/include-patches` (7), `src/patches/truecaller-paresh/include-patches` (10) and `src/patches/truecaller-combo-binarymend/include-patches` (2). heval99 below is the fallback, built alone. The W16g sections below are history; the W16h section at the end is the current change.
-Provider: heval99/Heval-Morphe-Patches (fallback since W16h; licence: GPL-3.0, the LICENSE file at https://github.com/heval99/Heval-Morphe-Patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease). Names below come from the live list-patches run in Explore issue #234 (24 Oct 2026, 24 patches) and the community index (compatible 26.40.5, 26.41.5).
+**Current (W16j, 25 Oct 2026):** heval99/Heval-Morphe-Patches is primary on 26.41.5 and builds alone (its candidate overrides drop the extras; src/build/build_attempts.py applies a lone primary's overrides since W16j). The backup is the combo: bufferk/morphe-patches with the paresh-patches and binarymend/morphe-patches extras (19 names, 26.10.6). Owner, 25 Oct 2026: "Make heval99 Truecaller's main provider, with the 19-patch set as the backup."
+Provider: heval99/Heval-Morphe-Patches (primary since W16j, fallback in W16h; licence: GPL-3.0, the LICENSE file at https://github.com/heval99/Heval-Morphe-Patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease). Names below come from the live list-patches run in Explore issue #234 (24 Oct 2026, 24 patches) and the community index (compatible 26.40.5, 26.41.5).
 
 Owner decision, 24 Oct 2026 (packet W16g): use the provider with the newest app version and the most patches. heval99 targets 26.41.5 with 24 patches; the old combo (bufferk 7 + paresh 10 + binarymend 2) targets 26.10.6. heval99 becomes primary, built alone; bufferk alone (7 patches, 26.10.6) is the fallback. The paresh and binarymend extras leave: heval99 covers what they did, and their patches fit 26.10.6 only. Enable Premium and GmsCore support stay in, so the owner can compare.
 
@@ -12,6 +12,9 @@ Owner approved: Enable Premium
 Owner approved: GmsCore support
 
 ## heval99 names (primary in W16g, fallback since W16h)
+- Hide Blocking tab: owner took it in the Needs you review file, 2026-10-25 (N-c4f7b1)
+- Hide business media: owner took it in the Needs you review file, 2026-10-25 (N-2a7712)
+- Hide call log filters: owner took it in the Needs you review file, 2026-10-25 (N-7de88d)
 
 Truecaller is an exclusive target; the heval99 fallback's names are in `src/patches/truecaller-heval99/include-patches`:
 

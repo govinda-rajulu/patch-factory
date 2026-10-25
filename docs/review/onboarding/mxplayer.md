@@ -5,6 +5,7 @@ Source APK: per src/build/helper/apps.json
 Provider: BlazeFTL/FTL-Patches (ftl, channel prerelease; bundle: the one .mpp asset of the newest release on that channel; licence: the LICENSE file at https://github.com/BlazeFTL/FTL-Patches); gitlab:82031658 (paresh, channel prerelease; bundle: the one .mpp asset of the newest release on that channel; licence: the LICENSE file at GitLab project 82031658)
 
 ## Patches
+- Hide top tiles: owner took it in the Needs you review file, 2026-10-25 (N-939b7b)
 - Skip Splash Screen: added 2026-10-22 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 
 ## Risks

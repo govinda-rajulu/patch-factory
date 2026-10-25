@@ -62,6 +62,7 @@ Facts you may rely on, because they are generated and gated in CI:
 - `README.md` current-state block — targets, providers, stores, the gates
 - `CREDITS.md` — every provider and where its bundle lives
 - `docs/review/PATCHES-*.txt` — the patcher's own output, ground truth for patch names
+- `src/patches/DECISIONS.json` — the owner's take/drop per app and patch name, watched and dropped providers (W16j); read by Selection watch and Needs you; **owner calls only**
 - `docs/review/DECISIONS-*.tsv` — classified patches; **column 1 belongs to the owner**
 - `docs/review/OPEN-WORK.md` — what is actually open
 

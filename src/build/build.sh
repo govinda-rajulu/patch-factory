@@ -283,11 +283,16 @@ fi
 python3 src/build/artifact_identity.py capture-inputs "$ID" "$WINNER" || exit 1
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
+# W16j: one PATCH_FAILED line per failing patch (the controller and Explore read them).
+failed_patches() {
+  grep -E "(SEVERE|ERROR): FAILED" /tmp/patch.log | sed 's/\x1b\[[0-9;]*m//g; s/.*FAILED:* *//; s/[[:space:]]*$//' | sort -u | sed 's/^/PATCH_FAILED /'
+  return 0
+}
 for i in 0; do
   [ -n "${COE:-}" ] && excludePatches="$excludePatches --continue-on-error"
   python3 src/build/patch_target.py "$ID" "$WINNER" > /tmp/patch.log 2>&1; SA=$?
  cat /tmp/patch.log
- [ "$SA" -eq 0 ] || { red_log "[-] patcher exited $SA - refusing to release"; exit 1; }
+ [ "$SA" -eq 0 ] || { red_log "[-] patcher exited $SA - refusing to release"; failed_patches; exit 1; }
  grep -o "Applied: .*" /tmp/patch.log | sed 's/\x1b\[[0-9;]*m//g; s/^Applied: //; s/[[:space:]]*$//' | sort -u > /tmp/applied.txt
  AP=$(wc -l < /tmp/applied.txt)
  [ "$AP" -gt 0 ] || { red_log "[-] zero patches applied - refusing to release"; exit 1; }
@@ -301,9 +306,11 @@ for i in 0; do
  else
    green_log "[+] package verified by the patcher: $PKG_LOG"
  fi
- if grep -q "SEVERE: FAILED" /tmp/patch.log; then
+ # W16j: the patcher now prints "ERROR: FAILED: <name>" (older ones "SEVERE: FAILED"). With COE
+ # (keep_going smoke) it carries on, so every failing patch is named here in one run.
+ if grep -qE "(SEVERE|ERROR): FAILED" /tmp/patch.log; then
   red_log "[-] a patch failed - refusing to release"
-  grep "SEVERE: FAILED" /tmp/patch.log | head -10; exit 1
+  failed_patches; exit 1
  fi
  if [ -s ./.requested ]; then
    cut -f2 ./.requested | sed 's/[[:space:]]*$//' | sort -u > /tmp/requested.txt

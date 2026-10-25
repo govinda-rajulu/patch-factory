@@ -86,6 +86,8 @@ def owner_policy(base):
         apps = json.loads(p.read_text(encoding='utf-8')).get('paid_ok_targets', []) if p.is_file() else []
     except ValueError:
         apps = []
+    # W16j (owner, 25 Oct 2026): the list now holds account apps too (Truecaller, Telegram, Amazon Music);
+    # the owner accepted their risk. The key name stays for the prompt and its tests.
     return {'paid_unlock_ok_offline_apps': sorted(a for a in apps if isinstance(a, str)),
             'source': 'src/patches/ADOPT.json on the base commit'}
 

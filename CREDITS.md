@@ -26,10 +26,13 @@ as code or APKs to copy.
 | Facebook | hushfacebook | https://github.com/SysAdminDoc/HushFacebook |
 | Facebook | derevanced | https://github.com/RookieEnough/De-Vanced |
 | Google Photos | rushiranpise | https://github.com/rushiranpise/morphe-patches |
+| Google Photos | akash | https://github.com/Akash-Sriram/morphe-google-photos |
 | Instagram | piko | https://github.com/crimera/piko |
 | Instagram | hushgram | https://github.com/SysAdminDoc/HushGram |
+| Instagram | oxbow | https://github.com/aic0d3r/oxbow |
 | Instagram | brosssh | https://github.com/brosssh/morphe-patches |
 | JioHotstar | chiggi | https://github.com/durgesh0505/chiggi_morphe_patches |
+| Key Mapper | legendsciber | https://github.com/legendsciber/morphe-patches |
 | Key Mapper | lain | https://github.com/kiraio-moe/Lain-Patches |
 | LinkedIn | heyymichii | https://github.com/heyymichii/michii-patches |
 | Microsoft Edge | quantavil | https://github.com/quantavil/edge-morphe-patches |
@@ -38,10 +41,11 @@ as code or APKs to copy.
 | Prime Video | hoo-dles | https://github.com/hoo-dles/morphe-patches |
 | Reddit | morphe | https://github.com/MorpheApp/morphe-patches |
 | Reddit | adobo | https://github.com/jkennethcarino/adobo |
+| Reddit | alastor | https://github.com/Alastor-Kaneki/Morphe-Patches |
+| Telegram | hushtelegram | https://github.com/SysAdminDoc/HushTelegram |
 | Telegram | rushiranpise | https://github.com/rushiranpise/morphe-patches |
-| Telegram | newuser7171 | https://github.com/newuser7171/telegram-morphe-patches- |
-| Truecaller | bufferk | https://github.com/bufferk/morphe-patches |
 | Truecaller | heval99 | https://github.com/heval99/Heval-Morphe-Patches |
+| Truecaller | bufferk | https://github.com/bufferk/morphe-patches |
 | Truecaller | paresh | https://gitlab.com/Paresh-Maheshwari/paresh-patches |
 | Truecaller | binarymend | https://github.com/binarymend/morphe-patches |
 | YouTube | morphe | https://github.com/MorpheApp/morphe-patches |

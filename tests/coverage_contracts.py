@@ -128,7 +128,8 @@ class Coverage(unittest.TestCase):
                            input='2026.42.0 31\n2026.41.0 31\n', cwd=ROOT, capture_output=True, text=True)
         self.assertEqual(x.returncode, 0, x.stdout)
         # W16c: 26 after Disable modern home left the list (it stops at Reddit 2026.24.0).
-        self.assertIn('COVERAGE_TOTAL=26', x.stdout)
+        # W16j: 27 with Hide Reddit search (owner take, 25 Oct).
+        self.assertIn('COVERAGE_TOTAL=27', x.stdout)
         self.assertIn('COVERAGE_PICK=2026.42.0', x.stdout)
 
 

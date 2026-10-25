@@ -5,6 +5,7 @@ Source APK: https://www.apkmirror.com/uploads/?appcategory=amazon-music-discover
 Provider: RookieEnough/De-Vanced (rookieenough, channel prerelease; bundle: the one .mpp asset of the newest release on that channel; licence: GPL-3.0, the LICENSE file at https://github.com/RookieEnough/De-Vanced/blob/main/LICENSE, read 2026-10-08)
 
 ## Patches
+- Rename shared permissions: owner took it in the Needs you review file, 2026-10-25 (N-6b94c6)
 - Skip ads: added 2026-10-08 by owner request
 - Unlimited track skipping: added 2026-10-08 by owner request
 - Prevent log upload: added 2026-10-08 by owner request
@@ -22,3 +23,7 @@ version to pick (Manual Patch run 37769298585: "no max_app_version to fall back 
 APKMirror's newest, universal, Android 10+ (read 2026-10-09). Raise it by hand until the build
 follows the store's newest Android 10 version itself (OPEN-WORK).
 2026-10-10 (packet W13): the throwaway account was banned. As decided on 2026-10-08, "Unlock Unlimited" and "Unlimited track skipping" are removed before anyone signs in with a real account. Skip ads and Prevent log upload stay. The cause (patch or new account) is unknown; do not move the test to the main account without a fresh decision.
+Owner approved: Unlimited track skipping
+Owner approved: Unlock Unlimited
+
+W16j (25 Oct 2026): the owner put Unlimited track skipping and Unlock Unlimited back ("Keep, let me test somehow"). The 10 Oct throwaway account was banned while they were on, so test only with a throwaway account, never the main one. amazonmusic joins paid_ok_targets in src/patches/ADOPT.json for the same reason.

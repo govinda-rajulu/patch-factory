@@ -21,9 +21,10 @@ class Renderer(unittest.TestCase):
             for name in n.ISSUES:
                 p = Path(d) / (name + '.md'); p.write_text('# report: OK\n'); paths[name] = p
             body = n.render(paths)
-        self.assertIn('## Keep building', body)
-        self.assertIn('N-', body)
-        self.assertIn('take N-xxxxxx', body)
+        # W16j: no daily 'Keep building X?' questions; the three plain lines lead.
+        self.assertNotIn('Keep building', body)
+        self.assertIn('**What happened:**', body)
+        self.assertIn('`yes all`', body)
 
     def test_groups_decide_install_fix_and_keeps_reports(self):
         with tempfile.TemporaryDirectory() as d:
@@ -37,9 +38,8 @@ class Renderer(unittest.TestCase):
             }
             for name, text in files.items(): (p / (name + '.md')).write_text(text)
             body = n.render({name: p / (name + '.md') for name in n.ISSUES})
-        self.assertLess(body.index('## Decide'), body.index('## Install'))
-        self.assertLess(body.index('## Install'), body.index('## Fix'))
-        self.assertIn('## FYI', body)
+        self.assertIn('## G8 · Other things to look at', body)
+        self.assertIn('FYI (', body)
         self.assertIn('add or skip Name', body)
         self.assertNotIn('What this watch does not check', body)
 
@@ -55,10 +55,10 @@ class Renderer(unittest.TestCase):
             }
             for name, text in files.items(): (p / (name + ".md")).write_text(text)
             body = n.render({name: p / (name + ".md") for name in n.ISSUES})
-        self.assertIn("## Decide", body)
-        self.assertIn("## Install", body)
-        self.assertIn("## Fix", body)
-        self.assertIn("## FYI", body)
+        self.assertIn("## G8", body)
+        self.assertIn("Review the tooling report", body)
+        self.assertIn("inspect and rerun it", body)
+        self.assertIn("FYI (", body)
         self.assertIn("decide whether to add", body)
         self.assertIn("install any update", body)
         self.assertIn("Nightly reported", body)
@@ -120,7 +120,8 @@ class Renderer(unittest.TestCase):
         self.assertIn("hotstar: chiggi offers 'Premium' (held: paid word", body)
         self.assertIn("instagram: piko offers 'Open account' (held: paid word", body)
         self.assertNotIn('paid word on an account app | 3 (amazonmusic, hotstar, instagram)', body)
-        self.assertIn('Take = recorded, and the next packet adds it', body)
+        self.assertIn("| amazonmusic | rookieenough | Skip account |", body)
+        self.assertIn('"group":"G7"', body)
         self.assertEqual([row['id'] for row in rows], [row['id'] for row in changed_rows])
 
     def test_live_233_new_name_rows_and_rule_off_names(self):
@@ -156,17 +157,17 @@ class Renderer(unittest.TestCase):
             reports['selection'] = selection
             body = n.render(reports, targets=[])
         self.assertNotIn('| Kind | What to do |', body)
-        self.assertNotIn('|---|---|', body)
+        self.assertNotIn('— | Kind', body)  # the W16h leak; W16j tables are deliberate
         self.assertIn("instagram: piko offers 'Hide hidden requests' (held: changes what the app shows", body)
         self.assertIn("photos: rushiranpise offers 'Spoof Widevine / DRM level' (held: matches CONFIRM", body)
         self.assertNotIn("offers 'Spoof app signature'", body)
         self.assertNotIn("offers 'Spoof thing'", body)
         self.assertNotIn("offers 'Hide notes tray'", body)
-        fyi = body.split('## FYI', 1)[1]
+        fyi = body.split('FYI (', 1)[1]
         self.assertIn('- photos / rushiranpise: 1 name(s) stay off by the BANNED rule: `Spoof app signature`', fyi)
         self.assertIn('- reddit / adobo: 1 name(s) stay off by the BANNED rule: `Spoof thing`', fyi)
         self.assertIn('- instagram / brosssh: 1 name(s) wait for the bundle that offers them first', fyi)
-        self.assertIn('**Needs you:** 2 item(s)', body)
+        self.assertIn('**What happened:** 2 choice(s)', body)
 
     def test_changed_issue_edits_then_comments_and_unchanged_is_quiet(self):
         calls = []
@@ -175,8 +176,13 @@ class Renderer(unittest.TestCase):
             if args[1:3] == ['issue', 'list']:
                 return SimpleNamespace(returncode=0, stdout=json.dumps([{'number': 9, 'title': 'Needs you', 'body': 'old', 'author': {'is_bot': True, 'login': 'github-actions[bot]'}}]), stderr='')
             return SimpleNamespace(returncode=0, stdout='', stderr='')
+        # W16j: a body edit with no new item ids is quiet; new ids get one comment listing them.
         self.assertEqual(n.deliver('new\n', run=run), 'EDITED')
+        self.assertEqual([x[1:3] for x in calls], [['issue', 'list'], ['issue', 'edit']])
+        calls.clear()
+        self.assertEqual(n.deliver('| N-abc123 | new row |\n', run=run), 'EDITED')
         self.assertEqual([x[1:3] for x in calls], [['issue', 'list'], ['issue', 'edit'], ['issue', 'comment']])
+        self.assertIn('N-abc123', calls[-1][-1])
         calls.clear()
         def same(args, **kwargs):
             calls.append(args)
@@ -305,7 +311,7 @@ class ProviderItems(unittest.TestCase):
         self.assertIn("- Example: and 1 more in the index", body)
         self.assertEqual(body.count("https://github.com/o/r/actions/runs/123"), len(n.ISSUES))
         self.assertNotIn("# report", body)
-        self.assertNotIn("needs-you-item", body.split("## FYI", 1)[1])
+        self.assertNotIn("needs-you-item", body.split("FYI (", 1)[1].split("</details>", 1)[0])
 
 
 class Contracts(unittest.TestCase):
@@ -378,3 +384,56 @@ class Ranker(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class GroupCommands(unittest.TestCase):
+    """W16j (owner, 25 Oct 2026): answer a group, every item or every 'My call' in one line."""
+    CAT = {'N-AAAAAA': {'id': 'N-AAAAAA', 'group': 'G2', 'mycall': ''},
+           'N-BBBBBB': {'id': 'N-BBBBBB', 'group': 'G4', 'mycall': 'drop'},
+           'N-CCCCCC': {'id': 'N-CCCCCC', 'group': 'G4', 'mycall': 'drop'},
+           'N-DDDDDD': {'id': 'N-DDDDDD', 'group': 'G1', 'mycall': 'take'}}
+
+    def test_yes_all_applies_only_my_calls_and_later_lines_win(self):
+        got = dict((i, v) for v, i in n.parse_decisions('yes all\ntake N-cccccc\n', self.CAT))
+        self.assertEqual(got, {'N-BBBBBB': 'drop', 'N-CCCCCC': 'take', 'N-DDDDDD': 'take'})
+
+    def test_group_all_keep_and_prose(self):
+        self.assertEqual(sorted(n.parse_decisions('keep G4\nplease do it\n', self.CAT)), [('take', 'N-BBBBBB'), ('take', 'N-CCCCCC')])
+        self.assertEqual(len(n.parse_decisions('hold all', self.CAT)), 4)
+        self.assertEqual(n.parse_decisions('take G9', self.CAT), [])
+
+    def test_except_names(self):
+        text = 'take N-dddddd except "Custom Morphe branding", "Official package name"'
+        self.assertEqual(n.parse_decisions(text, self.CAT), [('take', 'N-DDDDDD')])
+        self.assertEqual(n.parse_excepts(text), {'N-DDDDDD': ['Custom Morphe branding', 'Official package name']})
+
+    def test_old_single_commands_still_work(self):
+        self.assertEqual(n.parse_decisions('drop N-aaaaaa', ['N-AAAAAA']), [('drop', 'N-AAAAAA')])
+
+
+class FalseFixItems(unittest.TestCase):
+    def test_healthy_report_notes_are_not_fix_items(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d)
+            (p / 'provider.md').write_text('# Provider watch: OK\n\nPatch names only: versions NOT compared; 2 missing from the index (documented)\n')
+            (p / 'nightly.md').write_text('# Nightly watch: OK\n\ngg-photos Change package name: documented exception, missing on purpose\n')
+            bucket = {k: [] for k in n.ORDER}
+            n._source(p / 'provider.md', 'provider', bucket); n._source(p / 'nightly.md', 'nightly', bucket)
+        self.assertEqual(bucket['fix'], [])
+
+    def test_failed_headline_still_is(self):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / 'nightly.md'; p.write_text('# Nightly watch: FAILED\n\nreason: store unreachable\n')
+            bucket = {k: [] for k in n.ORDER}
+            n._source(p, 'nightly', bucket)
+        self.assertEqual(len(bucket['fix']), 1)
+
+
+class IndexShapes(unittest.TestCase):
+    def test_patch_rows_read_both_compatibility_keys(self):
+        # W16j double check: 715 index patches use compatibilityKey, not compatiblePackagesKey.
+        comp = [{'a.b': ['1.0']}, {'x.y': ['2.0']}]
+        bundle = {'targetApps': ['a.b', 'x.y'], 'patches': [
+            {'name': 'Old', 'compatiblePackagesKey': 0}, {'name': 'New', 'compatibilityKey': 0},
+            {'name': 'Other', 'compatibilityKey': 1}]}
+        self.assertEqual([r[0] for r in n._patch_rows(bundle, 'a.b', comp, set())], ['Old', 'New'])

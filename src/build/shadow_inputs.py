@@ -133,12 +133,51 @@ def byte_record(row, allow_empty=False):
          type(row.get("bytes")) is int and row["bytes"] >= (0 if allow_empty else 1), "invalid consumed bytes")
     return {"bytes": row["bytes"], "sha256": row["sha256"]}
 
+def plan_keys(expected):
+    """W16j: 'BASE[;name=SHA...]' -> (BASE, {name: SHA}). BASE is the declaration as configured;
+    each name=SHA is that candidate built with its overrides (build_attempts.view), so a
+    fallback (or a lone primary with overrides) has its own plan instead of reading as DRIFT."""
+    if not expected:
+        return "", {}
+    parts = expected.split(";")
+    per = {}
+    for part in parts[1:]:
+        name, _, key = part.partition("=")
+        need(re.fullmatch(r"[A-Za-z0-9_-]+", name) and hash_ok(key) and name not in per, "malformed planned key")
+        per[name] = key
+    need(hash_ok(parts[0]), "malformed planned key")
+    return parts[0], per
+
+def candidate_declarations(root, ident):
+    """Each candidate's declaration with its overrides laid over the target, computed the way the
+    build sees it: the view is written to src/targets.json and the original bytes come back."""
+    path = Path(root) / "src/targets.json"
+    original = path.read_bytes()
+    out = {}
+    try:
+        rows = json.loads(original)
+        t = next(x for x in rows if x.get("id") == ident)
+        sys.path.insert(0, str(Path(root) / "src/etc"))
+        import preflight
+        for c in t["candidates"]:
+            view = json.loads(original)
+            for x in view:
+                if x.get("id") == ident:
+                    x.update(preflight.effective(x, c))
+            path.write_text(json.dumps(view, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            out[c["name"]] = declaration(root, ident)["sha256"]
+    finally:
+        path.write_bytes(original)
+    need(path.read_bytes() == original, "targets.json not restored")
+    return out
+
 def realized(root, captured, env):
     ident, winner = captured["target"], captured["winner"]
     declared = declaration(root, ident)
     expected = env.get("PF_SHADOW_PLAN_KEY", "")
-    need(not expected or hash_ok(expected), "malformed planned key")
-    binding = "MATCH" if expected == declared["sha256"] else "DRIFT" if expected else "NO_PLAN"
+    base, per = plan_keys(expected)
+    matched = declared["sha256"] == base or declared["sha256"] == per.get(winner)
+    binding = "MATCH" if expected and matched else "DRIFT" if expected else "NO_PLAN"
     if env.get("PF_SHADOW_PLAN_REQUIRED", "false").lower() == "true" and not expected:
         binding = "MISSING_REQUIRED_PLAN"
     t = target(root, ident)
@@ -461,7 +500,9 @@ def plan(root, env):
     keys, rows = {}, []
     for ident in wanted:
         doc = declaration(root, ident)
-        keys[ident] = doc["sha256"]
+        # W16j: one plan per candidate too, so a fallback publication is checked against its own plan.
+        per = candidate_declarations(root, ident)
+        keys[ident] = ";".join([doc["sha256"]] + ["%s=%s" % (n, k) for n, k in per.items() if k != doc["sha256"]])
         rows.append({"target": ident, "declaration_sha256": doc["sha256"],
                      "state": "RESOLVE", "reason": "REMOTE_CONSUMED_IDENTITIES_NOT_YET_KNOWN"})
     write(root, "shadow-evidence/plan.json", {"mode": "shadow-only", "targets": rows,

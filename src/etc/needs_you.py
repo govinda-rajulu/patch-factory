@@ -20,6 +20,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Iterable
 
 import readable
+import decisions
 
 TITLE = "Needs you"
 REPO = "govinda-rajulu/patch-factory"
@@ -52,6 +53,22 @@ PR_JSON_FIELDS = {
 }
 ID_RE = re.compile(r"\bN-[0-9a-fA-F]{6}\b")
 DECISION_RE = re.compile(r"^\s*(take|drop|hold)\s+(N-[0-9a-fA-F]{6})\s*$", re.I)
+# W16j (owner, 25 Oct 2026: "group wherever possible ... easy to understand and act"): one line can
+# answer a whole group (take G2), every item (take all), or accept every "my call" (yes all);
+# keep means take; a provider take may name patches to leave out: take N-xxxxxx except "A", "B".
+COMMAND_RE = re.compile(r"^\s*(take|keep|drop|hold)\s+(N-[0-9a-fA-F]{6}|G[1-8]|all)\b(?:\s+except\s+(.+?))?\s*$", re.I)
+YES_ALL_RE = re.compile(r"^\s*yes\s+all\s*$", re.I)
+GROUPS = {
+    "G1": ("New providers for apps you build", "take = Explore opens an issue with its live patch list"),
+    "G2": ("Hide patches with no off switch", "each removes something for good; nothing breaks, so pick only what you want"),
+    "G3": ("No description in the index", "the provider wrote nothing, so the bot cannot tell what it does"),
+    "G4": ("Generic patches not written for this app", "the index ties them to no app"),
+    "G5": ("Risky: spoof, proxy, DRM, signature, certificate", "account or server risk"),
+    "G6": ("Held only for a word in the name", "branding, rename, option and similar words"),
+    "G7": ("Waits on another rule", "one bundle per name, a reserved name or a paid word"),
+    "G8": ("Other things to look at", "reports, fixes and reviews"),
+}
+RISKY = ("spoof", "proxy", "vpn", "widevine", "drm", "signature", "certificate", "integrity", "root", "firebase", "confirm")
 PACKAGE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*([.][A-Za-z][A-Za-z0-9_]*)+$")
 GITHUB_IDENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9-]{0,38}/[A-Za-z0-9._-]{1,100}$")
 GITLAB_IDENT_RE = re.compile(r"^[0-9]{1,12}$")
@@ -236,7 +253,16 @@ def _source(path: Path | None, name: str, bucket: dict[str, list[str]]) -> None:
     # not from the report's old aggregate rank paragraph.
     if name == "tooling" and ("update" in low or "behind" in low or "to review" in low):
         _add(bucket, "install", "Review the tooling report and install any update listed there.")
-    if name in ("nightly", "provider") and any(x in low for x in ("failed", "unknown", "not read", "missing")):
+    # W16j: judge by the report's own headline ('# Title: STATUS') when it has one. A healthy
+    # report that merely says "missing" or "NOT compared" in a note (Provider: "Patch names only",
+    # Nightly: the documented gg-photos exception) is not a fix item.
+    head = re.search(r"(?m)^#{1,2} [^\n:]+:\s*(.+)$", plain)
+    if head:
+        state = head.group(1).lower()
+        broken = any(x in state for x in ("failed", "unknown", "not read", "missing", "stop"))
+    else:
+        broken = any(x in low for x in ("failed", "unknown", "not read", "missing"))
+    if name in ("nightly", "provider") and broken:
         reason = _evidence_reason(plain, data)
         recorded_url = data.get("run_url") if isinstance(data, dict) else ""
         url = _run_url(plain) or (recorded_url if isinstance(recorded_url, str) else "")
@@ -345,6 +371,27 @@ def _provider_patch_info(bundle: dict, package: str, compatibilities: list) -> t
     return count, versions
 
 
+def _patch_rows(bundle: dict, package: str, compatibilities: list, have: set) -> list[list]:
+    """W16j: [name, description, newest version, already have] for each patch the bundle offers this app."""
+    apps = [a for a in (bundle.get("targetApps") or []) if isinstance(a, str)]
+    single = bool(apps) and all(a == package or a.startswith(package + ".") for a in apps)
+    out = []
+    for patch in bundle.get("patches", []) or []:
+        if not isinstance(patch, dict) or not patch.get("name"):
+            continue
+        key = patch.get("compatiblePackagesKey", patch.get("compatibilityKey"))  # both index shapes
+        record = compatibilities[key] if isinstance(key, int) and 0 <= key < len(compatibilities) else None
+        versions = _compat_versions(record, package) if record is not None else []
+        if record is not None and not versions:
+            continue
+        if record is None and not single:
+            continue
+        newest = max(versions, key=lambda x: (_version_key(x), x)) if versions else "not listed"
+        desc = " ".join(str(patch.get("description") or "").split())
+        out.append([str(patch["name"]), desc, newest, decisions.norm(patch["name"]) in have])
+    return out
+
+
 def provider_items(index: Path | dict | None = None, targets: Path | list | None = None) -> list[dict]:
     """Render one actionable item for each unconfigured indexed provider/app pair."""
     if index is None:
@@ -364,6 +411,8 @@ def provider_items(index: Path | dict | None = None, targets: Path | list | None
     if not isinstance(bundles, list):
         bundles = []
     out = []
+    root = _root_of(targets)
+    memory = decisions.load(root)
     for target in target_data:
         if not isinstance(target, dict) or not target.get("enabled"):
             continue
@@ -376,11 +425,17 @@ def provider_items(index: Path | dict | None = None, targets: Path | list | None
                       for p in configured_rows}
         ours_row = configured_rows[0] if configured_rows else {}
         ours = str(ours_row.get("owner", "")) + "/" + str(ours_row.get("repo", ""))
-        ours_count = None
+        ours_count, ours_versions = None, []
         for bundle in bundles:
             if isinstance(bundle, dict) and str(bundle.get("repo", "")).lower() == ours.lower():
-                ours_count, _ = _provider_patch_info(bundle, package, compatibilities)
+                ours_count, ours_versions = _provider_patch_info(bundle, package, compatibilities)
                 break
+        ours_newest = max(ours_versions, key=lambda x: (_version_key(x), x)) if ours_versions else None
+        have = set()
+        for row in configured_rows:
+            path = (root or Path("/nonexistent")) / "src/patches" / str(row.get("patch_dir", "")) / "include-patches"
+            if row.get("patch_dir") and path.is_file():
+                have |= {decisions.norm(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()}
         # W16h: Truecaller read "we use bufferk with 7" while the build also takes
         # paresh and binarymend; name the extras so the comparison is honest.
         extra_text = []
@@ -402,8 +457,16 @@ def provider_items(index: Path | dict | None = None, targets: Path | list | None
             if count < 1:
                 continue
             newest = max(versions, key=lambda x: (_version_key(x), x)) if versions else "any version"
-            rows.append((count, repo.lower(), bundle, newest))
-        rows.sort(key=lambda row: (-row[0], row[1]))
+            # W16j: the owner's provider calls (src/patches/DECISIONS.json). A dropped provider is
+            # never asked again; a watched one stays quiet until it lists our app version.
+            state, _ = decisions.provider_state(memory, target.get("id"), repo)
+            if state == "drop":
+                continue
+            ready = newest == "any version" or bool(ours_newest and ours_newest != "any version" and _version_key(newest) >= _version_key(ours_newest))
+            if state == "watch" and not ready:
+                continue
+            rows.append((count, repo.lower(), bundle, newest, state))
+        rows.sort(key=lambda row: (row[4] != "watch", -row[0], row[1]))
         remaining = max(0, len(rows) - 3)
         label = str(target.get("label") or target.get("id") or package)
         ours_text = ours if ours.strip("/") else "none configured"
@@ -413,7 +476,7 @@ def provider_items(index: Path | dict | None = None, targets: Path | list | None
         current = next((target.get(k) for k in ("current_version", "current_app_version", "app_version", "version", "max_app_version")
                         if isinstance(target.get(k), str) and target.get(k).strip()), None)
         selected = rows[:3]
-        for position, (count, _, bundle, newest) in enumerate(selected):
+        for position, (count, _, bundle, newest, state) in enumerate(selected):
             repo = str(bundle.get("repo"))
             count_word = "patch" if count == 1 else "patches"
             version_phrase = "its newest listed app version " + newest
@@ -431,7 +494,10 @@ def provider_items(index: Path | dict | None = None, targets: Path | list | None
             item = {"id": item_id("decide", "provider|%s|%s" % (package, repo.lower())), "kind": "decide", "first_line": first,
                     "text": first, "description": first + " take = run Explore (a patches issue with the live list opens); drop = hide for good; hold = 14 days",
                     "action": "explore", "host": source, "ident": str(ident), "package": package,
-                    "provider_label": label, "provider_more": remaining if position == len(selected) - 1 else 0}
+                    "provider_label": label, "provider_more": remaining if position == len(selected) - 1 else 0,
+                    "target": str(target.get("id", "")), "repo": repo, "count": count, "newest": newest,
+                    "ours_version": ours_newest or "", "watched": state == "watch",
+                    "patch_rows": _patch_rows(bundle, package, compatibilities, have)}
             out.append(item)
     return out
 
@@ -466,12 +532,50 @@ def _rule_off(why: str) -> str:
     return next((text for key, text in RULE_OFF if key in low), "")
 
 
-def held_items(path: Path | None, targets: Path | list | None = None) -> list[dict]:
+def _root_of(targets) -> Path | None:
+    """The checkout whose decision memory and include lists apply. A list of targets (tests,
+    tools) has no checkout, so it gets no memory."""
+    if isinstance(targets, Path):
+        return targets.resolve().parents[1] if targets.name == "targets.json" else None
+    if targets is None:
+        return Path(__file__).resolve().parents[2]
+    return None
+
+
+def _held_details(targets, bundles) -> dict:
+    """W16j: (target id, provider label, patch name) -> (description, newest app version)."""
+    if bundles is None:
+        bundles = Path(__file__).resolve().parents[1] / "community" / "bundles.json"
+    index = _load_value(bundles, {})
+    if not isinstance(index, dict):
+        return {}
+    comp = index.get("compatibilities", []) if isinstance(index.get("compatibilities"), list) else []
+    by_repo = {str(b.get("repo", "")).lower(): b for b in index.get("bundles", []) or [] if isinstance(b, dict)}
+    out = {}
+    for t in _load_targets(targets):
+        for c in (t.get("candidates") or []) + (t.get("extra_bundles") or []):
+            if not isinstance(c, dict):
+                continue
+            b = by_repo.get(("%s/%s" % (c.get("owner", ""), c.get("repo", ""))).lower())
+            if not b:
+                continue
+            for name, desc, ver, _ in _patch_rows(b, str(t.get("package", "")), comp, set()):
+                out[(str(t.get("id")), str(c.get("name")), name)] = (desc, ver)
+    return out
+
+
+def held_items(path: Path | None, targets: Path | list | None = None, bundles: Path | dict | None = None) -> list[dict]:
     """Render each recorded held Selection name as its own actionable item."""
+    details = _held_details(targets, bundles)
     text = read_report(path)
     data = load_json(path)
     out, off = [], {}
+    memory = decisions.load(_root_of(targets))
     for row in _held_rows(text, data):
+        # W16j: a name the owner already decided (src/patches/DECISIONS.json) is never asked
+        # again; Selection watch applies the decision on its next run.
+        if decisions.call(memory, row["target"], row["name"])[0]:
+            continue
         why = _rule_off(row["why"])
         if why:
             off.setdefault((row["target"], row["provider"], why), []).append(row["name"])
@@ -487,8 +591,9 @@ def held_items(path: Path | None, targets: Path | list | None = None) -> list[di
         else:
             description = (first + " Take = recorded, and the next packet adds it; "
                            "drop = hide for good; hold = 14 days.")
+        desc, ver = details.get((row["target"], row["provider"], row["name"]), ("", ""))
         out.append({"id": ident, "kind": "decide", "first_line": first, "text": first,
-                    "description": description, **route})
+                    "description": description, "held": dict(row, desc=desc, version=ver), **route})
     for (target, provider, why), names in sorted(off.items()):
         shown = ", ".join("`%s`" % x for x in sorted(names)[:12])
         more = " and %d more" % (len(names) - 12) if len(names) > 12 else ""
@@ -508,6 +613,12 @@ def _items(kind: str, texts: Iterable[str]) -> list[dict]:
 
 
 def app_items(targets: Path | None = None) -> list[dict]:
+    """Retired in W16j (owner, 25 Oct 2026): 'Keep building X?' for every app every day was
+    noise. A broken app shows on the status page and in its Failing issue instead."""
+    return []
+
+
+def _old_app_items(targets: Path | None = None) -> list[dict]:
     return [_items("app", ["Keep building %s?" % row.get("label", row.get("id", "this app"))])[0]
             for row in _load_targets(targets)]
 
@@ -572,17 +683,50 @@ def _catalog_comment(body: str) -> dict[str, dict]:
 
 
 def parse_decisions(comment: str, known_ids: Iterable[str] | None = None) -> list[tuple[str, str]]:
-    """Parse only complete command lines; prose and unknown ids are ignored."""
+    """Parse only complete command lines; prose and unknown ids are ignored.
+
+    W16j: with the body's catalog (a dict of id -> metadata) a line may also name a group
+    (take G2), every item (drop all) or accept every "My call" (yes all). keep = take. A later
+    line about the same item wins, so `yes all` then `drop N-xxxxxx` works."""
+    catalog = known_ids if isinstance(known_ids, dict) else None
     known = {x.upper() for x in known_ids} if known_ids is not None else None
-    found = []
+    chosen = {}
     for line in (comment or "").splitlines():
-        match = DECISION_RE.match(line)
+        if catalog is not None and YES_ALL_RE.match(line):
+            for ident, meta in catalog.items():
+                if meta.get("mycall") in ("take", "drop", "hold"):
+                    chosen.pop(ident, None)
+                    chosen[ident] = meta["mycall"]
+            continue
+        match = COMMAND_RE.match(line)
         if not match:
             continue
-        verb, ident = match.group(1).lower(), match.group(2).upper()
-        if known is None or ident in known:
-            found.append((verb, ident))
-    return found
+        verb = match.group(1).lower()
+        verb = "take" if verb == "keep" else verb
+        ref = match.group(2).upper()
+        if ref.startswith("N-"):
+            if known is None or ref in known:
+                chosen.pop(ref, None)
+                chosen[ref] = verb
+        elif catalog is not None:
+            for ident, meta in catalog.items():
+                if ref == "ALL" or str(meta.get("group", "")).upper() == ref:
+                    chosen.pop(ident, None)
+                    chosen[ident] = verb
+    return [(verb, ident) for ident, verb in chosen.items()]
+
+
+def parse_excepts(comment: str) -> dict[str, list[str]]:
+    """W16j: take N-xxxxxx except "A", "B" -> {N-xxxxxx: [A, B]} (names to leave out)."""
+    out = {}
+    for line in (comment or "").splitlines():
+        match = COMMAND_RE.match(line)
+        if match and match.group(3) and match.group(2).upper().startswith("N-"):
+            names = [n.strip() for n in re.findall(r'"([^"]{1,120})"', match.group(3))]
+            if not names:
+                names = [n.strip() for n in match.group(3).split(",") if n.strip()]
+            out[match.group(2).upper()] = names[:40]
+    return out
 
 
 def authorized_comment(event: dict, owner: str) -> bool:
@@ -680,7 +824,7 @@ def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = N
     # Provider choices come from the checked-out community index, not a stale
     # collector paragraph. They remain in Decide and have stable ids.
     all_items.extend(provider_items(bundles, targets))
-    all_items.extend(held_items(reports.get("selection"), targets))
+    all_items.extend(held_items(reports.get("selection"), targets, bundles))
     all_items.extend(_review_items(review or reports.get("review")))
     all_items.extend(app_items(targets))
     visible = [item for item in all_items if decision_state(item, ledger, now) == "visible"]
@@ -689,46 +833,114 @@ def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = N
     if not actionable and not taken:
         return "# Needs you: OK\n\n**Needs you:** nothing needs you today.\n"
     fingerprint = hashlib.sha256(json.dumps([(x["id"], x["text"]) for x in visible], sort_keys=True).encode()).hexdigest()[:16]
-    lines = ["<!-- needs-you:%s -->" % fingerprint, "# Needs you: NEEDS YOU", "",
-             "Comment one command per line: `take N-xxxxxx`, `drop N-xxxxxx`, or `hold N-xxxxxx`. Commands are case-insensitive; other text is ignored.", "",
-             "**Needs you:** %d item(s), listed first below." % actionable, ""]
-    for kind in ORDER:
-        items = [item for item in visible if item["kind"] == kind or (kind == "decide" and item["kind"] == "review")]
-        if not items:
+    return _grouped(visible, taken, actionable, fingerprint)
+
+
+def group_of(item: dict) -> tuple[str, str]:
+    """W16j: (group id, my call) for one item. My call is what `yes all` applies; '' means
+    the owner's taste, which `yes all` leaves alone."""
+    if item.get("action") == "explore":
+        return "G1", "take" if item.get("watched") else ""
+    held = item.get("held")
+    if held:
+        why = str(held.get("why", "")).lower()
+        if "changes what the app shows" in why:
+            return "G2", ""
+        if "no description" in why:
+            return "G3", "hold"
+        if "universal patch" in why:
+            return "G4", "drop"
+        if "confirm" in why or any(w in (why + " " + str(held.get("name", "")).lower()) for w in RISKY):
+            return "G5", "drop"
+        if "hold word" in why:
+            return "G6", ""
+        return "G7", "hold"
+    return "G8", ""
+
+
+def _cell(value, limit=160) -> str:
+    text = " ".join(str(value or "").split())
+    if len(text) > limit:
+        text = text[:limit - 1].rstrip() + "…"
+    return text.replace("|", "\\|") or "-"
+
+
+def _grouped(visible: list[dict], taken: list[dict], actionable: int, fingerprint: str) -> str:
+    groups = {}
+    for item in visible:
+        if item["kind"] == "fyi":
             continue
-        lines += ["## " + LABELS[kind], ""]
-        for item in items:
-            if item["kind"] == "fyi":
-                lines += [item["first_line"], ""]
-                continue
-            # Keep the comment machine-readable without repeating the visible
-            # description in the rendered body.
-            metadata_row = {"id": item["id"], "kind": item["kind"]}
-            for field in ("title", "labels", "issue_number", "action", "host", "ident", "package", "target", "patches"):
-                if field in item:
-                    metadata_row[field] = item[field]
-            metadata = json.dumps(metadata_row, separators=(",", ":"))
-            content = clean(item.get("text", ""))
-            content_lines = content.splitlines()
-            if content_lines and content_lines[0].strip() == item["first_line"].strip():
-                content = "\n".join(content_lines[1:]).strip()
-            # W16h: GitHub shows ** literally inside <summary>, and a fold with
-            # nothing in it is a wasted click, so a bare item is one bold line.
-            if not content:
-                lines += ["<!-- needs-you-item:%s -->" % metadata,
-                          "**%s** — %s" % (item["id"], item["description"]), ""]
-            else:
-                lines += ["<!-- needs-you-item:%s -->" % metadata,
-                          "<details><summary><b>%s</b> — %s</summary>" % (item["id"], html.escape(item["description"], quote=False)), "",
-                          content, "", "</details>", ""]
-            if item.get("provider_more"):
-                lines += ["- %s: and %d more in the index" % (item.get("provider_label", "This app"), item["provider_more"]), ""]
+        gid, mine = group_of(item)
+        item["group"], item["mycall"] = gid, mine
+        groups.setdefault(gid, []).append(item)
+    calls = sum(1 for g in groups.values() for i in g if i["mycall"])
+    lines = ["<!-- needs-you:%s -->" % fingerprint, "# Needs you: NEEDS YOU", "",
+             "**What happened:** %d choice(s) wait: %s." % (actionable, ", ".join(
+                 "%s %d" % (GROUPS[g][0].split(":")[0].lower(), len(groups[g])) for g in sorted(groups))),
+             "**Does it need you:** yes.",
+             "**What to do:** comment `yes all` to accept every \"My call\" (%d of them; rows without one stay). "
+             "Or one line per group or item: `take G2`, `drop G4`, `take N-xxxxxx`, "
+             "`take N-xxxxxx except \"Name\", \"Name\"`. `keep` means take; `take all` takes everything." % calls, ""]
+    for gid in sorted(groups):
+        items = groups[gid]
+        title, note = GROUPS[gid]
+        lines += ["## %s · %s (%d)" % (gid, title, len(items)), "", "_%s._" % note, ""]
+        if gid == "G1":
+            lines += ["| ID | App | Provider | Patches | App version | My call |", "|---|---|---|---|---|---|"]
+            for i in items:
+                rows = i.get("patch_rows") or []
+                new = sum(1 for r in rows if not r[3])
+                ver = str(i.get("newest") or "-") + ((" (ours %s)" % i["ours_version"]) if i.get("ours_version") else "")
+                lines.append("| %s | %s | %s | %d (%d new to us) | %s | %s |" % (
+                    i["id"], _cell(i.get("provider_label")), _cell(i.get("repo")), i.get("count", 0), new, _cell(ver),
+                    (i["mycall"] + " (you took it; it now fits our version)") if i.get("watched") else "your call"))
+            lines += ["- %s: and %d more in the index" % (i.get("provider_label", "This app"), i["provider_more"])
+                      for i in items if i.get("provider_more")]
+            lines.append("")
+            for i in items:
+                rows = [r for r in (i.get("patch_rows") or []) if not r[3]]
+                if not rows:
+                    continue
+                shown = rows[:25]
+                body = ["- **%s** (app %s): %s" % (_cell(r[0], 80), _cell(r[2], 30), _cell(r[1], 140)) for r in shown]
+                if len(rows) > len(shown):
+                    body.append("- and %d more" % (len(rows) - len(shown)))
+                lines += ["<details><summary>%s %s: what its %d new patch(es) do</summary>" % (
+                    i["id"], html.escape(str(i.get("repo", ""))), len(rows)), ""] + body + ["", "</details>", ""]
+        elif gid == "G8":
+            for i in items:
+                lines.append("- **%s**: %s" % (i["id"], _cell(i.get("description"), 400)))
+            lines.append("")
+        else:
+            lines += ["| ID | App | Provider | Patch | What it does | App version | My call |",
+                      "|---|---|---|---|---|---|---|"]
+            for i in items:
+                h = i["held"]
+                lines.append("| %s | %s | %s | %s | %s | %s | %s |" % (
+                    i["id"], _cell(h.get("target")), _cell(h.get("provider")), _cell(h.get("name"), 80),
+                    _cell(h.get("desc") or "(no description in the index)"), _cell(h.get("version") or "not listed", 30),
+                    i["mycall"] or "your taste"))
+            lines.append("")
+    fyi = [i for i in visible if i["kind"] == "fyi"]
+    if fyi:
+        lines += ["<details><summary>FYI (%d): nothing to do</summary>" % len(fyi), ""] + [i["first_line"] for i in fyi] + ["", "</details>", ""]
     if taken:
-        lines += ["## Taken, waiting for the next packet", "", "These items were taken and are hidden from the action list until the next packet.", ""]
-        for item in taken:
-            lines.append("- **%s** — %s" % (item["id"], item["first_line"]))
-        lines.append("")
-    return "\n".join(lines).rstrip() + "\n"
+        lines += ["<details><summary>Taken, waiting for the next packet (%d)</summary>" % len(taken), ""]
+        lines += ["- **%s** — %s" % (i["id"], i["first_line"]) for i in taken] + ["", "</details>", ""]
+    for item in visible:
+        if item["kind"] == "fyi":
+            continue
+        metadata_row = {"id": item["id"], "kind": item["kind"], "group": item["group"], "mycall": item["mycall"],
+                        "first_line": item["first_line"][:300]}
+        for field in ("title", "labels", "issue_number", "action", "host", "ident", "package", "target", "patches"):
+            if field in item:
+                metadata_row[field] = item[field]
+        lines.append("<!-- needs-you-item:%s -->" % json.dumps(metadata_row, separators=(",", ":")))
+    text = "\n".join(lines).rstrip() + "\n"
+    if len(text.encode("utf-8")) > 64000:
+        # GitHub refuses bodies over 65536 characters; the folded patch lists go first.
+        text = re.sub(r"<details><summary>N-[0-9a-f]{6} .*?</details>\n\n", "", text, flags=re.S)
+    return text
 
 
 def gh(args: list[str], run=subprocess.run):
@@ -862,7 +1074,14 @@ def deliver(body: str, repo: str = REPO, run=subprocess.run) -> str:
         edited = gh(["issue", "edit", number, "--repo", repo, "--body", body], run)
         if edited.returncode != 0:
             raise OSError("Needs you issue edit failed")
-        note = "**Needs you changed**\n\n" + "\n".join(readable.changed_lines(old, body))
+        # W16j (owner: "I get dizzy reading comments"): the body is the page; a comment only
+        # when new items need an answer, listing just those.
+        fresh = [i for i in dict.fromkeys(ID_RE.findall(body)) if i not in set(ID_RE.findall(old))]
+        if not fresh:
+            return "EDITED"
+        lines = [l for l in body.splitlines() if any(i in l for i in fresh) and not l.startswith("<!--")]
+        note = "**Needs you: %d new item(s)**\n\n%s\n\nAnswer on this issue (`yes all`, `take G2`, `take N-xxxxxx`)." % (
+            len(fresh), "\n".join(lines[:30]) or ", ".join(fresh[:30]))
         commented = gh(["issue", "comment", number, "--repo", repo, "--body", note], run)
         if commented.returncode != 0:
             raise OSError("Needs you issue comment failed")
@@ -893,16 +1112,38 @@ def decide(comment_path: Path, ledger_path: Path, repo: str = REPO, comment_url:
     commands = parse_decisions(body, catalog)
     if not commands:
         return "IGNORED"
+    excepts = parse_excepts(body)
     ledger = load_ledger(ledger_path)
     stamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-    receipts = []
+    receipts, batch = [], {}
     for verb, ident in commands:
         meta = catalog[ident]
         record = {"id": ident, "verb": verb, "kind": meta.get("kind", "unknown"),
                   "first_line": meta.get("first_line", ""), "comment_url": comment_url, "time": stamp}
+        if ident in excepts:
+            record["except"] = excepts[ident]
         ledger.append(record)
+        # W16j: a group take of held names runs 5. Add target once per app, not once per name.
+        if meta.get("action") == "patch" and verb == "take":
+            batch.setdefault(str(meta.get("target", "")), []).append((ident, str(meta.get("patches", ""))))
+            continue
         effect = apply_effect(verb, meta, repo, run)
         receipts.append("%s %s — %s" % (verb, ident, effect))
+    for target, rows in sorted(batch.items()):
+        names = [n for _, n in rows]
+        if len(rows) == 1 or any(";" in n for n in names):
+            for ident, n in rows:
+                receipts.append("take %s — %s" % (ident, apply_effect("take", {"action": "patch", "target": target, "patches": n}, repo, run)))
+            continue
+        joined = "; ".join(names)
+        if not TARGET_IDENT_RE.fullmatch(target) or any(ord(c) < 32 or ord(c) == 127 for c in joined):
+            receipts.append("take %s — patch refused: malformed app or patch name" % ", ".join(i for i, _ in rows))
+            continue
+        result = gh(["workflow", "run", "add-target.yml", "--repo", repo, "-f", "action=patch",
+                     "-f", "id=" + target, "-f", "patches=" + joined], run)
+        if result.returncode != 0:
+            raise OSError("Needs you patch dispatch failed")
+        receipts.append("take %s — one 5. Add target run for %s (%d names)" % (", ".join(i for i, _ in rows), target, len(rows)))
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
     ledger_path.write_text(json.dumps(ledger, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     receipt = "**Needs you receipt**\n\n" + "\n".join("- " + row for row in receipts)

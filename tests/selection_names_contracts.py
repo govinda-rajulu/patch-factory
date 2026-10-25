@@ -48,7 +48,7 @@ class SelectionNames(unittest.TestCase):
                 raise RuntimeError('raw provider text SECRET')
             return self.offered(row)
         (checked, missing, unverified), text = self.run_check(observe)
-        self.assertEqual(unverified, 3)
+        self.assertEqual(unverified, 4)  # W16j: Reddit has a third bundle (Alastor extra)
         self.assertIn('?? edge/edge-quantavil: provider list unreadable - UNVERIFIED (LIST_COMMAND_FAILED)', text)
         self.assertIn('UNVERIFIED (RuntimeError)', text)
         self.assertNotIn('SECRET', text)

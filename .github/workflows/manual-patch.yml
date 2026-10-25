@@ -1,5 +1,5 @@
 name: 1. Manual Patch
-run-name: Manual ${{ inputs.target }}${{ inputs.provider && format(' / {0}', inputs.provider) || '' }} / publish=${{ inputs.publish }}
+run-name: Manual ${{ inputs.target }}${{ inputs.provider && format(' / {0}', inputs.provider) || '' }} / publish=${{ inputs.publish }}${{ inputs.keep_going && ' / keep-going' || '' }}
 permissions:
   contents: write
 on:
@@ -20,6 +20,11 @@ on:
         required: false
         default: ''
         type: string
+      keep_going:
+        description: 'Smoke only: keep patching after a patch fails, to list every failing patch in one run (refused with publish)'
+        required: false
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       resolved_requested:
@@ -48,6 +53,11 @@ on:
         required: false
         type: string
         default: ''
+      keep_going:
+        description: Smoke only (refused with publish); batch and ci never set it
+        required: false
+        type: boolean
+        default: false
 jobs:
   patch:
     name: Patch ${{ inputs.target }}
@@ -58,7 +68,8 @@ jobs:
     env:
       repository: ${{ github.repository }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      COE: ${{ vars.COE }}
+      # W16j: keep_going lists every failing patch in one smoke run; never on a publishing run.
+      COE: ${{ (inputs.keep_going && !inputs.publish) && 'true' || vars.COE }}
       PF_SHADOW_PLAN_KEY: ${{ inputs.shadow_plan_key || '' }}
       PF_SHADOW_PLAN_REQUIRED: ${{ inputs.shadow_plan_required || false }}
       PF_RESOLVED_REQUESTED: ${{ inputs.resolved_requested || false }}
@@ -69,6 +80,11 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Refuse keep-going on a publishing run
+        if: ${{ inputs.keep_going && inputs.publish }}
+        run: |
+          echo "::error::keep_going is for smoke runs only (publish=false): a release must carry every chosen patch"
+          exit 1
       - name: Refuse an unknown app id
         env:
           TARGET: ${{ inputs.target }}

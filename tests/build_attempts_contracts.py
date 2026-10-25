@@ -120,6 +120,35 @@ class Attempts(unittest.TestCase):
         old = subprocess.run(['bash', '-c', 'set -uo pipefail; unzip -l "%s" | grep -q AndroidManifest.xml' % apk])
         self.assertEqual(old.returncode, 141)
 
+    def primary_overrides(self):
+        t = json.loads((self.r / 'src/targets.json').read_text())
+        t[0]['extra_bundles'] = [dict(name='e', patch_dir='e')]
+        t[0]['candidates'] = [dict(name='a', patch_dir='a', overrides=dict(extra_bundles=[], max_app_version='3.0')),
+                              dict(name='b', patch_dir='b', fallback=True)]
+        (self.r / 'src/targets.json').write_text(json.dumps(t, indent=2) + '\n')
+        subprocess.run(['git', '-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qam', 'po'], cwd=self.r, check=True)
+
+    def test_primary_overrides_apply_on_attempt_one(self):
+        """W16j: heval99 primary drops the extras; the combo fallback keeps them."""
+        self.primary_overrides()
+        rc, out = self.run_it(FAIL='none')
+        self.assertEqual((rc, out['fallback'], out['winner'], out['attempts']), (0, 'false', 'a', '1'))
+        t = json.loads((self.r / 'src/targets.json').read_text())[0]
+        self.assertEqual((t['pin'], t['extra_bundles'], t['max_app_version']), ('a', [], '3.0'))
+
+    def test_primary_overrides_fall_back_to_target_extras(self):
+        self.primary_overrides()
+        rc, out = self.run_it(FAIL='a')
+        self.assertEqual((rc, out['fallback'], out['winner'], out['attempts']), (0, 'true', 'b', '2'))
+        t = json.loads((self.r / 'src/targets.json').read_text())[0]
+        self.assertEqual((t['pin'], [e['name'] for e in t['extra_bundles']], t['max_app_version']), ('b', ['e'], '2.0'))
+
+    def test_primary_view_needs_one_primary_with_overrides(self):
+        self.assertIsNone(build_attempts.primary_view(dict(candidates=[dict(name='a'), dict(name='b', fallback=True)])))
+        self.assertIsNone(build_attempts.primary_view(dict(candidates=[dict(name='a', overrides={'dpi': 'x'}), dict(name='c', overrides={'dpi': 'y'})])))
+        self.assertIsNone(build_attempts.primary_view(dict(pin='a', candidates=[dict(name='a', overrides={'dpi': 'x'})])))
+        self.assertEqual(build_attempts.primary_view(dict(candidates=[dict(name='a', overrides={'dpi': 'x'}), dict(name='b', fallback=True)])), 'a')
+
     def test_plan_order(self):
         t = dict(id='x', candidates=[dict(name='p1'), dict(name='f', fallback=True), dict(name='p2')])
         self.assertEqual(build_attempts.plan(t, ''), [None, 'p1', 'p2', 'f'])
