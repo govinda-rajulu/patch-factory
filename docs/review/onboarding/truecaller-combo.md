@@ -34,7 +34,7 @@ Truecaller is an exclusive target; the heval99 fallback's names are in `src/patc
 - Remove screenshot restriction: default off; lets the owner take screenshots.
 - Hide after-call screen for contacts: default off; the after-call popup only for saved contacts.
 
-Left out: `Spoof signature` (default on; BANNED rule `spoof signature`, listed in heval99's exclude-patches; the combo's exclude list is empty), and the default-off ones that remove a core feature or change sign-in: `Hide Blocking tab`, `Hide Messages tab`, `Hide business media`, `Restore classic call log`, `Use SMS for verification codes`.
+Left out: `Spoof signature` (default on; BANNED rule `spoof signature`, listed in heval99's exclude-patches; the combo's exclude list is empty). W16i also lists `Restore classic call log` and `Use SMS for verification codes` there: left out on purpose in W16g, they were only absent, so the Selection rule offered them again in PR #243, and the default-off ones that remove a core feature or change sign-in: `Hide Blocking tab`, `Hide Messages tab`, `Hide business media`, `Restore classic call log`, `Use SMS for verification codes`.
 
 ## Risks
 

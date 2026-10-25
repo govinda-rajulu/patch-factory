@@ -43,8 +43,10 @@ for i in $(seq 0 $((n-1))); do
   # A bundle that still applies is still good, and the build already proves that: it compares
   # requested patches against applied ones BY NAME and refuses to release on any gap. Age was a
   # guess at the same question, and a wrong guess turned a working target into no target at all.
-  # Kept as a loud warning so a genuinely abandoned provider is still visible in the log.
-  [ "$AGE" -gt "$MAXAGE" ] && echo "::warning::$NAME is ${AGE}d old, past its ${MAXAGE}d cap. Building anyway; the applied-count gate decides."
+  # W16h (owner, 25 Oct 2026: "if it works it works, why disturb?"): a plain log line, not a
+  # warning annotation. A bundle that applies every chosen patch is fine at any age; a broken
+  # one fails the applied-count gate and that failure is the signal.
+  [ "$AGE" -gt "$MAXAGE" ] && echo "   - $NAME: ${AGE}d since its last release (past the ${MAXAGE}d mark; information only, the applied-count gate decides)"
   echo "   - $NAME: channel=$CH exact bundle=$TAG sha256=$HASH"
   OUT=$(java -jar "$JAR" list-versions --patches="$MPP" -x -u -f "$PKG" 2>&1)
   JRC=$?

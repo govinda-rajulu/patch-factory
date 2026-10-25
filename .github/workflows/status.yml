@@ -30,6 +30,12 @@ jobs:
       checks: read
       issues: read
     steps:
+      # W16i (owner, 25 Oct 2026): a PR batch finished a dozen runs and each one started this.
+      # Wait first; a newer trigger cancels this run (cancel-in-progress above), so a burst
+      # writes the page once, after the last run. Schedule and manual runs do not wait.
+      - name: Let related runs settle
+        if: github.event_name == 'workflow_run'
+        run: sleep 180
       - name: Checkout main (the reader that runs)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
