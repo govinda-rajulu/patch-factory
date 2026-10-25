@@ -649,5 +649,33 @@
     "source": "apkmirror",
     "note": "Ads, promoted jobs and tracking removed",
     "exclusive": true
+  },
+  {
+    "id": "ccleaner",
+    "enabled": true,
+    "package": "com.piriform.ccleaner",
+    "apk_name": "ccleaner",
+    "apk_type": "bundle",
+    "max_app_version": null,
+    "max_patch_age_days": 60,
+    "min_sdk_ceiling": 29,
+    "pin": null,
+    "candidates": [
+      {
+        "name": "mich111discord",
+        "host": "github",
+        "owner": "mich111discord",
+        "repo": "MightyMichs-Patches",
+        "channel": "prerelease",
+        "patch_dir": "ccleaner-mich111discord",
+        "options": "mich111discord"
+      }
+    ],
+    "tag_prefix": "ccleaner",
+    "poll": true,
+    "label": "CCleaner",
+    "source": "apkmirror",
+    "note": "Added 2026-10-25 through 5. Add target.",
+    "exclusive": true
   }
 ]
