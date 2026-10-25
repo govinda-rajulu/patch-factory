@@ -116,11 +116,13 @@ Names exactly as the patcher listed them in Explore run 37976702866 (issue #173)
 - Upload Stories in HD: new in Hushfacebook 0.14.0 (W15); asks Facebook's own high upload quality for your Story videos (Facebook's servers pick the final quality), switch starts off. Owner rule 10 Oct 2026: every Hushfacebook patch except the excluded ones
 - Frame step: offered by Hushfacebook since the 16 Oct bundle (Selection watch #182, waiting since then); local playback control. Owner rule 10 Oct 2026: every Hushfacebook patch except the excluded ones; on, so Sunday's phone test covers the full set. If the name differs in the provider's list, the build drops it by name (W13) and the Selection watch reports it.
 
+- Unlock app icons: offered by Hushfacebook since 0.10.0 (11 Oct 2026); it opens the extra app icons Facebook keeps for its paid Facebook Plus. Excluded on 11 Oct as a paid-feature unlock; the owner reversed that on 25 Oct 2026 (W16k): KEEP. Facebook joins ADOPT.json paid_ok_targets; the owner accepts the account risk.
+Owner approved: Unlock app icons
+
 Not included (exclude list):
 - Install beside Meta's apps: gives the app another package name, so Obtainium and in-place updates of com.facebook.katana stop; the intent of the BANNED package-name rule.
 - Disable Play Store updates: once installed, a build without it cannot install over it (the provider says so).
 - Start on x86 devices: the phone is ARM64; nothing to gain.
-- Unlock app icons: new in Hushfacebook 0.10.0 (11 Oct 2026); it opens the app icons Facebook keeps for its paid Facebook Plus, a paid-feature unlock the review rules keep out. Assistant's call 11 Oct 2026 (owner left new-patch calls to the assistant, packet W14).
 
 ## Risks
 - Hide read receipts, Hide typing indicator and View stories anonymously hold back signals Facebook normally receives, so Facebook can notice them and an account could be warned or limited. Owner decision: include them and test on the phone (Sunday 11 Oct 2026); drop them if the account shows warnings.

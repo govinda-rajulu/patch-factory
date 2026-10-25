@@ -39,6 +39,10 @@ def checked(doc):
     if 'fallback' in doc and (not isinstance(doc['fallback'], str) or not doc['fallback'] or len(doc['fallback']) > 1000
                               or any(ord(c) < 32 for c in doc['fallback'])):
         raise ValueError('invalid fallback note')
+    # W16k (owner, 25 Oct 2026: "showing release date and time ... so i know when last built"):
+    # optional, the minute the build job started, UTC ('2026-10-25T12:18Z').
+    if 'built' in doc and (not isinstance(doc['built'], str) or not re.fullmatch(r'20[0-9]{2}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]Z', doc['built'])):
+        raise ValueError('invalid build time')
     if type(doc.get('min_sdk')) is not int or not 0 < doc['min_sdk'] < 100:
         raise ValueError('invalid Android minimum')
     if type(doc.get('bytes')) is not int or doc['bytes'] <= 1000000:
@@ -59,6 +63,8 @@ def snapshot(fields, report, target):
         extra['dropped'] = fields['dropped'].splitlines()
     if fields.get('fallback'):
         extra['fallback'] = fields['fallback']
+    if fields.get('built'):
+        extra['built'] = fields['built']
     return checked(dict(extra, schema=1, target=report['target'], label=target.get('label', report['target']),
                         tag=fields['tag'], version=fields['version'],
                         package=report['manifest']['package'], min_sdk=report['manifest']['min_sdk'],
@@ -252,10 +258,21 @@ ABOUT = 'About these builds: what CI checks, its limits and install help'
 ABOUT_ANCHOR = 'about-these-builds'
 
 
+def built_line(stamp):
+    """'Built 25 Oct 2026, 12:18 UTC (17:48 IST)': the owner's clock and the record's (W16k)."""
+    import datetime
+    t = datetime.datetime.strptime(stamp, '%Y-%m-%dT%H:%MZ').replace(tzinfo=datetime.timezone.utc)
+    ist = t + datetime.timedelta(hours=5, minutes=30)
+    return 'Built %d %s, %s UTC (%s IST)' % (t.day, t.strftime('%b %Y'), t.strftime('%H:%M'), ist.strftime('%H:%M'))
+
+
 def render(current, previous=None, reason=''):
     checked(current)
     download = WEB + '/releases/download/' + current['tag'] + '/' + current['apk']
-    lines = ['## Changes', *('- ' + text(x) for x in changes(current, previous))]
+    lines = []
+    if current.get('built'):
+        lines += [built_line(current['built']), '']
+    lines += ['## Changes', *('- ' + text(x) for x in changes(current, previous))]
     provider_lines = provider_changelog(current)
     if provider_lines:
         lines += ['', '## Provider changelog', *('- ' + text(x) for x in provider_lines)]

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WF = ROOT / '.github/workflows'
 LINE = re.compile(r'^\s+- cron: "([0-9]{1,2}) ([0-9]{1,2}) ([^"]+)"\s+# ([0-9]{2}):([0-9]{2}) IST\b')
 SCHEDULED = {'status.yml', 'ci.yml', 'watch.yml', 'agent-watch.yml', 'community-watch.yml', 'council.yml', 'tooling-watch.yml', 'selection-watch.yml', 'needs-you.yml', 'rule-merge.yml'}
-CRONS_PER_WORKFLOW = {'ci.yml': 4, 'council.yml': 6, 'rule-merge.yml': 2}  # every other scheduled workflow has exactly one
+CRONS_PER_WORKFLOW = {'ci.yml': 2, 'council.yml': 2, 'rule-merge.yml': 2}  # W16k: ci 4->2, council 6->2  # every other scheduled workflow has exactly one
 MAIN_WRITERS = ('keepalive.yml', 'community-watch.yml', 'selection-watch.yml')
 RESOLVE_IF = ("    if: needs.plan.outputs.resolution_matrix != '' && (github.event_name != 'schedule'"
               " || github.event.schedule == '%s' || needs.plan.outputs.count != '0')\n")
@@ -109,7 +109,7 @@ class Schedules(unittest.TestCase):
         ordered = sorted(times)
         gaps = [b - a for a, b in zip(ordered, ordered[1:])] + [ordered[0] + 1440 - ordered[-1]]
         self.assertGreaterEqual(min(gaps), 4 * 60, gaps)
-        self.assertIn('poll-only', lines[1] + lines[2] + lines[3])
+        self.assertIn('poll-only', ''.join(lines[1:]))
 
     def test_poll_only_runs_skip_full_observation_and_queue(self):
         text = (WF / 'ci.yml').read_text()
@@ -121,7 +121,7 @@ class Schedules(unittest.TestCase):
         mutants = {
             'resolve on every poll': text.replace(" || github.event.schedule == '%s'" % primary, ''),
             'resolve tied to a poll-only cron': text.replace("github.event.schedule == '%s'" % primary,
-                                                             "github.event.schedule == '23 6 * * *'"),
+                                                             "github.event.schedule == '23 0 * * *'"),
             'resolve skipped when building': text.replace(" || needs.plan.outputs.count != '0')", ')'),
             'report without observations': text.replace(" && needs.resolve.result != 'skipped'", ''),
             'overlapping runs': text.replace('  group: daily-poll\n', ''),
@@ -132,7 +132,7 @@ class Schedules(unittest.TestCase):
             'poll resolves every target': text.replace(RESOLVE_MATRIX % primary,
                                                        '      matrix: ${{ fromJSON(needs.plan.outputs.resolution_matrix) }}\n'),
             'full run narrowed too': text.replace("github.event.schedule != '%s')" % primary,
-                                                  "github.event.schedule != '23 6 * * *')"),
+                                                  "github.event.schedule != '23 0 * * *')"),
             'narrowed on manual runs': text.replace("(github.event_name == 'schedule' && ", "(true && "),
             'fifth cron': text.replace('  workflow_dispatch:\n', '    - cron: "23 9 * * *"  # 14:53 IST\n  workflow_dispatch:\n', 1),
         }
@@ -155,7 +155,7 @@ class Schedules(unittest.TestCase):
         m = LINE.match(lines[0])
         want = '(`%s` UTC = %02d:%02d IST;' % ((cron_of(lines[0]),) + ist(int(m[1]), int(m[2])))
         later = ['%02d:%02d' % ist(int(LINE.match(l)[1]), int(LINE.match(l)[2])) for l in lines[1:]]
-        want += ' plus poll-only checks at %s and %s IST' % (', '.join(later[:-1]), later[-1])
+        want += (' plus poll-only checks at %s and %s IST' % (', '.join(later[:-1]), later[-1])) if len(later) > 1 else ' plus a poll-only check at %s IST' % later[0]
         self.assertIn(want, (ROOT / 'README.md').read_text())
 
 if __name__ == '__main__':

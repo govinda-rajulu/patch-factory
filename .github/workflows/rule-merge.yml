@@ -9,32 +9,16 @@ permissions:
   actions: write
   checks: read
 on:
-  workflow_run:
-    workflows: ["1. Manual Patch", "3. Validate", "Onboarding review"]
-    types: [completed]
   schedule:
     # W16: two a day. Runs the bot starts wake nothing (L069), so this remains the safety net.
     - cron: "7 4 * * *"  # 09:37 IST, in case a trigger was missed
     - cron: "7 16 * * *"  # 21:37 IST, in case a trigger was missed
   workflow_dispatch:
 jobs:
-  # W16i (owner, 25 Oct 2026): every Manual Patch, Validate and Onboarding review completion
-  # started a merge pass that could wait 20 minutes. rule_merge.py reads every open rule pull
-  # request, so one pass after the last trigger is enough. A newer trigger cancels this wait;
-  # schedule and manual runs skip it and merge at once. The merge job keeps its own queue.
-  settle:
-    if: github.event_name == 'workflow_run'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    concurrency:
-      group: rule-merge-settle
-      cancel-in-progress: true
-    steps:
-      - name: Let related runs settle
-        run: sleep 180
+  # W16k (owner, 25 Oct 2026): no workflow_run trigger. Bot-started runs never woke it (L069),
+  # so the owner's own smokes started 30 merge passes a day for nothing; the two crons and a
+  # manual run are the real path, and they merge at once.
   merge:
-    needs: settle
-    if: always() && (needs.settle.result == 'success' || needs.settle.result == 'skipped')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     concurrency:

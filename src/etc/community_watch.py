@@ -163,17 +163,24 @@ def collect(root, out, ident, reader=fetch):
     need(not out.exists(), "EVIDENCE_DIRECTORY_ALREADY_EXISTS")
     out.mkdir(parents=True)
     status = dict(state="COLLECTING", **ident)
+    stage = "read baseline"
     try:
         baseline = (root / BASELINE).read_bytes()
         targets_raw = (root / "src/targets.json").read_bytes()
         targets = model.read_json(targets_raw)
-        raw_index, raw_news = reader(INDEX_URL), reader(NEWS_URL)
+        stage = "fetch index"
+        raw_index = reader(INDEX_URL)
+        stage = "fetch news"
+        raw_news = reader(NEWS_URL)
+        stage = "compare index"
         old, new = model.read_json(baseline), model.read_json(raw_index)
         report = model.compare(old, new, targets)
         # Community watch is also the source for the provider ranker. Keep the
         # complete index comparison, then rank the newly observed index against
         # the providers configured for each enabled app.
+        stage = "rank providers"
         report["provider_ranks"] = model.rank_providers(new, targets)
+        stage = "read news history"
         report.update(ident, fetched_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
                       baseline_sha256=sha(baseline), index_sha256=sha(raw_index),
                       targets_sha256=sha(targets_raw), news_sha256=sha(raw_news),
@@ -182,6 +189,7 @@ def collect(root, out, ident, reader=fetch):
         key = model.digest(dict(renderer="community-report-v1", **{k: report[k] for k in
                            ("baseline_sha256", "index_sha256", "targets_sha256", "news_sha256")}))
         report["report_key"] = key
+        stage = "render report"
         text = report_text(report)
         pieces = chunks(text)
         write(out / "index.json", raw_index)
@@ -194,7 +202,12 @@ def collect(root, out, ident, reader=fetch):
         status.update(state="READY", report_key=key, parts=len(pieces),
                       report_sha256=sha(encoded(report)), parts_sha256=sha(encoded(pieces)))
     except Exception as error:
-        status.update(state="FAILED", error=type(error).__name__)
+        # W16k: 25 Oct run 40194762238 failed with no reason in its log. Say the stage and our own
+        # stop code (an upper-case word); other messages are not echoed (feed text is untrusted).
+        code = str(error) if isinstance(error, ValueError) and re.fullmatch(r"[A-Z][A-Z0-9_]{2,60}", str(error)) else ""
+        status.update(state="FAILED", error=type(error).__name__, stage=stage, code=code)
+        print("::error::Community Watch collect failed at " + stage + ": " + type(error).__name__ +
+              ((" " + code) if code else ""), file=sys.stderr)
     write(out / "status.json", encoded(status))
     return status
 
@@ -418,6 +431,9 @@ def main():
         if summary:
             with open(summary, "a", encoding="utf-8") as stream:
                 stream.write("# Community Watch: " + status["state"] + "\n")
+                if status["state"] == "FAILED":
+                    stream.write("Stopped at " + status["stage"] + ": " + status["error"] +
+                                 ((" " + status["code"]) if status["code"] else "") + "\n")
                 if status["state"] == "READY":
                     data = model.read_json((out / "report.json").read_bytes())
                     stream.write(header(data, model.read_json((out / "parts.json").read_bytes())))

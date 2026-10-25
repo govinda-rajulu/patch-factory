@@ -3,6 +3,8 @@ on:
   workflow_run:
     workflows: ['2. Check new patch', '1. Manual Patch', '9. Batch Patch']
     types: [completed]
+    # W16k: main only; packet and adopt smokes never publish, they only started skipped runs.
+    branches: [main]
 permissions:
   contents: read
 jobs:

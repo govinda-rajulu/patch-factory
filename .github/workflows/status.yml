@@ -11,14 +11,14 @@ permissions:
   contents: read
 on:
   workflow_run:
-    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "MCP scout", "9. Batch Patch", "Tooling watch", "10. Selection watch", "Needs you"]
+    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "MCP scout", "9. Batch Patch", "Tooling watch", "10. Selection watch", "Needs you", "Keepalive", "11. Rule merge"]
     types: [completed]
+    # W16k (owner, 25 Oct 2026: runs were bloating): only runs on main wake this; a packet
+    # smoke used to start Notify, Status and Qualify for nothing (130 of 299 runs that day).
+    branches: [main]
   schedule:
     - cron: "53 2 * * *"  # 08:23 IST daily
   workflow_dispatch:
-concurrency:
-  group: status-page
-  cancel-in-progress: true
 jobs:
   status:
     name: Write status.json
@@ -36,17 +36,34 @@ jobs:
       - name: Let related runs settle
         if: github.event_name == 'workflow_run'
         run: sleep 180
+      # W16k: no cancel-in-progress any more (Notify runs in this workflow and must never be
+      # cancelled). After the wait, a run that sees a newer Status run stops quietly; the newest publishes.
+      - name: Newest run publishes
+        id: newest
+        if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          OWN: ${{ github.run_id }}
+        run: |
+          newer=$(gh api "repos/$REPO/actions/workflows/status.yml/runs?event=workflow_run&per_page=20" --jq "[.workflow_runs[] | select(.id > $OWN)] | length" 2>/dev/null) || newer=0
+          case "$newer" in ''|*[!0-9]*) newer=0;; esac
+          echo "newer=$newer" >> "$GITHUB_OUTPUT"
+          if [ "$newer" != "0" ]; then echo "A newer Status page data run publishes; this one stops here." >> "$GITHUB_STEP_SUMMARY"; fi
       - name: Checkout main (the reader that runs)
+        if: steps.newest.outputs.newer == '0' || github.event_name != 'workflow_run'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           persist-credentials: false
       - name: Read recent runs, releases and failing issues
+        if: steps.newest.outputs.newer == '0' || github.event_name != 'workflow_run'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           PF_REPO: ${{ github.repository }}
         run: python3 src/etc/status.py --out status.json
       - name: Publish status.json to the status branch
+        if: steps.newest.outputs.newer == '0' || github.event_name != 'workflow_run'
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -61,6 +78,15 @@ jobs:
           git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" status:status
           echo "published status.json ($(wc -c < status.json) bytes)" >> "$GITHUB_STEP_SUMMARY"
 
+  # W16k: Notify on failure runs here as a called workflow, one job per finished run, so a
+  # finished run starts one follower instead of two. Never merged or cancelled (own group).
+  notify:
+    name: Failure issue
+    if: github.event_name == 'workflow_run'
+    permissions:
+      issues: write
+      actions: read
+    uses: ./.github/workflows/notify-failure.yml
   cache-prune:
     name: Prune stale Actions caches
     runs-on: ubuntu-24.04

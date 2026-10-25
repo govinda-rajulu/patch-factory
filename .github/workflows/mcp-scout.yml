@@ -44,6 +44,10 @@ jobs:
         id: gemini
         if: steps.key.outputs.present == 'true'
         uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0.1.22
+        # W16k: Gemini CLI 0.65 refuses an untrusted folder in headless runs (run 25 Oct said so and
+        # named this switch). Trusting the runner's own fresh checkout; the tools stay read-only above.
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_cli_version: '0.65.0'
@@ -74,11 +78,12 @@ jobs:
             --output "$SCOUT_DIR/results.jsonl" \
             --summary "$GITHUB_STEP_SUMMARY"
 
-      # The action creates only its temporary .gemini configuration in this checkout.
-      # Remove that known runner-local material before checking for agent-created changes.
+      # The action creates its temporary .gemini configuration and its gemini-artifacts/ logs
+      # (stdout, stderr, telemetry) in this checkout. Remove exactly those two known runner-local
+      # paths before checking for agent-created changes (W16k: the logs failed the proof).
       - name: Remove runner-local Gemini configuration
         if: always()
-        run: rm -rf .gemini
+        run: rm -rf .gemini gemini-artifacts
 
       - name: Prove the agent left the checkout unchanged
         if: always()

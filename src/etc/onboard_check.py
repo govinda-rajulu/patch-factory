@@ -78,27 +78,72 @@ def bundles(target):
     return rows
 
 
-def owner_policy(base):
-    """W15b (owner, 20 Oct 2026): apps where a paid unlock is the owner's decision, not a block.
-    Read from the BASE commit only, so a pull request cannot add its own app to the list."""
-    p = Path(base) / 'src/patches/ADOPT.json'
+def paid_ok(root):
+    p = Path(root) / 'src/patches/ADOPT.json'
     try:
         apps = json.loads(p.read_text(encoding='utf-8')).get('paid_ok_targets', []) if p.is_file() else []
     except ValueError:
         apps = []
+    return {a for a in apps if isinstance(a, str)}
+
+
+def owner_takes(root):
+    """'target: name' for every owner take in src/patches/DECISIONS.json (bounded)."""
+    p = Path(root) / 'src/patches/DECISIONS.json'
+    try:
+        rows = json.loads(p.read_text(encoding='utf-8')).get('names', []) if p.is_file() else []
+    except (ValueError, AttributeError):
+        rows = []
+    out = ['%s: %s' % (r['target'], r['name']) for r in rows if isinstance(r, dict) and r.get('call') == 'take'
+           and isinstance(r.get('target'), str) and isinstance(r.get('name'), str)]
+    return sorted(set(out))[:400]
+
+
+def owner_policy(base, head=None):
+    """W15b (owner, 20 Oct 2026): apps where a paid unlock is the owner's decision, not a block.
+    Read from the BASE commit, so a pull request cannot add its own app to the list.
+    W16k (owner, 25 Oct 2026: PR #247 got five false blocks from the old base list): when the
+    repository owner wrote the pull request (head is given only then), the owner's own head
+    ADOPT.json and DECISIONS.json takes count too. A bot or anyone else gets the base only."""
+    apps, takes = paid_ok(base), owner_takes(base)
+    source = 'src/patches/ADOPT.json and DECISIONS.json on the base commit'
+    if head is not None:
+        apps |= paid_ok(head)
+        takes = sorted(set(takes) | set(owner_takes(head)))[:400]
+        source += ', plus the head commit: the repository owner wrote this pull request'
     # W16j (owner, 25 Oct 2026): the list now holds account apps too (Truecaller, Telegram, Amazon Music);
     # the owner accepted their risk. The key name stays for the prompt and its tests.
-    return {'paid_unlock_ok_offline_apps': sorted(a for a in apps if isinstance(a, str)),
-            'source': 'src/patches/ADOPT.json on the base commit'}
+    return {'paid_unlock_ok_offline_apps': sorted(apps), 'owner_takes': takes, 'source': source}
 
 
-def manifest(base, head):
+def same_build_duplicates(head, targets, changes):
+    """W16k: rule 4 means ONE build. A build is one candidate plus every extra bundle; another
+    candidate is a separate (fallback) build, and an exclude is not a use. Only names this
+    change adds to an include list are judged."""
+    added = {(c['target'], n) for c in changes for n in c['added_include']}
+    out = []
+    for t in targets:
+        tid, extras = t.get('id'), t.get('extra_bundles') or []
+        for cand in t.get('candidates') or []:
+            build = [cand] + extras
+            seen = {}
+            for b in build:
+                for n in names(head, b.get('patch_dir') or '', 'include') if b.get('patch_dir') else []:
+                    seen.setdefault(n, []).append(b.get('name'))
+            for n, owners in seen.items():
+                if len(owners) > 1 and (tid, n) in added:
+                    out.append({'target': tid, 'name': n, 'bundles': owners})
+    uniq = {(r['target'], r['name']): r for r in out}
+    return [uniq[k] for k in sorted(uniq)]
+
+
+def manifest(base, head, owner_pr=False):
     """Everything onboarding-relevant that changed from base to head, as plain data."""
     old = {t.get('id'): t for t in load_targets(base)}
     new = {t.get('id'): t for t in load_targets(head)}
     out = {'new_targets': [], 'enabled_targets': [], 'removed_targets': sorted(set(old) - set(new)),
            'new_providers': [], 'patch_changes': [], 'records': {}, 'problems': [],
-           'owner_policy': owner_policy(base)}
+           'owner_policy': owner_policy(base, head if owner_pr else None)}
     for tid, t in new.items():
         before = old.get(tid)
         if before is None:
@@ -126,6 +171,7 @@ def manifest(base, head):
                 row['removed_' + side] = [n for n in a if n not in z]
             if any(row[k] for k in ('added_include', 'removed_include', 'added_exclude', 'removed_exclude')):
                 out['patch_changes'].append(row)
+    out['same_build_duplicates'] = same_build_duplicates(head, list(new.values()), out['patch_changes'])
     return out
 
 
@@ -144,8 +190,8 @@ def needs(m):
     return req
 
 
-def check(base, head):
-    m = manifest(base, head)
+def check(base, head, owner_pr=False):
+    m = manifest(base, head, owner_pr)
     banned, confirm = rules(head, 'BANNED'), rules(head, 'CONFIRM')
     problems = []
     for tid, mentions in sorted(needs(m).items()):
@@ -185,8 +231,10 @@ def main(argv=None):
     ap.add_argument('--base', required=True)
     ap.add_argument('--head', required=True)
     ap.add_argument('--manifest')
+    ap.add_argument('--owner-pr', action='store_true',
+                    help='the repository owner wrote the pull request: head policy counts too (W16k)')
     a = ap.parse_args(argv)
-    m = check(a.base, a.head)
+    m = check(a.base, a.head, a.owner_pr)
     if a.manifest:
         Path(a.manifest).write_text(json.dumps(m, indent=1, sort_keys=True) + '\n', encoding='utf-8')
     print('ONBOARDING %s: %d new target(s), %d enabled, %d new provider(s), %d selection change(s)' % (

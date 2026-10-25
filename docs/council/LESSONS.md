@@ -552,3 +552,31 @@ then sit on the real parent; a rehearsal still needs a full twin world.
 Tags: build, release
 Qualify compared every publication with the configured declaration; a fallback build pins another
 candidate and its overrides, so it always read DRIFT. The plan now carries one key per candidate.
+
+### L093 · Judge a version's rows together
+Tags: build
+The picker took the first row of the wanted type and checked Android afterwards, so a version
+with a fitting arm64 build and a non-fitting universal one failed on the wrong row. Score every
+row on chip, minimum Android and screen at once, and say "none fits" apart from "no rows".
+
+### L094 · One file is not a choice
+Tags: build
+APKPure serves one file per version; for Key Mapper 4.5.0 it needed Android 12L. The same version
+had an Android 10 arm64 build on APKMirror. Before stepping down a version, try the same version
+from the other store.
+
+### L095 · The third smoke of an app is cancelled
+Tags: ci
+Manual Patch keeps one running and one pending run per app; a third dispatch replaces the pending
+one, which ends cancelled (Instagram oxbow, W16j). A controller dispatches at most two per app.
+
+### L096 · Followers multiply
+Tags: ci
+A workflow_run follower without a branch filter starts for every branch smoke, and two followers
+per run double it: 180 of 299 runs on 25 Oct were followers. Filter to main and call the second
+follower from the first.
+
+### L097 · A failure without a reason is two failures
+Tags: ci, evidence
+Community collect and Nightly report failed with only "exit 1" and "UNKNOWN" in the log, so the
+cause could not be read from the owner's log zip. Every stop prints its stage and its own code.

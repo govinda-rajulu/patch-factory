@@ -80,6 +80,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Record the build time
+        # W16k: one stamp per job, so every step (release notes, status) names the same minute.
+        run: echo "PF_BUILT_AT=$(date -u +%Y-%m-%dT%H:%MZ)" >> "$GITHUB_ENV"
       - name: Refuse keep-going on a publishing run
         if: ${{ inputs.keep_going && inputs.publish }}
         run: |

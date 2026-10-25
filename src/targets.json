@@ -592,7 +592,7 @@
     "poll": true,
     "source": "apkpure",
     "label": "Key Mapper",
-    "note": "Premium unlocked. legendsciber (Key Mapper 4.5.0) is primary since W16j; Lain (4.2.1) is the backup."
+    "note": "Premium unlocked. legendsciber (Key Mapper 4.5.0) is primary; Lain (4.2.1) is the backup. Source stays APKPure (qualified store); its 4.5.0 is one Android 12L file, so since W16k the build takes the SAME version from APKMirror (arm64, Android 10+) before any lower version."
   },
   {
     "id": "amazonmusic",

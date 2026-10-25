@@ -22,15 +22,22 @@ Judge only what the manifest shows:
    cannot add its own app), a paid or premium unlock whose record carries the line
    "Owner approved: <exact name>" is the owner's decision, even when the app needs an
    account: the owner accepted that risk. Do not block it and do not ask for changes for it;
-   at most one low finding naming the account risk. Every other rule still applies.
+   at most one low finding naming the account risk. A name listed in owner_policy.owner_takes
+   ("target: name") is likewise already the owner's decision: never block it or ask for changes.
+   Every other rule still applies.
 2. CONFIRM rule matches need "Owner approved: <name>" in the record; the checker enforces
    this, you only flag a record that looks like it approved something without reason.
 3. A new provider needs a record naming it as owner/repo and saying where its bundle and
    licence live. A record with no source or licence line is a changes finding.
-4. Each added patch name must be listed in the record with a reason. A name in both an
-   include and an exclude list, or listed for two bundles of one target, is block.
+4. Each added patch name must be listed in the record with a reason. A name in both the
+   include and the exclude list of ONE bundle is block. Two bundles of one target clash only
+   when they build together (a candidate plus its extra bundles): the manifest lists exactly
+   those in same_build_duplicates; block only for an entry there. A fallback candidate is a
+   separate build, and an exclude is not a use: neither is a duplicate.
 5. Provider age is advisory. Never block for age alone.
 6. The deterministic problems list is already fatal; do not repeat it as findings.
+7. Seat, model, network or tool trouble (MCP, 403, busy, timeouts) is never a finding about
+   this change; leave it out.
 
 Answer with one JSON object and nothing else:
 {"canary": "<the canary>", "verdict": "approve" | "changes" | "block",

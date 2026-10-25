@@ -7,9 +7,7 @@ on:
   schedule:
     - cron: "23 12 * * *"  # 17:53 IST daily; GitHub may start scheduled runs late
     # Poll-only checks: they build only when a provider has published since the last release.
-    - cron: "23 18 * * *"  # 23:53 IST poll-only
     - cron: "23 0 * * *"  # 05:53 IST poll-only
-    - cron: "23 6 * * *"  # 11:53 IST poll-only
   workflow_dispatch:
 
 concurrency:

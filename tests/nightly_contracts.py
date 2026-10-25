@@ -40,6 +40,19 @@ class Nightly(unittest.TestCase):
         for message in ('?? fixture unreadable','provider UNVERIFIED','skipping','release read returned nothing'):
             _,d=n.analyze(message+'\nreport mode=full fail=0\n',0,True,TARGETS,ENV)
             self.assertEqual(d['status'],'UNKNOWN')
+            # W16k: the reason names the reader's own line, so the log says why.
+            self.assertIn('reader line: '+message, d['reasons'])
+
+    def test_unknown_reasons_reach_the_log(self):
+        import contextlib, io, tempfile
+        from pathlib import Path
+        root=Path(tempfile.mkdtemp());dest=root/'watch-evidence';dest.mkdir()
+        _,d=n.analyze('provider UNVERIFIED\nreport mode=full fail=0\n',0,True,TARGETS,ENV)
+        raw='x'.encode();d['report_sha256']=__import__('hashlib').sha256(raw).hexdigest();d['report_bytes']=1
+        (dest/'nightly-report.txt').write_bytes(raw);(dest/'nightly-report.json').write_text(__import__('json').dumps(d))
+        out=io.StringIO()
+        with contextlib.redirect_stdout(out):self.assertEqual(n.enforce(root),1)
+        self.assertIn('::error::Nightly Watch UNKNOWN: legacy reader reported incomplete inputs; reader line: provider UNVERIFIED',out.getvalue())
 
     def test_patch_names_never_read_as_reader_messages(self):
         # W14 (L055): "Unlimited track skipping" in the unused list made every run UNKNOWN

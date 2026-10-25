@@ -906,7 +906,7 @@ class Council(unittest.TestCase):
         with self.assertRaises(council.Refused):
             council.desk_job({}, spec, monday)
         wf = (ROOT / '.github/workflows/council.yml').read_text()
-        self.assertEqual(re.findall(r'cron: "([^"]+)"', wf), ['17 3 * * *', '17 15 * * *', '17 21 * * *', '17 0 * * *', '17 9 * * *', '17 12 * * *'])
+        self.assertEqual(re.findall(r'cron: "([^"]+)"', wf), ['17 3 * * *', '17 15 * * *'])
         called = []
         real = council.desk_job
         council.desk_job = lambda c, s, now: called.append(now.tzinfo) or ('probe', {})
@@ -1164,13 +1164,12 @@ class Personas(unittest.TestCase):
         cfg = json.loads((ROOT / 'src/council/seats.json').read_text())
         spec = json.loads((ROOT / 'src/council/shards.json').read_text())
         day = dt.datetime(2026, 10, 22, 0, 17, tzinfo=dt.timezone.utc)
-        seen = set()
+        # W16k: no scheduled shifts; a desk cron that GitHub starts hours late stays desk work.
+        self.assertEqual(council.SHIFT_HOURS_UTC, ())
         for d in range(7):
-            for h in council.SHIFT_HOURS_UTC:
-                mode, extra = council.desk_job(cfg, spec, day.replace(hour=h) + dt.timedelta(days=d))
-                self.assertEqual(mode, 'shift')
-                seen.add(extra['PF_SEAT'])
-        self.assertEqual(seen, set(cfg['shift_order']))
+            for h in (21, 0, 9, 12):
+                self.assertNotEqual(council.desk_job(cfg, spec, day.replace(hour=h) + dt.timedelta(days=d))[0], 'shift')
+        self.assertTrue(set(cfg['shift_order']))
         self.assertEqual(council.desk_job(cfg, spec, day.replace(hour=15))[0], 'audit')
 
     def test_persona_text_changes_with_the_work(self):

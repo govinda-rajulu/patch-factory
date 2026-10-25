@@ -167,10 +167,15 @@ async function main(){
    ['keepalive.yml','Keepalive'],
    ['needs-you.yml','Needs you']
   ];
-  const hook=source.match(/workflows: (\[[^\n]+\])/);
+  // W16k: Status page data lists the runs that wake Notify (called workflow, one follower run).
+  const statusText=fs.readFileSync(path.join(ROOT,'.github/workflows/status.yml'),'utf8');
+  assert.ok(/^on:\n  workflow_call:\n/m.test(source)&&!/workflow_run:/.test(source.split('\njobs:')[0]));
+  assert.ok(statusText.includes('    uses: ./.github/workflows/notify-failure.yml')&&statusText.includes('    branches: [main]'));
+  const hook=statusText.match(/workflows: (\[[^\n]+\])/);
   assert.ok(hook);
   const names=JSON.parse(hook[1]);
-  assert.equal(names.length,13);assert.equal(new Set(names).size,13);  // W16g: + MCP scout (manual-only)
+  assert.equal(names.length,14);assert.equal(new Set(names).size,14);  // W16k: + 11. Rule merge (schedule only now)
+   // W16g: + MCP scout (manual-only)
   assert.ok(names.includes("MCP scout"));
   for(const [file,name] of watches){
    assert.ok(names.includes(name));

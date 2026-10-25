@@ -115,7 +115,8 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
         other=row.replace('universal','armeabi-v7a')
         r,p=self.case('apkmirror','bundle',False,extra={'arch':'arm64-v8a','dpi':'480-640dpi'},row=other)
         self.assertNotIn('Arch fallback',p.stdout+p.stderr)
-        self.assertIn('Could not find variant',p.stdout+p.stderr)
+        self.assertIn('fits this phone',p.stdout+p.stderr)  # W16k: variant_pick exit 4 (no arm64 code)
+        self.assertIn('no arm64 code',p.stdout+p.stderr)
 
     def test_pinned_version_code_picks_its_own_row(self):
         # W15: two arm64 rows both match the dpi text; the pin (version_code) decides, not row order.

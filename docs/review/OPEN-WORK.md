@@ -2,6 +2,16 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
+## Current checkpoint: 25 October 2026, night IST (packet W16k)
+
+- W15g signing split (docs/review/SIGNING-SPLIT.md), next packet.
+- Community watch and Nightly watch: read the reason the next run prints, then fix the cause.
+- Council solo shifts are manual only since W16k; the owner may want one daily slot back.
+- Photos: rushiranpise's AMOLED copy stays excluded (one provider per name in one build); a
+  both-copies keep_going smoke is possible if the owner wants it.
+- Daily watches could share one daily run (Pages and Status read per-workflow runs; needs a
+  status.py change first).
+
 ## Current checkpoint: 25 October 2026, evening IST (packet W16j)
 
 The owner answered all 104 Needs you items (docx, 25 Oct). W16j records them once per app and name

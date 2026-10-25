@@ -25,8 +25,8 @@ def later(crons):
     """README clause for the poll-only checks after the first cron, or ''."""
     t=[ist(c) for c in crons[1:]]
     if not t: return ''
-    return ' plus poll-only checks at %s IST that build only when a provider has published;'%(
-        ', '.join(t[:-1])+' and '+t[-1] if len(t)>1 else t[0])
+    if len(t)==1: return ' plus a poll-only check at %s IST that builds only when a provider has published;'%t[0]  # W16k
+    return ' plus poll-only checks at %s IST that build only when a provider has published;'%(', '.join(t[:-1])+' and '+t[-1])
 def build():
     T=json.load(io.open('src/targets.json',encoding='utf-8'))
     en=[t for t in T if t.get('enabled')]

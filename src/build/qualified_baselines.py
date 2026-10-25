@@ -194,13 +194,17 @@ def finalize(root, env, api=None, upload=None):
         except (ValueError, KeyError, TypeError, OSError, subprocess.SubprocessError) as error:
             # W15: the reason is kept. Four red runs (11 to 17 Oct) said only "incomplete".
             reason = re.sub(r"[^A-Za-z0-9 .,:;/_()-]", " ", (type(error).__name__ + ": " + str(error)))[:200]
-            print("::warning::qualification %s UNKNOWN: %s" % (ident, reason), file=sys.stderr)
-            results.append({"target": ident, "state": "UNKNOWN", "reason": reason})
+            # W16k (owner, 25 Oct 2026: red runs for nothing): a release published without a receipt
+            # (fallback-provider builds store none) is NO_RECEIPT: still a warning, never red.
+            # Every other reason stays UNKNOWN and fails the run (L061: never suppress).
+            state = "NO_RECEIPT" if "no publication receipt on the release" in str(error) else "UNKNOWN"
+            print("::warning::qualification %s %s: %s" % (ident, state, reason), file=sys.stderr)
+            results.append({"target": ident, "state": state, "reason": reason})
     shadow.write(root, "shadow-qualified/result.json",
                  {"source_run": source["id"], "source_attempt": source["run_attempt"],
                   "targets": results, "scope": "published receipts from exact source attempt only",
                   "authority": "shadow-only"})
-    need(all(r["state"] == "QUALIFIED" for r in results), "one or more qualifications unknown")
+    need(all(r["state"] in ("QUALIFIED", "NO_RECEIPT") for r in results), "one or more qualifications unknown")
     return results
 
 

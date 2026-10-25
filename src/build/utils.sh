@@ -466,59 +466,28 @@ get_apk() {
 
 	local matched_type=""
 	local variant_page_loaded=false
-	for try_type in "${type_attempts[@]}"; do
-		local filtered_rows
-		filtered_rows=$(echo "$rows" | grep -iP "apkm-badge[^>]*>\s*$try_type\s*<")
-		if [[ -n "$arch" ]]; then
-			local arch_rows
-			arch_rows=$(echo "$filtered_rows" | grep -i -- "$arch")
-			# A universal (or noarch) upload carries every ABI; the build keeps arm64 only.
-			# Reddit 2026.41.0 ships one row, "universal 120-640dpi" (W14, L054).
-			if [[ -z "$arch_rows" ]]; then
-				arch_rows=$(echo "$filtered_rows" | grep -iwE 'universal|noarch')
-				[[ -n "$arch_rows" ]] && yellow_log "[!] Arch fallback: $arch -> universal"
-			fi
-			filtered_rows="$arch_rows"
-		fi
-		[[ -n "$minver" ]] && filtered_rows=$(echo "$filtered_rows" | grep -i "$minver")
-		if [[ -n "${PF_SDK_CEILING:-}" && -n "$filtered_rows" ]]; then
-			local fit_rows
-			fit_rows=$(pf_rows_fit_ceiling "$filtered_rows" "$PF_SDK_CEILING")
-			if [[ -n "$fit_rows" ]]; then
-				[[ "$fit_rows" != "$filtered_rows" ]] && green_log "[+] variant rows above Android API $PF_SDK_CEILING skipped"
-				filtered_rows="$fit_rows"
-			fi
-		fi
-
-		if [[ -n "$dpi" ]]; then
-			local dpi_filtered
-			dpi_filtered=$(echo "$filtered_rows" | grep -i "$dpi")
-			if [[ -z "$dpi_filtered" ]]; then
-				for fb_dpi in "${dpi_fallback[@]}"; do
-					dpi_filtered=$(echo "$filtered_rows" | grep -i "$fb_dpi")
-					[[ -n "$dpi_filtered" ]] && { yellow_log "[!] DPI fallback: $dpi -> $fb_dpi"; break; }
-				done
-			fi
-			filtered_rows="$dpi_filtered"
-		fi
-		# W15 (17 Oct 2026): an exact version_code pin picks the row carrying that code. Facebook 583
-		# asked for 480-640dpi, got 475614280 (480dpi), not the pinned 475614366 (smoke 39052486239).
-		if [[ -n "${PF_PIN_CODE:-}" ]]; then
-			local code_rows
-			code_rows=$(echo "$rows" | grep -iP "apkm-badge[^>]*>\s*$try_type\s*<" | grep -w -- "$PF_PIN_CODE")
-			if [[ -n "$code_rows" ]]; then
-				filtered_rows="$code_rows"
-				green_log "[+] variant row carries the pinned version code $PF_PIN_CODE"
-			fi
-		fi
-
-		variant_href=$(echo "$filtered_rows" | grep -oP 'accent_color[^>]*href="\K[^"]+' | head -1)
-		if [[ -n "$variant_href" ]]; then
-			matched_type="$try_type"
-			[[ "$try_type" != "$type_badge" ]] && yellow_log "[!] Type fallback: $type_badge -> $try_type"
-			break
-		fi
-	done
+	# W16k (owner, 25 Oct 2026: "what about architecture and sdk match?"): variant_pick.py judges
+	# every row on chip, minimum Android and screen together and never keeps a row that does not
+	# fit. Exit 4 = rows exist but none fits this phone: the caller tries the other store, then a
+	# lower version (build.sh). type_attempts stays for the log line only.
+	local pick pick_rc pick_log
+	pick_log=$(mktemp)
+	pick=$(printf '%s\n' "$rows" | python3 ./src/build/variant_pick.py --type "$type_badge" --arch "$arch" --dpi "$dpi" \
+		--ceiling "${PF_SDK_CEILING:-}" --minver "$minver" --pin "${PF_PIN_CODE:-}" 2>"$pick_log")
+	pick_rc=$?
+	grep -E 'VARIANT_PICK (chose|none|skip)' "$pick_log" | head -12 | while IFS= read -r l; do yellow_log "[i] $l"; done
+	grep -q 'VARIANT_PICK arch fallback' "$pick_log" && yellow_log "[!] Arch fallback: $arch -> universal"
+	rm -f "$pick_log"
+	if [[ "$pick_rc" -eq 4 ]]; then
+		red_log "[-] no build of version ${version:-latest} fits this phone (Android API ${PF_SDK_CEILING:-?}, arm64)"
+		return 4
+	fi
+	if [[ "$pick_rc" -eq 0 && -n "$pick" ]]; then
+		matched_type="${pick%%$'\t'*}"
+		variant_href="${pick#*$'\t'}"
+		[[ "$matched_type" != "$type_badge" ]] && yellow_log "[!] Type fallback: $type_badge -> $matched_type"
+		[[ -n "${PF_PIN_CODE:-}" ]] && grep -qw -- "$PF_PIN_CODE" <<<"$(printf '%s\n' "$rows" | grep -F "$variant_href")" && green_log "[+] variant row carries the pinned version code $PF_PIN_CODE"
+	fi
 
 	if [[ -z "$variant_href" ]]; then
 		local direct_apk_href
