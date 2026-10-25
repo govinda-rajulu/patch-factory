@@ -115,7 +115,7 @@ verified. Cleanup policy, tool and boundaries: [RECOVERY.md](RECOVERY.md#cleanup
 Generated from `src/targets.json` by `src/etc/readmegen.py`. **3. Validate** fails a push
 that leaves this block stale, so it cannot drift.
 
-- **17 apps**, all enabled, 17 polled by the scheduled build (`23 12 * * *` UTC = 17:53 IST; plus a poll-only check at 05:53 IST that builds only when a provider has published; GitHub can start scheduled runs late).
+- **18 apps**, all enabled, 18 polled by the scheduled build (`23 12 * * *` UTC = 17:53 IST; plus a poll-only check at 05:53 IST that builds only when a provider has published; GitHub can start scheduled runs late).
 - Patch-age warning: 60, 120 days. Age is advisory; requested/applied checks and build verification decide.
 - 2 build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.
 - 2 patch(es) quarantined in `src/patches/QUARANTINE`, held out of every include list by CI.
@@ -124,6 +124,7 @@ that leaves this block stale, so it cannot drift.
 |---|---|---|---|---|---|
 | AdGuard | `adguard` | `adguard` | apkmirror | rushiranpise + hoo-dles | yes |
 | Amazon Music | `amazonmusic` | `amazonmusic` | apkmirror | rookieenough | yes |
+| CCleaner | `ccleaner` | `ccleaner` | apkmirror | mich111discord | yes |
 | ES File Explorer | `esfile` | `es-file` | apkmirror | ftl + rushiranpise | yes |
 | Facebook | `facebook` | `facebook` | apkmirror | hushfacebook (fallback: derevanced) | yes |
 | Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise + akash | yes |
