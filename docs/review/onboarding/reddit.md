@@ -10,7 +10,7 @@ Provider: Alastor-Kaneki/Morphe-Patches (extra on the Morphe build since W16j; A
 
 ## Patches
 - Download Reddit gallery originals: Alastor-Kaneki, owner took it in the Needs you review file (N-03fcf2, 2026-10-25); saves original-quality gallery images
-- Reddit native post-menu originals (2026.41.0): Alastor-Kaneki, owner took it in the Needs you review file (N-03fcf2, 2026-10-25); saves original-quality gallery images
+- Reddit native post-menu originals (2026.41.0): Alastor-Kaneki, owner took it in the Needs you review file (N-03fcf2, 2026-10-25); saves original-quality gallery images; held since W16l (see Held patch W16l below)
 - Hide related posts: owner took it in the Needs you review file, 2026-10-25 (N-2b1bc7)
 - Hide search answers preview: owner took it in the Needs you review file, 2026-10-25 (N-8c47a1)
 - Hide awards: owner took it in the Needs you review file, 2026-10-25 (N-b6b49b)
@@ -67,3 +67,11 @@ Adobo choices with a Morphe match: ad and telemetry removal -> Hide ads; screens
 ## Decision
 
 Owner brief, 23 Oct 2026: make official MorpheApp/morphe-patches primary for Reddit, keep Morphe 2026.42.0 (no owner downgrade to 41), and retain Adobo as fallback. The Morphe 42 path is experimental; verify it with morphe-desktop v1.19.0 and use the provider's 41 support only if 42 fails. The selection mapping is repository evidence only and remains subject to the live v1.48.0 list-patches check.
+
+## Held patch (W16l, 25 Oct 2026)
+
+`Reddit native post-menu originals (2026.41.0)` (Alastor-Kaneki extra bundle) fails on Reddit 2026.41.0:
+"Failed to match the fingerprint: dev.alastorkaneki.morphe.patches.reddit.Reddit202641OverflowEventFingerprint"
+(publish batch run 40212870923), so the Morphe build fell back to Adobo. The name moves to
+`src/patches/reddit-alastor/exclude-patches`; Download Reddit gallery originals and the Morphe names build again.
+The owner's take (N-03fcf2) stands: put it back when an Alastor build applies it on the Reddit we build.

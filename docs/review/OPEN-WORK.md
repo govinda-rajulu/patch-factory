@@ -2,6 +2,17 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
+## Current checkpoint: 25 October 2026, late night IST (packet W16l)
+
+- W17: one-form Add app from Pages (owner-only through GitHub's dispatch form; find providers,
+  smoke, merge only when green, publish; paid names wait in Needs you).
+- W15g signing split (docs/review/SIGNING-SPLIT.md).
+- Held names to retry when the provider updates: Instagram piko Hide feed posts; Reddit Alastor
+  "Reddit native post-menu originals (2026.41.0)"; brosssh Disable story auto flipping (W16c).
+- CCleaner: both patches are one day old; phone-test the first build.
+- Key Mapper ships the APKMirror 4.5.0 build through VARIANT_RETRY while source-fallbacks.json says
+  the APKMirror variant is not qualified as equivalent; qualify it or keep APKPure-only.
+
 ## Current checkpoint: 25 October 2026, night IST (packet W16k)
 
 - W15g signing split (docs/review/SIGNING-SPLIT.md), next packet.

@@ -675,7 +675,7 @@
     "poll": true,
     "label": "CCleaner",
     "source": "apkmirror",
-    "note": "Added 2026-10-25 through 5. Add target.",
+    "note": "Telemetry off, Premium unlocked",
     "exclusive": true
   }
 ]

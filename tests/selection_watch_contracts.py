@@ -23,7 +23,11 @@ class Watch(unittest.TestCase):
         self.r.mkdir()
         for d in ('src', 'docs'):
             shutil.copytree(ROOT / d, self.r / d)
-        for c in (['init', '-q'], ['add', '-A'], ['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'x']):
+        # W16k (Validate on cb11a66): committing src/ and docs/ starts a detached auto gc that kept
+        # writing objects/ while the temporary directory was removed. No auto gc here (as resolved_contracts).
+        for c in (['init', '-q'], ['config', 'gc.auto', '0'], ['config', 'gc.autoDetach', 'false'],
+                  ['config', 'maintenance.auto', 'false'], ['add', '-A'],
+                  ['-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'x']):
             subprocess.run(['git', *c], cwd=self.r, check=True)
         self.out = Path(self.t.name) / 'out'
         self.base = {}

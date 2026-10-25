@@ -9,7 +9,9 @@ permissions:
 jobs:
   open-issue:
     # Failures report into one standing issue per workflow; a success closes it.
-    if: ${{ contains(fromJSON('["failure","timed_out","startup_failure","action_required","success"]'), github.event.workflow_run.conclusion) }}
+    # W16k fix (run 40212990656): inside Status page data a refused event turned Status red. Runs started
+    # by other events (issue_comment, workflow_run, pull_request) are never reported: skip, do not fail.
+    if: ${{ contains(fromJSON('["failure","timed_out","startup_failure","action_required","success"]'), github.event.workflow_run.conclusion) && contains(fromJSON('["workflow_dispatch","schedule","push","workflow_call"]'), github.event.workflow_run.event) }}
     runs-on: ubuntu-24.04
     concurrency:
       group: notify-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}

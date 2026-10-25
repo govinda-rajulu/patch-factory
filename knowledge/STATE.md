@@ -6,7 +6,22 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 25 Oct 2026, night IST (packet W16k; start here)
+## 25 Oct 2026, late night IST (packet W16l; start here)
+
+- **Main** `19a9b969` (W16k #251 `cb11a66e`, CCleaner #254) plus W16l once merged.
+- **W16l**: Status page data no longer red (Notify skips events it never reports); Validate's
+  selection-watch test repo has no auto gc (a detached gc raced the temp cleanup). CCleaner: the
+  owner keeps both MightyMichs patches (Disable Telemetry, Unlock Premium; paid_ok_targets,
+  DECISIONS take, record licence GPL-3.0), card line "Telemetry off, Premium unlocked"; "5. Add
+  target" now writes the patch names as the card line. Instagram piko holds Hide feed posts and
+  Reddit Alastor holds "Reddit native post-menu originals (2026.41.0)": each failed on the app
+  version we build, so both apps had shipped from their fallback (W16k smoke and publish batch
+  40212870923). W16k publish batch: 17 of 17 apps built and published. Record
+  docs/review/SESSION-2026-10-25.md (W16l part). Wrong calls: 68.
+- **Next**: W17 one-form Add app (owner-only by GitHub write access; find providers, smoke,
+  merge only when green, paid names wait in Needs you); W15g signing split; owner phone tests.
+
+## 25 Oct 2026, night IST (packet W16k)
 
 - **Main** `9ad6af15` (W16j #247) plus bot commits, plus W16k once merged.
 - **W16k**: APK picker judges chip, Android and screen together (src/build/variant_pick.py) and

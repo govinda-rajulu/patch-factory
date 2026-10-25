@@ -93,7 +93,7 @@ echo "minSdkVersion=$MIN ceiling=$CEIL"
 if [ "$MIN" -gt "$CEIL" ]; then
   # W15: a warning; build.sh tries a lower version and only its last give-up is an error
   # (the Reddit step-down to 2026.40.0 built fine but its run showed a red error, 11 Oct).
-  echo "::warning::needs SDK $MIN, device is $CEIL; build.sh tries a lower version if it can. Set max_app_version in src/targets.json."
+  echo "::warning::needs SDK $MIN, device is $CEIL; build.sh tries the same version from the other store first, then a lower version; if both fail it stops. Set max_app_version in src/targets.json."
   # Status 3 means only "above the cap"; build.sh may then try a lower version (W7).
   exit 3
 fi
