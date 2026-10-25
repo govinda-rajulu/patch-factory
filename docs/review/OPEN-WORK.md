@@ -2,6 +2,20 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
+## Current checkpoint: 25 October 2026, afternoon IST (packet W16i)
+
+W16h merged #241 as 93bf40d5: heval99 26.41.5 now builds (the picker took the Android 10+ row,
+minSdk 26; 18 of 18 applied), LinkedIn 4.1.1261 published, T1 17 of 17. W16i: the Selection
+adopt PR #243 put back three names left out on purpose (newuser7171 Bypass channel restrictions,
+which fails on 12.10.4; heval99 Restore classic call log and Use SMS for verification codes).
+They were only absent, never excluded, so the rule saw them as never chosen (wrong call 60).
+They are now in exclude-patches; owner closes #243 and the next Selection run re-adopts the
+other 16. Status page, Qualify and Rule merge wait 3 minutes after a trigger and a newer trigger
+cancels the wait, so a PR batch runs each once (owner, 25 Oct). Notify on failure stays one run
+per finished run: merging those could hide one app's failure behind another's success. An old
+bundle that applies every chosen patch is a log line, no longer a warning (Key Mapper, owner).
+Next: heval99 primary with the combo as a fallback (needs fallback-only extras).
+
 ## Current checkpoint: 25 October 2026 (packet W16h)
 
 W16h: Truecaller combo primary again, heval99 fallback (its smoke on the Android 10+ variant decides

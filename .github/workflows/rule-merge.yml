@@ -17,16 +17,33 @@ on:
     - cron: "7 4 * * *"  # 09:37 IST, in case a trigger was missed
     - cron: "7 16 * * *"  # 21:37 IST, in case a trigger was missed
   workflow_dispatch:
-concurrency:
-  # Its own queue: sharing main-writer would let a burst of these runs cancel a pending
-  # Selection or Community watch (GitHub keeps one pending run per group). A writer that
-  # meets a moved main stops with MAIN_MOVED and retries; rule_merge waits while a packet/* branch exists.
-  group: rule-merge
-  cancel-in-progress: false
 jobs:
+  # W16i (owner, 25 Oct 2026): every Manual Patch, Validate and Onboarding review completion
+  # started a merge pass that could wait 20 minutes. rule_merge.py reads every open rule pull
+  # request, so one pass after the last trigger is enough. A newer trigger cancels this wait;
+  # schedule and manual runs skip it and merge at once. The merge job keeps its own queue.
+  settle:
+    if: github.event_name == 'workflow_run'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    concurrency:
+      group: rule-merge-settle
+      cancel-in-progress: true
+    steps:
+      - name: Let related runs settle
+        run: sleep 180
   merge:
+    needs: settle
+    if: always() && (needs.settle.result == 'success' || needs.settle.result == 'skipped')
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    concurrency:
+      # Its own queue: sharing main-writer would let a burst of these runs cancel a pending
+      # Selection or Community watch (GitHub keeps one pending run per group). A writer that
+      # meets a moved main stops with MAIN_MOVED and retries; rule_merge waits while a packet/* branch exists.
+      # W16i: on the job, not the workflow, so a newer run's settle can cancel an older one's.
+      group: rule-merge
+      cancel-in-progress: false
     steps:
       - name: Checkout main (the rule that runs)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

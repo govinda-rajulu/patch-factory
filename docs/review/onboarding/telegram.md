@@ -29,7 +29,7 @@ Exclusive target; the newuser7171 fallback's names are in `src/patches/telegram-
 - Use normal paste: default on; same as the rushiranpise build.
 - Voice to music: default on; same as the rushiranpise build.
 
-Left out of the fallback (its exclude-patches): `Bypass integrity check` (CONFIRM rule, held as before), `Fix Firebase after re-signing`, `Provide Original app certificate`, `Spoof app signature`, `Spoof install source` (all BANNED re-signing rules).
+Left out of the fallback (its exclude-patches): `Bypass channel restrictions` (W16i: fails on 12.10.4, run 40108956377; excluded so the Selection rule cannot add it back, as PR #243 tried), `Bypass integrity check` (CONFIRM rule, held as before), `Fix Firebase after re-signing`, `Provide Original app certificate`, `Spoof app signature`, `Spoof install source` (all BANNED re-signing rules).
 
 ## Risks
 

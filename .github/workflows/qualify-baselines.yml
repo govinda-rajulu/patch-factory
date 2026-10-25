@@ -6,12 +6,26 @@ on:
 permissions:
   contents: read
 jobs:
-  qualify:
+  # W16i (owner, 25 Oct 2026): qualify reads every release, so a burst of publications needs
+  # one pass, after the last. A newer qualifying trigger cancels this wait; the real job then
+  # skips. Only main successes wait, so a branch smoke can never cancel a main qualification.
+  settle:
     if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    concurrency:
+      group: qualify-settle
+      cancel-in-progress: true
+    steps:
+      - name: Let related publications settle
+        run: sleep 180
+  qualify:
+    needs: settle
+    if: needs.settle.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     concurrency:
-      group: qualify-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+      group: qualify
       cancel-in-progress: false
     permissions:
       contents: write
