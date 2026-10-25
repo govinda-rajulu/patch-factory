@@ -675,7 +675,7 @@
     "poll": true,
     "label": "CCleaner",
     "source": "apkmirror",
-    "note": "Telemetry off, Premium unlocked",
+    "note": "Premium unlocked",
     "exclusive": true
   }
 ]

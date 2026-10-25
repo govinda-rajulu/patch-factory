@@ -9,7 +9,8 @@ Maintenance history: the unused source path was removed; its implementation rema
 - W15g signing split (docs/review/SIGNING-SPLIT.md).
 - Held names to retry when the provider updates: Instagram piko Hide feed posts; Reddit Alastor
   "Reddit native post-menu originals (2026.41.0)"; brosssh Disable story auto flipping (W16c).
-- CCleaner: both patches are one day old; phone-test the first build.
+- CCleaner: Unlock Premium is one day old; phone-test the first build. Disable Telemetry is out
+  (fails on 26.08.0); re-add only if the owner asks after a provider fix.
 - Key Mapper ships the APKMirror 4.5.0 build through VARIANT_RETRY while source-fallbacks.json says
   the APKMirror variant is not qualified as equivalent; qualify it or keep APKPure-only.
 
