@@ -18,7 +18,8 @@ def build():
     rows=[]
     for t in T:
         if not t.get('enabled'): continue
-        note=(t.get('note') or '').split('.')[0].strip()
+        # W16h: the first sentence ends at '. ', not at the dot inside a version (26.10.6 showed as 26).
+        note=re.split(r'\.(?:\s|$)',(t.get('note') or ''),1)[0].strip()
         # 8 Oct 2026 (W2): what the phone needs, from targets.json; shown only when it differs
         # from the shelf-wide rule (ARM64, Android 10 or newer, no MicroG).
         needs=[]

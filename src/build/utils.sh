@@ -296,6 +296,29 @@ pf_wget_meaning() {
 	esac
 }
 
+# W16h (L088): APKMirror rows name their minimum Android ("Android 10+", "Android 12L+").
+# pf_android_sdk maps that text to an API level; pf_rows_fit_ceiling keeps the rows at or under
+# the device cap. Truecaller 26.41.5 has an Android 12L+ row listed first and an Android 10+ row;
+# the picker took the first and the SDK gate stopped (W16g smoke 40108958168).
+pf_android_sdk() {
+	case "$1" in
+		4.4*) echo 19 ;; 5.0*) echo 21 ;; 5.1*) echo 22 ;; 6*) echo 23 ;; 7.0*|7) echo 24 ;; 7.1*) echo 25 ;;
+		8.0*|8) echo 26 ;; 8.1*) echo 27 ;; 9*) echo 28 ;; 10*) echo 29 ;; 11*) echo 30 ;;
+		12L*|12.1*) echo 32 ;; 12*) echo 31 ;; 13*) echo 33 ;; 14*) echo 34 ;; 15*) echo 35 ;;
+		16*) echo 36 ;; 17*) echo 37 ;; *) echo "" ;;
+	esac
+}
+pf_rows_fit_ceiling() {
+	local rows=$1 ceil=$2 line ver sdk
+	while IFS= read -r line; do
+		[[ -n "$line" ]] || continue
+		ver=$(grep -oP 'Android \K[0-9]+(\.[0-9]+)?L?(?=\+)' <<<"$line" | head -1)
+		sdk=$(pf_android_sdk "$ver")
+		# A row with no readable minimum stays: the SDK gate after download still decides.
+		if [[ -z "$sdk" || "$sdk" -le "$ceil" ]]; then printf '%s\n' "$line"; fi
+	done <<<"$rows"
+}
+
 get_apk() {
 	local pkg_name=$1 apk_name=$2
 	local pkg_type=${3:-apk} arch=${4:-} dpi=${5:-} minver=${6:-}
@@ -458,6 +481,14 @@ get_apk() {
 			filtered_rows="$arch_rows"
 		fi
 		[[ -n "$minver" ]] && filtered_rows=$(echo "$filtered_rows" | grep -i "$minver")
+		if [[ -n "${PF_SDK_CEILING:-}" && -n "$filtered_rows" ]]; then
+			local fit_rows
+			fit_rows=$(pf_rows_fit_ceiling "$filtered_rows" "$PF_SDK_CEILING")
+			if [[ -n "$fit_rows" ]]; then
+				[[ "$fit_rows" != "$filtered_rows" ]] && green_log "[+] variant rows above Android API $PF_SDK_CEILING skipped"
+				filtered_rows="$fit_rows"
+			fi
+		fi
 
 		if [[ -n "$dpi" ]]; then
 			local dpi_filtered

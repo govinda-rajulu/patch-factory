@@ -24,7 +24,7 @@ class OperationalDocs(unittest.TestCase):
                        'truecaller-v26.10.6','whole source run'):
             self.assertIn(phrase,text)
         # W10: one Truecaller; the standalone release is no longer protected.
-        self.assertIn('`tc-combo` (heval99 since 24 Oct 2026, bufferk as fallback) is the only',text)
+        self.assertIn('`tc-combo` (bufferk, paresh and binarymend together; heval99 fallback) is the only',text)
         self.assertNotIn('release and `src/patches/_attic/` are retained',text)
         for phrase in ('turn Play Protect scanning off','Uninstall freely',
                        '3-4 phone verifications','ONE copy today','max_patch_age_days` is 60'):

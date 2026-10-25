@@ -515,3 +515,12 @@ refusal test went red (24 Oct, PR #239). Side effects that need docker, network 
 behind a flag the real job sets (PF_STORE_LAZY=1 on the Manual Patch build step). Validate's test
 steps also write their step summary to a scratch file: fixture tables (UNKNOWN,
 MISSING_OR_INVALID_OBSERVATION) are test data, not results, and were filling the run page.
+
+### L088 · Minimum Android belongs to the variant, not the version; keep the working combo
+Tags: sources, build, evidence
+W16g made heval99 primary for Truecaller. The smoke downloaded 26.41.5's first APKMirror row
+(Android 12L+) and stopped at the Android 10 cap; the assistant then said "heval99 only supports
+Android 12 versions". The same release has an Android 10+ arm64 row; the owner found it. Every build
+fell back to bufferk alone (7 patches instead of 19). The picker now skips rows above the cap. Read a
+store's variant list before claiming a version cannot install, and keep the working combo primary
+until the new provider's smoke is green.

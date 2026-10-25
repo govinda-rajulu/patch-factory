@@ -124,7 +124,7 @@ that leaves this block stale, so it cannot drift.
 |---|---|---|---|---|---|
 | AdGuard | `adguard` | `adguard` | apkmirror | rushiranpise + hoo-dles | yes |
 | Amazon Music | `amazonmusic` | `amazonmusic` | apkmirror | rookieenough | yes |
-| ES File Explorer | `esfile` | `es-file` | apkmirror | ftl | yes |
+| ES File Explorer | `esfile` | `es-file` | apkmirror | ftl + rushiranpise | yes |
 | Facebook | `facebook` | `facebook` | apkmirror | hushfacebook (fallback: derevanced) | yes |
 | Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise | yes |
 | Instagram | `instagram` | `instagram` | apkpure | piko + brosssh (fallback: hushgram) | yes |
@@ -135,8 +135,8 @@ that leaves this block stale, so it cannot drift.
 | MX Player Pro | `mxplayer` | `mx-player` | apkmirror | ftl + paresh | yes |
 | Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |
 | Reddit | `reddit` | `reddit` | apkpure | morphe (fallback: adobo) | yes |
-| Telegram | `telegram` | `telegram` | apkmirror | newuser7171 (fallback: rushiranpise) | yes |
-| Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | heval99 (fallback: bufferk) | yes |
+| Telegram | `telegram` | `telegram` | apkmirror | rushiranpise (fallback: newuser7171) | yes |
+| Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | bufferk + paresh + binarymend (fallback: heval99) | yes |
 | YouTube | `youtube` | `youtube-morphe` | apkmirror | morphe | yes |
 | YouTube Music | `ytmusic` | `yt-music` | apkmirror | morphe | yes |
 

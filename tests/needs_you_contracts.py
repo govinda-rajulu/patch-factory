@@ -120,8 +120,53 @@ class Renderer(unittest.TestCase):
         self.assertIn("hotstar: chiggi offers 'Premium' (held: paid word", body)
         self.assertIn("instagram: piko offers 'Open account' (held: paid word", body)
         self.assertNotIn('paid word on an account app | 3 (amazonmusic, hotstar, instagram)', body)
-        self.assertIn('reply take and the next packet adds it', body)
+        self.assertIn('Take = recorded, and the next packet adds it', body)
         self.assertEqual([row['id'] for row in rows], [row['id'] for row in changed_rows])
+
+    def test_live_233_new_name_rows_and_rule_off_names(self):
+        # W16h: copied from live Needs you #233 (24 Oct). The waiting new-name table
+        # leaked as "N-7236b6 — | Kind | What to do |", and BANNED or second-copy
+        # names were offered as takes that cannot change anything.
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            selection = root / 'selection.md'
+            selection.write_text("""# Selection watch: NEEDS YOU
+
+## Needs you
+
+| Kind | What to do |
+|---|---|
+| new name | instagram / piko: `Hide hidden requests` (since 2026-10-23; held: changes what the app shows for good: no off switch and no ad, tracking or suggestion target in its description). Add: "5. Add target", action patch, id `instagram`, patches `Hide hidden requests`; skip: patches `-Hide hidden requests` |
+| new name | **BAN** reddit / adobo: `Spoof thing` (since 2026-10-24; held: matches BANNED). Add: "5. Add target", action patch, id `reddit`, patches `Spoof thing`; skip: patches `-Spoof thing` |
+
+## Older names never chosen, held by the rule (3)
+
+<details><summary>Every held name with its reason</summary>
+
+- photos / rushiranpise: `Spoof app signature` (held: matches BANNED)
+- photos / rushiranpise: `Spoof Widevine / DRM level` (held: matches CONFIRM: owner decides)
+- instagram / brosssh: `Hide notes tray` (held: another bundle of this app (piko) offers the same name; one bundle per name (AGENTS rule 4))
+
+</details>
+""")
+            reports = {name: root / (name + '.md') for name in n.ISSUES}
+            for name, path in reports.items():
+                if name != 'selection':
+                    path.write_text('# %s report\n' % name)
+            reports['selection'] = selection
+            body = n.render(reports, targets=[])
+        self.assertNotIn('| Kind | What to do |', body)
+        self.assertNotIn('|---|---|', body)
+        self.assertIn("instagram: piko offers 'Hide hidden requests' (held: changes what the app shows", body)
+        self.assertIn("photos: rushiranpise offers 'Spoof Widevine / DRM level' (held: matches CONFIRM", body)
+        self.assertNotIn("offers 'Spoof app signature'", body)
+        self.assertNotIn("offers 'Spoof thing'", body)
+        self.assertNotIn("offers 'Hide notes tray'", body)
+        fyi = body.split('## FYI', 1)[1]
+        self.assertIn('- photos / rushiranpise: 1 name(s) stay off by the BANNED rule: `Spoof app signature`', fyi)
+        self.assertIn('- reddit / adobo: 1 name(s) stay off by the BANNED rule: `Spoof thing`', fyi)
+        self.assertIn('- instagram / brosssh: 1 name(s) wait for the bundle that offers them first', fyi)
+        self.assertIn('**Needs you:** 2 item(s)', body)
 
     def test_changed_issue_edits_then_comments_and_unchanged_is_quiet(self):
         calls = []
@@ -209,7 +254,14 @@ class ProviderItems(unittest.TestCase):
         self.assertIn("newest listed app version 3.1", rows[0]["first_line"])
         self.assertIn("we use: us/ours with 2", rows[0]["first_line"])
         self.assertIn("take = run Explore", rows[0]["description"])
-        self.assertEqual(rows[0]["id"], n.item_id("decide", rows[0]["first_line"]))
+        # W16h: the id names the app and provider only, so a new version or a
+        # primary switch keeps the owner's earlier drop or hold.
+        self.assertEqual(rows[0]["id"], n.item_id("decide", "provider|com.example.app|a/one"))
+        moved = [dict(self.targets[0], max_app_version="2.5", extra_bundles=[{"owner": "x", "repo": "extra"}])]
+        again = n.provider_items(self.index, moved)
+        self.assertEqual([r["id"] for r in rows], [r["id"] for r in again])
+        self.assertNotEqual(rows[0]["first_line"], again[0]["first_line"])
+        self.assertIn("plus extras x/extra", again[0]["first_line"])
         self.assertEqual(rows[-1]["provider_more"], 1)
 
     def test_no_version_provider_counts_as_any_version(self):

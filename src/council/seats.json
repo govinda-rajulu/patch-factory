@@ -8,7 +8,7 @@
       "provider": "nvidia",
       "models": [
         "openai/gpt-oss-20b",
-        "deepseek-ai/deepseek-v4-pro"
+        "nvidia/nemotron-3-super-120b-a12b"
       ],
       "max_input_chars": 200000,
       "reasoning_effort": "low",
@@ -40,10 +40,6 @@
         {
           "provider": "groq",
           "model": "openai/gpt-oss-120b"
-        },
-        {
-          "provider": "kilo",
-          "model": "kilo-auto/free"
         },
         {
           "provider": "cloudflare",
@@ -84,10 +80,6 @@
           "model": "google/gemma-4-31b-it:free"
         },
         {
-          "provider": "kilo",
-          "model": "kilo-auto/free"
-        },
-        {
           "provider": "zai",
           "model": "glm-4.7-flash"
         },
@@ -102,9 +94,7 @@
       "provider": "nvidia",
       "models": [
         "nvidia/nemotron-3-ultra-550b-a55b",
-        "nvidia/nemotron-3.5-super-vl-120b-a12b",
-        "minimaxai/minimax-m3",
-        "qwen/qwen3.5-397b-a17b"
+        "nvidia/nemotron-3.5-super-vl-120b-a12b"
       ],
       "max_input_chars": 200000,
       "reasoning_effort": "low",
@@ -163,14 +153,6 @@
       ],
       "backups": [
         {
-          "provider": "kilo",
-          "model": "kilo-auto/free"
-        },
-        {
-          "provider": "nvidia",
-          "model": "moonshotai/kimi-k2.6"
-        },
-        {
           "provider": "groq",
           "model": "qwen/qwen3.8-27b"
         },
@@ -209,10 +191,6 @@
         {
           "provider": "openrouter",
           "model": "openrouter/free"
-        },
-        {
-          "provider": "nvidia",
-          "model": "mistralai/mistral-medium-3.5-128b"
         },
         {
           "provider": "zai",
@@ -254,10 +232,6 @@
           "model": "openrouter/free"
         },
         {
-          "provider": "nvidia",
-          "model": "z-ai/glm-5.2"
-        },
-        {
           "provider": "zai",
           "model": "glm-4.5-flash"
         },
@@ -271,8 +245,9 @@
       "id": "kilo",
       "provider": "kilo",
       "models": [
-        "kilo-auto/free",
-        "nvidia/nemotron-3-ultra-550b-a55b:free"
+        "xingchen-agi/xing4.0-29b-a4b:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "recursive/flint-v1.0:free"
       ],
       "max_input_chars": 200000,
       "reasoning_effort": "low",
@@ -332,10 +307,6 @@
       ],
       "backups": [
         {
-          "provider": "kilo",
-          "model": "kilo-auto/free"
-        },
-        {
           "provider": "openrouter",
           "model": "openrouter/free"
         },
@@ -378,14 +349,6 @@
           "model": "openai/gpt-oss-20b"
         },
         {
-          "provider": "kilo",
-          "model": "kilo-auto/free"
-        },
-        {
-          "provider": "nvidia",
-          "model": "deepseek-ai/deepseek-v4-flash"
-        },
-        {
           "provider": "cloudflare",
           "model": "@cf/openai/gpt-oss-120b"
         }
@@ -395,10 +358,6 @@
   "probe_alternates_note": "W15b (20 Oct 2026): candidate backup models on a second provider, measured one call each by probe mode. None is used by a seat until a probe shows it SERVED and a packet wires it in. These ids are candidates, not facts; the probe table is the fact.",
   "probe_alternates": {
     "gpt": [
-      {
-        "provider": "kilo",
-        "model": "kilo-auto/free"
-      },
       {
         "provider": "cloudflare",
         "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
@@ -418,38 +377,12 @@
       {
         "provider": "kilo",
         "model": "nvidia/nemotron-3-ultra-550b-a55b:free"
-      },
-      {
-        "provider": "nvidia",
-        "model": "minimaxai/minimax-m2.7"
-      }
-    ],
-    "open": [
-      {
-        "provider": "nvidia",
-        "model": "moonshotai/kimi-k2.6"
-      }
-    ],
-    "codestral": [
-      {
-        "provider": "nvidia",
-        "model": "mistralai/mistral-medium-3.5-128b"
       }
     ],
     "command": [
       {
-        "provider": "nvidia",
-        "model": "z-ai/glm-5.2"
-      },
-      {
         "provider": "zai",
         "model": "glm-4.5-flash"
-      }
-    ],
-    "groq": [
-      {
-        "provider": "nvidia",
-        "model": "deepseek-ai/deepseek-v4-flash"
       }
     ]
   },

@@ -35,6 +35,7 @@ PKG=$(jq      -r '.package'             <<<"$T")
 APK_NAME=$(jq -r '.apk_name'            <<<"$T")
 APK_TYPE=$(jq -r '.apk_type // "apk"'   <<<"$T")
 CEIL=$(jq     -r '.min_sdk_ceiling // 29' <<<"$T")
+export PF_SDK_CEILING="$CEIL"  # W16h (L088): the APKMirror variant picker skips rows above the cap
 MAXVER=$(jq -r '.max_app_version // ""' <<<"$T")
 SRC=$(jq -r '.source // "apkmirror"' <<<"$T")
 ANYVER=$(jq -r '.any_version // false' <<<"$T")
@@ -190,7 +191,8 @@ if [ "$GA" -ne 0 ]; then
       red_log "[-] primary and qualified fallback unavailable for $PKG"; exit 1
     fi
     set +u; NEXT=$(pf_next_version "$PKG" "$RVER" "$MAXVER"); NRC=$?; set -u
-    if [ "$NRC" -ne 0 ] || [ -z "$NEXT" ]; then red_log "[-] primary and qualified fallback unavailable for $PKG, and no lower version (status $NRC)"; exit 1; fi
+    case "$NRC" in 1) NWHY="nothing listed below $RVER";; 2) NWHY="the version list could not be read";; *) NWHY="no version returned";; esac
+    if [ "$NRC" -ne 0 ] || [ -z "$NEXT" ]; then red_log "[-] primary and qualified fallback unavailable for $PKG, and no lower version (status $NRC: $NWHY)"; exit 1; fi
     STEP=$((STEP+1))
     echo "::notice::VERSION_STEP_DOWN step=$STEP from=$RVER to=${NEXT%% *} source=${NEXT#* } reason=store"
     rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME.xapk" "./download/$APK_NAME"
@@ -258,7 +260,9 @@ if [ "${PF_SOURCE_READY:-false}" = "true" ]; then sdk_fail "SDK ceiling $CEIL ex
 if [ -n "$(jq -r '.version_code // ""' <<<"$T")" ]; then sdk_fail "SDK ceiling $CEIL exceeded; $ID pins an exact version_code, so no step-down"; fi
 if [ "$STEP" -ge "$PF_MAX_STEPS" ]; then sdk_fail "SDK ceiling $CEIL still exceeded after $STEP lower version(s)"; fi
 set +u; NEXT=$(pf_next_version "$PKG" "$version" "$MAXVER"); NRC=$?; set -u
-if [ "$NRC" -ne 0 ] || [ -z "$NEXT" ]; then sdk_fail "SDK ceiling $CEIL exceeded and no lower version to try (status $NRC)"; fi
+# W16h: say which status it was (W16g heval99 lists only 26.41.5, so status 1 was by design).
+case "$NRC" in 1) NWHY="the provider and store list nothing below $version";; 2) NWHY="the version list could not be read";; *) NWHY="no version returned";; esac
+if [ "$NRC" -ne 0 ] || [ -z "$NEXT" ]; then sdk_fail "SDK ceiling $CEIL exceeded and no lower version to try (status $NRC: $NWHY)"; fi
 STEP=$((STEP+1))
 echo "::notice::VERSION_STEP_DOWN step=$STEP from=$version to=${NEXT%% *} source=${NEXT#* } ceiling=$CEIL"
 rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME"

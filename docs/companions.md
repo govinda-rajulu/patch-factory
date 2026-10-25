@@ -1,6 +1,6 @@
 # Optional companions and review queue
 
-> **Checked 24 October 2026 (W16d).** MicroG RE and Obtainium remain the only companions wired
+> **Checked 25 October 2026 (W16h).** MicroG RE and Obtainium remain the only companions wired
 > into the site. The candidate rows below were last reviewed on 22 September and remain folded;
 > open one only for a concrete need. The old Google Play APK helper was removed in W16d; no
 > Play downloader or fallback is wired into Patch Factory.

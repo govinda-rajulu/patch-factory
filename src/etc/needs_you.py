@@ -172,7 +172,9 @@ def _held_row_from_line(line: str) -> dict | None:
     if not match:
         return None
     tail = line[match.end():]
-    held = re.search(r"(?i)\(.*?held:\s*(.*?)\)\s*\|?\s*$", tail)
+    # W16h: a waiting new-name row ends with its Add/skip route after the
+    # reason; without this the row stayed in the Selection table item.
+    held = re.search(r"(?i)\(.*?held:\s*(.*?)\)(?:\.\s*Add:.*)?\s*\|?\s*$", tail)
     if not held:
         return None
     reason = held.group(1).strip()
@@ -379,6 +381,16 @@ def provider_items(index: Path | dict | None = None, targets: Path | list | None
             if isinstance(bundle, dict) and str(bundle.get("repo", "")).lower() == ours.lower():
                 ours_count, _ = _provider_patch_info(bundle, package, compatibilities)
                 break
+        # W16h: Truecaller read "we use bufferk with 7" while the build also takes
+        # paresh and binarymend; name the extras so the comparison is honest.
+        extra_text = []
+        for row in (target.get("extra_bundles", []) or []):
+            if not isinstance(row, dict):
+                continue
+            name = str(row.get("owner", "")) + "/" + str(row.get("repo", ""))
+            hit = next((b for b in bundles if isinstance(b, dict) and str(b.get("repo", "")).lower() == name.lower()), None)
+            n_extra = _provider_patch_info(hit, package, compatibilities)[0] if hit else None
+            extra_text.append(name + (" (%d)" % n_extra if n_extra else ""))
         rows = []
         for bundle in bundles:
             if not isinstance(bundle, dict):
@@ -396,6 +408,8 @@ def provider_items(index: Path | dict | None = None, targets: Path | list | None
         label = str(target.get("label") or target.get("id") or package)
         ours_text = ours if ours.strip("/") else "none configured"
         ours_phrase = ours_text + (" (not in the index)" if ours_count is None else " with %d" % ours_count)
+        if extra_text:
+            ours_phrase += ", plus extras " + ", ".join(extra_text)
         current = next((target.get(k) for k in ("current_version", "current_app_version", "app_version", "version", "max_app_version")
                         if isinstance(target.get(k), str) and target.get(k).strip()), None)
         selected = rows[:3]
@@ -411,7 +425,10 @@ def provider_items(index: Path | dict | None = None, targets: Path | list | None
             ident = bundle.get("project_id")
             if ident is None:
                 ident = repo
-            item = {"id": item_id("decide", first), "kind": "decide", "first_line": first,
+            # W16h: the id is the app and provider only. It used to hash the whole
+            # line, so a primary switch or a new version minted a new id and lost the
+            # owner's drop or hold.
+            item = {"id": item_id("decide", "provider|%s|%s" % (package, repo.lower())), "kind": "decide", "first_line": first,
                     "text": first, "description": first + " take = run Explore (a patches issue with the live list opens); drop = hide for good; hold = 14 days",
                     "action": "explore", "host": source, "ident": str(ident), "package": package,
                     "provider_label": label, "provider_more": remaining if position == len(selected) - 1 else 0}
@@ -437,25 +454,47 @@ def _held_route(row: dict, targets: Path | list | None) -> dict:
     return {}
 
 
+# W16h (owner, 25 Oct 2026): a take on these cannot change the outcome. A BANNED
+# name stays off by rule, and a second copy of a name waits for the bundle that
+# offers it first. They are counted per app in FYI instead of offered as takes.
+RULE_OFF = (("matches banned", "stay off by the BANNED rule"),
+            ("another bundle", "wait for the bundle that offers them first (one bundle per name)"))
+
+
+def _rule_off(why: str) -> str:
+    low = (why or "").lower()
+    return next((text for key, text in RULE_OFF if key in low), "")
+
+
 def held_items(path: Path | None, targets: Path | list | None = None) -> list[dict]:
     """Render each recorded held Selection name as its own actionable item."""
     text = read_report(path)
     data = load_json(path)
-    out = []
+    out, off = [], {}
     for row in _held_rows(text, data):
+        why = _rule_off(row["why"])
+        if why:
+            off.setdefault((row["target"], row["provider"], why), []).append(row["name"])
+            continue
         first = "%s: %s offers '%s' (held: %s)" % (row["target"], row["provider"], row["name"], row["why"])
         # The key deliberately excludes the reason: a changed explanation must
         # not erase an owner's prior take/drop/hold ledger decision.
         ident = item_id("decide", "held|%s|%s|%s" % (row["target"], row["provider"], row["name"]))
         route = _held_route(row, targets)
         if route:
-            description = (first + " Take = run 5. Add target to add it to this provider; "
+            description = (first + " Take = the repo runs 5. Add target and adds it to this provider; "
                            "drop = hide for good; hold = 14 days.")
         else:
-            description = (first + " Take = reply take and the next packet adds it; "
+            description = (first + " Take = recorded, and the next packet adds it; "
                            "drop = hide for good; hold = 14 days.")
         out.append({"id": ident, "kind": "decide", "first_line": first, "text": first,
                     "description": description, **route})
+    for (target, provider, why), names in sorted(off.items()):
+        shown = ", ".join("`%s`" % x for x in sorted(names)[:12])
+        more = " and %d more" % (len(names) - 12) if len(names) > 12 else ""
+        line = "- %s / %s: %d name(s) %s: %s%s" % (target, provider, len(names), why, shown, more)
+        out.append({"id": item_id("fyi", line), "kind": "fyi", "first_line": line, "text": line,
+                    "description": line})
     return out
 
 
@@ -673,11 +712,15 @@ def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = N
             content_lines = content.splitlines()
             if content_lines and content_lines[0].strip() == item["first_line"].strip():
                 content = "\n".join(content_lines[1:]).strip()
-            lines += ["<!-- needs-you-item:%s -->" % metadata,
-                      "<details><summary>**%s** — %s</summary>" % (item["id"], item["description"]), ""]
-            if content:
-                lines += [content, ""]
-            lines += ["</details>", ""]
+            # W16h: GitHub shows ** literally inside <summary>, and a fold with
+            # nothing in it is a wasted click, so a bare item is one bold line.
+            if not content:
+                lines += ["<!-- needs-you-item:%s -->" % metadata,
+                          "**%s** — %s" % (item["id"], item["description"]), ""]
+            else:
+                lines += ["<!-- needs-you-item:%s -->" % metadata,
+                          "<details><summary><b>%s</b> — %s</summary>" % (item["id"], html.escape(item["description"], quote=False)), "",
+                          content, "", "</details>", ""]
             if item.get("provider_more"):
                 lines += ["- %s: and %d more in the index" % (item.get("provider_label", "This app"), item["provider_more"]), ""]
     if taken:

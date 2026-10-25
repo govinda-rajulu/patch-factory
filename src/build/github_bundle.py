@@ -12,6 +12,20 @@ import zipfile
 from urllib.parse import urlparse
 
 
+
+def pick_mpp(assets, tag, name_key='name'):
+    """W16h (25 Oct 2026): legendsciber v1.52.0 ships patches-1.51.0.mpp and patches-1.52.0.mpp, so
+    Explore refused it ("exactly one .mpp"). With several .mpp assets, the one whose name holds the
+    release tag's version is the bundle; anything else (none or two match) still refuses."""
+    mpp = [a for a in assets if isinstance(a.get(name_key), str) and a[name_key].endswith('.mpp')]
+    if len(mpp) <= 1:
+        return mpp
+    version = re.sub(r'^[vV]', '', str(tag or ''))
+    if not re.fullmatch(r'[0-9]+(?:[.][0-9]+)+(?:-[A-Za-z0-9.]+)?', version):
+        return mpp
+    hit = [a for a in mpp if re.search(r'(?<![0-9.])' + re.escape(version) + r'(?![0-9])', a[name_key])]
+    return hit if len(hit) == 1 else mpp
+
 def require(ok, message):
     if not ok:
         raise ValueError(message)
@@ -116,7 +130,7 @@ def choose_release(owner, repo, channel, env):
 def fetch(owner, repo, channel, directory, env):
     require(re.fullmatch(r'[A-Za-z0-9_.-]+', owner) and re.fullmatch(r'[A-Za-z0-9_.-]+', repo), 'unsafe repository identity')
     release = choose_release(owner, repo, channel, env)
-    assets = [a for a in release.get('assets', []) if a.get('name', '').endswith('.mpp')]
+    assets = pick_mpp(release.get('assets', []), release.get('tag_name'))
     require(len(assets) == 1, 'selected release must contain exactly one .mpp asset')
     asset = assets[0]
     name = asset['name']

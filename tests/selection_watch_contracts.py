@@ -51,6 +51,22 @@ class Watch(unittest.TestCase):
     def collect(self, changes, state=None):
         return sw.collect(self.r, self.out, self.observe(changes), reader=self.releases, state_text=state)
 
+    def test_one_name_in_two_bundles_reaches_the_owner_once(self):
+        # W16h: piko and brosssh both offered 'Hide notes tray' and held each other.
+        p = self.collect({'instagram/piko': {'add': ['Twin name']}, 'instagram/brosssh': {'add': ['Twin name']},
+                          'instagram/hushgram': {'add': ['Twin name']}})
+        calls = {w['provider']: w['why'] for w in p['waiting'] if w['name'] == 'Twin name'}
+        self.assertNotIn('another bundle', calls['piko'])
+        self.assertNotIn('another bundle', calls['hushgram'])
+        self.assertIn('another bundle of this app (piko) offers the same name', calls['brosssh'])
+
+    def test_extra_free_fallback_has_no_peers(self):
+        rows = sw.provider_watch.inventory(json.loads((self.r / 'src/targets.json').read_text()))
+        peers = sw.peer_names(self.r, rows, {}, dict(target='truecaller-combo', provider='heval99'))
+        self.assertEqual(peers, {})
+        shipped = sw.peer_names(self.r, rows, {}, dict(target='truecaller-combo', provider='bufferk'))
+        self.assertTrue(shipped and set(shipped.values()) <= {'paresh', 'binarymend'})
+
     def test_gone_chosen_name_is_removed_and_committed(self):
         p = self.collect({'instagram/piko': {'remove': ['Copy comment'], 'add': ['Brand new']}})
         self.assertEqual(p['edits']['instagram-piko']['include'], ['Copy comment'])

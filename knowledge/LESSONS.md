@@ -181,7 +181,7 @@ lessons that are not in that ledger.
 - A lesson that is only a note comes back: lesson 8 (1 Oct, Dependabot skips composites) returned as #188 until a test enforced it (W15b).
 - An agent's "missing" is read against the named file before it is planned; 1 of 8 history claims was false, 2 by design (W15d, L068).
 
-## 24 October 2026 (W16d documentation corrections)
+## 24 October 2026 (W16g documentation corrections)
 
 - The Google Play APK helper was removed because no build called it. Do not document `src/build/helper/ggplay_dl/` as a live source or fallback.
 - Status page data now prunes stale Actions caches. It keeps the newest cache in each conservative key-prefix group and removes only non-newest caches older than 24 hours and unused for more than 7 days; bad timestamps stay.
