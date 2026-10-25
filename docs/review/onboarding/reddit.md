@@ -6,7 +6,24 @@ Source APK: APKPure, per `src/build/helper/apps.json` (the current source mappin
 Provider: MorpheApp/morphe-patches (licence: the upstream repository LICENSE; bundle: the one `.mpp` asset of the newest stable release, v1.48.0, sha256 82bc696c94c26dbf75242b59980251315145457575b663200b981ca351e1c0f7, channel: latest). This is the official MorpheApp provider. Names below come from the owner's live list-patches run with morphe-desktop v1.19.0 on 23 Oct 2026, saved as `docs/review/PATCHES-reddit-morphe.txt`: 31 Reddit patches, compatible versions 2026.42.0, 2026.41.0, 2026.40.0, 2026.24.0, 2026.10.0.
 Provider: jkennethcarino/adobo (fallback only; licence: the LICENSE file at https://github.com/jkennethcarino/adobo; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease). Adobo remains the fallback for its supported Reddit 2026.41.0 build; the 2026.42.0 retirement in `src/etc/retired-builds.json` covers only builds published before 23 Oct 12:00Z (the deleted Adobo one), so a new Morphe 2026.42.0 build is not touched.
 
+Provider: Alastor-Kaneki/Morphe-Patches (extra on the Morphe build since W16j; Adobo builds without it; licence: GPL-3.0-or-later, the LICENSE file (blob fa3ca584, read through the GitHub API on 25 Oct 2026) at https://github.com/Alastor-Kaneki/Morphe-Patches; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease).
+
 ## Patches
+- Download Reddit gallery originals: Alastor-Kaneki, owner took it in the Needs you review file (N-03fcf2, 2026-10-25); saves original-quality gallery images
+- Reddit native post-menu originals (2026.41.0): Alastor-Kaneki, owner took it in the Needs you review file (N-03fcf2, 2026-10-25); saves original-quality gallery images
+- Hide related posts: owner took it in the Needs you review file, 2026-10-25 (N-2b1bc7)
+- Hide search answers preview: owner took it in the Needs you review file, 2026-10-25 (N-8c47a1)
+- Hide awards: owner took it in the Needs you review file, 2026-10-25 (N-b6b49b)
+- Hide community highlights: owner took it in the Needs you review file, 2026-10-25 (N-66e165)
+- Hide community menu badge: owner took it in the Needs you review file, 2026-10-25 (N-f57b96)
+- Hide crosspost: owner took it in the Needs you review file, 2026-10-25 (N-8d4ee0)
+- Hide post view counts: owner took it in the Needs you review file, 2026-10-25 (N-25c152)
+- Hide prominent search bar: owner took it in the Needs you review file, 2026-10-25 (N-c89895)
+- Hide share count: owner took it in the Needs you review file, 2026-10-25 (N-64e5f7)
+- Hide upvote scores: owner took it in the Needs you review file, 2026-10-25 (N-057e70)
+- Hide user community badges: owner took it in the Needs you review file, 2026-10-25 (N-5b9164)
+- Hide user flairs: owner took it in the Needs you review file, 2026-10-25 (N-75061a)
+- Hide Reddit search: owner took it in the Needs you review file, 2026-10-25 (N-612eb8)
 
 Rule: the same as YouTube and YouTube Music on Morphe: the provider's default-on Reddit patches, minus the banned and branding ones. Reddit is an exclusive target, so the 26 names are listed in `src/patches/reddit-morphe/include-patches`:
 

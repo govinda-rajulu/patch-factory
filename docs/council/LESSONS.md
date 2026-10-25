@@ -524,3 +524,31 @@ Android 12 versions". The same release has an Android 10+ arm64 row; the owner f
 fell back to bufferk alone (7 patches instead of 19). The picker now skips rows above the cap. Read a
 store's variant list before claiming a version cannot install, and keep the working combo primary
 until the new provider's smoke is green.
+
+### L089 · A build that stops at the first failing patch hides the rest
+Tags: build, evidence
+newuser7171 failed on Bypass channel restrictions (24 Oct), was trimmed, then failed on Bypass
+content restrictions (25 Oct): two runs, two packets, one cause (obfuscated fingerprints that miss
+12.10.4). A smoke of a new provider runs with keep_going (Manual Patch, never with publish) so one
+run names every failing patch (PATCH_FAILED lines). The guard that refused a release on a failed
+patch grepped the old `SEVERE: FAILED` wording; the patcher now prints `ERROR: FAILED`. Check a
+guard against today's log, not the log it was written for.
+
+### L090 · Decide once per app and name, not once per provider
+Tags: selection, review
+The owner answered 104 items in one sitting, many the same name from a second provider or a newer
+version. src/patches/DECISIONS.json keeps each call by app and normalised name; Selection watch and
+Needs you read it, so the same question is never asked twice. BANNED and one-bundle-per-name still
+win over a remembered take.
+
+### L091 · A known tree rebuilds a base without a bundle
+Tags: ci, evidence
+Main moved by two bot commits after the last bundle. Replaying them with blob shas checked against
+the API, `git mktree --missing` for the one blob not held, and the commit object rebuilt byte-exact
+(the gpgsig header ends with a " " continuation line) gave main's exact sha. The packet commit can
+then sit on the real parent; a rehearsal still needs a full twin world.
+
+### L092 · A fallback needs its own plan
+Tags: build, release
+Qualify compared every publication with the configured declaration; a fallback build pins another
+candidate and its overrides, so it always read DRIFT. The plan now carries one key per candidate.

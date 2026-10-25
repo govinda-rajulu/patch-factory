@@ -126,17 +126,17 @@ that leaves this block stale, so it cannot drift.
 | Amazon Music | `amazonmusic` | `amazonmusic` | apkmirror | rookieenough | yes |
 | ES File Explorer | `esfile` | `es-file` | apkmirror | ftl + rushiranpise | yes |
 | Facebook | `facebook` | `facebook` | apkmirror | hushfacebook (fallback: derevanced) | yes |
-| Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise | yes |
-| Instagram | `instagram` | `instagram` | apkpure | piko + brosssh (fallback: hushgram) | yes |
+| Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise + akash | yes |
+| Instagram | `instagram` | `instagram` | apkpure | piko + brosssh (fallback: hushgram, oxbow) | yes |
 | JioHotstar | `hotstar` | `hotstar` | apkmirror | chiggi | yes |
-| Key Mapper | `keymapper` | `key-mapper` | apkpure | lain | yes |
+| Key Mapper | `keymapper` | `key-mapper` | apkpure | legendsciber (fallback: lain) | yes |
 | LinkedIn | `linkedin` | `linkedin` | apkmirror | heyymichii | yes |
 | Microsoft Edge | `edge` | `edge` | apkpure | quantavil | yes |
 | MX Player Pro | `mxplayer` | `mx-player` | apkmirror | ftl + paresh | yes |
 | Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |
-| Reddit | `reddit` | `reddit` | apkpure | morphe (fallback: adobo) | yes |
-| Telegram | `telegram` | `telegram` | apkmirror | rushiranpise (fallback: newuser7171) | yes |
-| Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | bufferk + paresh + binarymend (fallback: heval99) | yes |
+| Reddit | `reddit` | `reddit` | apkpure | morphe + alastor (fallback: adobo) | yes |
+| Telegram | `telegram` | `telegram` | apkmirror | hushtelegram (fallback: rushiranpise) | yes |
+| Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | heval99 + paresh + binarymend (fallback: bufferk) | yes |
 | YouTube | `youtube` | `youtube-morphe` | apkmirror | morphe | yes |
 | YouTube Music | `ytmusic` | `yt-music` | apkmirror | morphe | yes |
 

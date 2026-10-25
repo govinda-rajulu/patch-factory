@@ -11,6 +11,10 @@ PF_MAX_FALLBACKS (default 2) more attempts. A later attempt
   * starts clean: files the failed attempt created are deleted, tracked files restored.
 PF_PROVIDER (Manual Patch input "provider") builds exactly that candidate, with its
 overrides, and nothing else. A target "pin" or "fallback": false keeps one attempt.
+W16j (25 Oct 2026, owner: heval99 Truecaller primary, the combo as its backup): when the
+target has exactly one primary candidate and it carries "overrides", attempt 1 builds that
+candidate with its overrides too (pinned, no prepared inputs), so a primary can drop the
+target's extra bundles while the fallback keeps them.
 
 Writes release/.fallback after a successful later attempt, and fallback=, winner= and
 attempts= to GITHUB_OUTPUT. Exit status is the last attempt's.
@@ -65,6 +69,14 @@ def plan(t, provider):
         return [None]
     return [None] + [c['name'] for c in t['candidates'] if not c.get('fallback')] + \
         [c['name'] for c in t['candidates'] if c.get('fallback')]
+
+
+def primary_view(t):
+    """The one primary candidate's name when it carries overrides, else None (W16j)."""
+    primary = [c for c in t['candidates'] if not c.get('fallback')]
+    if len(primary) == 1 and primary[0].get('overrides') and not t.get('pin'):
+        return primary[0]['name']
+    return None
 
 
 def view(root, ident, name, original):
@@ -150,7 +162,10 @@ def main(argv, env=None, root=None):
     logdir = Path(env.get('RUNNER_TEMP') or '/tmp') / ('pf-attempts-' + ident)
     logdir.mkdir(parents=True, exist_ok=True)
     tried, failures, rc, n = [], [], 1, 0
+    first = primary_view(t)
     for name in steps:
+        if name is None and first:
+            name = first
         if name is not None and name in tried:
             continue
         if n >= limit:

@@ -305,7 +305,7 @@ class ResolvedContracts(unittest.TestCase):
             result = subprocess.run([sys.executable, "src/build/resolved_inputs.py", command, self.ident],
                                     cwd=self.r, env=env, capture_output=True, text=True, timeout=30)
             self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("WINNER=lain", result.stdout)
+        self.assertIn("WINNER=legendsciber", result.stdout)  # W16j: Key Mapper primary
         again = subprocess.run([sys.executable, "src/build/resolved_inputs.py", "install", self.ident],
                                cwd=self.r, env=env, capture_output=True, text=True)
         self.assertNotEqual(again.returncode, 0)

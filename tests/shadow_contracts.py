@@ -194,6 +194,50 @@ class ShadowContracts(unittest.TestCase):
         shadow.verify_consumed(self.r,c,doc,dict(self.env,PF_SHADOW_PLAN_KEY=planned))
         self.assertNotIn("fixture password",json.dumps(doc))
 
+    # W16j: one plan per candidate, so a fallback publication is checked against its own plan.
+    def plan_key(self, ident="keymapper"):
+        out=self.r/"out-keys";out.touch()
+        env=dict(self.env,PF_BUILD_MATRIX=json.dumps({"target":[ident]}),GITHUB_OUTPUT=str(out))
+        return shadow.plan(self.r,env)[ident]
+
+    def test_plan_key_names_every_candidate_and_parses(self):
+        key=self.plan_key()
+        base,per=shadow.plan_keys(key)
+        self.assertEqual(base,self.declare()["sha256"])
+        names=[c["name"] for c in next(t for t in json.loads((self.r/"src/targets.json").read_text()) if t["id"]=="keymapper")["candidates"]]
+        self.assertEqual(sorted(per),sorted(names))
+        self.assertEqual(shadow.plan_keys(""),("",{}))
+        self.assertEqual(shadow.plan_keys("a"*64),("a"*64,{}))
+
+    def test_malformed_plan_keys_refused(self):
+        good="a"*64
+        for bad in ["zz",good+";lain","%s;lain=zz"%good,"%s;la in=%s"%(good,good),
+                    "%s;lain=%s;lain=%s"%(good,good,good),"zz;lain=%s"%good]:
+            with self.assertRaises(ValueError,msg=bad):shadow.plan_keys(bad)
+
+    def test_candidate_declarations_restore_exact_bytes(self):
+        p=self.r/"src/targets.json"
+        p.write_bytes(p.read_bytes().replace(b"\n",b"\r\n",3))
+        before=p.read_bytes()
+        shadow.candidate_declarations(self.r,"keymapper")
+        self.assertEqual(p.read_bytes(),before)
+        ts=json.loads(before);t=next(x for x in ts if x["id"]=="keymapper")
+        t["candidates"][1]["overrides"]={"not_allowed":1};p.write_text(json.dumps(ts));before=p.read_bytes()
+        with self.assertRaises(ValueError):shadow.candidate_declarations(self.r,"keymapper")
+        self.assertEqual(p.read_bytes(),before)
+
+    def test_fallback_view_matches_its_own_plan_only(self):
+        import build_attempts
+        key=self.plan_key();base,per=shadow.plan_keys(key)
+        p=self.r/"src/targets.json";original=p.read_text(encoding="utf-8")
+        build_attempts.view(self.r,"keymapper","lain",original)
+        c=dict(self.capture(),winner="lain")
+        self.assertEqual(shadow.realized(self.r,c,dict(self.env,PF_SHADOW_PLAN_KEY=key))["binding"],"MATCH")
+        self.assertEqual(shadow.realized(self.r,c,dict(self.env,PF_SHADOW_PLAN_KEY=base))["binding"],"DRIFT")
+        wrong=dict(c,winner="legendsciber")
+        with self.assertRaises(ValueError):shadow.realized(self.r,wrong,dict(self.env,PF_SHADOW_PLAN_KEY=key))
+        p.write_text(original,encoding="utf-8")
+
     def test_empty_explicit_request_ledger_is_valid_for_default_selections(self):
         c=self.capture()
         c["requested_ledger"]["bytes"]=0

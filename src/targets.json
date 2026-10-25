@@ -114,7 +114,17 @@
     "poll": true,
     "exclusive": true,
     "label": "Google Photos",
-    "note": "Installs beside the system Photos app."
+    "note": "Installs beside the system Photos app. W16j: Akash-Sriram adds AMOLED dark theme, DCIM & backup control, Flag manager & Toolkit and Media engine & AI fixes.",
+    "extra_bundles": [
+      {
+        "name": "akash",
+        "host": "github",
+        "owner": "Akash-Sriram",
+        "repo": "morphe-google-photos",
+        "channel": "prerelease",
+        "patch_dir": "photos-akash"
+      }
+    ]
   },
   {
     "id": "truecaller-combo",
@@ -128,15 +138,6 @@
     "pin": null,
     "candidates": [
       {
-        "name": "bufferk",
-        "host": "github",
-        "owner": "bufferk",
-        "repo": "morphe-patches",
-        "channel": "prerelease",
-        "patch_dir": "truecaller-combo",
-        "options": "combo"
-      },
-      {
         "name": "heval99",
         "host": "github",
         "owner": "heval99",
@@ -144,10 +145,19 @@
         "channel": "prerelease",
         "patch_dir": "truecaller-heval99",
         "options": "heval99",
-        "fallback": true,
         "overrides": {
           "extra_bundles": []
         }
+      },
+      {
+        "name": "bufferk",
+        "host": "github",
+        "owner": "bufferk",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "truecaller-combo",
+        "options": "combo",
+        "fallback": true
       }
     ],
     "extra_bundles": [
@@ -174,7 +184,7 @@
     "poll": true,
     "exclusive": true,
     "label": "Truecaller",
-    "note": "paresh premium plus bufferk ad blocking plus binarymend, on 26.10.6. heval99 (24 patches, Enable Premium, GmsCore) is the fallback on its own versions since 25 Oct 2026: the variant picker now skips APKMirror rows above Android 10 (L088)."
+    "note": "heval99 (Truecaller 26.41.5, Enable Premium, GmsCore) is primary since W16j (owner, 25 Oct 2026) and builds alone (its overrides drop the extras); the backup is the combo: bufferk ad blocking plus paresh premium plus binarymend, on 26.10.6."
   },
   {
     "id": "primevideo",
@@ -324,6 +334,19 @@
         "overrides": {
           "extra_bundles": []
         }
+      },
+      {
+        "name": "oxbow",
+        "host": "github",
+        "channel": "prerelease",
+        "patch_dir": "instagram-oxbow",
+        "options": "oxbow",
+        "owner": "aic0d3r",
+        "repo": "oxbow",
+        "fallback": true,
+        "overrides": {
+          "extra_bundles": []
+        }
       }
     ],
     "tag_prefix": "instagram",
@@ -341,7 +364,7 @@
       }
     ],
     "label": "Instagram",
-    "note": "Ads, tracking and suggested content removed. HushGram is the fallback when a piko build fails."
+    "note": "Ads, tracking and suggested content removed. HushGram is the fallback when a piko build fails; oxbow (13 patches, no clone, no debug bridge, no signature bypass, no icon) is the third choice (W16j)."
   },
   {
     "id": "reddit",
@@ -372,7 +395,10 @@
         "options": "adobo",
         "owner": "jkennethcarino",
         "repo": "adobo",
-        "fallback": true
+        "fallback": true,
+        "overrides": {
+          "extra_bundles": []
+        }
       }
     ],
     "tag_prefix": "reddit",
@@ -381,7 +407,17 @@
     "poll": true,
     "source": "apkpure",
     "label": "Reddit",
-    "note": "Official Morphe Reddit patches are primary, Adobo is the fallback. Morphe v1.48.0 lists Reddit 2026.42.0, but that APK needs Android 12 (SDK 32), so with this shelf's Android 10 ceiling the build steps down to 2026.41.0. Selection: Morphe's default-on Reddit patches minus Spoof signature (banned) and App icon (branding)."
+    "note": "Official Morphe Reddit patches are primary, Adobo is the fallback. Morphe v1.48.0 lists Reddit 2026.42.0, but that APK needs Android 12 (SDK 32), so with this shelf's Android 10 ceiling the build steps down to 2026.41.0. Selection: Morphe's default-on Reddit patches minus Spoof signature (banned) and App icon (branding). W16j: Alastor-Kaneki adds gallery originals downloads to the Morphe build (Adobo builds without it).",
+    "extra_bundles": [
+      {
+        "name": "alastor",
+        "host": "github",
+        "owner": "Alastor-Kaneki",
+        "repo": "Morphe-Patches",
+        "channel": "prerelease",
+        "patch_dir": "reddit-alastor"
+      }
+    ]
   },
   {
     "id": "hotstar",
@@ -494,22 +530,22 @@
     "exclusive": true,
     "candidates": [
       {
+        "name": "hushtelegram",
+        "host": "github",
+        "channel": "prerelease",
+        "patch_dir": "telegram-hushtelegram",
+        "options": "hushtelegram",
+        "owner": "SysAdminDoc",
+        "repo": "HushTelegram"
+      },
+      {
         "name": "rushiranpise",
         "host": "github",
         "channel": "prerelease",
         "patch_dir": "telegram-rushiranpise",
         "options": "rushiranpise-telegram",
         "owner": "rushiranpise",
-        "repo": "morphe-patches"
-      },
-      {
-        "name": "newuser7171",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "telegram-newuser7171",
-        "owner": "newuser7171",
-        "repo": "telegram-morphe-patches-",
-        "options": "newuser7171",
+        "repo": "morphe-patches",
         "fallback": true
       }
     ],
@@ -518,7 +554,7 @@
     "source": "apkmirror",
     "any_version": false,
     "label": "Telegram",
-    "note": "Ads and tracking removed, Premium unlocked. rushiranpise (12.10.1) is primary again; newuser7171 (12.10.4, adds Bypass translation restrictions) is the fallback since its Bypass channel restrictions does not match 12.10.4 (W16g smoke, 24 Oct 2026)."
+    "note": "HushTelegram (62 of its 67 patches) is primary since W16j (owner, 25 Oct 2026: the most patches wins); rushiranpise (12.10.1, Unlock Premium, Bypass translation restrictions, download boost) is the backup. newuser7171 was removed in W16j: it never built (its fingerprints miss the APKMirror 12.10.4 build)."
   },
   {
     "id": "keymapper",
@@ -533,20 +569,30 @@
     "exclusive": true,
     "candidates": [
       {
+        "name": "legendsciber",
+        "host": "github",
+        "channel": "prerelease",
+        "patch_dir": "keymapper-legendsciber",
+        "options": "legendsciber",
+        "owner": "legendsciber",
+        "repo": "morphe-patches"
+      },
+      {
         "name": "lain",
         "host": "github",
         "channel": "prerelease",
         "patch_dir": "keymapper-lain",
         "options": "lain",
         "owner": "kiraio-moe",
-        "repo": "Lain-Patches"
+        "repo": "Lain-Patches",
+        "fallback": true
       }
     ],
     "tag_prefix": "key-mapper",
     "poll": true,
     "source": "apkpure",
     "label": "Key Mapper",
-    "note": "Premium unlocked."
+    "note": "Premium unlocked. legendsciber (Key Mapper 4.5.0) is primary since W16j; Lain (4.2.1) is the backup."
   },
   {
     "id": "amazonmusic",

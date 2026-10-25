@@ -12,6 +12,7 @@ Last indexed **25 October 2026** for packet W16h; before that **20 October 2026*
 | Read | Why |
 | --- | --- |
 | [W16-BRIEF.md](W16-BRIEF.md) | 23 Oct owner brief after W15i: state, wrong calls 49 and 50, diagnosis, the W16 plan. Read first. |
+| [SESSION-2026-10-25.md](SESSION-2026-10-25.md) | 25 Oct: W16h, W16i and W16j (owner decision memory, Needs you groups, HushTelegram, legendsciber, heval99 primary, keep-going smokes). |
 | [SESSION-2026-10-24.md](SESSION-2026-10-24.md) | 23 to 24 Oct: W16 on dev/w16 (audit, Reddit on Morphe, shadow narrowing, plain words, Needs you, council caps, fewer runs). |
 | [AUDIT-W16.md](AUDIT-W16.md) | W16 audit: every workflow, runs and minutes in 30 days, who reads it, what W16 changes. |
 | [MCP-PLAN.md](MCP-PLAN.md) | W16d research: MCP servers for groundwork (read-only GitHub scout, fetch), pins read 24 Oct, pilot plan. Not running yet. |

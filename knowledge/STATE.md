@@ -6,7 +6,20 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill and knowledge/STATE.md; controller tools are in docs/review/controllers/. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 24 Oct 2026 (W16 on dev/w16; start here)
+## 25 Oct 2026, evening IST (packet W16j; start here)
+
+- **Main** `829ec099` (W16i #244) plus W16j once merged.
+- **W16j**: owner decision memory (src/patches/DECISIONS.json), Needs you v2 (groups, tables,
+  `yes all`, group and except commands, quiet comments), Telegram HushTelegram, Key Mapper
+  legendsciber, Truecaller heval99 primary, Reddit Alastor, Instagram oxbow, Photos Akash (no
+  licence declared), Amazon Music paid names (owner approved), Qualify plan per candidate,
+  keep_going smokes, three-line report heads. Record docs/review/SESSION-2026-10-25.md. Wrong
+  calls: 60 (L089 to L092 are lessons, not wrong calls).
+- **Next**: owner answers Needs you with the new commands; phone tests (Truecaller with MicroG RE
+  first, Telegram HushTelegram, Reddit 41, Instagram piko, Facebook 584); W15g signing split; W17
+  combo planner.
+
+## 24 Oct 2026 (W16 on dev/w16)
 
 - **Main** `822c5f3c` (W15i #220 plus a bot commit) plus dev/w16 once merged.
 - **W16**: audit (docs/review/AUDIT-W16.md), Reddit on official Morphe with Adobo fallback (L078 to

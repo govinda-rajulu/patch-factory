@@ -146,12 +146,12 @@ class SourceContracts(unittest.TestCase):
         self.assertEqual(result.stdout.strip(),'4.2.1')
         resolved.install(self.r,self.ident,self.env)
         (self.r/'extra').mkdir()
-        subprocess.run(['bash','src/build/selections.sh',self.ident,'lain'],cwd=self.r,check=True,capture_output=True)
+        subprocess.run(['bash','src/build/selections.sh',self.ident,'legendsciber'],cwd=self.r,check=True,capture_output=True)
         fakebin=self.r/'fakebin';fakebin.mkdir()
         java=fakebin/'java';java.write_text('#!/bin/bash\ntouch PATCHER_REACHED\nexit 77\n');java.chmod(0o755)
         env=dict(self.env,PATH=str(fakebin)+':'+os.environ['PATH'],PF_SOURCE_READY='true',
                  PF_EXECUTION_OBSERVATION='true')
-        args=[sys.executable,'src/build/patch_target.py',self.ident,'lain']
+        args=[sys.executable,'src/build/patch_target.py',self.ident,'legendsciber']
         good=subprocess.run(args,cwd=self.r,env=env,capture_output=True,text=True)
         self.assertEqual(good.returncode,77,good.stderr)
         observed = json.loads((self.r/execution.PATH).read_text())
@@ -346,16 +346,16 @@ class ExecutionContracts(unittest.TestCase):
         self.r,self.env=self.f.r,dict(self.f.env);self.env.pop('JAVA_TOOL_OPTIONS',None);self.env.pop('COE',None)
         self.f.prepare();resolved.install(self.r,'keymapper',self.env)
         (self.r/'extra').mkdir()
-        subprocess.run(['bash','src/build/selections.sh','keymapper','lain'],cwd=self.r,check=True,capture_output=True)
+        subprocess.run(['bash','src/build/selections.sh','keymapper','legendsciber'],cwd=self.r,check=True,capture_output=True)
 
     def test_actual_public_command_has_no_signing_secrets_or_absolute_checkout(self):
-        doc=execution.public_command(self.r,'keymapper','lain',self.env)
+        doc=execution.public_command(self.r,'keymapper','legendsciber',self.env)
         text=json.dumps(doc)
         for value in ['DO_NOT_INHERIT','SECRET','OMITTED','--keystore',str(self.r)]:self.assertNotIn(value,text)
-        self.assertIn('Unlock Premium',doc['argv']);self.assertEqual(doc['approval'],'not evaluated')
-        changed=execution.public_command(self.r,'keymapper','lain',dict(self.env,COE='true'))
+        self.assertIn('Premium',doc['argv']);self.assertEqual(doc['approval'],'not evaluated')
+        changed=execution.public_command(self.r,'keymapper','legendsciber',dict(self.env,COE='true'))
         self.assertNotEqual(doc,changed)
-        note=execution.public_command(self.r,'keymapper','lain',dict(self.env,KEYSTORE_PASS='changed secret'))
+        note=execution.public_command(self.r,'keymapper','legendsciber',dict(self.env,KEYSTORE_PASS='changed secret'))
         self.assertEqual(doc,note)
 
     def test_byte_mode_positive_and_timestamp_negative_controls(self):
@@ -366,17 +366,17 @@ class ExecutionContracts(unittest.TestCase):
 
     def test_observed_capture_rechecks_runtime_and_invocation(self):
         with patch.object(execution,'runtime',return_value={'fixture':'one'}):
-            doc=execution.capture(self.r,'keymapper','lain',self.env)
-            self.assertEqual(execution.verify(self.r,'keymapper','lain',self.env),doc)
+            doc=execution.capture(self.r,'keymapper','legendsciber',self.env)
+            self.assertEqual(execution.verify(self.r,'keymapper','legendsciber',self.env),doc)
         with patch.object(execution,'runtime',return_value={'fixture':'two'}):
-            with self.assertRaises(ValueError):execution.verify(self.r,'keymapper','lain',self.env)
+            with self.assertRaises(ValueError):execution.verify(self.r,'keymapper','legendsciber',self.env)
         with patch.object(execution,'runtime',return_value={'fixture':'one'}):
-            with self.assertRaises(ValueError):execution.verify(self.r,'keymapper','lain',dict(self.env,COE='true'))
-        with self.assertRaises(ValueError):execution.capture(self.r,'keymapper','lain',self.env)
+            with self.assertRaises(ValueError):execution.verify(self.r,'keymapper','legendsciber',dict(self.env,COE='true'))
+        with self.assertRaises(ValueError):execution.capture(self.r,'keymapper','legendsciber',self.env)
 
     def test_unmodeled_runtime_unknown_never_exposes_values(self):
         env=dict(self.env,JAVA_TOOL_OPTIONS='super private string')
-        doc=execution.capture(self.r,'keymapper','lain',env)
+        doc=execution.capture(self.r,'keymapper','legendsciber',env)
         self.assertEqual(doc['status'],'UNKNOWN');self.assertNotIn('super private string',json.dumps(doc))
         self.assertIn('incomplete',' '.join(doc['limits']))
 

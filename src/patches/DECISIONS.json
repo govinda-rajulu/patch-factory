@@ -1,0 +1,904 @@
+{
+  "note": "Owner decision memory (packet W16j, owner 25 Oct 2026: 'Keep the patch names and decisions; if any provider adds it in newer app versions we don't have to decide again'). A name is matched per app after normalising (case, punctuation, a leading [Tag] and a trailing (version) are ignored). take: Selection watch adopts it from any provider (BANNED still wins; one bundle per name and reserved names still wait). drop: never adopted, never asked again. watch: providers the owner took that cannot build with our app version today; Needs you stays quiet about them until they list our version. drop_providers: never asked again.",
+  "names": [
+    {
+      "target": "truecaller-combo",
+      "name": "Hide Blocking tab",
+      "call": "take",
+      "id": "N-c4f7b1",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "truecaller-combo",
+      "name": "Hide business media",
+      "call": "take",
+      "id": "N-2a7712",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "truecaller-combo",
+      "name": "Hide call log filters",
+      "call": "take",
+      "id": "N-7de88d",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "truecaller-combo",
+      "name": "Hide Messages tab",
+      "call": "drop",
+      "id": "N-b28520",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide hidden requests",
+      "call": "take",
+      "id": "N-86752a",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide Reels follow button",
+      "call": "take",
+      "id": "N-24c191",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide notes tray",
+      "call": "take",
+      "id": "N-ffd0d9",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide save buttons",
+      "call": "take",
+      "id": "N-3cc50c",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide share button",
+      "call": "take",
+      "id": "N-8131c3",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide stories tray",
+      "call": "take",
+      "id": "N-1dff6a",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Limit feed to following profiles",
+      "call": "take",
+      "id": "N-5e29d3",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Disable telemetry",
+      "call": "take",
+      "id": "N-029ea4",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide feed posts",
+      "call": "take",
+      "id": "N-2a0061",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide story follow button",
+      "call": "take",
+      "id": "N-0d1f0f",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Mark as read after reply",
+      "call": "take",
+      "id": "N-239606",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide group creation button on sharesheet",
+      "call": "take",
+      "id": "N-731081",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Allow user network certificate",
+      "call": "drop",
+      "id": "N-5f67b9",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide Instants",
+      "call": "take",
+      "id": "N-c2ab8e",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide all stories",
+      "call": "take",
+      "id": "N-ad01d3",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide explore feed",
+      "call": "take",
+      "id": "N-f4e7c6",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide feed content",
+      "call": "take",
+      "id": "N-aab6e3",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide Reels save button",
+      "call": "take",
+      "id": "N-4568ac",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Hide navigation buttons",
+      "call": "take",
+      "id": "N-275a07",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide related posts",
+      "call": "take",
+      "id": "N-2b1bc7",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide search answers preview",
+      "call": "take",
+      "id": "N-8c47a1",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide Ask button from search bar",
+      "call": "drop",
+      "id": "N-32591a",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide awards",
+      "call": "take",
+      "id": "N-b6b49b",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide community highlights",
+      "call": "take",
+      "id": "N-66e165",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide community menu badge",
+      "call": "take",
+      "id": "N-f57b96",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide crosspost",
+      "call": "take",
+      "id": "N-8d4ee0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide post view counts",
+      "call": "take",
+      "id": "N-25c152",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide prominent search bar",
+      "call": "take",
+      "id": "N-c89895",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide share count",
+      "call": "take",
+      "id": "N-64e5f7",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide upvote scores",
+      "call": "take",
+      "id": "N-057e70",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide user community badges",
+      "call": "take",
+      "id": "N-5b9164",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide user flairs",
+      "call": "take",
+      "id": "N-75061a",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "name": "Hide Reddit search",
+      "call": "take",
+      "id": "N-612eb8",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Clean Home feed",
+      "call": "take",
+      "id": "N-a9b7c0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Disable auto refresh",
+      "call": "take",
+      "id": "N-a58989",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Facebook signature compatibility",
+      "call": "drop",
+      "id": "N-c1fa7b",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Open Marketplace on launch",
+      "call": "drop",
+      "id": "N-f6c772",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "mxplayer",
+      "name": "Hide top tiles",
+      "call": "take",
+      "id": "N-939b7b",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "mxplayer",
+      "name": "Add Save Data",
+      "call": "drop",
+      "id": "N-9a3233",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "mxplayer",
+      "name": "Change Display Size",
+      "call": "drop",
+      "id": "N-ee0ae3",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "mxplayer",
+      "name": "Skip Splash Screen - Expert Only",
+      "call": "drop",
+      "id": "N-759255",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "esfile",
+      "name": "Add Save Data",
+      "call": "drop",
+      "id": "N-9fc497",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "esfile",
+      "name": "Change Display Size",
+      "call": "drop",
+      "id": "N-3dc60c",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "esfile",
+      "name": "Remove Ads Lite (Adobo)",
+      "call": "drop",
+      "id": "N-abc7cd",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "esfile",
+      "name": "Skip Splash Screen - Expert Only",
+      "call": "drop",
+      "id": "N-19f65a",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "esfile",
+      "name": "GmsCore support (MicroG)",
+      "call": "drop",
+      "id": "N-c88c02",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "esfile",
+      "name": "Spoof Widevine / DRM level",
+      "call": "drop",
+      "id": "N-216bfb",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "adguard",
+      "name": "GmsCore support (MicroG)",
+      "call": "drop",
+      "id": "N-f46512",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "adguard",
+      "name": "MicroG integration",
+      "call": "drop",
+      "id": "N-9c2dbd",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "primevideo",
+      "name": "MicroG integration",
+      "call": "drop",
+      "id": "N-16f5f1",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "photos",
+      "name": "AMOLED dark theme",
+      "call": "drop",
+      "id": "N-c5397f",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "photos",
+      "name": "Custom branding",
+      "call": "drop",
+      "id": "N-42b2b3",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "photos",
+      "name": "Spoof Widevine / DRM level",
+      "call": "drop",
+      "id": "N-462e28",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Bypass proxy/VPN security block",
+      "call": "drop",
+      "id": "N-fcb60f",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Spoof device attestation",
+      "call": "drop",
+      "id": "N-a5b295",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Spoof device id",
+      "call": "drop",
+      "id": "N-e9ce29",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Spoof device-integrity self-report",
+      "call": "drop",
+      "id": "N-858718",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Change app name",
+      "call": "drop",
+      "id": "N-29aba0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Make installable on TV",
+      "call": "drop",
+      "id": "N-da00c4",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "telegram",
+      "name": "GmsCore support (MicroG)",
+      "call": "drop",
+      "id": "N-778be1",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "amazonmusic",
+      "name": "Unlimited track skipping",
+      "call": "take",
+      "id": "N-6f00bb",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "amazonmusic",
+      "name": "Unlock Unlimited",
+      "call": "take",
+      "id": "N-3e6ddf",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "amazonmusic",
+      "name": "Rename shared permissions",
+      "call": "take",
+      "id": "N-6b94c6",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "photos",
+      "name": "Fix selected account persistence",
+      "call": "take",
+      "id": "N-e8aafc",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "truecaller-combo",
+      "name": "Stop call history sync",
+      "call": "take",
+      "id": "N-bc65a1",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "truecaller-combo",
+      "name": "Return an empty contact list",
+      "call": "drop",
+      "id": "N-bc65a1",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "[Feed] Block feed auto refresh",
+      "call": "take",
+      "id": "N-af3cf9",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "[Feed] Hide page suggestions and promo cards",
+      "call": "take",
+      "id": "N-af3cf9",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "[Reels] Hide interest prompts",
+      "call": "take",
+      "id": "N-af3cf9",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "[Stories] Disable auto advance",
+      "call": "take",
+      "id": "N-af3cf9",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Block Facebook Feed ads (573)",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Block Facebook Reels ads (573)",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Block Facebook Story ads (573)",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Block Facebook automatic refresh (573)",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Download Facebook Media (573)",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Change Facebook app theme (573)",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Facebook 573 AI content diagnostics",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Facebook 573 AI filter + recommendation diagnostics",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Facebook 573 Feed recommendation diagnostics",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Hide Facebook AI content (573)",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Stop Facebook Story auto-advance (573)",
+      "call": "take",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Clone app",
+      "call": "drop",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Block Crash & Diagnostics",
+      "call": "take",
+      "id": "N-3f4993",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Block Telemetry & Trackers",
+      "call": "take",
+      "id": "N-3f4993",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "AR Effects Slimmer",
+      "call": "drop",
+      "id": "N-3f4993",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Enable all codecs",
+      "call": "take",
+      "id": "N-d0c8ff",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Enable screen mirroring",
+      "call": "take",
+      "id": "N-d0c8ff",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Enable screenshots",
+      "call": "take",
+      "id": "N-d0c8ff",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Force HDR10",
+      "call": "take",
+      "id": "N-d0c8ff",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Remove ads",
+      "call": "take",
+      "id": "N-d0c8ff",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Premium unlock",
+      "call": "drop",
+      "id": "N-d0c8ff",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "name": "Bypass signature check",
+      "call": "drop",
+      "id": "N-d0c8ff",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "mxplayer",
+      "name": "Unlock MX Player Pro",
+      "call": "take",
+      "id": "N-50574c",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "telegram",
+      "name": "Unlock Telegram Premium",
+      "call": "take",
+      "id": "N-1831ba",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "telegram",
+      "name": "Force system font (Telegram)",
+      "call": "take",
+      "id": "N-25ba59",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "photos",
+      "name": "Custom Morphe branding",
+      "call": "drop",
+      "id": "N-1a216b",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "photos",
+      "name": "Official package name",
+      "call": "drop",
+      "id": "N-1a216b",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Clone",
+      "call": "drop",
+      "id": "N-b47b62",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Debug bridge",
+      "call": "drop",
+      "id": "N-b47b62",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Signature check bypass",
+      "call": "drop",
+      "id": "N-b47b62",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Oxbow icon",
+      "call": "drop",
+      "id": "N-b47b62",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "name": "Clone app",
+      "call": "drop",
+      "id": "N-3681a0",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "AR Effects Slimmer",
+      "call": "drop",
+      "id": "N-3f4993",
+      "date": "2026-10-25"
+    }
+  ],
+  "watch": [
+    {
+      "target": "photos",
+      "repo": "RookieEnough/De-Vanced",
+      "take": [
+        "Fix selected account persistence"
+      ],
+      "id": "N-e8aafc",
+      "why": "lists Photos 7.92, ours 7.97",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "truecaller-combo",
+      "repo": "dunecache/oyasumi-patches",
+      "take": [
+        "Stop call history sync"
+      ],
+      "except": [
+        "Return an empty contact list"
+      ],
+      "id": "N-bc65a1",
+      "why": "lists Truecaller 26.31.6; ours are 26.41.5 (heval99) and 26.10.6 (combo)",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "repo": "andrewliang25/morphe-patches",
+      "take": [
+        "[Feed] Block feed auto refresh",
+        "[Feed] Hide page suggestions and promo cards",
+        "[Reels] Hide interest prompts",
+        "[Stories] Disable auto advance"
+      ],
+      "id": "N-af3cf9",
+      "why": "lists Facebook 577, ours 584; its other 15 names match ours",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "facebook",
+      "repo": "SapitoSucio/FroggoMorphePatches",
+      "take": [
+        "Block Facebook Feed ads (573)",
+        "Block Facebook Reels ads (573)",
+        "Block Facebook Story ads (573)",
+        "Block Facebook automatic refresh (573)",
+        "Download Facebook Media (573)",
+        "Change Facebook app theme (573)",
+        "Facebook 573 AI content diagnostics",
+        "Facebook 573 AI filter + recommendation diagnostics",
+        "Facebook 573 Feed recommendation diagnostics",
+        "Hide Facebook AI content (573)",
+        "Stop Facebook Story auto-advance (573)"
+      ],
+      "except": [
+        "Clone app"
+      ],
+      "id": "N-3681a0",
+      "why": "lists Facebook 573, ours 584",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "repo": "kveld9/kveld-extra-morphe-patches",
+      "take": [
+        "Block Crash & Diagnostics",
+        "Block Telemetry & Trackers"
+      ],
+      "except": [
+        "AR Effects Slimmer"
+      ],
+      "id": "N-3f4993",
+      "why": "lists Instagram 447, ours 452",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "hotstar",
+      "repo": "Paresh-Maheshwari/paresh-patches",
+      "take": [
+        "Enable all codecs",
+        "Enable screen mirroring",
+        "Enable screenshots",
+        "Force HDR10",
+        "Remove ads"
+      ],
+      "except": [
+        "Premium unlock",
+        "Bypass signature check"
+      ],
+      "id": "N-d0c8ff",
+      "why": "lists JioHotstar 26.04.27.10, ours 26.06.22.3; its five other names match ours",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "mxplayer",
+      "repo": "mich111discord/MightyMichs-Patches",
+      "take": [
+        "Unlock MX Player Pro"
+      ],
+      "id": "N-50574c",
+      "why": "lists MX Player 2.2.4, ours 1.93.4 (FTL)",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "telegram",
+      "repo": "mich111discord/MightyMichs-Patches",
+      "take": [
+        "Unlock Telegram Premium"
+      ],
+      "id": "N-1831ba",
+      "why": "same job as rushiranpise Unlock Premium (the backup already has it); joins if it offers something new",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "telegram",
+      "repo": "ch3thanhs/stylus",
+      "take": [
+        "Force system font (Telegram)"
+      ],
+      "id": "N-25ba59",
+      "why": "same job as HushTelegram Use system font; joins if HushTelegram drops it",
+      "date": "2026-10-25"
+    }
+  ],
+  "drop_providers": [
+    {
+      "target": "instagram",
+      "repo": "FoxxoOwO/foxxo-patches",
+      "id": "N-9dadfc",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "repo": "Santodan/santodan-patches",
+      "id": "N-03dbc2",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "reddit",
+      "repo": "Mubelotix/my-morphe-patches",
+      "id": "N-220cc3",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "telegram",
+      "repo": "newuser7171/telegram-morphe-patches-",
+      "id": "W16j",
+      "date": "2026-10-25",
+      "why": "removed in W16j: never built on 12.10.4"
+    }
+  ]
+}

@@ -938,9 +938,10 @@ transfer(){
     def test_discovery_scope(self):
         x = self.run_cmd([sys.executable, 'src/etc/community_discover.py'])
         self.assertEqual(x.returncode, 0, x.stderr)
-        for target in ('hotstar', 'photos'):
+        # W16j: Photos wires gg-photos and the Akash extra.
+        for target, wired in (('hotstar', 1), ('photos', 2)):
             block = x.stdout.split('\n' + target, 1)[1].split('\n\n', 1)[0]
-            self.assertIn('you have 1 wired', block)
+            self.assertIn('you have %d wired' % wired, block)
             self.assertIn('MISSING', block)
         # W16h: ES File wires rushiranpise (Unlock VIP Lifetime) next to ftl.
         block = x.stdout.split('\nesfile', 1)[1].split('\n\n', 1)[0]
@@ -1136,7 +1137,7 @@ transfer(){
     def test_safe_argv_literal_shell_metacharacters(self):
         targets = json.loads((self.r / 'src/targets.json').read_text());t = next(t for t in targets if t['id'] == 'keymapper');c = t['candidates'][0]
         evil = '$(touch QUOTING_PROOF) "quoted"'
-        self.put('src/patches/keymapper-lain/include-patches', evil + '\n')
+        self.put('src/patches/%s/include-patches' % c['patch_dir'], evil + '\n')  # W16j: whichever provider is primary
         self.prepare_bundles(t, c)
         args = patcher.command(self.r, t['id'], c['name'], {'KEYSTORE_PASS': 'dummy password;$test', 'KEYSTORE_ALIAS': 'fixture'})
         self.assertIn(evil, args);self.assertIn('--keystore-password=dummy password;$test', args)

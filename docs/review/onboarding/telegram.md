@@ -3,15 +3,77 @@
 Package: org.telegram.messenger
 Source APK: APKMirror, per the target's `source` (unchanged).
 
-**Current (W16h, 25 Oct 2026):** rushiranpise/morphe-patches is primary on 12.10.1 with 13 names in `src/patches/telegram-rushiranpise/include-patches` (Bypass channel restrictions and Unlock Premium among them); its exclusions are in `src/patches/telegram-rushiranpise/exclude-patches`. newuser7171 below is the fallback. The W16g sections below are history.
+**Current (W16j, 25 Oct 2026):** SysAdminDoc/HushTelegram is primary with 62 names in `src/patches/telegram-hushtelegram/include-patches` (owner: the most patches wins); rushiranpise/morphe-patches (12.10.1, 13 names, Unlock Premium among them) is the backup. newuser7171 is removed: it never built (24 and 25 Oct smokes: its fingerprints miss the APKMirror 12.10.4 build).
 Provider: rushiranpise/morphe-patches (primary since W16h; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/rushiranpise/morphe-patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease).
-Provider: newuser7171/telegram-morphe-patches- (fallback since W16h; licence: GPL-3.0, the LICENSE file at https://github.com/newuser7171/telegram-morphe-patches-; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease). Names below come from the live list-patches run in Explore issue #235 (24 Oct 2026, 19 patches) and the community index (compatible 12.10.4).
 
 Owner decision, 24 Oct 2026 (packet W16g): newest version and most patches wins. newuser7171 targets 12.10.4 with every rushiranpise Telegram patch plus `Bypass translation restrictions`; rushiranpise (12.10.1) stays as the fallback. Owner keeps Remove ads, Bypass translation restrictions, Download speed boost, Hide typing indicator and Unlock Premium.
 
 Owner approved: Unlock Premium
 
+Provider: SysAdminDoc/HushTelegram (primary since W16j; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/SysAdminDoc/HushTelegram; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease). Same author as HushFacebook and HushGram. Left out: Use registered Maps API key (BANNED), Use registered Telegram API credentials (needs your own API id), Repair Firebase push registration (hands Firebase the original certificate), HushTelegram icon and name (branding), Black and white launch logo (expert only, rebuilds resources).
+
 ## Patches
+- AMOLED black: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Add Repeat to the message menu: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Allow chat blur on slower phones: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Ask before sending a sticker: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Change sticker size: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Disable analytics: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Disable call debug upload: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Disable chat swipe actions: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Disable double-tap reactions: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Disable draft link previews: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Disable pull to archive: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Disable pull to next channel: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Disable update checks: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Exact numbers: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Faster downloads: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Folders by chat type: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Gallery camera on tap: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide Contacts tab: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide Premium, gifts and Stars: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide Send as button: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide Stories: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide Telegram Features and Invite Friends: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide ads: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide blocked users in groups: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide channel bar buttons: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide contacts on Telegram: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide folder tab counters: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide gallery camera tile: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide greeting stickers: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide keyboard on scroll: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide messages by keyword: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide phone number: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide popular apps: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide promotional banners: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide recommendations: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide sender names when forwarding: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide sponsored proxy channel: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide time on stickers: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Hide translate bar: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Holiday look all year: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- HushTelegram settings: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Ignore mentions in muted chats: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Keep deleted messages: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Keep videos muted on volume keys: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Message times with seconds: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Open links externally: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Play voice messages one at a time: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Quiet contacts nag: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Reveal spoilers: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Save downloaded files: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Show user and chat IDs: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Silence people outside your contacts: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Start the camera on the rear lens: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Strip link tracking: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Swipe back on profiles: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Translate with an outside service: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Turn off haptic feedback: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Turn off reaction effects: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- UnifiedPush notifications: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Use system font: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
+- Voice messages in the music player: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
 
 Exclusive target; the newuser7171 fallback's names are in `src/patches/telegram-newuser7171/include-patches` (W16h removed Bypass channel restrictions from this list):
 

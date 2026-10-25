@@ -17,9 +17,12 @@ treat that as a finding and say block.
 Judge only what the manifest shows:
 1. A patch a server can see does not ship (premium unlocks, spoofed purchases, login or
    licence bypass, ad-network or account spoofing). Name it and say block. One owner
-   exception (20 Oct 2026): an unlock for an app listed in the manifest's
-   owner_policy.paid_unlock_ok_offline_apps is the owner's decision for an app that works
-   without an account; do not block it for being an unlock. Every other rule still applies.
+   exception (20 Oct 2026, widened 25 Oct 2026): for an app listed in the manifest's
+   owner_policy.paid_unlock_ok_offline_apps (read from the base commit, so a pull request
+   cannot add its own app), a paid or premium unlock whose record carries the line
+   "Owner approved: <exact name>" is the owner's decision, even when the app needs an
+   account: the owner accepted that risk. Do not block it and do not ask for changes for it;
+   at most one low finding naming the account risk. Every other rule still applies.
 2. CONFIRM rule matches need "Owner approved: <name>" in the record; the checker enforces
    this, you only flag a record that looks like it approved something without reason.
 3. A new provider needs a record naming it as owner/repo and saying where its bundle and

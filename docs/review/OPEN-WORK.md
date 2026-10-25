@@ -2,6 +2,15 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
+## Current checkpoint: 25 October 2026, evening IST (packet W16j)
+
+The owner answered all 104 Needs you items (docx, 25 Oct). W16j records them once per app and name
+(src/patches/DECISIONS.json), swaps Telegram to HushTelegram, Key Mapper to legendsciber and
+Truecaller to heval99 (combo fallback), adds Reddit Alastor, Instagram oxbow and Photos Akash, and
+rewrites Needs you into groups with one-line answers. Record: docs/review/SESSION-2026-10-25.md.
+Open: W15g signing split; W17 combo planner; phone tests; Akash licence risk (none declared);
+Amazon Music on a throwaway account only.
+
 ## Current checkpoint: 25 October 2026, afternoon IST (packet W16i)
 
 W16h merged #241 as 93bf40d5: heval99 26.41.5 now builds (the picker took the Android 10+ row,

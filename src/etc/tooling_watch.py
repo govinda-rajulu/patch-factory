@@ -261,8 +261,12 @@ def deliver(repo, body_for, run_id, run=None):
         return 'UNCHANGED'
     if gh(['issue', 'edit', number, '--repo', repo, '--body-file', str(path)], run).returncode != 0:
         raise OSError('issue edit failed')
-    note = '\n'.join(['**Changed by run %s**' % run_id, ''] + readable.changed_lines(old, body))
-    gh(['issue', 'comment', number, '--repo', repo, '--body', note], run)
+    # W16j (owner, 25 Oct 2026: "I get dizzy reading comments"): the body is always current; a
+    # comment only when the headline changes to something to review, not for every reworded line.
+    head = lambda t: next((l.strip() for l in (t or '').splitlines() if l.startswith('# ')), '')
+    if head(body) != head(old) and not head(body).endswith(': OK'):
+        note = '\n'.join(['**Changed by run %s**' % run_id, ''] + readable.changed_lines(old, body))
+        gh(['issue', 'comment', number, '--repo', repo, '--body', note], run)
     return 'EDITED'
 
 

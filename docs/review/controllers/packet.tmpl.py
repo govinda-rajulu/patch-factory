@@ -72,6 +72,7 @@ OPTIONAL = ('Onboarding record', 'Agent review (required for onboarding)')
 ADVISORY = ()       # check names waited for and recorded, never blocking
 SMOKE = ()          # "app" or "app/provider" entries to build without publishing on BRANCH
 SMOKE_ADVISORY = ()  # SMOKE entries whose failure is recorded (NOTE), never blocking
+SMOKE_KEEP_GOING = ()  # (W16j) SMOKE entries built with keep_going: every failing patch is listed (PATCH_FAILED); always advisory
 CLOSE = ()          # (issue number, closing comment) pairs, done after the merge
 PRECHECKS = ()      # (api path, field, expected value, why) read in gate; a mismatch stops
 CLEANUP_APPLY = False  # apply the cleanup preview at once (PF_CLEANUP=keep skips)
@@ -395,7 +396,8 @@ def tree_check(sha):
 
 def title(entry):
     app, _, provider = entry.partition('/')
-    return 'Manual %s%s / publish=false' % (app, (' / ' + provider) if provider else '')
+    return 'Manual %s%s / publish=false%s' % (app, (' / ' + provider) if provider else '',
+                                              ' / keep-going' if entry in SMOKE_KEEP_GOING else '')
 
 
 def smoke_runs():
@@ -434,6 +436,7 @@ def smoke():
             continue
         app, _, provider = t.partition('/')
         cmd = [GH, 'workflow', 'run', 'manual-patch.yml', '--repo', REPO, '--ref', BRANCH, '-f', 'target=' + app, '-f', 'publish=false']
+        cmd += ['-f', 'keep_going=true'] if t in SMOKE_KEEP_GOING else []
         code, out, err = run(cmd + (['-f', 'provider=' + provider] if provider else []), timeout=120)
         if code != 0:
             stop('smoke', '%s: dispatch failed: %s. Nothing merged.' % (t, (err or out).decode('utf-8', 'replace')[:200]))
@@ -446,7 +449,7 @@ def smoke():
         time.sleep(POLL)
     for t in SMOKE:
         r = runs.get(t)
-        soft = t in SMOKE_ADVISORY
+        soft = t in SMOKE_ADVISORY or t in SMOKE_KEEP_GOING
         if not (r and r.get('status') == 'completed'):
             if soft:
                 R['smoke'][t] = dict(run=(r or {}).get('id'), conclusion='unfinished', advisory=True)
@@ -469,9 +472,11 @@ def smoke():
         won = [l.split('Z ', 1)[-1].strip() for l in text.splitlines() if 'ATTEMPTS_OK ' in l and 'echo' not in l]
         dropped = [l.split('Z ', 1)[-1].strip() for l in text.splitlines() if 'PATCH_DROPPED ' in l and 'echo' not in l and 'print(' not in l]
         failed = [l.split('Z ', 1)[-1].strip()[:300] for l in text.splitlines() if 'ATTEMPT_FAILED ' in l and 'echo' not in l and 'print(' not in l]
+        patch_failed = sorted({l.split('PATCH_FAILED ', 1)[1].strip()[:200] for l in text.splitlines()
+                               if 'PATCH_FAILED ' in l and 'sed ' not in l and 'echo' not in l})
         R['smoke'][t] = dict(run=r['id'], conclusion=r.get('conclusion'), url=r.get('html_url'), coverage=cov[:4],
                              lost=lost[:20], unavailable=doubt[:4], attempts=won[-1:], dropped=dropped[:20], failed=failed[:4],
-                             advisory=soft)
+                             advisory=soft, patch_failed=patch_failed[:80], keep_going=t in SMOKE_KEEP_GOING)
         save()
         why = None
         if r.get('conclusion') != 'success':
@@ -480,6 +485,8 @@ def smoke():
             why = 'run %s worked but the resolver %s' % (r['id'], 'could not read the listing: ' + doubt[0] if doubt else 'printed no COVERAGE line')
         elif provider and not any((', winner %s' % provider) in w for w in won):
             why = 'run %s worked but not with provider %s (%s)' % (r['id'], provider, (won or ['no ATTEMPTS_OK line'])[-1])
+        if why and patch_failed:
+            why += '; failing patches (%d): %s' % (len(patch_failed), ', '.join(patch_failed[:12]))
         if why and soft:
             say('smoke', 'NOTE', '%s: advisory, %s (not blocking; the log is kept)' % (t, why))
             continue

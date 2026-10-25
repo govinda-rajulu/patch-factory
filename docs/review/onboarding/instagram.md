@@ -5,7 +5,44 @@ Source APK: APKPure, the newest version the provider supports (source "apkpure" 
 Provider: crimera/piko (primary, channel prerelease) with brosssh/morphe-patches (extra bundle, channel prerelease); recorded here from packet W13 on.
 Provider: SysAdminDoc/HushGram (fallback only; licence: GPL-3.0, checked against the GitHub licence API by the W13 controller before anything is pushed; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Same author as SysAdminDoc/HushFacebook, the Facebook provider.
 
+Provider: aic0d3r/oxbow (third choice, fallback only, built alone; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/aic0d3r/oxbow; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease). Owner, 25 Oct 2026: the backup, without Clone, Debug bridge, Signature check bypass and Oxbow icon.
+
 ## Patches
+- Clean share links: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Comments and endless scroll: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Download media: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Feed item filtering: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Force SDR display: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Ghost mode: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Install-packages permission: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Network content blocking: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Popup hiding: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Restart relay: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Settings entry point: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Suggested accounts in the story tray: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
+- Hide hidden requests: owner took it in the Needs you review file, 2026-10-25 (N-86752a)
+- Hide Reels follow button: owner took it in the Needs you review file, 2026-10-25 (N-24c191)
+- Hide notes tray: owner took it in the Needs you review file, 2026-10-25 (N-ffd0d9)
+- Hide save buttons: owner took it in the Needs you review file, 2026-10-25 (N-3cc50c)
+- Hide share button: owner took it in the Needs you review file, 2026-10-25 (N-8131c3)
+- Hide stories tray: owner took it in the Needs you review file, 2026-10-25 (N-1dff6a)
+- Limit feed to following profiles: owner took it in the Needs you review file, 2026-10-25 (N-5e29d3)
+- Disable telemetry: owner took it in the Needs you review file, 2026-10-25 (N-029ea4)
+- Hide feed posts: owner took it in the Needs you review file, 2026-10-25 (N-2a0061)
+- Hide story follow button: owner took it in the Needs you review file, 2026-10-25 (N-0d1f0f)
+- Mark as read after reply: owner took it in the Needs you review file, 2026-10-25 (N-239606)
+- Hide group creation button on sharesheet: owner took it in the Needs you review file, 2026-10-25 (N-731081)
+- Hide all stories: owner took it in the Needs you review file, 2026-10-25 (N-ad01d3)
+- Hide explore feed: owner took it in the Needs you review file, 2026-10-25 (N-f4e7c6)
+- Hide feed content: owner took it in the Needs you review file, 2026-10-25 (N-aab6e3)
+- Hide Reels save button: owner took it in the Needs you review file, 2026-10-25 (N-4568ac)
+- Hide navigation buttons: owner took it in the Needs you review file, 2026-10-25 (N-275a07)
+- Hide suggested content: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Hide rows in Instagram's settings: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Pick the app icon: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Story text fonts: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Hide Instants: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- View live anonymously: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Disable background components: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Disable background processes and telemetry: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Hidden chats: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description

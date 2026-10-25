@@ -103,9 +103,16 @@ class Delivery(unittest.TestCase):
         self.assertEqual(self.go([{'number': 9, 'title': 'Tooling watch', 'body': 'B\n'}], 'B\n'), ('UNCHANGED', [['issue', 'list']]))
 
     def test_change_edits_and_comments_once(self):
-        result, calls = self.go([{'number': 9, 'title': 'Tooling watch', 'body': 'A\n'}], 'B\n')
+        # W16j: a comment only when the headline turns to something to review.
+        old = {'number': 9, 'title': 'Tooling watch', 'body': '# Tooling watch: OK\nA\n'}
+        result, calls = self.go([old], '# Tooling watch: 2 to review\nB\n')
         self.assertEqual(result, 'EDITED')
         self.assertEqual(calls, [['issue', 'list'], ['issue', 'edit'], ['issue', 'comment']])
+
+    def test_reworded_body_or_back_to_ok_edits_quietly(self):
+        old = {'number': 9, 'title': 'Tooling watch', 'body': '# Tooling watch: 2 to review\nA\n'}
+        self.assertEqual(self.go([old], '# Tooling watch: 2 to review\nB\n'), ('EDITED', [['issue', 'list'], ['issue', 'edit']]))
+        self.assertEqual(self.go([old], '# Tooling watch: OK\nB\n'), ('EDITED', [['issue', 'list'], ['issue', 'edit']]))
 
     def test_other_titles_are_not_the_standing_issue(self):
         result, calls = self.go([{'number': 3, 'title': 'Tooling: update ready', 'body': 'B\n'}], 'B\n')
