@@ -21,7 +21,7 @@ const LOGOS=new Set(['adguard','amazonmusic','edge','facebook','hotstar','instag
 const GROUPS=[
  ['media','Watch & listen',['youtube','ytmusic','primevideo','hotstar','mxplayer','amazonmusic']],
  ['social','Social & communities',['instagram','facebook','reddit','telegram','linkedin']],
- ['tools','Everyday essentials',['adguard','photos','truecaller-combo','esfile','edge','keymapper']]
+ ['tools','Everyday essentials',['adguard','photos','truecaller-combo','esfile','edge','keymapper','ccleaner']]
 ];
 // W16k (owner, 25 Oct 2026: "so it doesn't look like a treasure hunt"): the two upstream companions
 // open the shelf in their own group, Obtainium then MicroG RE, before the app categories.

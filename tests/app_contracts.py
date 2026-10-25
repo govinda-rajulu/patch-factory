@@ -85,6 +85,7 @@ class AppTool(unittest.TestCase):
         self.assertEqual(rc, 0, out)
         t = [x for x in self.targets() if x['id'] == 'demomusic'][0]
         self.assertTrue(t['enabled'] and t['poll'] and t['exclusive'])
+        self.assertEqual(t['note'], 'Hide ads, Unlock HD')  # W16l: what the patches do, not how it was added
         self.assertEqual(t['candidates'][0]['patch_dir'], 'demomusic-someowner')
         self.assertEqual(Path('src/patches/demomusic-someowner/include-patches').read_text(), 'Hide ads\nUnlock HD\n')
         self.assertTrue(Path('src/patches/demomusic-someowner/exclude-patches').is_file())
@@ -121,6 +122,8 @@ class AppTool(unittest.TestCase):
         t = [x for x in self.targets() if x['id'] == 'newapp'][0]
         self.assertFalse(t['enabled'])
         self.assertIn('DISABLED', out)
+        self.assertEqual(t['note'], '')
+        self.assertEqual(self.app.card_note(list('abcde')), 'a, b, c and 2 more')
         rc, out = self.run_app('enable', 'newapp')
         self.assertEqual(rc, 1)
         self.assertIn('empty include list', out)

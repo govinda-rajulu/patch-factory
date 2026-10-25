@@ -318,6 +318,17 @@ def apply_store(pkg, source, url):
     return None
 
 
+def card_note(names):
+    """(W16l) The one line under the app name on Pages: what the patches do, never how the app was added
+    (CCleaner showed "Added 2026-10-25 through 5"). No patches chosen: no line (the app is disabled anyway)."""
+    names = [n.rstrip('.') for n in names]
+    if not names:
+        return ''
+    if len(names) <= 3:
+        return ', '.join(names)
+    return '%s and %d more' % (', '.join(names[:3]), len(names) - 3)
+
+
 def cmd_add(a):
     targets, indent = read_json(TARGETS)
     tid = a.id
@@ -353,7 +364,7 @@ def cmd_add(a):
                          'channel': 'prerelease', 'patch_dir': pdir.name, 'options': pname}],
          'tag_prefix': tid, 'poll': bool(names), 'label': a.label,
          'source': 'apkpure' if source == 'apkpure' else 'apkmirror',
-         'note': 'Added %s through 5. Add target.' % today()}
+         'note': card_note(names)}
     if names:
         t['exclusive'] = True
     if a.needs_microg:

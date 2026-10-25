@@ -580,3 +580,15 @@ follower from the first.
 Tags: ci, evidence
 Community collect and Nightly report failed with only "exit 1" and "UNKNOWN" in the log, so the
 cause could not be read from the owner's log zip. Every stop prints its stage and its own code.
+
+### L098 · A fallback build is not a green smoke
+Tags: build, ci
+The W16k Instagram smoke ended success, but piko had failed on Hide feed posts and HushGram built
+it; the publish batch did the same, and Reddit fell back to Adobo the same way. A smoke that names
+a provider (app/provider) passes only when that provider wins; read PROVIDER_FALLBACK as a failure
+of the primary, find its PATCH_FAILED name and hold that name, not the provider.
+
+### L099 · Only report what a follower was built for
+Tags: ci
+Notify, called inside Status page data, threw "Unexpected triggering event" for a run started by an
+event it never reports, which turned Status red. The job's own if: now lists the events it reports.

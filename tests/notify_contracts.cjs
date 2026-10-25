@@ -172,6 +172,8 @@ async function main(){
   assert.ok(/^on:\n  workflow_call:\n/m.test(source)&&!/workflow_run:/.test(source.split('\njobs:')[0]));
   assert.ok(statusText.includes('    uses: ./.github/workflows/notify-failure.yml')&&statusText.includes('    branches: [main]'));
   const hook=statusText.match(/workflows: (\[[^\n]+\])/);
+  // W16k fix: the job skips runs of events the script refuses, so Status never goes red for them.
+  assert.ok(source.includes(`contains(fromJSON('["workflow_dispatch","schedule","push","workflow_call"]'), github.event.workflow_run.event)`));
   assert.ok(hook);
   const names=JSON.parse(hook[1]);
   assert.equal(names.length,14);assert.equal(new Set(names).size,14);  // W16k: + 11. Rule merge (schedule only now)

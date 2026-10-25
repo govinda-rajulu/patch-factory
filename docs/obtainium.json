@@ -23,17 +23,6 @@
    "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^amazonmusic-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Amazon Music\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
   },
   {
-   "id": "com.piriform.ccleaner",
-   "url": "https://github.com/govinda-rajulu/patch-factory",
-   "author": "govinda-rajulu",
-   "name": "CCleaner",
-   "categories": [
-    "patch-factory"
-   ],
-   "preferredApkIndex": 0,
-   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^ccleaner-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"CCleaner\", \"allowedSigningCertHashes\": \"08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050\"}"
-  },
-  {
    "id": "com.microsoft.emmx",
    "url": "https://github.com/govinda-rajulu/patch-factory",
    "author": "govinda-rajulu",

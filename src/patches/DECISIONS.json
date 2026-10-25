@@ -757,6 +757,20 @@
       "call": "take",
       "id": "W16k-fb-icons",
       "date": "2026-10-25"
+    },
+    {
+      "target": "ccleaner",
+      "name": "Unlock Premium",
+      "call": "take",
+      "id": "W16l-ccleaner-premium",
+      "date": "2026-10-25"
+    },
+    {
+      "target": "ccleaner",
+      "name": "Disable Telemetry",
+      "call": "drop",
+      "id": "W16l-ccleaner-telemetry",
+      "date": "2026-10-25"
     }
   ],
   "watch": [

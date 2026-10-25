@@ -652,7 +652,7 @@
   },
   {
     "id": "ccleaner",
-    "enabled": true,
+    "enabled": false,
     "package": "com.piriform.ccleaner",
     "apk_name": "ccleaner",
     "apk_type": "bundle",
@@ -672,10 +672,10 @@
       }
     ],
     "tag_prefix": "ccleaner",
-    "poll": true,
+    "poll": false,
     "label": "CCleaner",
     "source": "apkmirror",
-    "note": "Added 2026-10-25 through 5. Add target.",
+    "note": "Premium unlocked",
     "exclusive": true
   }
 ]
