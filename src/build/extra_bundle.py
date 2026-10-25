@@ -15,7 +15,8 @@ import sys
 import tempfile
 import zipfile
 from urllib.parse import urlparse
-from github_bundle import MAX_BYTES, MAX_EXPANDED, MAX_ENTRIES, choose_release, require, zip_inspect
+from github_bundle import MAX_BYTES, MAX_EXPANDED, MAX_ENTRIES, choose_release, pick_mpp, require, zip_inspect
+
 
 
 def text(value, label):
@@ -68,7 +69,7 @@ def select(host, ident, channel, env):
     parsed_date = datetime.datetime.fromisoformat(date.replace('Z', '+00:00'))
     require(parsed_date.tzinfo is not None, 'release date has no timezone')
     require(isinstance(assets, list) and all(isinstance(a, dict) for a in assets), 'invalid release asset inventory')
-    matches = [a for a in assets if isinstance(a.get('name'), str) and a['name'].endswith('.mpp')]
+    matches = pick_mpp(assets, tag)
     require(len(matches) == 1, 'release must contain exactly one .mpp asset/link')
     asset = matches[0]
     name = text(asset.get('name'), 'asset name')

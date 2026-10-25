@@ -2,6 +2,31 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
+## Current checkpoint: 25 October 2026 (packet W16h)
+
+W16h: Truecaller combo primary again, heval99 fallback (its smoke on the Android 10+ variant decides
+the swap); APKMirror variant picker skips rows above the cap (L088); Telegram rushiranpise primary;
+ES File gets rushiranpise Unlock VIP Lifetime as an extra (configured in W16h; it had been open since
+20 Oct). Round 2 (25 Oct): Needs you parses new-name rows, counts BANNED and second-copy names in
+FYI, keeps provider item ids stable and names the extras; Selection no longer lets two bundles hold
+one name against each other; Explore names the channel that served the bundle. The heval99 and
+newuser7171 baselines are already on main (Selection watch, 94b3287f), byte-identical to #234 and #235. The Truecaller "status 1" was by design: heval99
+lists only 26.41.5, so nothing lower existed. Next: if the heval99 smoke is green, make heval99
+primary with the combo as a fallback (needs fallback-only extras read by the provider watch and
+recipe); Instagram's other index providers (oxbow 17, kveld 3, foxxo 3 and four one-patch bundles)
+through Explore; the paresh GitLab licence (not reachable from the sandbox).
+
+Owner sweep (25 Oct, pf-sweep zip, main 94b3287f): paresh-patches is GPL-3.0-or-later (GitLab API).
+legendsciber's v1.52.0 release carries patches-1.51.0.mpp and patches-1.52.0.mpp, so every fetch
+refused it ("exactly one .mpp"); W16h picks the .mpp named for the release tag and still refuses when
+none or two match. The W16f channel retry was the wrong diagnosis (wrong call 59); oxbow's release was
+edited after the failed runs, so its cause is not proven. Qualify published shadow baselines is red
+whenever a fallback provider publishes: the plan describes the primary, the build declares the
+fallback, the binding is DRIFT and no receipt is stored (Truecaller 24 and 25 Oct, Telegram 24 Oct).
+W16h's primaries (combo, rushiranpise) should clear it; a plan per candidate is open work. Council
+probe (25 Oct): eight nvidia models MISSING and kilo-auto/free refused (400); W16h drops them and gives
+the kilo seat the two free models the probe listed. FiorenMas ce08d21 adds Pinterest only: nothing to port.
+
 ## Current checkpoint: 24 October 2026, night IST (packet W16g)
 
 W16g: Truecaller heval99 (fallback: bufferk), Telegram newuser7171 (fallback: rushiranpise),

@@ -4,7 +4,7 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **20 October 2026** for packet W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
+Last indexed **25 October 2026** for packet W16h; before that **20 October 2026** for W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here

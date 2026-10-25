@@ -938,15 +938,17 @@ transfer(){
     def test_discovery_scope(self):
         x = self.run_cmd([sys.executable, 'src/etc/community_discover.py'])
         self.assertEqual(x.returncode, 0, x.stderr)
-        for target in ('hotstar', 'photos', 'esfile'):
+        for target in ('hotstar', 'photos'):
             block = x.stdout.split('\n' + target, 1)[1].split('\n\n', 1)[0]
             self.assertIn('you have 1 wired', block)
             self.assertIn('MISSING', block)
-        block = x.stdout.split('\nmxplayer', 1)[1].split('\n\n', 1)[0]
-        self.assertNotIn('MISSING  Paresh-Maheshwari', block)
-        # W16g: Truecaller left paresh (heval99 covers it), so discovery lists it again.
-        block = x.stdout.split('\ntruecaller-combo', 1)[1].split('\n\n', 1)[0]
-        self.assertIn('MISSING  Paresh-Maheshwari', block)
+        # W16h: ES File wires rushiranpise (Unlock VIP Lifetime) next to ftl.
+        block = x.stdout.split('\nesfile', 1)[1].split('\n\n', 1)[0]
+        self.assertIn('you have 2 wired', block)
+        self.assertNotIn('MISSING', block)
+        for target in ('truecaller-combo', 'mxplayer'):
+            block = x.stdout.split('\n' + target, 1)[1].split('\n\n', 1)[0]
+            self.assertNotIn('MISSING  Paresh-Maheshwari', block)
 
     def test_writer_moves_both_sides(self):
         self.decide([('esfile-ftl', 'Remove Ads Ultra Lite', 'IN', False)])

@@ -128,32 +128,53 @@
     "pin": null,
     "candidates": [
       {
-        "name": "heval99",
-        "host": "github",
-        "owner": "heval99",
-        "repo": "Heval-Morphe-Patches",
-        "channel": "prerelease",
-        "patch_dir": "truecaller-heval99",
-        "options": "heval99"
-      },
-      {
         "name": "bufferk",
         "host": "github",
         "owner": "bufferk",
         "repo": "morphe-patches",
         "channel": "prerelease",
         "patch_dir": "truecaller-combo",
-        "options": "combo",
-        "fallback": true
+        "options": "combo"
+      },
+      {
+        "name": "heval99",
+        "host": "github",
+        "owner": "heval99",
+        "repo": "Heval-Morphe-Patches",
+        "channel": "prerelease",
+        "patch_dir": "truecaller-heval99",
+        "options": "heval99",
+        "fallback": true,
+        "overrides": {
+          "extra_bundles": []
+        }
       }
     ],
-    "extra_bundles": [],
+    "extra_bundles": [
+      {
+        "name": "paresh",
+        "host": "gitlab",
+        "project_id": 82031658,
+        "owner": "Paresh-Maheshwari",
+        "repo": "paresh-patches",
+        "channel": "prerelease",
+        "patch_dir": "truecaller-paresh"
+      },
+      {
+        "name": "binarymend",
+        "host": "github",
+        "owner": "binarymend",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "truecaller-combo-binarymend",
+        "options": "binarymend"
+      }
+    ],
     "tag_prefix": "tc-combo",
     "poll": true,
     "exclusive": true,
     "label": "Truecaller",
-    "note": "heval99 is primary since 24 Oct 2026 (owner: newest app version and most patches; Enable Premium and GmsCore support kept). Install MicroG RE first. bufferk on 26.10.6 is the fallback; the paresh and binarymend extras left: heval99 covers their patches and they only fit 26.10.6.",
-    "needs_microg": true
+    "note": "paresh premium plus bufferk ad blocking plus binarymend, on 26.10.6. heval99 (24 patches, Enable Premium, GmsCore) is the fallback on its own versions since 25 Oct 2026: the variant picker now skips APKMirror rows above Android 10 (L088)."
   },
   {
     "id": "primevideo",
@@ -211,7 +232,17 @@
     "source": "apkmirror",
     "any_version": false,
     "label": "ES File Explorer",
-    "note": "VIP unlocked, ads and analytics removed."
+    "note": "VIP unlocked (rushiranpise), ads and analytics removed (ftl).",
+    "extra_bundles": [
+      {
+        "name": "rushiranpise",
+        "host": "github",
+        "owner": "rushiranpise",
+        "repo": "morphe-patches",
+        "channel": "prerelease",
+        "patch_dir": "esfile-rushiranpise"
+      }
+    ]
   },
   {
     "id": "facebook",
@@ -463,22 +494,22 @@
     "exclusive": true,
     "candidates": [
       {
-        "name": "newuser7171",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "telegram-newuser7171",
-        "owner": "newuser7171",
-        "repo": "telegram-morphe-patches-",
-        "options": "newuser7171"
-      },
-      {
         "name": "rushiranpise",
         "host": "github",
         "channel": "prerelease",
         "patch_dir": "telegram-rushiranpise",
         "options": "rushiranpise-telegram",
         "owner": "rushiranpise",
-        "repo": "morphe-patches",
+        "repo": "morphe-patches"
+      },
+      {
+        "name": "newuser7171",
+        "host": "github",
+        "channel": "prerelease",
+        "patch_dir": "telegram-newuser7171",
+        "owner": "newuser7171",
+        "repo": "telegram-morphe-patches-",
+        "options": "newuser7171",
         "fallback": true
       }
     ],
@@ -487,7 +518,7 @@
     "source": "apkmirror",
     "any_version": false,
     "label": "Telegram",
-    "note": "Ads and tracking removed, Premium unlocked, translation unlocked. newuser7171 is primary since 24 Oct 2026 (newer app, one more patch); rushiranpise is the fallback."
+    "note": "Ads and tracking removed, Premium unlocked. rushiranpise (12.10.1) is primary again; newuser7171 (12.10.4, adds Bypass translation restrictions) is the fallback since its Bypass channel restrictions does not match 12.10.4 (W16g smoke, 24 Oct 2026)."
   },
   {
     "id": "keymapper",

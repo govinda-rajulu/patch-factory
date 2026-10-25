@@ -1,6 +1,6 @@
 # patch-factory roadmap
 
-Updated 24 October 2026 (W16d/W16f). This is a short planning view, not a second source of
+Updated 25 October 2026 (W16h). This is a short planning view, not a second source of
 truth. `src/targets.json`, the workflow files, `src/council/seats.json` and the newest
 [STATE.md](STATE.md) checkpoint win over this file. Owner rules and the live queue are in
 [AGENTS.md](../AGENTS.md) and [OPEN-WORK.md](../docs/review/OPEN-WORK.md).
@@ -24,8 +24,8 @@ truth. `src/targets.json`, the workflow files, `src/council/seats.json` and the 
 ## Now: owner work
 
 Follow the newest [OPEN-WORK.md](../docs/review/OPEN-WORK.md) checkpoint. The current first items
-are the read-only MCP pilot, owner decisions in Needs you, the store-service speed work and phone
-checks. The MCP plan is [MCP-PLAN.md](../docs/review/MCP-PLAN.md); it adds no schedule and must not
+are the read-only MCP pilot, owner decisions in Needs you and phone checks (store services
+already start on demand, W16g L087). The MCP plan is [MCP-PLAN.md](../docs/review/MCP-PLAN.md); it adds no schedule and must not
 replace deterministic store scraping or feed model output into a build.
 
 ## Security and maintenance lanes

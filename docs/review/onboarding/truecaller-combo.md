@@ -2,16 +2,18 @@
 
 Package: com.truecaller
 Source APK: the target's current source mapping (unchanged); the version follows the provider's compatible list.
-Provider: heval99/Heval-Morphe-Patches (licence: the upstream repository LICENSE file; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease). Names below come from the live list-patches run in Explore issue #234 (24 Oct 2026, 24 patches) and the community index (compatible 26.40.5, 26.41.5).
+
+**Current (W16h, 25 Oct 2026):** bufferk/morphe-patches is primary with the paresh-patches and binarymend/morphe-patches extras (19 names, 26.10.6): `src/patches/truecaller-combo/include-patches` (7), `src/patches/truecaller-paresh/include-patches` (10) and `src/patches/truecaller-combo-binarymend/include-patches` (2). heval99 below is the fallback, built alone. The W16g sections below are history; the W16h section at the end is the current change.
+Provider: heval99/Heval-Morphe-Patches (fallback since W16h; licence: GPL-3.0, the LICENSE file at https://github.com/heval99/Heval-Morphe-Patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease). Names below come from the live list-patches run in Explore issue #234 (24 Oct 2026, 24 patches) and the community index (compatible 26.40.5, 26.41.5).
 
 Owner decision, 24 Oct 2026 (packet W16g): use the provider with the newest app version and the most patches. heval99 targets 26.41.5 with 24 patches; the old combo (bufferk 7 + paresh 10 + binarymend 2) targets 26.10.6. heval99 becomes primary, built alone; bufferk alone (7 patches, 26.10.6) is the fallback. The paresh and binarymend extras leave: heval99 covers what they did, and their patches fit 26.10.6 only. Enable Premium and GmsCore support stay in, so the owner can compare.
 
 Owner approved: Enable Premium
 Owner approved: GmsCore support
 
-## Patches
+## heval99 names (primary in W16g, fallback since W16h)
 
-Truecaller is an exclusive target, so the names are listed in `src/patches/truecaller-heval99/include-patches`:
+Truecaller is an exclusive target; the heval99 fallback's names are in `src/patches/truecaller-heval99/include-patches`:
 
 - Disable ads: default on; ad removal.
 - Hide promotions: default on; promotion removal.
@@ -32,11 +34,39 @@ Truecaller is an exclusive target, so the names are listed in `src/patches/truec
 - Remove screenshot restriction: default off; lets the owner take screenshots.
 - Hide after-call screen for contacts: default off; the after-call popup only for saved contacts.
 
-Left out: `Spoof signature` (default on; BANNED rule `spoof signature`, listed in exclude-patches), and the default-off ones that remove a core feature or change sign-in: `Hide Blocking tab`, `Hide Messages tab`, `Hide business media`, `Restore classic call log`, `Use SMS for verification codes`.
+Left out: `Spoof signature` (default on; BANNED rule `spoof signature`, listed in heval99's exclude-patches; the combo's exclude list is empty), and the default-off ones that remove a core feature or change sign-in: `Hide Blocking tab`, `Hide Messages tab`, `Hide business media`, `Restore classic call log`, `Use SMS for verification codes`.
 
 ## Risks
 
 - Truecaller signs in with a phone number and its servers can see account state. Enable Premium may be ignored or noticed server-side; the owner accepts this (tested before).
 - GmsCore support moves Google services to MicroG and may change the installed package, so this build can install beside the store app. Install MicroG RE first.
 - Signature spoofing stays off by rule; if sign-in fails on the phone, that is the first suspect.
-- The bufferk fallback has no GmsCore patch; its release notes will still say MicroG (one target-level flag).
+- The combo has no GmsCore patch and the target-level MicroG note is off (W16h). If the heval99 fallback wins, its GmsCore support needs MicroG RE.
+
+## W16h (25 Oct 2026): back to the combo
+
+The W16g smoke (run 40108958168) stopped at "needs SDK 32, device is 29". That was the APK
+variant, not the version: APKMirror has three 26.41.5 variants (Android 12L+ universal, Android 8.0+
+and Android 10+ arm64, 480-640dpi) and the picker took the first row. The picker now skips rows above
+the cap (L088). The owner found the Android 10+ upload (25 Oct 2026).
+The combo (bufferk primary with paresh and binarymend extras, 26.10.6, 19 patches) is primary again;
+paresh and binarymend come back with their W16f include lists. heval99 stays as a fallback on its own versions
+(no extras); its smoke on 26.41.5 with the Android 10+ variant decides whether it becomes primary. If it ever
+wins, MicroG RE is needed for GmsCore support (the target-level MicroG note is off for the combo).
+
+Provider: Paresh-Maheshwari/paresh-patches on GitLab, gitlab:82031658 (extra; licence: GPL-3.0-or-later per the GitLab API, read by the owner sweep on 25 Oct 2026; bundle: the newest prerelease `.mpp`; channel: prerelease). Restored.
+Provider: binarymend/morphe-patches (extra; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/binarymend/morphe-patches; bundle: the newest prerelease `.mpp`; channel: prerelease). Restored.
+
+Restored names (as built on main until W16g; each is back in its W16f list):
+- Truecaller Premium: paresh extra, restored from the combo built since 9 Oct 2026.
+- Hide Premium tab: paresh extra, restored from the combo built since 9 Oct 2026.
+- Hide Premium from settings: paresh extra, restored from the combo built since 9 Oct 2026.
+- Neutralize third-party SDKs: paresh extra, restored from the combo built since 9 Oct 2026.
+- GMS sign-in bypass: paresh extra, restored from the combo built since 9 Oct 2026.
+- Disable telemetry: paresh extra, restored from the combo built since 9 Oct 2026.
+- Disable update check: paresh extra, restored from the combo built since 9 Oct 2026.
+- Hide Assistant tab: paresh extra, restored from the combo built since 9 Oct 2026.
+- Hide Family Protection button: paresh extra, restored from the combo built since 9 Oct 2026.
+- Hide Scams tab: paresh extra, restored from the combo built since 9 Oct 2026.
+- Remove Ads: binarymend extra, restored from the combo built since 9 Oct 2026.
+- Disable Telemetry: binarymend extra, restored from the combo built since 9 Oct 2026.

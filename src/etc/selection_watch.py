@@ -106,7 +106,8 @@ def classify(policy, descriptions, row, package, name, flag, others=()):
     if flag == 'CFM':
         return 'hold', 'matches CONFIRM: owner decides'
     if name in others:
-        return 'hold', 'another bundle of this app offers the same name; one bundle per name (AGENTS rule 4)'
+        who = ' (%s)' % others[name] if isinstance(others, dict) and others[name] else ''
+        return 'hold', 'another bundle of this app%s offers the same name; one bundle per name (AGENTS rule 4)' % who
     # W15d: a name the owner gave to another provider (one provider per feature) waits.
     for r in policy.get('reserved', []):
         mine = {str(row.get('name', '')).lower(), str(row.get('owner', '')).lower()}
@@ -132,6 +133,38 @@ def classify(policy, descriptions, row, package, name, flag, others=()):
             and not words & set(policy.get('wanted_words', []))):
         return 'hold', 'changes what the app shows for good: no off switch and no ad, tracking or suggestion target in its description'
     return 'adopt', 'by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description'
+
+
+def solo_candidates(root):
+    targets = json.loads((root / 'src/targets.json').read_text(encoding='utf-8'))
+    return {(t.get('id'), c.get('name')) for t in targets for c in t.get('candidates') or []
+            if isinstance(c, dict) and (c.get('overrides') or {}).get('extra_bundles') == []}
+
+
+def peer_names(root, rows, observed, w):
+    """Names that make w a second copy, mapped to the bundle that holds them first.
+    W16h (25 Oct 2026): two bundles offering one name used to hold each other, so
+    neither copy ever reached the owner (live Needs you: piko and brosssh both held
+    'Hide notes tray'). A name now waits only for a bundle that builds alongside this
+    one and either ships it or comes earlier (primary first, then extras in order).
+    Two candidates never build together, so they are not peers."""
+    me = next((i for i, r in enumerate(rows) if r['target'] == w['target'] and r['name'] == w['provider']), len(rows))
+    role = rows[me]['role'] if me < len(rows) else 'extra'
+    alone = solo_candidates(root)
+    out = {}
+    for i, r in enumerate(rows):
+        if r['target'] != w['target'] or i == me or (role == 'candidate' and r['role'] == 'candidate'):
+            continue
+        # A candidate whose overrides drop the extras (Truecaller heval99) builds alone.
+        if (role == 'candidate' and (w['target'], w['provider']) in alone) or \
+                (r['role'] == 'candidate' and (r['target'], r['name']) in alone):
+            continue
+        for n in lines(root / 'src/patches' / r['patch_dir'] / 'include-patches'):
+            out.setdefault(n.split('|', 1)[0], r['name'])
+        if i < me:
+            for n in observed.get(r['target'] + '/' + r['name']) or []:
+                out.setdefault(n, r['name'])
+    return out
 
 
 def plan_names(root, rows, observed, pending, open_targets=frozenset()):
@@ -411,12 +444,8 @@ def collect(root, out, observe, reader=gh_json, state_text=None, identity=None):
     policy, descriptions = adopt_policy(root), index_descriptions(root)
     packages = {t['id']: t.get('package') for t in targets}
     for w in p['waiting'] + p['backlog']:
-        others = set()
-        for r in rows:
-            if r['target'] == w['target'] and r['name'] != w['provider']:
-                others |= set(observed.get(r['target'] + '/' + r['name']) or [])
-                others |= {l.split('|', 1)[0] for l in lines(root / 'src/patches' / r['patch_dir'] / 'include-patches')}
-        w['call'], w['why'] = classify(policy, descriptions, w, packages.get(w['target']), w['name'], w['tag'], others)
+        w['call'], w['why'] = classify(policy, descriptions, w, packages.get(w['target']), w['name'], w['tag'],
+                                       peer_names(root, rows, observed, w))
     chosen = set()
     for row in rows:
         chosen |= {l.split('|', 1)[0] for l in lines(root / 'src/patches' / row['patch_dir'] / 'include-patches')}

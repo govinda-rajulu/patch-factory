@@ -22,6 +22,7 @@ as code or APKs to copy.
 | AdGuard | hoo-dles | https://github.com/hoo-dles/morphe-patches |
 | Amazon Music | rookieenough | https://github.com/RookieEnough/De-Vanced |
 | ES File Explorer | ftl | https://github.com/BlazeFTL/FTL-Patches |
+| ES File Explorer | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | Facebook | hushfacebook | https://github.com/SysAdminDoc/HushFacebook |
 | Facebook | derevanced | https://github.com/RookieEnough/De-Vanced |
 | Google Photos | rushiranpise | https://github.com/rushiranpise/morphe-patches |
@@ -37,10 +38,12 @@ as code or APKs to copy.
 | Prime Video | hoo-dles | https://github.com/hoo-dles/morphe-patches |
 | Reddit | morphe | https://github.com/MorpheApp/morphe-patches |
 | Reddit | adobo | https://github.com/jkennethcarino/adobo |
-| Telegram | newuser7171 | https://github.com/newuser7171/telegram-morphe-patches- |
 | Telegram | rushiranpise | https://github.com/rushiranpise/morphe-patches |
-| Truecaller | heval99 | https://github.com/heval99/Heval-Morphe-Patches |
+| Telegram | newuser7171 | https://github.com/newuser7171/telegram-morphe-patches- |
 | Truecaller | bufferk | https://github.com/bufferk/morphe-patches |
+| Truecaller | heval99 | https://github.com/heval99/Heval-Morphe-Patches |
+| Truecaller | paresh | https://gitlab.com/Paresh-Maheshwari/paresh-patches |
+| Truecaller | binarymend | https://github.com/binarymend/morphe-patches |
 | YouTube | morphe | https://github.com/MorpheApp/morphe-patches |
 | YouTube Music | morphe | https://github.com/MorpheApp/morphe-patches |
 
