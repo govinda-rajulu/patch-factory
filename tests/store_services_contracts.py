@@ -1,5 +1,8 @@
 """Store helper startup is lazy per build and idempotent across attempts."""
+import os
 import re
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -42,6 +45,17 @@ class StoreServices(unittest.TestCase):
         build = self.attempts.index('rc, winner, reason = attempt(', call)
         self.assertLess(call, build)
         self.assertIn('check makes the latter reuse', self.attempts)
+
+    def test_first_helper_failure_is_a_nonzero_gate(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d); bin_dir = root / 'bin'; bin_dir.mkdir()
+            (bin_dir / 'curl').write_text('#!/bin/sh\nexit 1\n')
+            (bin_dir / 'docker').write_text('#!/bin/sh\nif [ "$1" = run ]; then exit 1; fi\nexit 0\n')
+            (bin_dir / 'sleep').write_text('#!/bin/sh\nexit 0\n')
+            for f in bin_dir.iterdir(): f.chmod(0o755)
+            r = subprocess.run(['bash', str(ROOT / 'src/build/store_services.sh')], env=dict(os.environ, PATH=str(bin_dir) + ':' + os.environ.get('PATH', '')), capture_output=True, text=True)
+            self.assertNotEqual(r.returncode, 0)
+            self.assertNotIn('cloudflarebypass on port', r.stdout)
 
 
 class StepDownStartsHelpers(unittest.TestCase):

@@ -62,9 +62,13 @@ class Identity(unittest.TestCase):
     def elf(self, machine=183, kind=2):
         h = bytearray(64);h[:4] = b'\x7fELF';h[4] = kind;h[5] = 1;h[18:20] = machine.to_bytes(2, 'little');return bytes(h)
 
-    def capture_fixture(self):
-        for name in ('morphe-desktop-fixture.jar', 'APKEditor.jar', 'pup', '09-lain.mpp', 'download/key-mapper.apk', 'src/ks.keystore'):
+    def capture_fixture(self, provenance=False):
+        for name in ('morphe-desktop-fixture.jar', 'APKEditor.jar', '09-lain.mpp', 'download/key-mapper.apk', 'src/ks.keystore'):
             self.put(name, 'fixture')
+        if provenance:
+            self.put('morphe-desktop-fixture.jar.json', json.dumps({
+                'name': 'morphe-desktop-fixture.jar', 'bytes': 7,
+                'sha256': hashlib.sha256(b'fixture').hexdigest(), 'tag': 'v1.15.0'}))
         self.put('.requested', 'lain\tUnlock Premium\n')
         for args in (['git','init','-q'], ['git','config','user.name','Fixture'], ['git','config','user.email','fixture@example.invalid'],
                      ['git','add','src/targets.json','src/build/artifact_identity.py','docs/obtainium.json'], ['git','commit','-qm','fixture']):
@@ -82,6 +86,44 @@ class Identity(unittest.TestCase):
              patch.object(identity, 'apk_signer', return_value={'certificate_sha256':self.fingerprint, 'verifier':'fixture','cryptographic_verification':'passed'}), \
              contextlib.redirect_stdout(io.StringIO()):
             return identity.verify_final(self.r, 'keymapper', self.env)
+
+    def test_atomic_json_does_not_use_predictable_candidate(self):
+        destination = self.r / 'report.json'
+        sentinel = self.r / 'sentinel'
+        sentinel.write_bytes(b'keep')
+        (self.r / 'report.json.cand').symlink_to(sentinel)
+        identity.atomic_json(destination, {'ok': True})
+        self.assertEqual(sentinel.read_bytes(), b'keep')
+        self.assertEqual(json.loads(destination.read_text()), {'ok': True})
+        self.assertFalse(list(self.r.glob('report.json.*.cand')))
+
+    def test_missing_patcher_sidecar_is_unknown_without_pin(self):
+        captured = self.capture_fixture()
+        self.assertIsNone(captured["patcher_provenance"])
+
+    def test_missing_patcher_sidecar_with_pin_fails_closed(self):
+        self.capture_fixture()
+        with self.assertRaisesRegex(ValueError, "provenance sidecar unavailable"):
+            identity.capture_inputs(self.r, "keymapper", "lain", dict(self.env, PATCHER_TAG_PIN="v1", PATCHER_SHA256_PIN="0" * 64))
+
+    def test_patcher_tag_and_digest_are_in_identity_inputs(self):
+        captured = self.capture_fixture(provenance=True)
+        self.assertEqual(captured['patcher_provenance']['tag'], 'v1.15.0')
+        self.assertEqual(captured['patcher_provenance']['sha256'], captured['tools'][0]['sha256'])
+
+    def test_present_patcher_sidecar_wrong_tag_or_digest_fails_with_pins(self):
+        self.capture_fixture(provenance=True)
+        digest = hashlib.sha256(b'fixture').hexdigest()
+        for field, value in (('tag', 'v9.9.9'), ('sha256', 'f' * 64)):
+            with self.subTest(field=field):
+                sidecar = json.loads((self.r / 'morphe-desktop-fixture.jar.json').read_text())
+                sidecar[field] = value
+                (self.r / 'morphe-desktop-fixture.jar.json').write_text(json.dumps(sidecar))
+                with self.assertRaisesRegex(ValueError, 'configured pin|invalid patcher provenance sidecar'):
+                    identity.capture_inputs(self.r, 'keymapper', 'lain',
+                                            dict(self.env, PATCHER_TAG_PIN='v1.15.0', PATCHER_SHA256_PIN=digest))
+                sidecar[field] = 'v1.15.0' if field == 'tag' else digest
+                (self.r / 'morphe-desktop-fixture.jar.json').write_text(json.dumps(sidecar))
 
     def test_complete_fixture_capture_and_verify(self):
         captured = self.capture_fixture();report = self.verify_fixture()

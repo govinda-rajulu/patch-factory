@@ -106,6 +106,8 @@ class DependencyContracts(unittest.TestCase):
         new="morphe-desktop-renamed-all.jar"
         (self.r/"resolved-inputs"/old).rename(self.r/"resolved-inputs"/new)
         lock["material"]["patcher"]["path"]=new
+        if lock.get("patcher_provenance"):
+            lock["patcher_provenance"]["name"] = new
         self.f.rewrite(lock,reseal=True)
         second=dep.snapshot(self.r,"keymapper",self.env)
         self.assertNotEqual(first["lock_sha256"],second["lock_sha256"])

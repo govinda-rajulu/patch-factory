@@ -195,14 +195,14 @@ def realized(root, captured, env):
     # Actual patch CLI processes lexically staged numbered bundles.
     ordered = [{"slot": name, **byte_record(byname[name])} for name in sorted(expected_names)]
     tools = captured["tools"]
-    need(len(tools) == 3, "tool coverage incomplete")
+    need(len(tools) == 2, "tool coverage incomplete")
     tool_names = [Path(r["path"]).name for r in tools]
     need(tool_names[0].startswith("morphe-desktop-") and tool_names[0].endswith(".jar") and
-         tool_names[1:] == ["APKEditor.jar", "pup"], "tool identity/order differs")
+         tool_names[1:] == ["APKEditor.jar"], "tool identity/order differs")
     material = {
         "local_effective": semantics(root, ident, winner),
         "winner": winner, "bundles": ordered,
-        "tools": [{"role": role, **byte_record(r)} for role,r in zip(("patcher","apkeditor","pup"), tools)],
+        "tools": [{"role": role, **byte_record(r)} for role,r in zip(("patcher","apkeditor"), tools)],
         "apk": byte_record(captured["patcher_input_apk"]),
         "requested": byte_record(captured["requested_ledger"], allow_empty=True),
         "package": captured["expected_package"],

@@ -11,6 +11,9 @@ checks the finished output, and publishes a separate signed release per build.
 | [Open work](docs/review/OPEN-WORK.md)
 | [Review desk](docs/review/README.md)
 
+Built by **Govindarajulu K** (owner and architect) with **ClickUp Brain** on Anthropic's **Claude** (engineering):
+[who did what](CREDITS.md#who-built-it).
+
 The generated table below is the configured patched-app inventory. Morphe MicroG
 RE is an optional upstream companion, not another patched target; import choices
 and what they do are in the [guide](docs/guide.md#obtainium).
@@ -117,7 +120,7 @@ that leaves this block stale, so it cannot drift.
 
 - **17 apps**, all enabled, 17 polled by the scheduled build (`23 12 * * *` UTC = 17:53 IST; plus a poll-only check at 05:53 IST that builds only when a provider has published; GitHub can start scheduled runs late).
 - Patch-age warning: 60, 120 days. Age is advisory; requested/applied checks and build verification decide.
-- 2 build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.
+- 1 build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.
 - 2 patch(es) quarantined in `src/patches/QUARANTINE`, held out of every include list by CI.
 
 | App | id | tag prefix | store | patch providers | polled |
@@ -148,7 +151,7 @@ that leaves this block stale, so it cannot drift.
 4. `build.sh` compares requested against applied **by name** and refuses to release on a gap.
 5. The package name is verified twice: on the downloaded APK, and against what the patcher filtered.
 6. `check_sdk.sh` rejects an excessive or unreadable `min_sdk_ceiling` measurement.
-7. `tooling.sh` verifies pup and APKEditor; morphe-desktop intentionally tracks latest.
+7. `tooling.sh` verifies APKEditor; morphe-desktop intentionally tracks latest.
 8. `readmegen.py --check` and `pagegen.py --check` fail a push that leaves docs stale.
 9. `shellcheck` at severity=error over every script in `src/build` and `src/etc`.
 

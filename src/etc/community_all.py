@@ -20,10 +20,21 @@ if isinstance(compat,dict):
 else:
     for i,v in enumerate(compat): PN[str(i)]=names(v)
 
-bypkg=collections.defaultdict(list)
+# A repeated repository is one provider. Merge its bundle pages before counting offers.
+providers = collections.OrderedDict()
 for b in (d.get("bundles") or []):
+    source = b.get("source", "github")
+    repo = str(b.get("repo", ""))
+    key = (source, repo.lower())
+    provider = providers.setdefault(key, dict(b, patches=[]))
+    for patch in b.get("patches") or []:
+        if patch not in provider["patches"]:
+            provider["patches"].append(patch)
+
+bypkg=collections.defaultdict(list)
+for b in providers.values():
     seen=collections.defaultdict(int)
-    for p in (b.get("patches") or []):
+    for p in b["patches"]:
         for pkg in PN.get(str(p.get("compatiblePackagesKey")),[]): seen[pkg]+=1
     for pkg,n in seen.items(): bypkg[pkg].append((b,n))
 
@@ -40,7 +51,7 @@ for x in sorted(t,key=lambda z:z["id"]):
         for tok in (c.get("owner"),c.get("name"),c.get("project_id")):
             if tok: wired.add(norm(tok))
     offers=sorted(bypkg.get(pkg) or [], key=lambda z:-z[1])
-    print("\n%-18s %s   (%d bundle(s) in the index)" % (x["id"],pkg,len(offers)))
+    print("\n%-18s %s   (%d provider(s) in the index)" % (x["id"],pkg,len(offers)))
     if not offers: print("     index has none: your provider is upstream or unlisted"); continue
     for b,n in offers:
         repo=str(b.get("repo","")); owner=repo.split("/")[0] if "/" in repo else repo

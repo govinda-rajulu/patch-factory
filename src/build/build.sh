@@ -3,6 +3,17 @@
 # Reads src/targets.json, elects a provider, patches arm64-v8a, writes release metadata.
 set -uo pipefail
 
+# W16o: F-03, isolate patch logs and build scratch from shared /tmp and clean them at exit.
+umask 077
+PF_TMP_DIR=$(mktemp -d "${RUNNER_TEMP:-/tmp}/pf-build.XXXXXX")
+pf_build_cleanup() {
+  if [ "${PF_KEEP_STORE_SERVICES:-0}" != "1" ] && [ "${PF_STORE_LAZY:-0}" = "1" ] && [ -f src/build/store_services.sh ]; then
+    bash src/build/store_services.sh cleanup >/dev/null 2>&1 || true
+  fi
+  rm -rf -- "$PF_TMP_DIR"
+}
+trap pf_build_cleanup EXIT
+
 ID="${1:?usage: build.sh <target-id>}"
 TARGETS="src/targets.json"
 
@@ -36,6 +47,7 @@ APK_NAME=$(jq -r '.apk_name'            <<<"$T")
 APK_TYPE=$(jq -r '.apk_type // "apk"'   <<<"$T")
 CEIL=$(jq     -r '.min_sdk_ceiling // 29' <<<"$T")
 export PF_SDK_CEILING="$CEIL"  # W16h (L088): the APKMirror variant picker skips rows above the cap
+export PF_ENFORCE_EFFECTIVE_URL=1  # W16o: F-07, production store transfers require HTTPS and final-host checks
 MAXVER=$(jq -r '.max_app_version // ""' <<<"$T")
 SRC=$(jq -r '.source // "apkmirror"' <<<"$T")
 ANYVER=$(jq -r '.any_version // false' <<<"$T")
@@ -297,21 +309,22 @@ python3 src/build/artifact_identity.py capture-inputs "$ID" "$WINNER" || exit 1
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
 # W16j: one PATCH_FAILED line per failing patch (the controller and Explore read them).
+: "${PF_TMP_DIR:=${RUNNER_TEMP:-/tmp}}"
 failed_patches() {
-  grep -E "(SEVERE|ERROR): FAILED" /tmp/patch.log | sed 's/\x1b\[[0-9;]*m//g; s/.*FAILED:* *//; s/[[:space:]]*$//' | sort -u | sed 's/^/PATCH_FAILED /'
+  grep -E "(SEVERE|ERROR): FAILED" "$PF_TMP_DIR/patch.log" | sed 's/\x1b\[[0-9;]*m//g; s/.*FAILED:* *//; s/[[:space:]]*$//' | sort -u | sed 's/^/PATCH_FAILED /'
   return 0
 }
 for i in 0; do
   [ -n "${COE:-}" ] && excludePatches="$excludePatches --continue-on-error"
-  python3 src/build/patch_target.py "$ID" "$WINNER" > /tmp/patch.log 2>&1; SA=$?
- cat /tmp/patch.log
+  python3 src/build/patch_target.py "$ID" "$WINNER" > "$PF_TMP_DIR/patch.log" 2>&1; SA=$?
+ cat "$PF_TMP_DIR/patch.log"
  [ "$SA" -eq 0 ] || { red_log "[-] patcher exited $SA - refusing to release"; failed_patches; exit 1; }
- grep -o "Applied: .*" /tmp/patch.log | sed 's/\x1b\[[0-9;]*m//g; s/^Applied: //; s/[[:space:]]*$//' | sort -u > /tmp/applied.txt
- AP=$(wc -l < /tmp/applied.txt)
+ grep -o "Applied: .*" "$PF_TMP_DIR/patch.log" | sed 's/\x1b\[[0-9;]*m//g; s/^Applied: //; s/[[:space:]]*$//' | sort -u > "$PF_TMP_DIR/applied.txt"
+ AP=$(wc -l < "$PF_TMP_DIR/applied.txt")
  [ "$AP" -gt 0 ] || { red_log "[-] zero patches applied - refusing to release"; exit 1; }
  green_log "[+] applied $AP patches (rc=$SA)"
- grep "Applied: " /tmp/patch.log | sed 's/.*Applied: /- /' | sort > ./release/.applied
- PKG_LOG=$(grep -oE "Filtering patches for [^ ]+" /tmp/patch.log | tail -1 | awk "{print \$NF}")
+ grep "Applied: " "$PF_TMP_DIR/patch.log" | sed 's/.*Applied: /- /' | sort > ./release/.applied
+ PKG_LOG=$(grep -oE "Filtering patches for [^ ]+" "$PF_TMP_DIR/patch.log" | tail -1 | awk "{print \$NF}")
  if [ -z "$PKG_LOG" ]; then
    red_log "[-] the patcher never said which package it filtered - refusing"; exit 1
  elif [ "$PKG_LOG" != "$PKG" ]; then
@@ -321,32 +334,32 @@ for i in 0; do
  fi
  # W16j: the patcher now prints "ERROR: FAILED: <name>" (older ones "SEVERE: FAILED"). With COE
  # (keep_going smoke) it carries on, so every failing patch is named here in one run.
- if grep -qE "(SEVERE|ERROR): FAILED" /tmp/patch.log; then
+ if grep -qE "(SEVERE|ERROR): FAILED" "$PF_TMP_DIR/patch.log"; then
   red_log "[-] a patch failed - refusing to release"
   failed_patches; exit 1
  fi
  if [ -s ./.requested ]; then
-   cut -f2 ./.requested | sed 's/[[:space:]]*$//' | sort -u > /tmp/requested.txt
-   MISS=$(comm -23 /tmp/requested.txt /tmp/applied.txt)
+   cut -f2 ./.requested | sed 's/[[:space:]]*$//' | sort -u > "$PF_TMP_DIR/requested.txt"
+   MISS=$(comm -23 "$PF_TMP_DIR/requested.txt" "$PF_TMP_DIR/applied.txt")
    NACC=0
    if [ -n "$MISS" ]; then
-     printf '%s\n' "$MISS" > /tmp/missing.txt
-     if python3 src/build/lost_patches.py accept "$ID" /tmp/missing.txt; then
+     printf '%s\n' "$MISS" > "$PF_TMP_DIR/missing.txt"
+     if python3 src/build/lost_patches.py accept "$ID" "$PF_TMP_DIR/missing.txt"; then
        NACC=$(printf '%s\n' "$MISS" | wc -l)
        yellow_log "[!] $NACC requested patch(es) not applied; named as lost, build continues"
      else
        red_log "[-] requested but NOT applied ($(printf '%s\n' "$MISS" | wc -l)) - refusing to release:"
        printf '%s\n' "$MISS" | sed 's/^/  - /'
-       grep "Skipping disabled" /tmp/patch.log | head -40
+       grep "Skipping disabled" "$PF_TMP_DIR/patch.log" | head -40
        exit 1
      fi
    else
-     green_log "[+] all $(wc -l < /tmp/requested.txt) requested patches applied"
+     green_log "[+] all $(wc -l < "$PF_TMP_DIR/requested.txt") requested patches applied"
    fi
  fi
  if [ "$EXCL" = "true" ] && [ "$AP" -lt "$((WANT_E - ${NACC:-0}))" ]; then
    red_log "[-] applied $AP distinct but include list says $WANT_E - refusing to release"
-   grep "Skipping disabled" /tmp/patch.log | head -30; exit 1
+   grep "Skipping disabled" "$PF_TMP_DIR/patch.log" | head -30; exit 1
  fi
 done
 

@@ -23,7 +23,9 @@ def rel(tag, when, pre=False, draft=False):
 class Reading(unittest.TestCase):
     def test_every_entry_loads_and_every_pin_is_true(self):
         rows = tw.load_upstreams(ROOT / 'src/etc/upstreams.json')
-        self.assertGreaterEqual(len(rows), 13)
+        self.assertEqual(len(rows), 12)
+        required_ids = {'obtainium', 'morphe-desktop', 'flaresolverr', 'apkeditor'}
+        self.assertTrue(required_ids <= {r['id'] for r in rows})
         self.assertEqual(len({r['id'] for r in rows}), len(rows))
         for r in rows:
             pin = r.get('pin')

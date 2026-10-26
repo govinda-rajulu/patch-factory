@@ -65,6 +65,11 @@ def check(root=pathlib.Path('.'), target_id=None):
             for field in ('name', 'patch_dir'):
                 if not re.fullmatch(r'[a-zA-Z0-9_-]+', b.get(field, '')):
                     raise ValueError('unsafe or missing bundle ' + field)
+            if 'expected_sha256' in b:
+                # W16o: optional reviewed extra-bundle byte pin (H5/F-06);
+                # absent pins warn at fetch time, malformed pins fail preflight.
+                if b not in t.get('extra_bundles', []) or not re.fullmatch(r'[0-9a-f]{64}', b['expected_sha256']):
+                    raise ValueError('expected_sha256 must be a lowercase 64-hex extra-bundle pin: ' + t['id'])
         for b in t['candidates']:
             if b.get('host', 'github') != 'github':
                 raise ValueError('primary candidates must be GitHub; GitLab is extra-bundle only: ' + t['id'])

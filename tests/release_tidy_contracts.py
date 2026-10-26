@@ -25,3 +25,34 @@ class Tidy(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class PreviewBinding(unittest.TestCase):
+    def test_preview_token_refuses_apply_after_live_plan_changes(self):
+        import tempfile
+        from unittest import mock
+        row = {'id': 17, 'tag_name': 'app-v1', 'body': OLD}
+        with tempfile.TemporaryDirectory() as tmp:
+            preview = pathlib.Path(tmp) / 'preview.json'
+            with mock.patch.object(t, 'releases', return_value=[row]):
+                self.assertEqual(t.main(['preview', '--out', str(preview)]), 0)
+            token = json.loads(preview.read_text())['token']
+            changed = dict(row, body=OLD.replace('## What changed', '## Edited'))
+            backup = pathlib.Path(tmp) / 'backup.json'
+            with mock.patch.object(t, 'releases', return_value=[changed]):
+                with self.assertRaisesRegex(SystemExit, 'does not match the live plan'):
+                    t.main(['apply', '--token', token, '--backup', str(backup)])
+            self.assertFalse(backup.exists())
+
+    def test_apply_requires_the_preview_token(self):
+        import tempfile
+        from unittest import mock
+        row = {'id': 18, 'tag_name': 'app-v1', 'body': OLD}
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(t, 'releases', return_value=[row]):
+            with self.assertRaisesRegex(SystemExit, 'needs --token'):
+                t.main(['apply', '--backup', str(pathlib.Path(tmp) / 'backup.json')])
+
+    def test_packet_controller_passes_the_token_written_by_preview(self):
+        controller = (ROOT / 'docs/review/controllers/packet.tmpl.py').read_text(encoding='utf-8')
+        self.assertIn("json.loads((LOGS / 'release-tidy-preview.json').read_text(encoding='utf-8'))['token']", controller)
+        apply = controller[controller.index("'src/etc/release_tidy.py', 'apply'"):controller.index("last = (out.decode", controller.index("'src/etc/release_tidy.py', 'apply'"))]
+        self.assertIn("'--token', tidy_token", apply)

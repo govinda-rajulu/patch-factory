@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tooling watch: keep the pinned build tools current, pre-releases included.
 
-Packet W1, 8 Oct 2026. src/build/TOOLING.sha256 pins pup and APKEditor by URL and sha256.
+Packet W1, 8 Oct 2026. src/build/TOOLING.sha256 pins APKEditor by URL and sha256.
 This script reads each pin's GitHub releases (drafts skipped, pre-releases INCLUDED by
 owner decision), picks the newest by publication time, finds the asset whose name is the
 pinned asset name with the version swapped, downloads it, checks GitHub's own sha256

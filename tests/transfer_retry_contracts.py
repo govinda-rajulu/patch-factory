@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 TEXT = (ROOT / 'src/build/utils.sh').read_text(encoding='utf-8')
 MEANING = re.search(r'(?ms)^pf_wget_meaning\(\) \{.*?^\}\n', TEXT).group(0)
-LOOP = re.search(r'(?ms)^\tlocal wrc=0 try\n.*?\n\tif \[\[ "\$wrc" -ne 0 \]\]; then\n.*?\n\tfi\n', TEXT).group(0)
+LOOP = re.search(r'(?ms)^\tlocal wrc=0 try.*?\n\tif \[\[ "\$wrc" -ne 0 \]\]; then\n.*?\n\tfi\n', TEXT).group(0)
 
 
 def run(plan):

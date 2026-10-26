@@ -66,7 +66,7 @@ def build():
        '4. `build.sh` compares requested against applied **by name** and refuses to release on a gap.',
        '5. The package name is verified twice: on the downloaded APK, and against what the patcher filtered.',
        '6. `check_sdk.sh` rejects an excessive or unreadable `min_sdk_ceiling` measurement.',
-       '7. `tooling.sh` verifies pup and APKEditor; morphe-desktop intentionally tracks latest.',
+       '7. `tooling.sh` verifies APKEditor; morphe-desktop intentionally tracks latest.',
        '8. `readmegen.py --check` and `pagegen.py --check` fail a push that leaves docs stale.',
        '9. `shellcheck` at severity=error over every script in `src/build` and `src/etc`.',
        '',CLOSE]

@@ -2,7 +2,28 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
-## Current checkpoint: 26 October 2026, afternoon IST (packet W16n)
+## Current checkpoint: 26 October 2026, evening IST (packet W16o)
+
+W16o did item 2 of the afternoon checkpoint below, except what is listed here. Its "manual
+dispatch builds only from main" became: publishing only from main; nonpublishing smokes on
+packet branches stay allowed. Every other
+afternoon item is carried as written there.
+
+1. W16n result: merged as #257; T1 17 of 17 apps, every watch green except MCP scout (dispatched
+   after the merge, run 40315496589) and Onboarding review, whose last dispatch run 40213438388
+   (25 Oct, step "Convene the onboarding review") failed: read its log (`gh run view 40213438388
+   --log-failed`) before the next onboarding.
+2. After the W16o merge read the `STORE_FINAL_HOST` lines of the smokes and the T1 batch: they
+   are the first live list of store CDN hosts. A host allowlist can be added from that list in a
+   later packet (round 2 review: no allowlist without live evidence).
+3. The APKMirror retry line prints `wget_exit=` and `pf_wget_meaning` text for what is now a curl
+   exit code: rename both in the next packet that touches utils.sh.
+4. Optional pins exist but none is set: PATCHER_TAG_PIN, PATCHER_SHA256_PIN and
+   extra_bundles[].expected_sha256. Set them only with the owner.
+5. Still open from the audit: W15g signing split (signing inputs still reach the patcher job),
+   Gemini CLI below 1.0 until mcp-scout.yml moves to the Policy Engine.
+
+## Earlier checkpoint: 26 October 2026, afternoon IST (packet W16n)
 
 Supersedes the morning checkpoint's items 6, 6b, 6c and the parts of 11 that W16n did (MCP scout
 instructions, tooling pins, UNREVIEWED.tsv, assistant tooling style, workflow comments, README

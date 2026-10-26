@@ -21,7 +21,10 @@ attempts= to GITHUB_OUTPUT. Exit status is the last attempt's.
 Usage: build_attempts.py TARGET_ID
 """
 import json
+import atexit
 import os
+import shutil
+import tempfile
 import re
 import subprocess
 import sys
@@ -111,6 +114,14 @@ def ensure_store_services(root, env):
         raise RuntimeError("store download services could not be started or reused")
 
 
+def cleanup_store_services(root, env):
+    """W16o F-08: remove helper containers once the provider controller exits."""
+    helper = root / "src/build/store_services.sh"
+    if env.get("PF_STORE_LAZY") == "1" and helper.exists():
+        subprocess.run(["bash", str(helper), "cleanup"], cwd=root, env=env, check=False,
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def attempt(root, ident, env, log):
     winner, reason = None, None
     # restore_signals=False: build.sh keeps SIGPIPE ignored, as in a plain Actions step. Python's
@@ -159,8 +170,11 @@ def main(argv, env=None, root=None):
         return 1
     limit = 1 + int(env.get('PF_MAX_FALLBACKS', '2'))
     keep, keep_dirs = untracked(root), tree_dirs(root)
-    logdir = Path(env.get('RUNNER_TEMP') or '/tmp') / ('pf-attempts-' + ident)
-    logdir.mkdir(parents=True, exist_ok=True)
+    # W16o: F-03, mkdtemp gives each controller a private 0700 log directory.
+    logdir = Path(tempfile.mkdtemp(prefix='pf-attempts-', dir=env.get('RUNNER_TEMP') or '/tmp'))
+    atexit.register(shutil.rmtree, logdir, ignore_errors=True)
+    if env.get('PF_STORE_LAZY') == '1':
+        atexit.register(cleanup_store_services, root, env)
     tried, failures, rc, n = [], [], 1, 0
     first = primary_view(t)
     for name in steps:
@@ -176,6 +190,8 @@ def main(argv, env=None, root=None):
             reset(root, keep, keep_dirs)
             print('::endgroup::')
         e = dict(env)
+        if e.get('PF_STORE_LAZY') == '1':
+            e['PF_KEEP_STORE_SERVICES'] = '1'
         if name is not None:
             view(root, ident, name, original)
             e.update(PF_RESOLVED_READY='false', PF_SOURCE_READY='false')

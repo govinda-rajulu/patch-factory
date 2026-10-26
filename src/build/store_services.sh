@@ -4,13 +4,16 @@
 # replaces only a service whose health check failed.
 set -u
 
-FLARE_IMAGE='ghcr.io/flaresolverr/flaresolverr@sha256:139dfee1c6f89249c8d665d1333a42e8ec74ec0a86bc6bb1c8461e10d3a66a47'
+# W16o: F-08, keep helper APIs on loopback and provide an explicit job-exit cleanup.
+
+
+FLARE_IMAGE='ghcr.io/flaresolverr/flaresolverr@sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767' # v3.5.2 ghcr.io/flaresolverr/flaresolverr@sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767
 CFB_IMAGE='ghcr.io/sarperavci/cloudflarebypassforscraping@sha256:0e679c1c0f6ac3209d233c2b7e99737f39a137987171b5bf30b15ef53a01ce33'
 
 healthy() {
   case "$1" in
-    flaresolverr) curl -sS --max-time 3 http://localhost:8191/ >/dev/null 2>&1 ;;
-    cloudflarebypass) curl -sS --max-time 3 http://localhost:8000/ >/dev/null 2>&1 ;;
+    flaresolverr) curl -sS --max-time 3 http://127.0.0.1:8191/ >/dev/null 2>&1 ;;
+    cloudflarebypass) curl -sS --max-time 3 http://127.0.0.1:8000/ >/dev/null 2>&1 ;;
     *) return 2 ;;
   esac
 }
@@ -39,14 +42,25 @@ ensure() {
 
   echo "[*] Starting fresh $name on port $port after a failed health check..."
   docker rm -f "$name" >/dev/null 2>&1 || true
-  if ! docker run -d --name "$name" -p "$port:$port" "$image" >/dev/null; then
-    echo "::warning::could not start $name; the corresponding store path may fail" >&2
-    return 0
+  if ! docker run -d --name "$name" -p "127.0.0.1:$port:$port" "$image" >/dev/null; then
+    echo "::error::could not start $name; refusing store access" >&2
+    docker rm -f "$name" >/dev/null 2>&1 || true
+    return 1
   fi
-  # Preserve the prior action's warning-only behavior when a helper is slow or
-  # unavailable; downloader and APK verification gates still decide the build.
-  wait_healthy "$name" || true
+  if ! wait_healthy "$name"; then
+    echo "::error::$name failed its health check; refusing store access" >&2
+    docker rm -f "$name" >/dev/null 2>&1 || true
+    return 1
+  fi
 }
 
-ensure flaresolverr 8191 "$FLARE_IMAGE"
-ensure cloudflarebypass 8000 "$CFB_IMAGE"
+cleanup() {
+  docker rm -f flaresolverr cloudflarebypass >/dev/null 2>&1 || true
+}
+
+if [ "${1:-}" = cleanup ]; then
+  cleanup
+  exit 0
+fi
+ensure flaresolverr 8191 "$FLARE_IMAGE" || exit 1
+ensure cloudflarebypass 8000 "$CFB_IMAGE" || exit 1

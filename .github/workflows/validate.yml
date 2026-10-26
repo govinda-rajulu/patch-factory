@@ -177,8 +177,9 @@ jobs:
         run: bash src/etc/nointerp.sh
       - name: shellcheck
         run: |
-          # W15h (council lead, 20 Oct): use the runner image's shellcheck; install only when it is absent.
-          command -v shellcheck >/dev/null || sudo apt-get install -y -q shellcheck >/dev/null
+          # W16o: sec-wf-b, do not install a floating apt package in CI. The runner image
+          # must provide the reviewed shellcheck binary; fail closed when it is unavailable.
+          command -v shellcheck >/dev/null || { echo "::error::shellcheck is required on the runner"; exit 1; }
           shellcheck --version | sed -n 2p
           # SC1091 sourced file not followed, SC2086 word splitting we rely on for flag lists
           shellcheck -S error -e SC1091,SC2086 src/build/*.sh src/etc/*.sh

@@ -1,4 +1,4 @@
-import io,json,os,pathlib,subprocess,sys,tempfile,unittest,zipfile,hashlib,copy
+import contextlib,io,json,os,pathlib,subprocess,sys,tempfile,unittest,zipfile,hashlib,copy
 from unittest.mock import patch
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src/build'))
@@ -226,6 +226,16 @@ class PatcherTransport(unittest.TestCase):
   with patch.object(patcher,'api_json',return_value=self.release),patch.object(patcher.subprocess,'run',side_effect=self.download) as c:
    patcher.fetch(self.root,{'GITHUB_TOKEN':'test-secret'})
   args=c.call_args.args[0];self.assertNotIn('test-secret',' '.join(args));self.assertIn('--fail',args);self.assertIn('--proto-redir',args);self.assertNotIn('--config',args)
+ def test_optional_patcher_pin_matches_tag_and_digest(self):
+  env={'PATCHER_TAG_PIN':self.release['tag_name'], 'PATCHER_SHA256_PIN':hashlib.sha256(self.payload).hexdigest()}
+  with patch.object(patcher,'api_json',return_value=self.release),patch.object(patcher.subprocess,'run',side_effect=self.download):
+   self.assertEqual(patcher.fetch(self.root,env)['tag'],self.release['tag_name'])
+ def test_optional_patcher_pin_mismatch_fails_closed_before_download(self):
+  env={'PATCHER_TAG_PIN':'v0.0.0', 'PATCHER_SHA256_PIN':'0'*64}
+  with patch.object(patcher,'api_json',return_value=self.release),patch.object(patcher.subprocess,'run') as c:
+   with self.assertRaisesRegex(ValueError,'optional pin'):patcher.fetch(self.root,env)
+   c.assert_not_called()
+
  def test_latest_version_is_not_hardcoded(self):
   self.asset['name']='morphe-desktop-9.99.0-all.jar';self.asset['browser_download_url']='https://github.com/MorpheApp/morphe-desktop/releases/download/v9.99.0/'+self.asset['name'];self.release['tag_name']='v9.99.0'
   self.assertEqual(self.fetch()['tag'],'v9.99.0')
@@ -254,6 +264,21 @@ class ExtraTransport(unittest.TestCase):
   r=self.fetch();self.assertEqual(r['asset_id'],12729975);self.assertEqual(r['tag'],'v1.20.0');self.assertEqual(self.out.read_bytes(),self.payload)
  def test_gitlab_hash_is_not_claimed_upstream_verified(self):
   r=self.fetch();self.assertFalse(r['upstream_digest_verified']);self.assertFalse(r['upstream_size_verified']);self.assertTrue(r['zip_verified']);self.assertEqual(r['sha256'],hashlib.sha256(self.payload).hexdigest())
+ def test_expected_bundle_digest_match_is_verified(self):
+  want=hashlib.sha256(self.payload).hexdigest()
+  with patch.object(extra,'gitlab_page',return_value=[self.release]),patch.object(extra.subprocess,'run',side_effect=self.transfer):
+   r=extra.fetch('gitlab','82031658','prerelease',self.out,{},want)
+  self.assertTrue(r['expected_digest_verified'])
+ def test_expected_bundle_digest_mismatch_fails_closed(self):
+  with patch.object(extra,'gitlab_page',return_value=[self.release]),patch.object(extra.subprocess,'run',side_effect=self.transfer):
+   with self.assertRaisesRegex(ValueError,'expected_sha256 pin'):extra.fetch('gitlab','82031658','prerelease',self.out,{},'0'*64)
+  self.assertFalse(self.out.exists())
+ def test_absent_bundle_digest_prints_named_warning(self):
+  err=io.StringIO()
+  with patch.object(extra,'gitlab_page',return_value=[self.release]),patch.object(extra.subprocess,'run',side_effect=self.transfer),contextlib.redirect_stderr(err):
+   extra.fetch('gitlab','82031658','prerelease',self.out,{})
+  self.assertIn('EXTRA_BUNDLE_DIGEST_UNPINNED',err.getvalue())
+
  def test_github_digest_and_size_verified(self):
   r=self.fetch('github');self.assertTrue(r['upstream_digest_verified']);self.assertTrue(r['upstream_size_verified'])
  def test_github_missing_digest_explicit(self):

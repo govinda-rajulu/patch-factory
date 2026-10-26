@@ -90,6 +90,11 @@ jobs:
       - name: Record the build time
         # W16k: one stamp per job, so every step (release notes, status) names the same minute.
         run: echo "PF_BUILT_AT=$(date -u +%Y-%m-%dT%H:%MZ)" >> "$GITHUB_ENV"
+      - name: Refuse publishing from a non-main ref
+        if: inputs.publish && github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::publishing runs are allowed only from refs/heads/main; use publish=false for a branch smoke"
+          exit 1
       - name: Refuse keep-going on a publishing run
         if: ${{ inputs.keep_going && inputs.publish }}
         run: |

@@ -461,14 +461,15 @@ yellow_log(){ :; }; red_log(){ :; }
         source = (ROOT / 'src/build/utils.sh').read_text()
         for store, function, start_anchor, end_anchor in (
                 ('APKMirror', 'get_apk()', '\tlocal wrc=0 try\n', '\n\tif [[ "$matched_type" == "BUNDLE" ]]'),
-                ('APKPure', 'get_apkpure()', '\tif ! wget -q -O "./download/$base_apk"', '\n\tif [[ "$pkg_type" == "bundle" ]]')):
+                ('APKPure', 'get_apkpure()', '\tlocal output_base_apk=', '\n\tif [[ "$pkg_type" == "bundle" ]]')):
             fn_start = source.index(function)
             fn_end = source.index('\n}\n', fn_start)
             begin = source.index(start_anchor, fn_start)
             self.assertLess(begin, fn_end, store + ': transfer block must sit inside ' + function)
             end = source.index(end_anchor, begin)
             block = source[begin:end]
-            self.assertEqual(block.count('wget -q'), 1)
+            self.assertIn('pf_curl_store_transfer', block)
+            self.assertIn('wget -q', block)
             for rc, payload, expected in ((8, '', 1), (8, 'partial', 1),
                                           (0, '', 1), (0, 'fixture-transfer-bytes', 0)):
                 with self.subTest(store=store, wget_exit=rc, bytes=len(payload)):
@@ -627,9 +628,8 @@ transfer(){
 green_log(){ printf '%s\\n' "$*"; }; yellow_log(){ printf '%s\\n' "$*"; }; red_log(){ printf '%s\\n' "$*"; }
 detect_version(){ :; }
 _cf_get(){ html='<html>Just a moment FAKE_PAGE_SECRET</html>'; return 0; }
-fake_pup(){ cat >/dev/null; }
 wget(){ echo TRANSFER_REACHED; return 99; }
-version=1.0; prefer_version=; pup=fake_pup; user_agent=FAKE_UA_SECRET; FS_COOKIES=FAKE_COOKIE_SECRET
+version=1.0; prefer_version=; user_agent=FAKE_UA_SECRET; FS_COOKIES=FAKE_COOKIE_SECRET
 """ + fn + '\nget_apkpure com.fixture fixture apk\n'
         r=self.run_cmd(['bash','-c',command])
         self.assertEqual(r.returncode,1,r.stdout+r.stderr)
@@ -645,20 +645,19 @@ version=1.0; prefer_version=; pup=fake_pup; user_agent=FAKE_UA_SECRET; FS_COOKIE
         command="""
 green_log(){ printf '%s\\n' "$*"; }; yellow_log(){ printf '%s\\n' "$*"; }; red_log(){ printf '%s\\n' "$*"; }
 detect_version(){ :; }
-_cf_get(){ html='<a id="download_link" href="https://example.invalid/file?sig=FAKE_SIGNED_SECRET">Download</a>'; return 0; }
-fake_pup(){ cat >/dev/null; printf '%s\\n' 'https://example.invalid/file?sig=FAKE_SIGNED_SECRET'; }
+_cf_get(){ html='<a id="download_link" href="https://d.apkpure.com/file?sig=FAKE_SIGNED_SECRET">Download</a>'; return 0; }
 wget(){
  [ "$1" = -q ] || { echo FAKE_SIGNED_SECRET; return 99; }
  printf '%s\\n' "$@" > private-argv.txt
  printf fixture > ./download/fixture.apk
 }
-version=1.0; prefer_version=; pup=fake_pup; user_agent=FAKE_UA_SECRET; FS_COOKIES=FAKE_COOKIE_SECRET
+version=1.0; prefer_version=; user_agent=FAKE_UA_SECRET; FS_COOKIES=FAKE_COOKIE_SECRET
 """ + fn + '\nget_apkpure com.fixture fixture apk\n'
         r=self.run_cmd(['bash','-c',command])
         self.assertEqual(r.returncode,0,r.stdout+r.stderr)
         self.assertNotIn('FAKE_',r.stdout+r.stderr)
         args=(self.r/'private-argv.txt').read_text().splitlines()
-        self.assertIn('https://example.invalid/file?sig=FAKE_SIGNED_SECRET',args)
+        self.assertIn('https://d.apkpure.com/file?sig=FAKE_SIGNED_SECRET',args)
         self.assertIn('Cookie: FAKE_COOKIE_SECRET',args)
         self.assertIn('--header=User-Agent: FAKE_UA_SECRET',args)
         self.assertIn('--referer=https://apkpure.com/x/com.fixture/download/1.0',args)
@@ -668,7 +667,8 @@ version=1.0; prefer_version=; pup=fake_pup; user_agent=FAKE_UA_SECRET; FS_COOKIE
         block=source[source.index('_fs_get() {'):source.index('\n#################################################', source.index('get_apkpure()'))]
         for literal in ('echo "$base_url$final_href"','echo "$download_url"','echo "$dl_page_url"','failed: $url','HTTP $http_code: $url'):
             self.assertNotIn(literal,block)
-        self.assertEqual(block.count('wget -q -O "./download/$base_apk"'),2)
+        self.assertIn('pf_curl_store_transfer', block)
+        self.assertIn('wget -q -O "./download/$base_apk"', block)
         self.assertIn("'a#download_link attr{href}'",block)
         self.assertIn("'a#download-link attr{href}'",block)
 

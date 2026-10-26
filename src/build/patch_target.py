@@ -67,10 +67,14 @@ if __name__ == '__main__':
         if os.environ.get('PF_EXECUTION_OBSERVATION') == 'true':
             import execution_inputs
             execution_inputs.capture(pathlib.Path('.'), sys.argv[1], sys.argv[2], os.environ)
+        # W16o: F-02, providers are executable code; pass only non-secret tool settings.
+        # Signing inputs remain argv-compatible for the current job and are not copied into env.
+        allowed = ('PATH', 'HOME', 'LANG', 'LC_ALL', 'TZ', 'TMPDIR', 'JAVA_HOME', 'COE')
+        child_env = {key: os.environ[key] for key in allowed if key in os.environ}
         # Never print argv: it carries signing passwords.
         import time
         started = time.monotonic()
-        rc = subprocess.run(args, check=False).returncode
+        rc = subprocess.run(args, env=child_env, check=False).returncode
         # W16k: measure before tuning the JVM (desktop already runs a full HotSpot VM in fast mode).
         print('::notice::PATCH_TIME %s %s %ds rc=%d' % (sys.argv[1], sys.argv[2], round(time.monotonic() - started), rc), file=sys.stderr)
         sys.exit(rc)

@@ -64,6 +64,8 @@ Things the assistant relearned in the W16 chat; read before building a controlle
   docs/review/controllers/suite.sh <tree> > log 2>&1 < /dev/null &`) and wait with a loop that
   prints a dot every 4 to 5 seconds and stops at the `SUITE` line. A full suite takes about 7 to 9
   minutes of that.
+- **One suite at a time.** A suite run while review agents run tests in the same sandbox failed
+  once (shared /tmp files) and passed alone (W16o, 26 Oct). Run the final suite after the agents finish.
 - **Killing.** `pkill -f <pattern>` (and `kill $(pgrep -f <pattern>)`) also kills the calling shell
   when the pattern is in its own command line (it happened again on 26 Oct). Kill by process id. An orphaned `unittest` from a killed suite still holds
   `/tmp/pf-suite.lock`; find holders through `/proc/*/fd`.

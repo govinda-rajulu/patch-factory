@@ -664,3 +664,12 @@ The community index listed one repository twice and the watch refused the whole 
 (DUPLICATE_PROVIDER, run 40294788256); the raw index was written only after the compare, so which
 repository was doubled is unknown. Merge duplicates on our own identity (here the repository a
 target wires), say each merge in the report, and write every raw input before parsing it.
+
+### L110 · Check a tool option against the installed tool, and prove network changes live
+Tags: build, evidence, tests
+In W16o a lane agent bounded store downloads with `wget --max-file-size`, an option GNU wget does not
+have; every store download would have failed. The curl rewrite then added a preflight request without
+the store's headers and an allowlist of guessed CDN hosts. A test now checks every option against the
+installed tool's own help, and a change to how builds reach the network ships only after smokes of
+every app on the packet branch, before the merge.
+

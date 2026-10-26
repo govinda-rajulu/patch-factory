@@ -36,32 +36,28 @@ class AdapterProcessContracts(unittest.TestCase):
         # curl/wget invocation, JSON response parsing, version selection and raw hooks.
         (root/'src/build/tooling.sh').write_text('#!/bin/bash\nexit 0\n')
         (root/'APKEditor.jar').write_bytes(b'fixture editor; java process is mocked')
-        pup='''#!/usr/bin/env python3
-import json,os,sys
-sys.stdin.read()
-s=sys.argv[1]
-if s=='h5.appRowTitle a.fontBlack json{}': print(json.dumps([{'text':'Reddit 2026.38.0','href':'/apk/redditinc/reddit/reddit-2026-38-0-release/'}]))
-elif s=='div.variants-table' and os.environ.get('FIXTURE_ROW'): print(os.environ['FIXTURE_ROW'])
-elif s=='div.variants-table': print('<div class="table-row"><span class="apkm-badge">'+('BUNDLE' if os.environ['FIXTURE_KIND']=='bundle' else 'APK')+'</span><a class="accent_color" href="/variant/">variant</a></div>')
-elif s=='a.downloadButton attr{href}': print('/step/?forcebaseapk=true' if os.environ['FIXTURE_KIND']=='apk' else '/step/')
-elif s=='a#download-link attr{href}': print('/binary?token=FAKE_SECRET')
-elif s=='a#download_link attr{href}' and os.environ.get('FIXTURE_MISSING')!='1': print('https://download.example.invalid/binary?token=FAKE_SECRET')
-'''
-        with zipfile.ZipFile(root/'pup.zip','w') as z:
-            i=zipfile.ZipInfo('pup');i.external_attr=0o100755<<16;z.writestr(i,pup)
+        # The curl fixture returns real HTML. Production now invokes html_select.py directly,
+        # so this keeps the downloader contract at the process boundary without a fake pup.
+        page = '''<h5 class="appRowTitle"><a class="fontBlack" href="/apk/redditinc/reddit/reddit-2026-38-0-release/">Reddit 2026.38.0</a></h5>
+<div class="variants-table">%s</div>
+<a class="downloadButton" href="/step/?forcebaseapk=true">APK</a><a class="downloadButton" href="/step/">BUNDLE</a>
+<a id="download-link" href="/binary?token=FAKE_SECRET">final</a>
+<h2>Reddit 2026.38.0</h2>
+<a id="download_link" href="https://d.apkpure.com/binary?token=FAKE_SECRET">download</a>''' % (row or ('<div class="table-row"><span class="apkm-badge">%s</span> arm64-v8a 120-640dpi Android 10+ <a class="accent_color" href="/variant/">variant</a></div>' % ('BUNDLE' if kind == 'bundle' else 'APK')))
         raw=root/'original.fixture'
         if kind=='bundle':
             with zipfile.ZipFile(raw,'w') as z:z.writestr('base.apk',fixtures.apk_bytes())
         else:raw.write_bytes(fixtures.apk_bytes())
         (root/'standalone.fixture').write_bytes(fixtures.apk_bytes())
         bin=root/'fakebin';bin.mkdir()
+        curl_page = page.replace('https://d.apkpure.com/binary?token=FAKE_SECRET', '' if missing else 'https://d.apkpure.com/binary?token=FAKE_SECRET')
         programs={
             'curl':'''#!/usr/bin/env python3
 import json,sys
 if '-d' in sys.argv:
  with open('page.calls','a') as f:f.write(json.loads(sys.argv[sys.argv.index('-d')+1])['url']+'\\n')
-print(json.dumps({'status':'ok','solution':{'status':200,'url':'https://example.invalid/fixture','response':'<html>fixture</html>','cookies':[],'userAgent':'fixture'}}))
-''',
+print(json.dumps({'status':'ok','solution':{'status':200,'url':'https://example.invalid/fixture','response':%r,'cookies':[],'userAgent':'fixture'}}))
+''' % curl_page,
             'wget':'''#!/usr/bin/env python3
 import os,sys,shutil
 args=sys.argv[1:]
@@ -79,7 +75,7 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
         for name,text in programs.items():p=bin/name;p.write_text(text);p.chmod(0o755)
         env=dict(os.environ,PATH=str(bin)+':'+os.environ['PATH'],FIXTURE_KIND=kind,
                  FIXTURE_FAIL='1' if fail else '0',FIXTURE_MISSING='1' if missing else '0',FIXTURE_ROW=row,
-                 PF_TRANSFER_RETRY_WAIT='0')  # W15b: the APKMirror transfer retries once; no real wait in tests
+                 PF_TRANSFER_RETRY_WAIT='0', PF_ENFORCE_EFFECTIVE_URL='0')  # W15b: the APKMirror transfer retries once; no real wait in tests
         script='source_alternate.sh' if alternate else 'source_download.sh'
         args=['bash','src/build/'+script,'fixture','2026.38.0']+([store] if alternate else [])
         p=subprocess.run(args,cwd=root,env=env,capture_output=True,text=True,timeout=20)
@@ -195,8 +191,7 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
                 # Fake binaries are explicit process fixtures, not actual Android verification.
                 bin = r/'fakebin'
                 (r/'src/build/tooling.sh').write_text(
-                    '#!/bin/bash\ncp ' + str(r/'pup.zip') + ' ./pup.zip\ncp ' +
-                    str(r/'APKEditor.jar') + ' ./APKEditor.jar\n')
+                    '#!/bin/bash\ncp ' + str(r/'APKEditor.jar') + ' ./APKEditor.jar\n')
                 (bin/'wget').write_text(
                     '#!/usr/bin/env python3\nimport sys,shutil\n'
                     'a=sys.argv[1:]\nif "-O" in a:shutil.copyfile(' + repr(str(raw)) +
@@ -204,12 +199,6 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
                 (bin/'java').write_text(
                     '#!/usr/bin/env python3\nimport sys,shutil\nshutil.copyfile(' +
                     repr(str(r/'standalone.fixture')) + ',sys.argv[sys.argv.index("-o")+1])\n')
-                (bin/'pup-fixture').write_text('')
-                # This pup fixture needs its format selection after clean_env drops test env.
-                with zipfile.ZipFile(r/'pup.zip') as z: text = z.read('pup').decode()
-                text = text.replace("os.environ['FIXTURE_KIND']", repr(kind))
-                with zipfile.ZipFile(r/'pup.zip', 'w') as z:
-                    i=zipfile.ZipInfo('pup');i.external_attr=0o100755<<16;z.writestr(i,text)
                 for name, text in {
                     'aapt2': "#!/bin/sh\nprintf \"package: name='com.reddit.frontpage' versionCode='2038000' versionName='2026.38.0'\\nsdkVersion:'29'\\n\"\n",
                     'apksigner': '#!/bin/sh\nprintf "Number of signers: 1\\nSigner #1 certificate SHA-256 digest: ' +
@@ -225,7 +214,7 @@ shutil.copyfile('standalone.fixture',sys.argv[sys.argv.index('-o')+1])
                     shutil.copy2(bin/name, tools/name)
                 p = subprocess.run([sys.executable, 'src/build/source_fallback.py', 'fixture', '2026.38.0'],
                                    cwd=r, env=dict(os.environ, PATH=str(bin)+':'+os.environ['PATH'],
-                                                   ANDROID_HOME=str(sdk), ANDROID_SDK_ROOT=str(sdk)),
+                                                   ANDROID_HOME=str(sdk), ANDROID_SDK_ROOT=str(sdk), PF_ENFORCE_EFFECTIVE_URL='0'),
                                    capture_output=True, text=True, timeout=25)
                 self.assertNotIn('FAKE_SECRET', p.stdout+p.stderr)
                 self.assertEqual(p.returncode, 0 if signer_exit == 0 else 1, p.stdout+p.stderr)

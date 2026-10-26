@@ -129,7 +129,6 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
-      pull-requests: write
       issues: write
     steps:
       - name: Refuse fork and Dependabot pull requests (no keys there)
