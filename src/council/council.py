@@ -336,7 +336,7 @@ TAG_PATHS = (
     (('src/build',), ('gates', 'build', 'release', 'signing')),
     (('src/build/helper', 'src/build/store_chain.sh', 'src/build/source_'), ('stores', 'store')),
     (('src/community',), ('providers', 'sources', 'watch')),
-    (('src/etc',), ('automation', 'status', 'watch', 'retention', 'notify')),
+    (('src/etc',), ('automation', 'status', 'watch', 'retention', 'notify', 'tooling')),
     (('src/council', 'docs/council', 'docs/review/controllers'), ('agents', 'review', 'automation')),
     (('docs/review/onboarding',), ('onboarding', 'selection')),
     (('tests/',), ('gates', 'tests')),

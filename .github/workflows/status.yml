@@ -10,7 +10,7 @@ name: Status page data
 permissions:
   contents: read
 on:
-  workflow_run:
+  workflow_run:  # zizmor: ignore[dangerous-triggers] main repository metadata only and trusted checkout
     workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "MCP scout", "9. Batch Patch", "Tooling watch", "10. Selection watch", "Needs you", "Keepalive", "11. Rule merge"]
     types: [completed]
     # W16k (owner, 25 Oct 2026: runs were bloating): only runs on main wake this; a packet
@@ -22,6 +22,7 @@ on:
 jobs:
   status:
     name: Write status.json
+    if: github.event_name != 'workflow_run' || (github.event.workflow_run.head_repository.full_name == github.repository && contains(fromJSON('["success","failure","timed_out","startup_failure","action_required"]'), github.event.workflow_run.conclusion))
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -31,7 +32,7 @@ jobs:
       issues: read
     steps:
       # W16i (owner, 25 Oct 2026): a PR batch finished a dozen runs and each one started this.
-      # Wait first; a newer trigger cancels this run (cancel-in-progress above), so a burst
+      # Wait first; after the wait, a run that sees a newer Status run stops quietly, so a burst
       # writes the page once, after the last run. Schedule and manual runs do not wait.
       - name: Let related runs settle
         if: github.event_name == 'workflow_run'
@@ -78,17 +79,18 @@ jobs:
           git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" status:status
           echo "published status.json ($(wc -c < status.json) bytes)" >> "$GITHUB_STEP_SUMMARY"
 
-  # W16k: Notify on failure runs here as a called workflow, one job per finished run, so a
-  # finished run starts one follower instead of two. Never merged or cancelled (own group).
+  # W16k: Notify on failure runs here as a called workflow, one job per finished run.
+  # Its own concurrency group never merges or cancels runs.
   notify:
     name: Failure issue
-    if: github.event_name == 'workflow_run'
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.head_repository.full_name == github.repository
     permissions:
       issues: write
       actions: read
     uses: ./.github/workflows/notify-failure.yml
   cache-prune:
     name: Prune stale Actions caches
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -103,4 +105,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-        run: python3 src/etc/cache_prune.py --repo "$REPO"
+        run: python3 src/etc/cache_prune.py --repo "$REPO" --apply

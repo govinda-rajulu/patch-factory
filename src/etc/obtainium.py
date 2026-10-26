@@ -47,8 +47,12 @@ def entry(p):
       "versionDetection": False,
       "trackOnly": False,
       "appName": LABELS[p],
-      # W15h (22 Oct 2026): Obtainium 1.6.16+ (commit 0fa9c8b; import format reviewed against v1.7.1) refuses and
+      # W15h (22 Oct 2026): Obtainium 1.6.16+ (commit 0fa9c8b; import format reviewed against v1.7.3) refuses and
       # deletes an APK whose signing certificate is not listed here. One home: src/build/ci-signer.json.
+      # Obtainium v1.7.2 and v1.7.3 change no import key this repo writes: the ten settings here are
+      # includePrereleases, fallbackToOlderReleases, filterReleaseTitlesByRegEx, apkFilterRegEx,
+      # versionExtractionRegEx, matchGroupToUse, versionDetection, trackOnly, appName, and
+      # allowedSigningCertHashes.
       "allowedSigningCertHashes": CI_CERT,
     }
     return {"id": pkg[p], "url": APP_URL, "author": AUTHOR, "name": LABELS[p],

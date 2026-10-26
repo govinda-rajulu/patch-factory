@@ -84,17 +84,18 @@ class SelectionNames(unittest.TestCase):
 
     def test_name_check_lists_universal_patches_and_watch_argv_is_unchanged(self):
         # 29 Sep 2026: with "-x -u" the live check called ES "Remove Ads" missing, although
-        # the 28 Sep ES release applied it. The check drops both flags. W10 (9 Oct, #102): the
-        # watch drops "-u" too, so it lists universal patches; it keeps "-x" (AGENTS.md rule 6).
+        # the 28 Sep ES release applied it. The check keeps "-x" for experimental app versions
+        # and drops "-u" so universal patches remain visible (L003, L030, L104).
         watch = sn.provider_watch.Observer(ROOT, ROOT / 'unused')
-        self.assertEqual(watch.listing_argv('p.jar', 'b.mpp', 'com.x'),
-                         ['java', '-jar', 'p.jar', 'list-patches', '--patches=b.mpp', '-x',
-                          '--with-packages', '--with-versions', '-f', 'com.x'])
-        check = sn.provider_watch.Observer(ROOT, ROOT / 'unused', flags=())
-        self.assertEqual(check.listing_argv('p.jar', 'b.mpp', 'com.x'),
-                         ['java', '-jar', 'p.jar', 'list-patches', '--patches=b.mpp',
-                          '--with-packages', '--with-versions', '-f', 'com.x'])
-        self.assertIn('Observer(ROOT, Path(work), flags=())', (ROOT / 'src/etc/selection_names.py').read_text())
+        expected = ['java', '-jar', 'p.jar', 'list-patches', '--patches=b.mpp', '-x',
+                    '--with-packages', '--with-versions', '-f', 'com.x']
+        self.assertEqual(watch.listing_argv('p.jar', 'b.mpp', 'com.x'), expected)
+        check = sn.provider_watch.Observer(ROOT, ROOT / 'unused', flags=('-x',))
+        nightly_argv = check.listing_argv('p.jar', 'b.mpp', 'com.x')
+        self.assertEqual(nightly_argv, expected)
+        self.assertNotIn('-u', nightly_argv)
+        self.assertIn('Observer(ROOT, Path(work), flags=("-x",))',
+                      (ROOT / 'src/etc/selection_names.py').read_text())
 
     def test_include_options_suffix_is_not_part_of_the_name(self):
         path = ROOT / 'src/patches/youtube-morphe/include-patches'

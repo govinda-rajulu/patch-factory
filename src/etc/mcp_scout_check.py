@@ -17,18 +17,42 @@ MAX_REASON = 1000
 
 
 def target_ids(path):
+    return set(target_wiring(path))
+
+
+def target_wiring(path):
+    """Map each valid target id to the lower-case owner/repo names it already uses.
+
+    W16n: the scout no longer reads the 2.7 MB community index; this deterministic check removes
+    repositories a target already wires (candidates and extra_bundles, fallbacks included).
+    """
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     if not isinstance(data, list):
         raise ValueError("targets.json must be a list")
-    ids = {row.get("id") for row in data if isinstance(row, dict) and isinstance(row.get("id"), str)}
-    return {value for value in ids if APP.fullmatch(value)}
+    wiring = {}
+    for row in data:
+        if not isinstance(row, dict) or not isinstance(row.get("id"), str) or not APP.fullmatch(row["id"]):
+            continue
+        known = wiring.setdefault(row["id"], set())
+        for field in ("candidates", "extra_bundles"):
+            entries = row.get(field)
+            if not isinstance(entries, list):
+                continue
+            for entry in entries:
+                # The scout searches GitHub only: a GitLab provider of the same name is another repo.
+                if (isinstance(entry, dict) and str(entry.get("host") or "github").lower() == "github"
+                        and isinstance(entry.get("owner"), str) and isinstance(entry.get("repo"), str)):
+                    known.add(("%s/%s" % (entry["owner"], entry["repo"])).lower())
+    return wiring
 
 
 def check(input_path, targets_path, output_path, summary_path=None):
-    ids = target_ids(targets_path)
+    wiring = target_wiring(targets_path)
+    ids = set(wiring)
     accepted = []
-    dropped = 0
+    dropped = known = repeated = 0
     total = 0
+    seen = set()
     for raw in Path(input_path).read_text(encoding="utf-8").splitlines():
         if not raw.strip():
             continue
@@ -49,13 +73,21 @@ def check(input_path, targets_path, output_path, summary_path=None):
         except (ValueError, TypeError, json.JSONDecodeError):
             dropped += 1
             continue
+        pair = (row["app"], row["repo"].lower())
+        if pair[1] in wiring[row["app"]]:
+            known += 1
+            continue
+        if pair in seen:
+            repeated += 1
+            continue
+        seen.add(pair)
         accepted.append({"app": row["app"], "repo": row["repo"], "reason": row["reason"].strip()})
 
     with Path(output_path).open("w", encoding="utf-8") as stream:
         for row in accepted:
             stream.write(json.dumps(row, ensure_ascii=True, separators=(",", ":")) + "\n")
-    message = "MCP scout validation: %d accepted, %d dropped (of %d non-empty lines)." % (
-        len(accepted), dropped, total)
+    message = ("MCP scout validation: %d accepted, %d already wired, %d repeated, %d dropped "
+               "(of %d non-empty lines).") % (len(accepted), known, repeated, dropped, total)
     print(message)
     if summary_path:
         with Path(summary_path).open("a", encoding="utf-8") as stream:

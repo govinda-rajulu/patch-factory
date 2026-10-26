@@ -6,7 +6,7 @@
 Packet W1, 8 Oct 2026. The community index (community-watch) records ~200 provider
 bundles. This prints, per package, every index entry whose JSON mentions the package
 and the patch names found next to it. It is a lead list for an onboarding record, not
-evidence that a patch applies: that needs the provider's own list-patches run (-x -u).
+evidence that a patch applies: that needs the provider's own list-patches run (-x, without -u).
 The index schema is not assumed; entries are found by walking the JSON.
 """
 import json

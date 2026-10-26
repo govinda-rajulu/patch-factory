@@ -57,6 +57,13 @@ class Checker(unittest.TestCase):
         self.assertFalse(m['onboarding'])
         self.assertEqual(m['problems'], [])
 
+    def test_invalid_target_id_is_refused_before_record_path_resolution(self):
+        with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+            tree(a, targets=[])
+            tree(b, targets=[target('../escape')])
+            with self.assertRaisesRegex(ValueError, 'invalid target id'):
+                onboard_check.check(a, b)
+
     def test_new_target_without_record_fails(self):
         m = self.run_pair({'targets': [target('app')]},
                           {'targets': [target('app'), target('new')], 'selections': {'new-prov': (['Hide ads'], [])}})

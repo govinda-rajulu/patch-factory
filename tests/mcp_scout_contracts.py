@@ -74,5 +74,52 @@ class McpScoutSchema(unittest.TestCase):
             ])
 
 
+
+class McpScoutW16n(unittest.TestCase):
+    """W16n: run 40298683531 got HTTP 503 ten times on the CLI default model."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.text = WF.read_text(encoding="utf-8")
+
+    def test_models_are_named_and_turns_capped(self):
+        self.assertIn("gemini_model: 'gemini-3.5-flash'", self.text)
+        self.assertIn("gemini_model: 'gemini-3.1-flash-lite'", self.text)
+        self.assertEqual(self.text.count('"model":{"maxSessionTurns":25}'), 2)
+
+    def test_retry_only_after_a_failed_first_attempt_and_named_verdict(self):
+        self.assertEqual(self.text.count("continue-on-error: true"), 2)
+        self.assertEqual(self.text.count("if: steps.gemini.outcome == 'failure'"), 2)
+        self.assertIn("steps.gemini.outputs.summary || steps.gemini_lite.outputs.summary", self.text)
+        verdict = self.text.split("- name: Name the scout result", 1)[1]
+        self.assertIn("MODEL_UNAVAILABLE", verdict)
+        self.assertIn("exit 1", verdict)
+        self.assertNotIn("${{", verdict.split("run: |", 1)[1])
+
+    def test_prompt_does_not_read_the_large_index(self):
+        for prompt in self.text.split("prompt: >-")[1:]:
+            body = prompt.split("- name:", 1)[0]
+            self.assertIn("Do not open src/community/bundles.json", body)
+            self.assertNotIn("files src/targets.json and", body)
+
+    def test_checker_drops_wired_and_repeated_repos(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            (d / "targets.json").write_text(json.dumps([
+                {"id": "reddit", "candidates": [{"owner": "MorpheApp", "repo": "morphe-patches"}],
+                 "extra_bundles": [{"owner": "Adobo", "repo": "Extra"}]},
+                {"id": "youtube"}]))
+            (d / "input.txt").write_text(
+                '{"app":"reddit","repo":"morpheapp/Morphe-Patches","reason":"already wired"}\n'
+                '{"app":"reddit","repo":"adobo/extra","reason":"already an extra bundle"}\n'
+                '{"app":"reddit","repo":"new/one","reason":"first"}\n'
+                '{"app":"reddit","repo":"New/One","reason":"repeat"}\n'
+                '{"app":"youtube","repo":"new/one","reason":"other app is fine"}\n')
+            out, summary = d / "out.jsonl", d / "summary.md"
+            checker.check(d / "input.txt", d / "targets.json", out, summary)
+            rows = [json.loads(line) for line in out.read_text().splitlines()]
+            self.assertEqual([(r["app"], r["repo"]) for r in rows], [("reddit", "new/one"), ("youtube", "new/one")])
+            self.assertIn("2 accepted, 2 already wired, 1 repeated, 0 dropped (of 5 non-empty lines)", summary.read_text())
+
 if __name__ == "__main__":
     unittest.main()

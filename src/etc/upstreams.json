@@ -1,7 +1,7 @@
 {
  "why": "W15h (22 Oct 2026, owner: watch every tool we source for updates, features and fixes). Tooling watch reads each upstream daily and keeps one standing issue, 'Tooling watch', edited in place; a comment lists only what changed. 'pin' names the file and text where this repository fixes a version; BEHIND means the newest stable release is not that version. Patch providers are watched by Provider watch, Actions pins by Dependabot.",
  "upstreams": [
-  {"id": "obtainium", "repo": "ImranR98/Obtainium", "kind": "release", "role": "the updater on the phone; docs/obtainium*.json follow its import format", "pin": {"file": "src/etc/obtainium.py", "text": "reviewed against v1.7.1", "tag": "v1.7.1"}},
+  {"id": "obtainium", "repo": "ImranR98/Obtainium", "kind": "release", "role": "the updater on the phone; docs/obtainium*.json follow its import format", "pin": {"file": "src/etc/obtainium.py", "text": "reviewed against v1.7.3", "tag": "v1.7.3"}},
   {"id": "morphe-desktop", "repo": "MorpheApp/morphe-desktop", "kind": "release", "role": "the patcher; every build takes the newest stable release"},
   {"id": "morphe-patches", "repo": "MorpheApp/morphe-patches", "kind": "release", "role": "main patch bundle (YouTube, YouTube Music, Reddit)"},
   {"id": "microg-re", "repo": "MorpheApp/MicroG-RE", "kind": "release", "role": "Google sign-in companion; the page offers its newest release"},

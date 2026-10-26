@@ -97,50 +97,79 @@ def inventory(data):
     need(isinstance(bundles, list) and 0 < len(bundles) <= 5000, "EMPTY_OR_EXCESSIVE_BUNDLES")
     need(isinstance(compat, (list, dict)) and len(compat) > 0, "EMPTY_COMPATIBILITIES")
     table = {str(k): compatibility(v) for k, v in (enumerate(compat) if isinstance(compat, list) else compat.items())}
-    result, total, unknown, variants = {}, 0, 0, 0
+    # W16n (live 26 Oct 2026, run 40294788256): the index listed one repository twice and the
+    # whole watch stopped with DUPLICATE_PROVIDER. Our identity is the repository (that is what a
+    # target wires and builds from), so every bundle of one repository merges into one provider:
+    # patch variants are all kept, identical records once, differing metadata kept as a sorted
+    # list. Each merge is named in coverage and in the report, never silent.
+    groups = collections.OrderedDict()
     for bundle in bundles:
         need(isinstance(bundle, dict), "INVALID_BUNDLE")
         host, repo = bundle.get("source", "github"), bundle.get("repo")
         need(host in ("github", "gitlab") and isinstance(repo, str) and REPO.fullmatch(repo),
              "INVALID_PROVIDER")
-        key = host + ":" + repo.lower()
-        need(key not in result, "DUPLICATE_PROVIDER")
-        patches = bundle.get("patches")
-        need(isinstance(patches, list) and len(patches) <= 50000, "INVALID_PATCH_INVENTORY")
-        if "patchCount" in bundle:
-            need(type(bundle["patchCount"]) is int and bundle["patchCount"] == len(patches),
-                 "PATCH_COUNT_MISMATCH")
+        groups.setdefault(host + ":" + repo.lower(), []).append(bundle)
+    result, total, unknown, variants, merged = {}, 0, 0, 0, []
+    for key, members in groups.items():
+        if len(members) > 1:
+            merged.append(dict(provider=key, bundles=len(members)))
         grouped = collections.defaultdict(list)
-        apps = bundle.get("targetApps")
-        need(isinstance(apps, list) and all(isinstance(a, str) and PKG.fullmatch(a) for a in apps),
-             "INVALID_TARGET_APPS")
-        for patch in patches:
-            need(isinstance(patch, dict), "INVALID_PATCH")
-            name = string(patch.get("name"), "PATCH_NAME")
-            record = dict(patch)
-            refs = [record.pop(field) for field in ("compatiblePackagesKey", "compatibilityKey") if field in record]
-            need(len(refs) <= 1, "AMBIGUOUS_COMPATIBILITY_REFERENCE")
-            resolved = {}
-            if refs and refs[0] is not None:
-                ref = refs[0]
-                need(type(ref) in (int, str) and str(ref) in table, "MISSING_COMPATIBILITY_REFERENCE")
-                resolved = table[str(ref)]
-            record["compatibility"] = resolved
-            record["applicability"] = "DECLARED" if resolved else "UNKNOWN"
-            total += 1
-            unknown += not resolved
-            grouped[name].append(record)
+        apps_all, metas = set(), []
+        for bundle in members:
+            patches = bundle.get("patches")
+            need(isinstance(patches, list) and len(patches) <= 50000, "INVALID_PATCH_INVENTORY")
+            if "patchCount" in bundle:
+                need(type(bundle["patchCount"]) is int and bundle["patchCount"] == len(patches),
+                     "PATCH_COUNT_MISMATCH")
+            apps = bundle.get("targetApps")
+            need(isinstance(apps, list) and all(isinstance(a, str) and PKG.fullmatch(a) for a in apps),
+                 "INVALID_TARGET_APPS")
+            apps_all.update(apps)
+            seen = collections.defaultdict(list)
+            for patch in patches:
+                need(isinstance(patch, dict), "INVALID_PATCH")
+                name = string(patch.get("name"), "PATCH_NAME")
+                record = dict(patch)
+                refs = [record.pop(field) for field in ("compatiblePackagesKey", "compatibilityKey") if field in record]
+                need(len(refs) <= 1, "AMBIGUOUS_COMPATIBILITY_REFERENCE")
+                resolved = {}
+                if refs and refs[0] is not None:
+                    ref = refs[0]
+                    need(type(ref) in (int, str) and str(ref) in table, "MISSING_COMPATIBILITY_REFERENCE")
+                    resolved = table[str(ref)]
+                record["compatibility"] = resolved
+                record["applicability"] = "DECLARED" if resolved else "UNKNOWN"
+                seen[name].append(record)
+            for name, records in seen.items():
+                # Within one bundle every variant stays; a record an earlier bundle of the same
+                # repository already gave is not counted twice.
+                earlier = list(grouped[name])
+                for record in records:
+                    if record in earlier:
+                        earlier.remove(record)
+                        continue
+                    grouped[name].append(record)
+            metas.append({k: v for k, v in bundle.items() if k not in VOLATILE | {"patches", "patchCount", "source", "repo", "targetApps"}})
         for name in grouped:
             grouped[name].sort(key=canonical)
             variants += max(0, len(grouped[name]) - 1)
-        metadata = {k: v for k, v in bundle.items() if k not in VOLATILE | {"patches", "patchCount", "source", "repo"}}
-        metadata["targetApps"] = sorted(set(apps))
-        result[key] = dict(identity=key, source=host, repo=repo, metadata=metadata,
+            total += len(grouped[name])
+            unknown += sum(r["applicability"] == "UNKNOWN" for r in grouped[name])
+        metadata = {}
+        for field in sorted({k for m in metas for k in m}):
+            values = sorted({canonical(m.get(field)) for m in metas})
+            metadata[field] = json.loads(values[0]) if len(values) == 1 else [json.loads(v) for v in values]
+        metadata["targetApps"] = sorted(apps_all)
+        # Order-independent display name: the sorted first of the spellings the index used.
+        repo = sorted(m["repo"] for m in members)[0]
+        result[key] = dict(identity=key, source=key.split(":", 1)[0], repo=repo, metadata=metadata,
                            patches=dict(sorted(grouped.items())))
     need(total > 0, "ZERO_PATCH_COVERAGE")
     return dict(providers=dict(sorted(result.items())),
                 coverage=dict(bundles=len(bundles), patches=total, compatibility_rows=len(table),
-                              unknown_applicability_patches=unknown, duplicate_name_variants=variants))
+                              unknown_applicability_patches=unknown, duplicate_name_variants=variants,
+                              providers=len(result),
+                              merged_providers=sorted(merged, key=lambda m: m["provider"])))
 
 
 def scope(targets):
@@ -255,6 +284,10 @@ def rank_providers(index_data, targets):
             freshness = meta.get("appUpdates", {}).get(package) if isinstance(meta.get("appUpdates"), dict) else None
             if freshness is None:
                 freshness = meta.get("updatedAt") or 0
+            if isinstance(freshness, list):
+                # W16n: a merged provider keeps every updatedAt; rank on the newest one.
+                numbers = [v for v in freshness if type(v) in (int, float)]
+                freshness = max(numbers) if numbers else 0
             repo = provider.get("repo", "")
             owner = repo.split("/", 1)[0].lower() if "/" in repo else ""
             official = owner == "morpheapp"
@@ -368,7 +401,12 @@ def render(report):
     lines = readable.headline("Community changes", report["status"], len(mine) + len(report["unwired_offers"]))
     lines += ["Compared " + str(report["old_coverage"]["bundles"]) + " -> " +
               str(report["new_coverage"]["bundles"]) + " providers; " + str(report["event_count"]) + " events.",
-              "Relevant: " + str(report["relevant_events"]) + "; unknown scope: " + str(report["unknown_scope_events"]) + ".", ""]
+              "Relevant: " + str(report["relevant_events"]) + "; unknown scope: " + str(report["unknown_scope_events"]) + "."]
+    merged = report["new_coverage"].get("merged_providers") or []
+    if merged:
+        lines += ["Merged (listed more than once in the index, kept as one provider): " +
+                  ", ".join(safe(m["provider"]) + " x" + str(m["bundles"]) for m in merged) + "."]
+    lines += [""]
     counts = collections.Counter(e["relevance"] for e in report["events"])
     lines += readable.table(["Group", "Events", "Meaning"], [
         ["YOUR_APPS", counts["YOUR_APPS"], "providers or patches for apps you build: read these"],

@@ -136,7 +136,7 @@ that leaves this block stale, so it cannot drift.
 | Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |
 | Reddit | `reddit` | `reddit` | apkpure | morphe + alastor (fallback: adobo) | yes |
 | Telegram | `telegram` | `telegram` | apkmirror | hushtelegram (fallback: rushiranpise) | yes |
-| Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | heval99 + paresh + binarymend (fallback: bufferk) | yes |
+| Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | heval99 (fallback: bufferk + paresh + binarymend) | yes |
 | YouTube | `youtube` | `youtube-morphe` | apkmirror | morphe | yes |
 | YouTube Music | `ytmusic` | `yt-music` | apkmirror | morphe | yes |
 

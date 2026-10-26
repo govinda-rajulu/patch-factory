@@ -2,7 +2,49 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
-## Current checkpoint: 26 October 2026, morning IST (packet W16m, chat handover)
+## Current checkpoint: 26 October 2026, afternoon IST (packet W16n)
+
+Supersedes the morning checkpoint's items 6, 6b, 6c and the parts of 11 that W16n did (MCP scout
+instructions, tooling pins, UNREVIEWED.tsv, assistant tooling style, workflow comments, README
+Truecaller row). Every other morning item is carried as written there.
+
+1. After the W16n merge the controller dispatches 7. Nightly watch, 8. Community watch and MCP
+   scout once on main (WATCH_DISPATCH, not waited for). Read what each prints; a green run closes
+   its failing issue (#249, #248, #250) through Notify. MCP scout
+   MODEL_UNAVAILABLE means both named models failed: read the Gemini step stderr (503 busy: run
+   again later; 404 or invalid model: rename the models from gemini-cli's models.ts).
+2. W16o build hardening ([AUDIT-2026-10-26.md](AUDIT-2026-10-26.md) rows marked W16o): patcher
+   environment allowlist; predictable /tmp files; host-bound downloads, atomic tool downloads,
+   Docker helpers on localhost; digests for store APKs, GitLab bundles and extra .mpp files;
+   recorded patcher version; pup replaced by a stdlib helper; FlareSolverr v3.5.2
+   `sha256:c80ae007ce2ccdcd217a12426e4f039ef763ff90738c808d38810c3e59323767`; release tidy apply
+   bound to its preview; onboard review agent job without pull-requests: write; apt package
+   pinned; community_discover and community_all count a doubled repository once; manual
+   dispatch builds only from main. Gemini CLI warns that tools.exclude goes away in 1.0 (Policy
+   Engine): move mcp-scout.yml before that version is pinned.
+3. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)), its own packet: full
+   nonpublishing batch, one publishing build, owner phone test. Keyless patch job keeps a
+   writable JAR folder (L105).
+4. W17a and W17b Add app ([W17-BRIEF.md](W17-BRIEF.md)). Owner answers, 26 Oct: Add target
+   dispatches both provider-named smokes with no new secret; the owner merges and publishes;
+   monogram logo; no safe names gives a disabled target plus a Needs you item; a third provider
+   waits until its own smoke passes.
+5. W18 combo planner: at most 16 combos, budget 16 times the app's build minutes, manual phone
+   receipt.
+6. Status-branch overlap race (found in W16n review round 1, deferred): a job concurrency group
+   would bring back the cancellations W16i removed; needs a design that queues writers instead.
+7. Schedules (owner probe P0, schedules.tsv, 26 Oct 08:45 UTC): 10 crons due since 00:00 UTC; 6
+   started 277 to 335 minutes late; 4 had not started yet, still inside the 12 h grace; none
+   proven lost. Late runs are GitHub load (docs/SCHEDULES.md). Re-read the run list once those 4
+   are past their grace before calling any of them lost.
+8. Other repositories, each by its own pull request: copy
+   [knowledge/handbook/REVIEW-METHOD.md](../../knowledge/handbook/REVIEW-METHOD.md) into openskip and
+   brain; the shared handbook's AGENT-PERSONAS.md "fixed shift slots" and FREE-LLM-APIS pointer
+   to a "8 Oct section" are still open in both.
+9. Not known: which repository the live index listed twice on 26 Oct (that run kept no raw index;
+   W16n keeps it from now on).
+
+## Earlier checkpoint: 26 October 2026, morning IST (packet W16m, chat handover)
 
 Everything still open from the 23 to 26 Oct chat, in order. Older checkpoints below keep their
 detail; an item listed here wins over its older wording.

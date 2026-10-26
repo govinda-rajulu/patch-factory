@@ -25,10 +25,12 @@ Standard library only.
 import argparse
 import json
 import sys
+import re
 from pathlib import Path
 
 RECORDS = Path('docs/review/onboarding')
 WATCHED = ('src/targets.json', 'src/patches/', 'src/options/')
+ID_RX = re.compile(r'^[a-z0-9][a-z0-9-]{0,40}$')
 
 
 def load_targets(root):
@@ -38,6 +40,10 @@ def load_targets(root):
     data = json.loads(path.read_text(encoding='utf-8'))
     if not isinstance(data, list):
         raise ValueError('src/targets.json must be an array')
+    for target in data:
+        if (not isinstance(target, dict) or not isinstance(target.get('id'), str)
+                or not ID_RX.fullmatch(target['id'])):
+            raise ValueError('invalid target id')
     return data
 
 
@@ -195,8 +201,14 @@ def check(base, head, owner_pr=False):
     banned, confirm = rules(head, 'BANNED'), rules(head, 'CONFIRM')
     problems = []
     for tid, mentions in sorted(needs(m).items()):
-        path = Path(head) / RECORDS / (str(tid) + '.md')
+        root = Path(head).resolve()
+        records_root = (root / RECORDS).resolve()
+        path = root / RECORDS / (str(tid) + '.md')
+        resolved = path.resolve()
         rel = str(RECORDS / (str(tid) + '.md'))
+        if root not in records_root.parents or records_root not in resolved.parents:
+            problems.append('%s: onboarding record path escapes %s' % (tid, RECORDS))
+            continue
         if not path.is_file() or path.is_symlink():
             problems.append('%s: onboarding record %s is missing' % (tid, rel))
             continue

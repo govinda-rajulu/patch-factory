@@ -16,8 +16,8 @@ spec.loader.exec_module(cp)
 NOW = datetime(2026, 10, 30, 12, 0, tzinfo=timezone.utc)
 
 
-def row(cache_id, key, created, accessed):
-    return {'id': cache_id, 'key': key, 'created_at': created, 'last_accessed_at': accessed}
+def row(cache_id, key, created, accessed, size=123):
+    return {'id': cache_id, 'key': key, 'created_at': created, 'last_accessed_at': accessed, 'size_in_bytes': size}
 
 
 class FakeGh:
@@ -42,6 +42,30 @@ class CachePrune(unittest.TestCase):
         self.assertEqual(cp.cache_prefix('pf-action-smoke-12345-2'), 'pf-action-smoke-12345-2')
         self.assertEqual(cp.cache_prefix('cache-without-suffix'), 'cache-without-suffix')
 
+    def test_default_is_dry_run_and_emits_json_receipts(self):
+        old = '2026-10-20T12:00:00Z'
+        rows = [row(10, 'morphe-jar-aaaaaaa', old, old, 42),
+                row(11, 'morphe-jar-bbbbbbb', '2026-10-21T12:00:00Z', old, 84)]
+        fake = FakeGh([rows])
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(cp.main(['--repo', 'o/r', '--now', NOW.isoformat()], run=fake), 0)
+        receipts = [json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual(receipts, [dict(id=10, key='morphe-jar-aaaaaaa', size=42, deleted=False)])
+        self.assertFalse([c for c in fake.calls if c[1:3] == ['api', '--method']])
+
+    def test_apply_deletes_and_receipts_success(self):
+        old = '2026-10-20T12:00:00Z'
+        fake = FakeGh([[row(10, 'morphe-jar-aaaaaaa', old, old, 42),
+                        row(11, 'morphe-jar-bbbbbbb', '2026-10-21T12:00:00Z', old, 84)]])
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.assertEqual(cp.main(['--apply', '--repo', 'o/r', '--now', NOW.isoformat()], run=fake), 0)
+        receipts = [json.loads(line) for line in output.getvalue().splitlines()]
+        self.assertEqual(receipts, [dict(id=10, key='morphe-jar-aaaaaaa', size=42, deleted=True)])
+        self.assertEqual([c[-1] for c in fake.calls if c[1:3] == ['api', '--method']],
+                         ['repos/o/r/actions/caches/10'])
+
     def test_stale_non_newest_is_deleted_and_newest_or_fresh_is_kept(self):
         old = '2026-10-20T12:00:00Z'
         older = '2026-10-21T12:00:00Z'
@@ -60,9 +84,9 @@ class CachePrune(unittest.TestCase):
         try:
             output = io.StringIO()
             with redirect_stdout(output):
-                self.assertEqual(cp.main(['--repo', 'o/r', '--now', NOW.isoformat()], run=fake), 0)
-            self.assertIn('delete cache id=10', output.getvalue())
-            self.assertIn('delete cache id=11', output.getvalue())
+                self.assertEqual(cp.main(['--apply', '--repo', 'o/r', '--now', NOW.isoformat()], run=fake), 0)
+            self.assertIn('\"id\": 10', output.getvalue())
+            self.assertIn('\"id\": 11', output.getvalue())
             self.assertNotIn('id=12', output.getvalue())
             self.assertNotIn('id=13', output.getvalue())
             self.assertEqual([c[-1] for c in fake.calls if c[1:3] == ['api', '--method']],
@@ -84,7 +108,7 @@ class CachePrune(unittest.TestCase):
         output = io.StringIO()
         with redirect_stdout(output):
             self.assertEqual(cp.main(['--repo', 'o/r', '--dry-run', '--now', NOW.isoformat()], run=fake), 0)
-        self.assertIn('would delete cache id=20', output.getvalue())
+        self.assertIn('\"id\": 20', output.getvalue())
         self.assertNotIn('--method', ' '.join(' '.join(c) for c in fake.calls))
         self.assertEqual(len([c for c in fake.calls if c[1] == 'api']), 2)
 

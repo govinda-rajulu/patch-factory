@@ -1,5 +1,9 @@
 # How a handover is checked (written 26 Oct 2026, packet W16m)
 
+The method itself, shared by every repository, is now
+[knowledge/handbook/REVIEW-METHOD.md](../../knowledge/handbook/REVIEW-METHOD.md) (W16n). This file
+keeps the patch-factory round logs.
+
 The owner asked for this after the W16m handover needed six check rounds and each round found
 more. It records what the assistant did before, what it does now, and what each round found, so
 the next chat starts with the method and not with the habit.
@@ -70,3 +74,15 @@ steps after the files it reached first. Round 8 was the first sweep that covered
 
 Lesson from rounds 5 to 7: a single agent given a whole repository runs out of steps and says so; split
 the population into shards small enough to finish (one folder or file family per agent).
+
+## Round log, W16n (26 Oct 2026, afternoon IST): a code packet under the same method
+
+| Round | Method | Found |
+| --- | --- | --- |
+| Audit | nine agents in shards (two workflow security, build, etc scripts, tidy, tooling, W15g, W17-W18, phase 0), owner probes P0 and P0b for live data | [AUDIT-2026-10-26.md](AUDIT-2026-10-26.md); four agent HIGHs re-rated down, one fix proposal rejected (refusing every bot pull request) |
+| Lanes | five agents, each in its own worktree on one area (nightly, watch-state, workflow hardening, etc fixes, tidy); merged by the assistant | merged cleanly; suite OK |
+| 1 | four reviewers: workflows, scripts, cross-file, docs | fixed: token pushes fail closed, newest review decides, scrubbed errors, more; deferred: status-branch overlap race |
+| P0b | owner log of the red Community and MCP scout runs | DUPLICATE_PROVIDER; HTTP 503 on the default model (wrong call 79) |
+| 2 | four code reviewers on the final code (scout, community, workflows, scripts), one docs reviewer on the records | code: 0 HIGH, 5 MED, 2 LOW, all fixed with tests; docs: 3 MED (schedule wording, a promised file that was not shipped, the desk index still on W16m), 3 LOW, all fixed |
+| 2b | fix pass on the round-2 code fixes | 1 MED (ledger rows with a wrong verb or id still accepted), 1 LOW (new tests sat below the script entry guard; discovery ran them, the script did not); both fixed |
+

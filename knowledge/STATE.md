@@ -6,7 +6,32 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 26 Oct 2026, morning IST (packet W16m, chat handover; start here)
+## 26 Oct 2026, afternoon IST (packet W16n; start here)
+
+- **Main** `f922446e31e9e6a50890ead58b64dd733b17da5e` (W16m #256) plus W16n once merged.
+- **W16n** fixes the three red watches by cause: Nightly listed names without `-x` (#249, L104);
+  Community refused an index that lists one repository twice (#248, now merged and named, L109);
+  MCP scout ran on an unnamed default model that answered HTTP 503 ten times (#250, model named
+  with one fallback, L108). Also: watch-state writes through the contents API instead of two
+  force-pushing writers; checkout tokens no longer kept; fail-closed token pushes; per-job
+  permissions; Rule merge checks the diff against the body; CodeQL #5 and #6; tidy items from
+  OPEN-WORK 11. Record: `docs/review/SESSION-2026-10-26.md`; audit with re-rated severities:
+  `docs/review/AUDIT-2026-10-26.md`; plan and decisions D1 to D11:
+  `docs/review/PLAN-2026-10-26.md`.
+- **Review method** for every packet and handover, all repositories:
+  `knowledge/handbook/REVIEW-METHOD.md` (laser-scoped agents, WH findings, re-rate agent HIGHs,
+  exit on no HIGH or MED). W16n round log: `docs/review/REVIEW-METHOD.md`.
+- **After merge**: the W16n controller dispatches 7. Nightly watch, 8. Community watch and MCP
+  scout once on main (WATCH_DISPATCH) and does not wait; read each run. A green run closes its
+  failing issue (#249, #248, #250) through Notify.
+- **Wrong calls**: 79. 79: the MCP scout failure was put down to reading the 2.7 MB index; the log
+  showed HTTP 503 before any tool call. 78: a read-only container broke the P0 Alastor listing.
+  77: owner answers called lost when he had never answered by comment.
+- **Next**: W16o build hardening (patcher env allowlist, pup to a stdlib helper, FlareSolverr
+  v3.5.2 digest, release tidy bound to its preview); W15g signing split; W17a and W17b Add app;
+  W18 combo planner. Whole list: OPEN-WORK 26 Oct afternoon checkpoint.
+
+## 26 Oct 2026, morning IST (packet W16m, chat handover)
 
 - **Main** `03ee7de16fe3de2c20cd0c568bb023b71113265f` (W16l #255) plus W16m once merged. The 23 to
   26 Oct chat is closed; its map is `docs/review/HANDOVER-2026-10-26.md`.

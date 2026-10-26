@@ -144,7 +144,9 @@ def write_summary(text: str) -> None:
 def main(argv: list[str] | None = None, run: Callable = subprocess.run, now: dt.datetime | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", default=REPO)
-    parser.add_argument("--dry-run", action="store_true", help="report candidates without deleting")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--apply", action="store_true", help="delete selected caches")
+    mode.add_argument("--dry-run", action="store_true", help="report candidates without deleting (default)")
     parser.add_argument("--now", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if args.now:
@@ -154,19 +156,31 @@ def main(argv: list[str] | None = None, run: Callable = subprocess.run, now: dt.
     now = now or dt.datetime.now(dt.timezone.utc)
     rows = caches(args.repo, run)
     selected = candidates(rows, now)
+    receipt_lines = []
     deleted = 0
+    failed = 0
     for row in selected:
-        action = "would delete" if args.dry_run else "delete"
-        print("%s cache id=%d key=%s prefix=%s" %
-              (action, row["id"], row["key"], cache_prefix(row["key"])), flush=True)
-        if not args.dry_run:
-            delete_cache(args.repo, row["id"], run)
-        deleted += 1
-    text = summary_text(args.repo, rows, deleted, args.dry_run)
+        did_delete = False
+        if args.apply:
+            try:
+                delete_cache(args.repo, row["id"], run)
+                did_delete = True
+                deleted += 1
+            except RuntimeError:
+                failed += 1
+        size = row.get("size_in_bytes", row.get("size"))
+        receipt = {"id": row["id"], "key": row["key"], "size": size, "deleted": did_delete}
+        line = json.dumps(receipt, sort_keys=True, ensure_ascii=False)
+        receipt_lines.append(line)
+        print(line, flush=True)
+    text = summary_text(args.repo, rows, deleted, not args.apply)
+    if failed:
+        text += "- Failed: %d\n" % failed
     print("cache summary: scanned=%d %s=%d" %
-          (len(rows), "would_delete" if args.dry_run else "deleted", deleted))
-    write_summary(text)
-    return 0
+          (len(rows), "would_delete" if not args.apply else "deleted", len(selected) if not args.apply else deleted),
+          file=sys.stderr)
+    write_summary(text + ("\n" + "\n".join(receipt_lines) + "\n" if receipt_lines else ""))
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

@@ -32,8 +32,8 @@ SECRETS = []
 
 
 def say(step, status, detail):
-    for s in SECRETS:
-        detail = detail.replace(s, '[key]')
+    # Status details are supplied as fixed text and counts only. Key-bearing data is
+    # written through write(), whose artifact redaction is separate from this path.
     R['steps'].append({'step': step, 'status': status, 'detail': detail})
     print('%s %s: %s' % (status, step, detail), flush=True)
     (LOGS / 'RESULT.json').write_text(json.dumps(R, indent=1) + '\n', encoding='utf-8')
@@ -121,21 +121,21 @@ def test_key(name, secret, base, picks, extra_tries):
     good = [c for c in report['chats'] if c.get('ok')]
     write('key-%s.json' % name.lower().replace('.', ''), json.dumps(report, indent=1) + '\n')
     if not good:
-        say(name, 'FAIL', 'no model answered; secret NOT saved. First error: %s' % report['chats'][0].get('error', '')[:160])
+        say(name, 'FAIL', 'no model answered; secret NOT saved')
         return
     p = gh('secret', 'set', secret, '-R', REPO, inp=key)
     if p.returncode != 0:
-        say(name, 'FAIL', 'key works (%s answered) but saving %s failed: %s' % (good[0]['model'], secret, (p.stderr or p.stdout)[:160]))
+        say(name, 'FAIL', 'key worked but saving the repository secret failed')
         return
-    say(name, 'OK', '%s answered in %ss (%s); %d models listed, %d with "free" in the id; saved as %s'
-        % (good[0]['model'], good[0]['seconds'], good[0].get('finish'), m.get('count') or 0, len(free), secret))
+    say(name, 'OK', '%d model(s) answered; %d models listed, %d with free access'
+        % (len(good), m.get('count') or 0, len(free)))
 
 
 def probe():
     since = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=10)
     p = gh('workflow', 'run', 'council.yml', '-R', REPO, '--ref', 'main', '-f', 'mode=probe')
     if p.returncode != 0:
-        say('probe', 'FAIL', 'dispatch refused: ' + (p.stderr or p.stdout)[:200])
+        say('probe', 'FAIL', 'dispatch refused')
         return
     run = None
     deadline = time.time() + PROBE_WAIT
@@ -155,7 +155,7 @@ def probe():
             break
         print('  probe run %s: %s' % (run['databaseId'], run['status']), flush=True)
     if not run or run['status'] != 'completed':
-        say('probe', 'FAIL', 'probe run not finished after %d s%s' % (PROBE_WAIT, (': ' + run['url']) if run else ''))
+        say('probe', 'FAIL', 'probe run did not finish after %d seconds' % PROBE_WAIT)
         return
     log = gh('run', 'view', str(run['databaseId']), '-R', REPO, '--log', timeout=300).stdout or ''
     write('probe.log', log)
@@ -163,7 +163,7 @@ def probe():
     served = sum(' status=SERVED' in l for l in lines)
     write('probe-summary.txt', '\n'.join(lines) + '\n')
     say('probe', 'OK' if run['conclusion'] == 'success' else 'FINDING',
-        'run %s ended %s; %d of %d models served. %s' % (run['databaseId'], run['conclusion'], served, len(lines), run['url']))
+        '%d of %d models served' % (served, len(lines)))
 
 
 def codeql():
@@ -191,8 +191,7 @@ def codeql():
     for r in rows:
         by[r['severity']] = by.get(r['severity'], 0) + 1
     say('codeql', 'OK' if setup.get('state') == 'configured' else 'FINDING',
-        'setup %s, languages %s; %d analyses seen; %d open alerts %s' % (setup.get('state'), ','.join(setup.get('languages') or []),
-                                                                     len(analyses), len(rows), json.dumps(by)))
+        '%d analyses seen; %d open alerts' % (len(analyses), len(rows)))
 
 
 def fetch(url, dest, want):
@@ -237,7 +236,7 @@ def morphe():
         for url, dest, want in ((JAR_URL, jar, JAR_SHA), (MPP_URL, mpp, MPP_SHA)):
             err = fetch(url, dest, want)
             if err:
-                say('morphe', 'FAIL', '%s: %s' % (dest.name, err))
+                say('morphe', 'FAIL', 'download or checksum validation failed')
                 return
         home_before = {p.name for p in HOME.iterdir()}
         cfg_before = {p.name for p in (HOME / '.config').iterdir()} if (HOME / '.config').is_dir() else set()
@@ -253,7 +252,7 @@ def morphe():
         write('morphe.json', json.dumps({'java': jv, 'runs': runs, 'new_in_home': home_new, 'new_in_config': cfg_new}, indent=1) + '\n')
         side = [f for f in runs[0]['new_files']]
         say('morphe', 'OK' if runs[0]['exit'] == 0 else 'FINDING',
-            '%s; list-versions exit %d; new files on run 1: %s; new in home: %s' % (jv, runs[0]['exit'], ', '.join(side) or 'none', ', '.join(home_new + cfg_new) or 'none'))
+            'list-versions exit %d; %d new files; %d new home/config entries' % (runs[0]['exit'], len(side), len(home_new + cfg_new)))
     finally:
         shutil.rmtree(t, ignore_errors=True)
 
@@ -262,7 +261,7 @@ def main():
     LOGS.mkdir(parents=True, exist_ok=True)
     a = gh('auth', 'status')
     if a.returncode != 0:
-        say('gate', 'STOP', 'gh is not signed in on this shell: ' + (a.stderr or a.stdout)[:160])
+        say('gate', 'STOP', 'gh is not signed in on this shell')
         return 1
     say('gate', 'OK', 'gh signed in; logs in ' + str(LOGS))
     test_key('Kilo', 'KILO_API_KEY', KILO, ['kilo-auto/free'], [])
@@ -273,7 +272,7 @@ def main():
         try:
             step()
         except Exception as e:  # one broken step must not hide the others
-            say(step.__name__, 'FAIL', '%s: %s' % (type(e).__name__, str(e)[:200]))
+            say(step.__name__, 'FAIL', 'step raised an error')
     bad = [s for s in R['steps'] if s['status'] in ('FAIL', 'STOP')]
     R['result'] = 'OK' if not bad else 'STOP'
     (LOGS / 'RESULT.json').write_text(json.dumps(R, indent=1) + '\n', encoding='utf-8')
