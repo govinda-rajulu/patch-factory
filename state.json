@@ -3,7 +3,7 @@
  "releases": {
   "Akash-Sriram/morphe-google-photos": "2026-10-26T06:17:22Z",
   "Alastor-Kaneki/Morphe-Patches": "2026-10-15T23:12:50Z",
-  "BlazeFTL/FTL-Patches": "2026-10-25T19:37:29Z",
+  "BlazeFTL/FTL-Patches": "2026-10-26T12:22:02Z",
   "MorpheApp/morphe-patches": "2026-10-26T07:48:29Z",
   "RookieEnough/De-Vanced": "2026-10-24T08:53:14Z",
   "SysAdminDoc/HushFacebook": "2026-10-24T16:51:06Z",
@@ -28,7 +28,7 @@
  "tags": {
   "Akash-Sriram/morphe-google-photos": "v1.16.1",
   "Alastor-Kaneki/Morphe-Patches": "v1.16.0",
-  "BlazeFTL/FTL-Patches": "v1.43.7",
+  "BlazeFTL/FTL-Patches": "v1.43.7.1-dev.1",
   "MorpheApp/morphe-patches": "v1.49.0-dev.7",
   "RookieEnough/De-Vanced": "v1.6.0",
   "SysAdminDoc/HushFacebook": "v0.18.0",
