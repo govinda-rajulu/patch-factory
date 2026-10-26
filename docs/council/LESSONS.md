@@ -673,3 +673,11 @@ the store's headers and an allowlist of guessed CDN hosts. A test now checks eve
 installed tool's own help, and a change to how builds reach the network ships only after smokes of
 every app on the packet branch, before the merge.
 
+### L111 · A test on a bot-updated file must hold for every state the bot can write
+Tags: tests, evidence
+W16n started merging a repository the community index lists twice, but a test kept asserting that the
+stored snapshot's record count equals the raw sum. The sandbox copy had no doubled repository, so the
+suite passed; the bot then stored one and Validate failed (run 40333090933, wrong call 80). When a
+packet changes how live data is read, change every test that reads the live file, and add a test that
+puts the new case into a copy of the real file.
+

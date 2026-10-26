@@ -25,12 +25,47 @@ TARGETS = [dict(id="app", enabled=True, package="com.example.app",
                candidates=[dict(owner="owner", repo="patches")])]
 
 
+def expected_patch_count(data):
+    """Independent count: per repository, the multiset union of its bundles' raw patch records."""
+    import collections
+    groups = collections.defaultdict(list)
+    for b in data["bundles"]:
+        groups[b.get("source", "github") + ":" + b["repo"].lower()].append(b)
+    total = 0
+    for members in groups.values():
+        union = collections.Counter()
+        for b in members:
+            union |= collections.Counter(m.canonical(p) for p in b["patches"])
+        total += sum(union.values())
+    return total
+
+
 class Model(unittest.TestCase):
+    def test_real_snapshot_with_a_doubled_repository(self):
+        data = json.loads((ROOT / "src/community/bundles.json").read_text())
+        twin = copy.deepcopy(data["bundles"][0])
+        twin["name"] = "Twin listing"
+        twin["patches"] = twin["patches"] + [dict(name="Only in the twin listing")]
+        twin["patchCount"] = len(twin["patches"])
+        data["bundles"].append(twin)
+        parsed = m.inventory(data)
+        raw = sum(len(b["patches"]) for b in data["bundles"])
+        self.assertEqual(parsed["coverage"]["patches"], expected_patch_count(data))
+        self.assertEqual(raw - parsed["coverage"]["patches"], len(data["bundles"][0]["patches"]))
+        self.assertEqual(len(parsed["coverage"]["merged_providers"]), 1)
+
     def test_real_snapshot_complete_accounting(self):
         data = json.loads((ROOT / "src/community/bundles.json").read_text())
         parsed = m.inventory(data)
         self.assertEqual(parsed["coverage"]["bundles"], len(data["bundles"]))
-        self.assertEqual(parsed["coverage"]["patches"], sum(len(b["patches"]) for b in data["bundles"]))
+        # W16n merges every bundle of one repository; a record an earlier bundle of the same
+        # repository already gave is counted once (26 Oct: the live snapshot lists one repo twice,
+        # 5960 raw records, 5957 after the merge; Validate run 40333090933).
+        self.assertEqual(parsed["coverage"]["patches"], expected_patch_count(data))
+        self.assertEqual(parsed["coverage"]["patches"],
+                         sum(len(v) for p in parsed["providers"].values() for v in p["patches"].values()))
+        if not parsed["coverage"]["merged_providers"]:
+            self.assertEqual(parsed["coverage"]["patches"], sum(len(b["patches"]) for b in data["bundles"]))
         self.assertEqual(parsed["coverage"]["compatibility_rows"], len(data["compatibilities"]))
         self.assertGreater(parsed["coverage"]["patches"], 0)
         targets = json.loads((ROOT / "src/targets.json").read_text())

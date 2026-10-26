@@ -25,7 +25,10 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and
   built it", README, controller banner and RESULT.json `built_by`).
 - **Proof before merge**: the W16o controller smokes all 17 apps on the packet branch (both
   stores and the helpers) before it merges, then T1.
-- **Wrong calls**: 79 (unchanged). Agent errors caught in W16o review: an unsupported wget
+- **Wrong calls**: 80. 80: W16n changed how a repository listed twice is counted but kept a test
+  that compared the live snapshot to the raw record count; once Community watch stored an index
+  with the doubled repository (5960 raw, 5957 merged), Validate failed on the W16o pull request
+  (run 40333090933) and would fail on main. Fixed in W16o (L111). Agent errors caught in W16o review: an unsupported wget
   option that would have failed every store download; a separate preflight request without the
   store headers; a guessed CDN allowlist; a 300M bound below real bundle sizes (L110).
 - **Next**: W15g signing split; W17a and W17b Add app (map: `docs/review/W17A-MAP.md`); W18.
