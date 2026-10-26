@@ -14,7 +14,10 @@ afternoon item is carried as written there.
    (25 Oct, step "Convene the onboarding review") failed: read its log (`gh run view 40213438388
    --log-failed`) before the next onboarding.
 2. After the W16o merge read the `STORE_FINAL_HOST` lines of the smokes and the T1 batch: they
-   are the first live list of store CDN hosts. A host allowlist can be added from that list in a
+   are the first live list of APKPure CDN hosts (APKMirror is on wget again, run 40398219589: curl
+   got 403 on 8 of 14 APKMirror apps, 6 passed; before curl returns there, probe it live on every
+   APKMirror app, for example with --http1.1). The wget request follows redirects with no
+   HTTPS-only rule or final-host line, as base did; the APK identity checks still run after it. A host allowlist can be added from that list in a
    later packet (round 2 review: no allowlist without live evidence).
 3. The APKMirror retry line prints `wget_exit=` and `pf_wget_meaning` text for what is now a curl
    exit code: rename both in the next packet that touches utils.sh.
@@ -29,6 +32,16 @@ afternoon item is carried as written there.
    dispatch lookup is not filtered by `head_sha` (dormant, PUBLISH_DISPATCH is empty; fix before
    W15g uses it); the bot-drift rule does not require the GitHub-committer case to be a merge
    commit (LOW); tests/transfer_retry_contracts.py exercises only the wget branch (LOW).
+7. Round 4 review (eight agents, adversarial, mutation tests) left these, none blocking W16o:
+   the optional patcher pins work only for the current latest release (the fetch reads
+   releases/latest), so read releases/tags/<pin> before anyone sets a pin; a stale sidecar
+   from before provenance makes resolved_inputs install stop on a name collision (dormant,
+   sidecars do not persist between runs); PF_STORE_MAX_BYTES accepts T and P suffixes that
+   curl --max-filesize rejects; the tool host check reads only the final URL, not each hop;
+   T1 findings are listed but T1 still reports OK by design (read the finding count).
+   Older than W16o: the FlareSolverr request in _fs_get has no curl --max-time, so a hung
+   local listener could delay the CloudflareBypass fallback (a dead helper is removed, so its
+   port refuses at once); give it a deadline above FlareSolverr's 60 s maxTimeout.
 
 ## Earlier checkpoint: 26 October 2026, afternoon IST (packet W16n)
 

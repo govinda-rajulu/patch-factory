@@ -681,3 +681,11 @@ suite passed; the bot then stored one and Validate failed (run 40333090933, wron
 packet changes how live data is read, change every test that reads the live file, and add a test that
 puts the new case into a copy of the real file.
 
+### L112 · Prove a transport swap against every store before the packet, not in its smokes
+Tags: build, evidence
+W16o moved store downloads from wget to curl and four review rounds checked every option against
+the curl manual. The third controller run then smoked 17 apps: APKMirror's download endpoint
+answered curl with 403 on 8 of the 14 apps that downloaded from it (run 40398219589, wrong call
+84), while the wget request had built all 17 the day before. A manual cannot show what a store's
+bot filter accepts, and a partial failure is not explained by one cause. The smokes stopped it before the merge, as designed, but a live probe of each store with
+the new client belongs before the packet is built.

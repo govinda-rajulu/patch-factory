@@ -43,12 +43,12 @@ ensure() {
   echo "[*] Starting fresh $name on port $port after a failed health check..."
   docker rm -f "$name" >/dev/null 2>&1 || true
   if ! docker run -d --name "$name" -p "127.0.0.1:$port:$port" "$image" >/dev/null; then
-    echo "::error::could not start $name; refusing store access" >&2
+    echo "::warning::could not start $name" >&2
     docker rm -f "$name" >/dev/null 2>&1 || true
     return 1
   fi
   if ! wait_healthy "$name"; then
-    echo "::error::$name failed its health check; refusing store access" >&2
+    echo "::warning::$name failed its health check" >&2
     docker rm -f "$name" >/dev/null 2>&1 || true
     return 1
   fi
@@ -62,5 +62,16 @@ if [ "${1:-}" = cleanup ]; then
   cleanup
   exit 0
 fi
-ensure flaresolverr 8191 "$FLARE_IMAGE" || exit 1
-ensure cloudflarebypass 8000 "$CFB_IMAGE" || exit 1
+# W16o round 4: _cf_get falls back from FlareSolverr to CloudflareBypass, so one healthy helper
+# is enough (base never failed here). Refuse store access only when neither helper is up.
+fs_up=0
+cfb_up=0
+if ensure flaresolverr 8191 "$FLARE_IMAGE"; then fs_up=1; fi
+if ensure cloudflarebypass 8000 "$CFB_IMAGE"; then cfb_up=1; fi
+if [ "$fs_up" = 0 ] && [ "$cfb_up" = 0 ]; then
+  echo "::error::neither store helper started; refusing store access" >&2
+  exit 1
+fi
+if [ "$fs_up" = 0 ]; then echo "::warning::flaresolverr is down; store fetches use cloudflarebypass" >&2; fi
+if [ "$cfb_up" = 0 ]; then echo "::warning::cloudflarebypass is down; store fetches use flaresolverr only" >&2; fi
+exit 0

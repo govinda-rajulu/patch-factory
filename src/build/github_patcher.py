@@ -47,8 +47,8 @@ def select_asset(release, env=None):
     require(u.scheme == 'https' and u.netloc == 'github.com' and not u.query and not u.fragment
             and u.path.startswith('/MorpheApp/morphe-desktop/releases/download/')
             and u.path.rsplit('/', 1)[-1] == asset['name'], 'unexpected patcher asset URL')
-    tag_pin = env.get(PIN_TAG_ENV)
-    sha_pin = env.get(PIN_SHA_ENV)
+    tag_pin = env.get(PIN_TAG_ENV) or None  # '' is unset (Actions expressions)
+    sha_pin = env.get(PIN_SHA_ENV) or None
     # W16o: optional pins preserve Morphe's intentional latest-stable policy (H4).
     require((tag_pin is None) == (sha_pin is None),
             'patcher pin requires both PATCHER_TAG_PIN and PATCHER_SHA256_PIN')
@@ -134,7 +134,7 @@ def fetch(directory, env):
               'tag': release['tag_name'], 'asset_id': asset['id'], 'cache_hit_verified': cached,
               'github_digest_verified': True, 'jar_structure_verified': True,
               'pin': {'tag': env.get(PIN_TAG_ENV), 'sha256': env.get(PIN_SHA_ENV)}
-                      if env.get(PIN_TAG_ENV) is not None else None,
+                      if env.get(PIN_TAG_ENV) else None,
               'policy': 'GitHub latest stable unless optional PATCHER_TAG_PIN/PATCHER_SHA256_PIN is set',
               'trust': 'GitHub metadata/transport integrity, not independent publisher attestation'}
     # W16o H4: retain the resolved tag beside the verified JAR so the final input

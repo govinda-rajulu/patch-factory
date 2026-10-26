@@ -66,7 +66,7 @@ def atomic_json(path, data):
 
 
 def patcher_pin(env):
-    tag, digest = env.get('PATCHER_TAG_PIN'), env.get('PATCHER_SHA256_PIN')
+    tag, digest = env.get('PATCHER_TAG_PIN') or None, env.get('PATCHER_SHA256_PIN') or None  # '' is unset
     require((tag is None) == (digest is None), 'patcher pin requires both PATCHER_TAG_PIN and PATCHER_SHA256_PIN')
     if tag is not None:
         require(re.fullmatch(r'[A-Za-z0-9_.+-]+', tag) is not None, 'invalid PATCHER_TAG_PIN')

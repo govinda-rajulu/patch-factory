@@ -83,7 +83,10 @@ Things the assistant relearned in the W16 chat; read before building a controlle
   new provider bundle is the first real test: read the provider's open issues before blaming the
   APK (L100).
 - **Cloud Shell.** It ends idle sessions and with them nohup jobs; every controller phase must be
-  rerunnable. Publishing batches are dispatched and not waited for.
+  rerunnable. Publishing batches are dispatched and not waited for. Google's limits page (W16o
+  round 4): "Non-interactive sessions are ended automatically after 40 minutes" and sessions are
+  capped at 12 hours. Run long controllers in Cloud Shell's tmux, keep the tab open, and expect
+  to rerun the same launcher after a cut (the script is kept on anything but RESULT OK).
 - **Working rules carried from the assistant's memory (26 Oct 2026).** Provider facts come from
   `src/community/bundles.json` or a live list-patches run, never from a web search; check every
   record against `docs/council/ONBOARD.md` before it ships; check the official Morphe bundle

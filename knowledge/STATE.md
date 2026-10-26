@@ -25,7 +25,17 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and
   built it", README, RESULT.json `built_by`; no banner line, owner 26 Oct).
 - **Proof before merge**: the W16o controller smokes all 17 apps on the packet branch (both
   stores and the helpers) before it merges, then T1.
-- **Wrong calls**: 82. 82: the W16o curl move sent the store cookie as a raw header, which curl
+- **Wrong calls**: 85. 85: I first read run 40398219589 as "curl gets 403 from APKMirror on every
+  download"; 6 of the 14 APKMirror apps passed on curl (no prepared source), so the cause (client
+  fingerprint or load on 14 parallel downloads) is unproven. 84: the third W16o run (26 Oct
+  night) smoked 17 apps; APKMirror's download endpoint answered curl with 403 on 8 of 14 apps.
+  Nothing merged. APKMirror is back on the base wget request (17 of 17 the day before) plus
+  local checks (private candidate, never empty, size bound); APKPure stays on curl (its 3 apps
+  passed). L112.
+  83: round 1 made a failed store helper fatal (`|| exit 1` on each), which
+  ended the build before the FlareSolverr to CloudflareBypass fallback could run; base never
+  failed there. Round 4 found it before any run: now only both helpers down refuses store
+  access, with a test. 82: the W16o curl move sent the store cookie as a raw header, which curl
   drops on a redirect to another host (wget sent it on every request); round 3 review found it
   before any run, now `--cookie` like wget (curl manual), with a test. 81: the fix for 80 added a test that assumed the stored snapshot had no
   doubled repository; it already had one (epabafree/sabp-eppy-patches, Community report #258), so

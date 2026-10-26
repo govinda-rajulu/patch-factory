@@ -84,7 +84,7 @@ def safe_env(env):
     allowed = ("PATH", "HOME", "LANG", "LC_ALL", "JAVA_HOME", "TMPDIR",
                "GITHUB_TOKEN", "GH_TOKEN", "PATCHER_TAG_PIN", "PATCHER_SHA256_PIN")
     clean = {k: env[k] for k in allowed if k in env}
-    tag, digest = clean.get("PATCHER_TAG_PIN"), clean.get("PATCHER_SHA256_PIN")
+    tag, digest = clean.get("PATCHER_TAG_PIN") or None, clean.get("PATCHER_SHA256_PIN") or None  # "" is unset (Actions expressions)
     # W16o: preserve the optional patcher pins on the prepared path (MED-2),
     # validating their pair before passing them to the isolated resolver.
     need((tag is None) == (digest is None),
@@ -115,7 +115,7 @@ def patcher_provenance(meta):
 
 
 def pin_values(env):
-    tag, digest = env.get("PATCHER_TAG_PIN"), env.get("PATCHER_SHA256_PIN")
+    tag, digest = env.get("PATCHER_TAG_PIN") or None, env.get("PATCHER_SHA256_PIN") or None  # "" is unset
     need((tag is None) == (digest is None),
          "patcher pin requires both PATCHER_TAG_PIN and PATCHER_SHA256_PIN")
     if tag is not None:

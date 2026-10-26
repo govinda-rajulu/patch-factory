@@ -97,6 +97,21 @@ class Identity(unittest.TestCase):
         self.assertEqual(json.loads(destination.read_text()), {'ok': True})
         self.assertFalse(list(self.r.glob('report.json.*.cand')))
 
+    def test_atomic_json_publishes_with_one_replace(self):
+        # W16o round 4 (mutation test): the evidence file appears whole, by os.replace.
+        destination = self.r / 'evidence.json'
+        with patch.object(identity.os, 'replace', wraps=os.replace) as replace:
+            identity.atomic_json(destination, {'ok': True})
+        replace.assert_called_once()
+        self.assertEqual(pathlib.Path(replace.call_args.args[1]), destination)
+        self.assertEqual(json.loads(destination.read_text()), {'ok': True})
+
+    def test_empty_pin_values_count_as_unset(self):
+        # W16o round 4: an Actions expression for an unset variable yields "", not nothing.
+        captured = self.capture_fixture()
+        self.assertIsNone(captured["patcher_provenance"])
+        identity.capture_inputs(self.r, "keymapper", "lain", dict(self.env, PATCHER_TAG_PIN="", PATCHER_SHA256_PIN=""))
+
     def test_missing_patcher_sidecar_is_unknown_without_pin(self):
         captured = self.capture_fixture()
         self.assertIsNone(captured["patcher_provenance"])

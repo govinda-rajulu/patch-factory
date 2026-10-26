@@ -229,6 +229,33 @@ print(f'STORE_FINAL_HOST {sys.argv[2]} {h}')
 PY
 }
 
+pf_wget_store_transfer() {
+	# W16o smoke run 40398219589: APKMirror's download endpoint answered curl with 403 on 8 of
+	# the 14 apps that downloaded from it (6 passed), where this exact wget request built 17 of 17
+	# the day before (W16n). Keep the base request byte for byte; add only local checks: a
+	# private candidate, never empty, size bounded. wget follows redirects without an HTTPS-only
+	# rule, as base did (OPEN-WORK item 2).
+	local url=$1 dest=$2 referer=$3 ua=$4 rc=0 candidate_bytes max_bytes
+	local -a cookie_args=()
+	[[ -n "${FS_COOKIES:-}" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
+	wget -q -O "$dest" \
+		--header="User-Agent: $ua" \
+		--referer="$referer" \
+		"${cookie_args[@]}" \
+		--timeout=120 \
+		"$url" || rc=$?
+	if [[ "$rc" -ne 0 ]]; then
+		rm -f -- "$dest"
+		return "$rc"
+	fi
+	max_bytes=$(pf_store_size_limit_bytes) || { rm -f -- "$dest"; return 1; }
+	candidate_bytes=$(stat -c %s -- "$dest") || { rm -f -- "$dest"; return 1; }
+	if [[ "$candidate_bytes" -eq 0 || "$candidate_bytes" -gt "$max_bytes" ]]; then
+		rm -f -- "$dest"
+		return 1
+	fi
+}
+
 pf_curl_store_transfer() {
 	local url=$1 dest=$2 referer=$3 ua=$4 store=$5 effective_file effective
 	local candidate_bytes max_bytes
@@ -669,7 +696,7 @@ get_apk() {
 	for try in 1 2; do
 		wrc=0
 		if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
-			pf_curl_store_transfer "$final_url" "$transfer_path" "$base_url$dl_btn_href" "$user_agent" apkmirror || wrc=$?
+			pf_wget_store_transfer "$final_url" "$transfer_path" "$base_url$dl_btn_href" "$user_agent" || wrc=$?
 		else
 			wget -q -O "./download/$base_apk" \
 				--header="User-Agent: $user_agent" \
@@ -679,12 +706,12 @@ get_apk() {
 				"$base_url$final_href" || wrc=$?
 		fi
 		if [[ "$wrc" -eq 0 ]]; then
-			if [[ -n "$transfer_tmp" ]]; then mv -f -- "$transfer_tmp" "./download/$output_base_apk"; fi
+			if [[ -n "$transfer_tmp" ]]; then mv -f -- "$transfer_tmp" "./download/$output_base_apk" || { rm -f -- "$transfer_tmp" "./download/$output_base_apk"; return 1; }; fi
 			base_apk="$output_base_apk"
 			break
 		fi
 		if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
-			echo "TRANSFER_FAILED store=apkmirror try=$try transfer_exit=$wrc bytes=$(stat -c %s "$transfer_path" 2>/dev/null || echo 0)"
+			echo "TRANSFER_FAILED store=apkmirror try=$try wget_exit=$wrc meaning=$(pf_wget_meaning "$wrc") bytes=$(stat -c %s "$transfer_path" 2>/dev/null || echo 0)"
 		else
 			echo "TRANSFER_FAILED store=apkmirror try=$try wget_exit=$wrc meaning=$(pf_wget_meaning "$wrc") bytes=$(stat -c %s "$transfer_path" 2>/dev/null || echo 0)"
 		fi
@@ -818,7 +845,7 @@ get_apkpure() {
 		fi
 	fi
 	if [[ -n "$transfer_tmp" ]]; then
-		mv -f -- "$transfer_path" "./download/$output_base_apk"
+		mv -f -- "$transfer_path" "./download/$output_base_apk" || { rm -f -- "$transfer_path" "./download/$output_base_apk"; return 1; }
 		base_apk="$output_base_apk"
 	fi
 

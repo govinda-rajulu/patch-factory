@@ -72,6 +72,67 @@ class W16oShellContracts(unittest.TestCase):
         self.assertNotIn('Cookie: ', transfer.replace('raw --header Cookie', ''))
         self.assertNotIn('--location-trusted', transfer)
 
+    def run_fn(self, text, name, *args):
+        # W16o round 4 (mutation test): run the real shell function, not a string match.
+        body = name + '() {' + text.split(name + '() {', 1)[1].split('\n}\n', 1)[0] + '\n}\n'
+        return subprocess.run(['bash', '-c', body + name + ' "$@"', 'x', *args],
+                              capture_output=True, text=True).returncode
+
+    def test_store_final_host_rejects_credentials_ports_and_http(self):
+        ok = 'https://Downloads.Example.COM./a.apk'
+        self.assertEqual(self.run_fn(self.utils, 'pf_curl_effective_host_ok', ok, 'apkmirror'), 0)
+        self.assertEqual(self.run_fn(self.utils, 'pf_curl_effective_host_ok', 'https://cdn.example.com:443/a', 's'), 0)
+        for bad in ('https://user:pass@cdn.example.com/a', 'https://cdn.example.com:8443/a',
+                    'http://cdn.example.com/a', 'https:///a'):
+            self.assertNotEqual(self.run_fn(self.utils, 'pf_curl_effective_host_ok', bad, 's'), 0, bad)
+
+    def test_tool_redirect_hosts_reject_any_other_host(self):
+        for text in (self.tooling, self.repin):
+            for good in ('https://github.com/o/r/releases/download/v1/a.jar',
+                         'https://release-assets.githubusercontent.com/x',
+                         'https://objects.githubusercontent.com/x'):
+                self.assertEqual(self.run_fn(text, 'github_effective_host_ok', good), 0, good)
+            for bad in ('https://evil.example.com/x', 'https://github.com.evil.example/x',
+                        'https://user@github.com/x', 'http://github.com/x'):
+                self.assertNotEqual(self.run_fn(text, 'github_effective_host_ok', bad), 0, bad)
+
+    def test_patcher_child_env_is_built_only_from_the_allowlist(self):
+        self.assertIn('child_env = {key: os.environ[key] for key in allowed if key in os.environ}', self.patcher)
+        for wide in ('os.environ.copy()', 'dict(os.environ', 'env=os.environ'):
+            self.assertNotIn(wide, self.patcher)
+
+    def test_store_transfer_rejects_an_empty_candidate(self):
+        transfer = self.utils.split('pf_curl_store_transfer() {', 1)[1].split('\n}', 1)[0]
+        self.assertIn('"$candidate_bytes" -eq 0 ||', transfer)
+
+    def test_store_temp_rename_failure_is_a_failure(self):
+        self.assertNotRegex(self.utils, r'mv -f -- "\$transfer_(tmp|path)" "\./download/\$output_base_apk"(;|\n)')
+
+    def test_apkmirror_transfer_is_the_base_wget_request_with_local_checks(self):
+        # W16o smoke run 40398219589 (wrong call 84): curl got 403 from APKMirror's download
+        # endpoint on 8 of 14 apps; the base wget request built 17 of 17. Same request, local checks.
+        import tempfile
+        self.assertIn('pf_wget_store_transfer "$final_url" "$transfer_path" "$base_url$dl_btn_href" "$user_agent" || wrc=$?', self.utils)
+        self.assertNotIn('"$user_agent" apkmirror', self.utils)
+        fn = 'pf_wget_store_transfer() {' + self.utils.split('pf_wget_store_transfer() {', 1)[1].split('\n}\n', 1)[0] + '\n}\n'
+        with tempfile.TemporaryDirectory() as d:
+            d = Path(d); (d / 'bin').mkdir()
+            (d / 'bin/wget').write_text('#!/bin/bash\nprintf "%s\\n" "$@" > "$ARGS_OUT"\nout=""; while [ $# -gt 0 ]; do [ "$1" = -O ] && out=$2; shift; done\n'
+                                       'case "$MODE" in fail) exit 8;; empty) : > "$out";; *) printf apk > "$out";; esac\n')
+            (d / 'bin/wget').chmod(0o755)
+            def run(mode):
+                env = dict(PATH=str(d / 'bin') + ':/usr/bin:/bin', MODE=mode, ARGS_OUT=str(d / 'args'), FS_COOKIES='cf=1; s=2')
+                script = 'pf_store_size_limit_bytes() { echo 1000; }\n' + fn + 'pf_wget_store_transfer https://www.apkmirror.com/x "$1" https://www.apkmirror.com/r UA-1; echo "rc=$?"'
+                out = subprocess.run(['bash', '-c', script, 'x', str(d / 'apk')], env=env, capture_output=True, text=True).stdout
+                return out.strip().splitlines()[-1], (d / 'apk').exists()
+            self.assertEqual(run('ok'), ('rc=0', True))
+            args = (d / 'args').read_text().splitlines()
+            for want in ('-q', '--header=User-Agent: UA-1', '--referer=https://www.apkmirror.com/r',
+                         '--header', 'Cookie: cf=1; s=2', '--timeout=120', 'https://www.apkmirror.com/x'):
+                self.assertIn(want, args)
+            self.assertEqual(run('empty'), ('rc=1', False))
+            self.assertEqual(run('fail'), ('rc=8', False))
+
     def test_docker_helpers_are_loopback_fail_closed_and_cleaned(self):
         self.assertIn('-p "127.0.0.1:$port:$port"', self.services)
         self.assertIn('return 1', self.services[self.services.index('docker run'):])

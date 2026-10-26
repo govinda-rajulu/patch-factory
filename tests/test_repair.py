@@ -468,7 +468,8 @@ yellow_log(){ :; }; red_log(){ :; }
             self.assertLess(begin, fn_end, store + ': transfer block must sit inside ' + function)
             end = source.index(end_anchor, begin)
             block = source[begin:end]
-            self.assertIn('pf_curl_store_transfer', block)
+            # W16o run 40398219589: APKMirror's enforced transfer is the base wget request again.
+            self.assertIn('pf_wget_store_transfer' if store == 'APKMirror' else 'pf_curl_store_transfer', block)
             self.assertIn('wget -q', block)
             for rc, payload, expected in ((8, '', 1), (8, 'partial', 1),
                                           (0, '', 1), (0, 'fixture-transfer-bytes', 0)):
