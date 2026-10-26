@@ -1,15 +1,17 @@
 {
   "attempt": "1",
-  "baseline_sha256": "fff2dca52504a2a4603cb327074a836648276e567b337bb3b704f0cc125ce9ee",
-  "head": "93bf40d55d289d181c87470db8a545bc5a3e3e90",
-  "index_sha256": "45be74618b1ee5c7b721c11618ad23160ccaf87f95adf1838a8fc78eae1613af",
-  "issue": 242,
-  "issue_url": "https://github.com/govinda-rajulu/patch-factory/issues/242",
-  "parts": 2,
-  "report_key": "79e027bf3f1937100060461dbc2b5a7d4b5c8da9c44cf2d941eeff0b7cec2738",
-  "report_sha256": "69761cdaee296599744e458d9c995a8837e231ac146c594fc952591e618a0726",
+  "baseline_sha256": "45be74618b1ee5c7b721c11618ad23160ccaf87f95adf1838a8fc78eae1613af",
+  "head": "5aa5433ec83a42a85687c388ba4cb08c63f87b06",
+  "index_sha256": "46deb9e23f80614f20d1478ee728f96ec09d914bbf114f4cf3ae0bdb689ec2a5",
+  "issue": 258,
+  "issue_url": "https://github.com/govinda-rajulu/patch-factory/issues/258",
+  "parts": 1,
+  "report_key": "8eb44466af44f8574a4321a62eecbec73c323e46741a704929ae02ffb38b34c0",
+  "report_sha256": "451ccf9ec873c376068f96ad5f4281da3b692fa9f33d37d3832c48dc4f0f04c0",
   "repository": "govinda-rajulu/patch-factory",
-  "run_id": "40172091068",
-  "run_url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40172091068/attempts/1",
-  "state": "READBACK_VERIFIED"
+  "run_id": "40314292565",
+  "run_url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40314292565/attempts/1",
+  "state": "READBACK_VERIFIED",
+  "supersede_failure_code": null,
+  "supersede_failure_count": 0
 }
