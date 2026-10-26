@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Resolve latest stable patcher, verify asset bytes, then atomically install.
+"""Resolve the patcher, verify asset bytes, then atomically install.
 
 GitHub metadata digest is a transport integrity anchor, not independent publisher
-attestation. Invalid cached bytes never become a fallback. No fixed version pin.
+attestation. Invalid cached bytes never become a fallback. Latest stable remains the
+default policy, while optional PATCHER_TAG_PIN/PATCHER_SHA256_PIN values fail closed.
 """
 import hashlib
 import json
@@ -22,9 +23,12 @@ LATEST = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/releases/lates
 MAX_BYTES = 256 * 1024 * 1024
 MAX_EXPANDED = 512 * 1024 * 1024
 MAX_ENTRIES = 100000
+PIN_TAG_ENV = 'PATCHER_TAG_PIN'
+PIN_SHA_ENV = 'PATCHER_SHA256_PIN'
 
 
-def select_asset(release):
+def select_asset(release, env=None):
+    env = env or {}
     require(isinstance(release, dict) and release.get('draft') is False
             and release.get('prerelease') is False and release.get('published_at')
             and isinstance(release.get('tag_name'), str), 'invalid latest stable patcher release')
@@ -43,6 +47,16 @@ def select_asset(release):
     require(u.scheme == 'https' and u.netloc == 'github.com' and not u.query and not u.fragment
             and u.path.startswith('/MorpheApp/morphe-desktop/releases/download/')
             and u.path.rsplit('/', 1)[-1] == asset['name'], 'unexpected patcher asset URL')
+    tag_pin = env.get(PIN_TAG_ENV) or None  # '' is unset (Actions expressions)
+    sha_pin = env.get(PIN_SHA_ENV) or None
+    # W16o: optional pins preserve Morphe's intentional latest-stable policy (H4).
+    require((tag_pin is None) == (sha_pin is None),
+            'patcher pin requires both PATCHER_TAG_PIN and PATCHER_SHA256_PIN')
+    if tag_pin is not None:
+        require(re.fullmatch(r'[A-Za-z0-9_.+-]+', tag_pin), 'invalid PATCHER_TAG_PIN')
+        require(re.fullmatch(r'[0-9a-f]{64}', sha_pin), 'invalid PATCHER_SHA256_PIN')
+        require(release['tag_name'] == tag_pin and asset['digest'] == 'sha256:' + sha_pin,
+                'patcher release or digest differs from optional pin')
     return asset
 
 
@@ -80,7 +94,7 @@ def validate(path, asset):
 
 def fetch(directory, env):
     release = api_json(LATEST, env, OWNER + '/' + REPO)
-    asset = select_asset(release)
+    asset = select_asset(release, env)
     directory = pathlib.Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
     dest = directory / asset['name']
@@ -116,11 +130,26 @@ def fetch(directory, env):
                     raise ValueError('patcher verification failed twice; no cache fallback: ' + '; '.join(errors)) from error
             finally:
                 temp.unlink(missing_ok=True)
-    return {'name': asset['name'], 'path': str(dest), 'bytes': asset['size'], 'sha256': fingerprint,
-            'tag': release['tag_name'], 'asset_id': asset['id'], 'cache_hit_verified': cached,
-            'github_digest_verified': True, 'jar_structure_verified': True,
-            'policy': 'GitHub latest stable; no fixed version pin',
-            'trust': 'GitHub metadata/transport integrity, not independent publisher attestation'}
+    result = {'name': asset['name'], 'path': str(dest), 'bytes': asset['size'], 'sha256': fingerprint,
+              'tag': release['tag_name'], 'asset_id': asset['id'], 'cache_hit_verified': cached,
+              'github_digest_verified': True, 'jar_structure_verified': True,
+              'pin': {'tag': env.get(PIN_TAG_ENV), 'sha256': env.get(PIN_SHA_ENV)}
+                      if env.get(PIN_TAG_ENV) else None,
+              'policy': 'GitHub latest stable unless optional PATCHER_TAG_PIN/PATCHER_SHA256_PIN is set',
+              'trust': 'GitHub metadata/transport integrity, not independent publisher attestation'}
+    # W16o H4: retain the resolved tag beside the verified JAR so the final input
+    # ledger can state exactly which latest release supplied the tool. The sidecar
+    # is only emitted for a checkout root, not resolver scratch payloads.
+    if (directory / 'src' / 'targets.json').is_file():
+        sidecar = dest.with_name(dest.name + '.json')
+        fd, candidate = tempfile.mkstemp(prefix=sidecar.name + '.', suffix='.cand', dir=sidecar.parent)
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+                json.dump(result, stream, sort_keys=True, indent=2); stream.write('\n'); stream.flush(); os.fsync(stream.fileno())
+            os.replace(candidate, sidecar)
+        finally:
+            pathlib.Path(candidate).unlink(missing_ok=True)
+    return result
 
 
 if __name__ == '__main__':

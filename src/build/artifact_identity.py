@@ -7,6 +7,7 @@ import pathlib
 import re
 import shutil
 import subprocess
+import tempfile
 import sys
 import xml.etree.ElementTree as ET
 import zipfile
@@ -48,9 +49,29 @@ def record(root, relative):
 
 
 def atomic_json(path, data):
-    temp = path.with_name(path.name + '.cand')
-    temp.write_text(json.dumps(data, sort_keys=True, indent=2) + '\n')
-    os.replace(temp, path)
+    # W16o: mkstemp prevents a provider from pre-creating a predictable .cand
+    # symlink and redirecting evidence writes (F-09).
+    path = pathlib.Path(path)
+    require(not path.is_symlink(), 'symlinked JSON destination refused')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp = tempfile.mkstemp(prefix=path.name + '.', suffix='.cand', dir=path.parent)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+            stream.write(json.dumps(data, sort_keys=True, indent=2) + '\n')
+            stream.flush(); os.fsync(stream.fileno())
+        os.chmod(temp, 0o600)
+        os.replace(temp, path)
+    finally:
+        pathlib.Path(temp).unlink(missing_ok=True)
+
+
+def patcher_pin(env):
+    tag, digest = env.get('PATCHER_TAG_PIN') or None, env.get('PATCHER_SHA256_PIN') or None  # '' is unset
+    require((tag is None) == (digest is None), 'patcher pin requires both PATCHER_TAG_PIN and PATCHER_SHA256_PIN')
+    if tag is not None:
+        require(re.fullmatch(r'[A-Za-z0-9_.+-]+', tag) is not None, 'invalid PATCHER_TAG_PIN')
+        require(re.fullmatch(r'[0-9a-f]{64}', digest) is not None, 'invalid PATCHER_SHA256_PIN')
+    return tag, digest
 
 
 def sdk_tools(name, env):
@@ -132,7 +153,31 @@ def capture_inputs(root, ident, winner, env):
     selected = [candidates[0]] + t.get('extra_bundles', [])
     require(len(bundle_paths) == len(selected), 'bundle inventory mismatch')
     bundle_records = [record(root, str(p.relative_to(root))) for p in sorted(bundle_paths)]
-    tools = [record(root, str(jars[0].relative_to(root))), record(root, 'APKEditor.jar'), record(root, 'pup')]
+    tools = [record(root, str(jars[0].relative_to(root))), record(root, 'APKEditor.jar')]
+    patcher_meta_path = jars[0].with_name(jars[0].name + '.json')
+    patcher_meta = None
+    tag_pin, digest_pin = patcher_pin(env)
+    if patcher_meta_path.is_file() and not patcher_meta_path.is_symlink():
+        try:
+            patcher_meta = json.loads(patcher_meta_path.read_text(encoding='utf-8'))
+            # W16o MED-1: bind supplied pins before the JAR consistency check, so
+            # a present but conflicting sidecar can never satisfy the pin.
+            if tag_pin is not None:
+                require(patcher_meta.get('tag') == tag_pin and patcher_meta.get('sha256') == digest_pin,
+                        'patcher provenance sidecar differs from configured pin')
+            require(isinstance(patcher_meta, dict) and patcher_meta.get('name') == jars[0].name
+                    and patcher_meta.get('sha256') == tools[0]['sha256']
+                    and patcher_meta.get('bytes') == tools[0]['bytes']
+                    and isinstance(patcher_meta.get('tag'), str) and patcher_meta['tag'],
+                    'invalid patcher provenance sidecar')
+        except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
+            raise ValueError(str(error)) from error
+    else:
+        # W16o MED-1: old/manual paths may lack metadata; preserve evidence as
+        # explicitly unknown, but never ignore an operator-supplied pin.
+        if tag_pin is not None:
+            require(False, 'patcher provenance sidecar unavailable while a pin is set')
+        print('::warning::PATCHER_PROVENANCE_UNKNOWN capture-inputs has no validated patcher metadata', file=sys.stderr)
     patcher_input = record(root, 'download/' + t['apk_name'] + '.apk')
     requested = record(root, '.requested')
     config_fingerprint = hashlib.sha256(json.dumps(repo_files, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
@@ -140,7 +185,8 @@ def capture_inputs(root, ident, winner, env):
             'local_input_recipe': input_recipe.create(root, ident, winner, env),
             'expected_package': expected_package(root, t), 'sdk_ceiling': t['min_sdk_ceiling'],
             'expected_certificate_sha256': signer['certificate_sha256'], 'repository_files': repo_files,
-            'repository_bytes_fingerprint': config_fingerprint, 'tools': tools, 'bundles': bundle_records,
+            'repository_bytes_fingerprint': config_fingerprint, 'tools': tools,
+            'patcher_provenance': patcher_meta, 'bundles': bundle_records,
             'patcher_input_apk': patcher_input, 'requested_ledger': requested,
             'limitations': ['Patcher input may be a merged/repacked store download; original publisher signature is not verified.',
                             'Runtime/OS/container transitive dependencies are not fully pinned or attested.',

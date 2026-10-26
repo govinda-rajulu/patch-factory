@@ -91,6 +91,8 @@ MIRROR = None       # (W13) dict(repo, files, manifest, anchor, branch, title[, 
 PAGES_WAIT = int(os.environ.get('PF_PAGES_WAIT', '900'))
 BUNDLE = '@@BUNDLE@@'
 # -------------------------------------------------------------------------------------------
+# W16n owner request: RESULT.json says who wrote the controller (owner, 26 Oct: no banner line on every run).
+BUILT_BY = 'ClickUp Brain on Claude (engineering) for Govindarajulu K (owner)'
 REMOTE = os.environ.get('PF_REMOTE', 'https://github.com/%s.git' % REPO)
 GH = os.environ.get('PF_GH', 'gh')
 WAIT = int(os.environ.get('PF_WAIT', '2700'))
@@ -103,7 +105,7 @@ WORK = HOME / 'work'
 CLONE = WORK / ('patch-factory-%s-%s' % (PACKET, STAMP))
 LOGS = WORK / 'run-logs' / ('pf-%s-%s' % (PACKET, STAMP))
 SELF = pathlib.Path(__file__).resolve()
-R = {'script': SELF.name, 'stamp': STAMP, 'base': BASE, 'tree': TREE, 'phases': [], 'result': 'RUNNING'}
+R = {'script': SELF.name, 'built_by': BUILT_BY, 'stamp': STAMP, 'base': BASE, 'tree': TREE, 'phases': [], 'result': 'RUNNING'}
 
 
 def save():
@@ -636,7 +638,13 @@ def tidy(merge_sha):
     if code != 0 or not text.startswith('TIDY '):
         say('tidy', 'FAIL', 'preview: ' + (text or err.decode('utf-8', 'replace'))[-300:] + ' (nothing edited)')
         return False
-    code, out, err = run([sys.executable, 'src/etc/release_tidy.py', 'apply', '--backup', str(LOGS / 'release-tidy-backup.json'),
+    try:
+        tidy_token = json.loads((LOGS / 'release-tidy-preview.json').read_text(encoding='utf-8'))['token']
+    except (OSError, ValueError, KeyError, TypeError):
+        say('tidy', 'FAIL', 'preview did not contain a release-tidy token (nothing edited)')
+        return False
+    code, out, err = run([sys.executable, 'src/etc/release_tidy.py', 'apply', '--token', tidy_token,
+                          '--backup', str(LOGS / 'release-tidy-backup.json'),
                           '--receipt', str(LOGS / 'release-tidy-receipt.json')], cwd=CLONE, timeout=3600, out=LOGS / 'release-tidy-apply.txt')
     last = (out.decode('utf-8', 'replace').strip().splitlines() or [err.decode('utf-8', 'replace')[-300:]])[-1]
     R['tidy'] = dict(preview=text, applied=last)
@@ -849,7 +857,12 @@ def main():
     early = PUBLISH_ALL or bool(PUBLISH_APPS)  # W16c: fresh releases before the cleanup, too
     tested = t1(R['merge']) if early else True
     previewed = preview()
-    cleaned = previewed and cleanup(R['merge'])
+    if deployed:
+        cleaned = previewed and cleanup(R['merge'])
+    else:
+        # W16o round 3: no cleanup apply without the merge's own finished Pages deploy.
+        say('cleanup', 'FAIL', 'not applied: the Pages deployment did not finish; the apply line is in cleanup-apply-command.txt')
+        cleaned = False
     tidied = tidy(R['merge'])
     mirrored = mirror(R['merge'])
     if not early:

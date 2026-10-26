@@ -26,6 +26,7 @@ class Steps(unittest.TestCase):
         self.addCleanup(self.t.cleanup)
         self.r = Path(self.t.name)
         (self.r / 'src/build/helper').mkdir(parents=True)
+        (self.r / 'src/build/html_select.py').write_bytes((ROOT / 'src/build/html_select.py').read_bytes())
         (self.r / 'src/build/helper/apps.json').write_text(json.dumps(
             {'apkmirror': {'com.amazon.mp3': {'list_url': 'https://www.apkmirror.com/uploads/?appcategory=amazon-music'}}}))
         (self.r / 'morphe-desktop-1.0.jar').write_text('jar')
@@ -44,14 +45,10 @@ class Steps(unittest.TestCase):
             f = self.r / ('page%d.html' % i)
             f.write_text(page)
             page_files.append(str(f))
-        # _cf_get and pup stand in for utils.sh: page N of the listing, then a jq-shaped JSON.
+        # _cf_get supplies pages while the checked-in helper performs real HTML selection.
         script = ('set -u; N=0; PAGES=(%s); _cf_get(){ html=$(cat "${PAGES[$N]}"); N=$((N+1)); echo "$1" >> urls; }\n'
-                  'pup=./fakepup\nsource %s\npf_next_version com.amazon.mp3 "$1" "$2"\n') % (
-                      ' '.join(page_files), ROOT / 'src/build/version_steps.sh')
-        pup = self.r / 'fakepup'
-        pup.write_text('#!/usr/bin/env python3\nimport sys,re,json\nh=sys.stdin.read()\n'
-                       'print(json.dumps([{"text":t} for t in re.findall(r\'class="fontBlack">([^<]*)<\',h)]))\n')
-        pup.chmod(0o755)
+                  'PF_VERSION_ROOT=%s\nsource %s\npf_next_version com.amazon.mp3 "$1" "$2"\n') % (
+                      ' '.join(page_files), self.r, ROOT / 'src/build/version_steps.sh')
         env = {**os.environ, 'PATH': str(self.bin) + ':' + os.environ['PATH']}
         return subprocess.run(['bash', '-c', script, 'x', current, maxver], cwd=self.r, env=env,
                               capture_output=True, text=True)

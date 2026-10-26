@@ -37,7 +37,7 @@ pf_store_versions() {
     if ! _cf_get "$url"; then echo "STEP_DOWN store listing page $page unreadable" >&2; return 2; fi
     while IFS= read -r text; do
       grep -oE '[0-9]+([.][0-9]+)+' <<<"$text" | tail -1
-    done < <(printf '%s' "$html" | $pup 'h5.appRowTitle a.fontBlack json{}' | \
+    done < <(printf '%s' "$html" | python3 "${PF_VERSION_ROOT:-.}/src/build/html_select.py" 'h5.appRowTitle a.fontBlack json{}' | \
       jq -r '.[] | select(.text | test("(?i)beta|alpha") | not) | .text')
   done | sort -urV
 }

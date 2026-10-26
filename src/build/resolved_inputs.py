@@ -82,8 +82,69 @@ def safe_env(env):
     # Only public tool configuration and the caller's read-only API token.
     # Never inherit signing secrets, COE, proxy variables or arbitrary JAVA_OPTS.
     allowed = ("PATH", "HOME", "LANG", "LC_ALL", "JAVA_HOME", "TMPDIR",
-               "GITHUB_TOKEN", "GH_TOKEN")
-    return {k: env[k] for k in allowed if k in env}
+               "GITHUB_TOKEN", "GH_TOKEN", "PATCHER_TAG_PIN", "PATCHER_SHA256_PIN")
+    clean = {k: env[k] for k in allowed if k in env}
+    tag, digest = clean.get("PATCHER_TAG_PIN") or None, clean.get("PATCHER_SHA256_PIN") or None  # "" is unset (Actions expressions)
+    # W16o: preserve the optional patcher pins on the prepared path (MED-2),
+    # validating their pair before passing them to the isolated resolver.
+    need((tag is None) == (digest is None),
+         "patcher pin requires both PATCHER_TAG_PIN and PATCHER_SHA256_PIN")
+    if tag is not None:
+        need(re.fullmatch(r"[A-Za-z0-9_.+-]+", tag) is not None, "invalid PATCHER_TAG_PIN")
+        need(re.fullmatch(r"[0-9a-f]{64}", digest) is not None, "invalid PATCHER_SHA256_PIN")
+    return clean
+
+
+def patcher_provenance(meta):
+    """Return only validated patcher identity metadata, or None for old fixtures."""
+    if not isinstance(meta, dict):
+        return None
+    required = ("name", "bytes", "sha256", "tag")
+    if not all(k in meta for k in required):
+        return None
+    need(re.fullmatch(r"morphe-desktop-[A-Za-z0-9_.+-]+-all[.]jar", meta["name"]) is not None,
+         "invalid patcher provenance name")
+    need(type(meta["bytes"]) is int and 0 < meta["bytes"] <= MAX_FILE and
+         re.fullmatch(r"[0-9a-f]{64}", meta["sha256"]) is not None and
+         isinstance(meta["tag"], str) and bool(meta["tag"]) and
+         re.fullmatch(r"[A-Za-z0-9_.+-]+", meta["tag"]) is not None,
+         "invalid patcher provenance")
+    return {k: meta[k] for k in ("name", "bytes", "sha256", "tag", "asset_id",
+                                 "github_digest_verified", "jar_structure_verified", "pin",
+                                 "policy", "trust") if k in meta}
+
+
+def pin_values(env):
+    tag, digest = env.get("PATCHER_TAG_PIN") or None, env.get("PATCHER_SHA256_PIN") or None  # "" is unset
+    need((tag is None) == (digest is None),
+         "patcher pin requires both PATCHER_TAG_PIN and PATCHER_SHA256_PIN")
+    if tag is not None:
+        need(re.fullmatch(r"[A-Za-z0-9_.+-]+", tag) is not None, "invalid PATCHER_TAG_PIN")
+        need(re.fullmatch(r"[0-9a-f]{64}", digest) is not None, "invalid PATCHER_SHA256_PIN")
+    return tag, digest
+
+
+def pin_set(env):
+    return pin_values(env)[0] is not None
+
+
+def validate_patcher_provenance(provenance, material, env):
+    """Bind lock metadata to the locked JAR and optional operator pins."""
+    tag, digest = pin_values(env)
+    need(provenance is not None or tag is None,
+         "patcher provenance unavailable while a pin is set")
+    if provenance is None:
+        print("::warning::PATCHER_PROVENANCE_UNKNOWN resolved lock has no validated patcher metadata", file=sys.stderr)
+        return None
+    expected = material["patcher"]
+    need(provenance["name"] == Path(expected["path"]).name and
+         provenance["bytes"] == expected["bytes"] and
+         provenance["sha256"] == expected["sha256"],
+         "patcher provenance differs from locked JAR")
+    if tag is not None:
+        need(provenance["tag"] == tag and provenance["sha256"] == digest,
+             "patcher provenance differs from configured pin")
+    return provenance
 
 
 def identity(root, env):
@@ -172,6 +233,11 @@ def prepare(root, ident, env, patcher_fetch=None, run=None, extra_fetch=None):
         payload = scratch / "payload"
         payload.mkdir()
         meta = fetch(payload, clean)
+        provenance = patcher_provenance(meta)
+        need(provenance is not None or not pin_set(clean),
+             "patcher provenance unavailable while a pin is set")
+        if provenance is None:
+            print("::warning::PATCHER_PROVENANCE_UNKNOWN prepared resolution has no validated patcher metadata", file=sys.stderr)
         jar = payload / meta["name"]
         record = regular(payload, meta["name"])
         need(record["bytes"] == meta["bytes"] and record["sha256"] == meta["sha256"],
@@ -231,6 +297,9 @@ def prepare(root, ident, env, patcher_fetch=None, run=None, extra_fetch=None):
                     "patcher": record, "bundles": sorted(rows, key=lambda x: x["slot"])}
         need(sum(r["bytes"] for r in rows) + record["bytes"] <= MAX_TOTAL, "payload exceeds bound")
         body = {"domain": DOMAIN, "schema": 1, "run": run_id, "material": material,
+                # W16o MED-1: bind the resolved tag/digest into the lock so the
+                # prepared path can install the same provenance beside its JAR.
+                "patcher_provenance": provenance,
                 "dependency_sha256": input_recipe.digest(material),
                 "bundle_tag": parsed["BUNDLE_TAG"],
                 # W15d: the same reader as the downloading path, prerelease suffix kept.
@@ -268,6 +337,8 @@ def verify(root, ident, env):
          (doc["patch_version"] == "unknown" or bundle_version.PATTERN.fullmatch(doc["patch_version"])),
          "invalid patch version")
     m = doc["material"]
+    provenance = patcher_provenance(doc.get("patcher_provenance"))
+    validate_patcher_provenance(provenance, m, env)
     need(m["target"] == ident and m["declaration_sha256"] == declaration(root, ident),
          "lock target/declaration drift")
     need(doc["dependency_sha256"] == input_recipe.digest(m), "dependency digest differs")
@@ -320,6 +391,29 @@ def install(root, ident, env):
         actual = regular(root, r["path"])
         need(actual["sha256"] == r["sha256"] and actual["bytes"] == r["bytes"],
              "installed bytes differ; preserve partial work")
+    provenance = patcher_provenance(doc.get("patcher_provenance"))
+    sidecar = root / (Path(m["patcher"]["path"]).name + ".json")
+    if provenance is not None:
+        if sidecar.is_file() and not sidecar.is_symlink():
+            try:
+                existing = patcher_provenance(json.loads(sidecar.read_text(encoding="utf-8")))
+            except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
+                raise ValueError("invalid existing patcher provenance sidecar: " + str(error)) from error
+            validate_patcher_provenance(existing, m, env)
+        need(not sidecar.exists() and not sidecar.is_symlink(), "patcher provenance destination collision")
+        fd, candidate = tempfile.mkstemp(prefix=sidecar.name + ".", suffix=".cand", dir=root)
+        try:
+            payload = dict(provenance, path=str(root / m["patcher"]["path"]))
+            with os.fdopen(fd, "w", encoding="utf-8") as stream:
+                json.dump(payload, stream, sort_keys=True, indent=2); stream.write("\n"); stream.flush(); os.fsync(stream.fileno())
+            os.chmod(candidate, 0o600)
+            os.replace(candidate, sidecar)
+        finally:
+            Path(candidate).unlink(missing_ok=True)
+    elif pin_set(env):
+        raise ValueError("resolved inputs: patcher provenance unavailable while a pin is set")
+    else:
+        print("::warning::PATCHER_PROVENANCE_UNKNOWN installed prepared JAR has no validated metadata", file=sys.stderr)
     return doc
 
 

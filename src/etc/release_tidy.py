@@ -6,7 +6,7 @@ changes, provider notes and one install line; this tool removes those old repeat
 without changing the machine-readable release record.
 
   python3 src/etc/release_tidy.py preview --out PLAN.json
-  python3 src/etc/release_tidy.py apply --backup BACKUP.json [--receipt RECEIPT.json]
+  python3 src/etc/release_tidy.py apply --token TOKEN --backup BACKUP.json [--receipt RECEIPT.json]
 
 Rules: only bodies that carry the [pf-release-v1] marker and hold both blocks in their exact
 generated wording change; everything else (legacy notes, edited notes, other shapes) is
@@ -14,7 +14,7 @@ counted and left alone. The marker line and every other byte stay identical. app
 the old bodies to BACKUP before the first edit, re-reads the full release list, and checks
 each edit came back byte-identical. Asset files, tags and dates are not touched.
 """
-import argparse, json, os, pathlib, re, subprocess, sys, tempfile
+import argparse, hashlib, json, os, pathlib, re, subprocess, sys, tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'build'))
@@ -80,13 +80,16 @@ def plan(rows):
                                   'saved': len(r['body'].encode()) - len(new.encode())})
         elif why == 'other':
             out.setdefault('other_tags', []).append(r.get('tag_name'))
+    canonical = json.dumps(out['change'], sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+    out['token'] = hashlib.sha256(canonical.encode('utf-8')).hexdigest()[:16]
     return out
 
 
 def summary(p):
     c = p['counts']
     return ('TIDY %d release note(s) lose the repeated blocks (%d bytes); %d already tidy, %d legacy, %d other shape (kept)'
-            % (c['change'], sum(x['saved'] for x in p['change']), c['tidy'], c['legacy'], c['other']))
+            % (c['change'], sum(x['saved'] for x in p['change']), c['tidy'], c['legacy'], c['other'])
+            + ' TOKEN ' + p['token'])
 
 
 def write(path, data):
@@ -101,6 +104,7 @@ def write(path, data):
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('mode', choices=('preview', 'apply'))
+    ap.add_argument('--token')
     ap.add_argument('--out')
     ap.add_argument('--backup')
     ap.add_argument('--receipt')
@@ -111,6 +115,11 @@ def main(argv=None):
             write(a.out, p)
         print(summary(p))
         return 0
+    if not a.token:
+        raise SystemExit('STOP: apply needs --token from preview; nothing changed')
+    if a.token != p['token']:
+        print(summary(p))
+        raise SystemExit('STOP: token %s does not match the live plan (%s); GitHub changed since the preview. Nothing changed.' % (a.token, p['token']))
     if not a.backup:
         raise SystemExit('STOP: apply needs --backup; nothing changed')
     write(a.backup, [{'id': x['id'], 'tag': x['tag'], 'body': x['old']} for x in p['change']])

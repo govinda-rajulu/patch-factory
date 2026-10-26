@@ -48,8 +48,17 @@ class ResolvedContracts(unittest.TestCase):
         self.assertNotIn("KEYSTORE_PASS", env)
         self.assertNotIn("JAVA_TOOL_OPTIONS", env)
         name = "morphe-desktop-fixture-all.jar"
-        (Path(directory) / name).write_bytes(b"fixture patcher bytes")
-        return dict(resolved.regular(directory, name), name=name)
+        payload = b"fixture patcher bytes"
+        (Path(directory) / name).write_bytes(payload)
+        if env.get("PATCHER_TAG_PIN") and (env["PATCHER_TAG_PIN"] != "v1.15.0" or
+                env["PATCHER_SHA256_PIN"] != hashlib.sha256(payload).hexdigest()):
+            raise ValueError("patcher release or digest differs from optional pin")
+        result = dict(resolved.regular(directory, name), name=name, tag="v1.15.0",
+                      asset_id=42, github_digest_verified=True, jar_structure_verified=True,
+                      pin={"tag": env.get("PATCHER_TAG_PIN"), "sha256": env.get("PATCHER_SHA256_PIN")}
+                           if env.get("PATCHER_TAG_PIN") else None,
+                      policy="fixture", trust="fixture")
+        return result
 
     def resolver(self, args, **kwargs):
         self.calls.append("resolver")
@@ -83,6 +92,37 @@ class ResolvedContracts(unittest.TestCase):
             doc["dependency_sha256"] = input_recipe.digest(doc["material"])
             doc["sha256"] = input_recipe.digest({k: v for k, v in doc.items() if k != "sha256"})
         (self.r / resolved.LOCK).write_text(json.dumps(doc))
+
+    def test_prepared_resolution_preserves_pins_and_installs_provenance_sidecar(self):
+        digest = hashlib.sha256(b"fixture patcher bytes").hexdigest()
+        self.env.update(PATCHER_TAG_PIN="v1.15.0", PATCHER_SHA256_PIN=digest)
+        doc = self.prepare()
+        self.assertEqual(doc["patcher_provenance"]["tag"], "v1.15.0")
+        self.assertEqual(doc["patcher_provenance"]["sha256"], digest)
+        resolved.install(self.r, self.ident, self.env)
+        sidecar = self.r / "morphe-desktop-fixture-all.jar.json"
+        self.assertTrue(sidecar.is_file())
+        self.assertEqual(json.loads(sidecar.read_text())["tag"], "v1.15.0")
+
+    def test_prepared_resolution_pin_mismatch_reaches_fetch_and_fails(self):
+        self.env.update(PATCHER_TAG_PIN="v9.9.9", PATCHER_SHA256_PIN="0" * 64)
+        with self.assertRaisesRegex(ValueError, "patcher release or digest differs"):
+            self.prepare()
+
+    def test_resealed_lock_wrong_tag_or_digest_or_name_fails_with_matching_pins(self):
+        digest = hashlib.sha256(b"fixture patcher bytes").hexdigest()
+        self.env.update(PATCHER_TAG_PIN="v1.15.0", PATCHER_SHA256_PIN=digest)
+        original = self.prepare()
+        for field, value, reason in (("tag", "v9.9.9", "configured pin"),
+                                     ("sha256", "f" * 64, "locked JAR"),
+                                     ("name", "morphe-desktop-other-all.jar", "locked JAR")):
+            with self.subTest(field=field):
+                doc = copy.deepcopy(original)
+                doc["patcher_provenance"][field] = value
+                self.rewrite(doc, reseal=True)
+                with self.assertRaisesRegex(ValueError, reason):
+                    resolved.verify(self.r, self.ident, self.env)
+                self.rewrite(original, reseal=True)
 
     def test_prepare_verify_install_and_consumption_use_exact_files_without_network(self):
         doc = self.prepare()
@@ -380,7 +420,7 @@ class ResolvedContracts(unittest.TestCase):
         doc = self.prepare()
         resolved.install(self.r, self.ident, self.env)
         cert = "a" * 64
-        for name, data in (("APKEditor.jar", b"editor"), ("pup", b"pup"),
+        for name, data in (("APKEditor.jar", b"editor"),
                            ("download/key-mapper.apk", b"apk"),
                            (".requested", b"lain\tUnlock Premium\n")):
             p = self.r / name;p.parent.mkdir(parents=True, exist_ok=True);p.write_bytes(data)

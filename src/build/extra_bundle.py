@@ -107,8 +107,42 @@ def verify_zip(path):
     return zip_inspect(path, MAX_BYTES, MAX_EXPANDED, MAX_ENTRIES)
 
 
-def fetch(host, ident, channel, out, env):
+def configured_digest(out):
+    """Read an optional target extra_bundles.expected_sha256 pin by bundle name.
+
+    The shell wrapper historically receives only HOST/IDENT/CHANNEL/OUT. Derive
+    the configured name from OUT so existing callers gain the optional pin
+    without changing the build shell contract. Ambiguous pins are refused.
+    """
+    root = pathlib.Path.cwd()
+    config = root / 'src' / 'targets.json'
+    match = re.match(r'[0-9]+-([A-Za-z0-9_-]+)[.]mpp$', pathlib.Path(out).name)
+    if not config.is_file() or not match:
+        return None
+    name = match.group(1)
+    try:
+        targets = json.loads(config.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return None
+    values = []
+    for target in targets if isinstance(targets, list) else []:
+        for bundle in target.get('extra_bundles', []) if isinstance(target, dict) else []:
+            if isinstance(bundle, dict) and bundle.get('name') == name and bundle.get('expected_sha256') is not None:
+                values.append(bundle['expected_sha256'])
+    if not values:
+        return None
+    require(len(set(values)) == 1, 'ambiguous expected_sha256 pin for extra bundle ' + name)
+    return values[0]
+
+
+def fetch(host, ident, channel, out, env, expected_sha256=None):
+    if expected_sha256 is None:
+        expected_sha256 = configured_digest(out)
+    if expected_sha256 is not None:
+        require(isinstance(expected_sha256, str) and re.fullmatch(r'[0-9a-f]{64}', expected_sha256),
+                'invalid expected_sha256 bundle pin')
     meta = select(host, ident, channel, env)
+    meta['expected_sha256'] = expected_sha256
     out = pathlib.Path(out)
     require(out.suffix == '.mpp' and not out.is_symlink(), 'invalid or symlinked bundle destination')
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -125,10 +159,21 @@ def fetch(host, ident, channel, out, env):
             size, digest = verify_zip(tmp)
             require(meta['expected_size'] is None or size == meta['expected_size'], 'bundle size differs from GitHub metadata')
             require(meta['expected_digest'] is None or 'sha256:' + digest == meta['expected_digest'], 'bundle digest differs from GitHub metadata')
+            if meta['expected_sha256'] is not None:
+                require(digest == meta['expected_sha256'], 'bundle digest differs from expected_sha256 pin')
+                pin_verified = True
+            else:
+                pin_verified = False
+                # W16o H5/F-06: local hashes are recorded, but an absent reviewed
+                # publisher digest is a warning rather than a silent acceptance.
+                print('::warning::EXTRA_BUNDLE_DIGEST_UNPINNED host=' + host +
+                      ' identity=' + ident + ' asset=' + meta['asset_name'] +
+                      ' sha256=' + digest, file=sys.stderr)
             result = dict(meta, bytes=size, sha256=digest, zip_verified=True,
                           upstream_digest_verified=meta['expected_digest'] is not None,
+                          expected_digest_verified=pin_verified,
                           upstream_size_verified=meta['expected_size'] is not None,
-                          trust='transport/archive checks; local SHA-256 is not publisher authenticity')
+                          trust='transport/archive checks; local SHA-256 recorded; publisher digest optional')
             os.replace(tmp, out)
             return result
         except (ValueError, OSError, zipfile.BadZipFile, RuntimeError, NotImplementedError, subprocess.TimeoutExpired) as error:
@@ -141,7 +186,8 @@ def fetch(host, ident, channel, out, env):
 
 
 def main():
-    result = fetch(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], os.environ)
+    expected = sys.argv[5] if len(sys.argv) > 5 else None
+    result = fetch(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], os.environ, expected)
     print('PUB=' + result['published_at'])
     print('TAG=' + result['tag'])
     print('SIZE=' + str(result['bytes']))

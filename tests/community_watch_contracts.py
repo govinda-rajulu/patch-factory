@@ -25,12 +25,59 @@ TARGETS = [dict(id="app", enabled=True, package="com.example.app",
                candidates=[dict(owner="owner", repo="patches")])]
 
 
+def expected_patch_count(data):
+    """Independent count: per repository, the multiset union of its bundles' patch records, with
+    compatibility references resolved (two listings may point at different but equal rows)."""
+    import collections
+    compat = data["compatibilities"]
+    table = {str(k): m.compatibility(v) for k, v in (enumerate(compat) if isinstance(compat, list) else compat.items())}
+    def resolved(patch):
+        record = dict(patch)
+        refs = [record.pop(f) for f in ("compatiblePackagesKey", "compatibilityKey") if f in record]
+        record["compatibility"] = table[str(refs[0])] if refs and refs[0] is not None else {}
+        return m.canonical(record)
+    groups = collections.defaultdict(list)
+    for b in data["bundles"]:
+        groups[b.get("source", "github") + ":" + b["repo"].lower()].append(b)
+    total = 0
+    for members in groups.values():
+        union = collections.Counter()
+        for b in members:
+            union |= collections.Counter(resolved(p) for p in b["patches"])
+        total += sum(union.values())
+    return total
+
+
 class Model(unittest.TestCase):
+    def test_real_snapshot_with_a_doubled_repository(self):
+        data = json.loads((ROOT / "src/community/bundles.json").read_text())
+        twin = copy.deepcopy(data["bundles"][0])
+        twin["name"] = "Twin listing"
+        twin["patches"] = twin["patches"] + [dict(name="Only in the twin listing")]
+        twin["patchCount"] = len(twin["patches"])
+        data["bundles"].append(twin)
+        before = m.inventory(json.loads((ROOT / "src/community/bundles.json").read_text()))
+        parsed = m.inventory(data)
+        # Delta against the stored snapshot, which may already list a repository twice (26 Oct:
+        # epabafree/sabp-eppy-patches; Validate run 40338726723, wrong call 81).
+        self.assertEqual(parsed["coverage"]["patches"], expected_patch_count(data))
+        self.assertEqual(parsed["coverage"]["patches"] - before["coverage"]["patches"], 1)
+        self.assertEqual(len(parsed["coverage"]["merged_providers"]) - len(before["coverage"]["merged_providers"]),
+                         0 if any(x["provider"] == "github:" + data["bundles"][0]["repo"].lower()
+                                  for x in before["coverage"]["merged_providers"]) else 1)
+
     def test_real_snapshot_complete_accounting(self):
         data = json.loads((ROOT / "src/community/bundles.json").read_text())
         parsed = m.inventory(data)
         self.assertEqual(parsed["coverage"]["bundles"], len(data["bundles"]))
-        self.assertEqual(parsed["coverage"]["patches"], sum(len(b["patches"]) for b in data["bundles"]))
+        # W16n merges every bundle of one repository; a record an earlier bundle of the same
+        # repository already gave is counted once (26 Oct: the live snapshot lists one repo twice,
+        # 5960 raw records, 5957 after the merge; Validate run 40333090933).
+        self.assertEqual(parsed["coverage"]["patches"], expected_patch_count(data))
+        self.assertEqual(parsed["coverage"]["patches"],
+                         sum(len(v) for p in parsed["providers"].values() for v in p["patches"].values()))
+        if not parsed["coverage"]["merged_providers"]:
+            self.assertEqual(parsed["coverage"]["patches"], sum(len(b["patches"]) for b in data["bundles"]))
         self.assertEqual(parsed["coverage"]["compatibility_rows"], len(data["compatibilities"]))
         self.assertGreater(parsed["coverage"]["patches"], 0)
         targets = json.loads((ROOT / "src/targets.json").read_text())

@@ -2,7 +2,48 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
-## Current checkpoint: 26 October 2026, afternoon IST (packet W16n)
+## Current checkpoint: 26 October 2026, evening IST (packet W16o)
+
+W16o did item 2 of the afternoon checkpoint below, except what is listed here. Its "manual
+dispatch builds only from main" became: publishing only from main; nonpublishing smokes on
+packet branches stay allowed. Every other
+afternoon item is carried as written there.
+
+1. W16n result: merged as #257; T1 17 of 17 apps, every watch green except MCP scout (dispatched
+   after the merge, run 40315496589) and Onboarding review, whose last dispatch run 40213438388
+   (25 Oct, step "Convene the onboarding review") failed: read its log (`gh run view 40213438388
+   --log-failed`) before the next onboarding.
+2. After the W16o merge read the `STORE_FINAL_HOST` lines of the smokes and the T1 batch: they
+   are the first live list of APKPure CDN hosts (APKMirror is on wget again, run 40398219589: curl
+   got 403 on 8 of 14 APKMirror apps, 6 passed; before curl returns there, probe it live on every
+   APKMirror app, for example with --http1.1). The wget request follows redirects with no
+   HTTPS-only rule or final-host line, as base did; the APK identity checks still run after it. A host allowlist can be added from that list in a
+   later packet (round 2 review: no allowlist without live evidence).
+3. The APKMirror retry line prints `wget_exit=` and `pf_wget_meaning` text for what is now a curl
+   exit code: rename both in the next packet that touches utils.sh.
+4. Optional pins exist but none is set: PATCHER_TAG_PIN, PATCHER_SHA256_PIN and
+   extra_bundles[].expected_sha256. Set them only with the owner.
+5. Still open from the audit: W15g signing split (signing inputs still reach the patcher job),
+   Gemini CLI below 1.0 until mcp-scout.yml moves to the Policy Engine.
+6. Round 3 review (fresh agents with the curl, GitHub, runner-image and Python docs) left these,
+   none blocking W16o: the controller checks main for human drift a moment before the merge call,
+   and the merge's `sha` guards only the pull request head, so a human push in that second is
+   caught only by the tree check after the merge (LOW, owner is the only human); the publishing
+   dispatch lookup is not filtered by `head_sha` (dormant, PUBLISH_DISPATCH is empty; fix before
+   W15g uses it); the bot-drift rule does not require the GitHub-committer case to be a merge
+   commit (LOW); tests/transfer_retry_contracts.py exercises only the wget branch (LOW).
+7. Round 4 review (eight agents, adversarial, mutation tests) left these, none blocking W16o:
+   the optional patcher pins work only for the current latest release (the fetch reads
+   releases/latest), so read releases/tags/<pin> before anyone sets a pin; a stale sidecar
+   from before provenance makes resolved_inputs install stop on a name collision (dormant,
+   sidecars do not persist between runs); PF_STORE_MAX_BYTES accepts T and P suffixes that
+   curl --max-filesize rejects; the tool host check reads only the final URL, not each hop;
+   T1 findings are listed but T1 still reports OK by design (read the finding count).
+   Older than W16o: the FlareSolverr request in _fs_get has no curl --max-time, so a hung
+   local listener could delay the CloudflareBypass fallback (a dead helper is removed, so its
+   port refuses at once); give it a deadline above FlareSolverr's 60 s maxTimeout.
+
+## Earlier checkpoint: 26 October 2026, afternoon IST (packet W16n)
 
 Supersedes the morning checkpoint's items 6, 6b, 6c and the parts of 11 that W16n did (MCP scout
 instructions, tooling pins, UNREVIEWED.tsv, assistant tooling style, workflow comments, README

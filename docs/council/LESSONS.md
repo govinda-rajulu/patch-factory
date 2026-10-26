@@ -664,3 +664,28 @@ The community index listed one repository twice and the watch refused the whole 
 (DUPLICATE_PROVIDER, run 40294788256); the raw index was written only after the compare, so which
 repository was doubled is unknown. Merge duplicates on our own identity (here the repository a
 target wires), say each merge in the report, and write every raw input before parsing it.
+
+### L110 · Check a tool option against the installed tool, and prove network changes live
+Tags: build, evidence, tests
+In W16o a lane agent bounded store downloads with `wget --max-file-size`, an option GNU wget does not
+have; every store download would have failed. The curl rewrite then added a preflight request without
+the store's headers and an allowlist of guessed CDN hosts. A test now checks every option against the
+installed tool's own help, and a change to how builds reach the network ships only after smokes of
+every app on the packet branch, before the merge.
+
+### L111 · A test on a bot-updated file must hold for every state the bot can write
+Tags: tests, evidence
+W16n started merging a repository the community index lists twice, but a test kept asserting that the
+stored snapshot's record count equals the raw sum. The sandbox copy had no doubled repository, so the
+suite passed; the bot then stored one and Validate failed (run 40333090933, wrong call 80). When a
+packet changes how live data is read, change every test that reads the live file, and add a test that
+puts the new case into a copy of the real file.
+
+### L112 · Prove a transport swap against every store before the packet, not in its smokes
+Tags: build, evidence
+W16o moved store downloads from wget to curl and four review rounds checked every option against
+the curl manual. The third controller run then smoked 17 apps: APKMirror's download endpoint
+answered curl with 403 on 8 of the 14 apps that downloaded from it (run 40398219589, wrong call
+84), while the wget request had built all 17 the day before. A manual cannot show what a store's
+bot filter accepts, and a partial failure is not explained by one cause. The smokes stopped it before the merge, as designed, but a live probe of each store with
+the new client belongs before the packet is built.

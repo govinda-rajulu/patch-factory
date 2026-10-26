@@ -1,11 +1,20 @@
 #!/bin/bash
 
+# W16o: F-03, use a private scratch directory so response bodies and headers cannot
+# be redirected through attacker-created names in shared /tmp.
+umask 077
+# W16o round 1: MED-1, every production caller gets transport enforcement by default.
+: "${PF_ENFORCE_EFFECTIVE_URL:=1}"
+: "${PF_STORE_MAX_BYTES:=1024M}"
+export PF_ENFORCE_EFFECTIVE_URL PF_STORE_MAX_BYTES
+if [[ -z "${PF_TMP_DIR:-}" ]]; then
+  PF_TMP_DIR=$(mktemp -d "${RUNNER_TEMP:-/tmp}/pf-utils.XXXXXX")
+  trap 'rm -rf -- "$PF_TMP_DIR"' EXIT
+fi
+
 mkdir ./release ./download
 
-#Setup pup for download apk files
-bash ./src/build/tooling.sh pup || exit 1
-unzip "./pup.zip" -d "./" > /dev/null 2>&1
-pup="./pup"
+# HTML selector helper is checked into the repository; no downloaded parser is needed.
 #Setup APKEditor for install combine split apks
 bash ./src/build/tooling.sh apkeditor || exit 1
 APKEditor="./APKEditor.jar"
@@ -172,6 +181,115 @@ get_patches_key() {
 
 #################################################
 
+# W16o: F-07/F-10, validate the initial store URL and bound final transfers.
+# The initial URL is the URL selected by the store page.  The final URL is
+# learned only from the real, header-correct binary transfer below.
+pf_store_url_check() {
+	local url=$1
+	python3 - "$url" <<'PY'
+import sys
+from urllib.parse import urlsplit
+u = urlsplit(sys.argv[1])
+if u.scheme != 'https' or u.username or u.password or u.port not in (None, 443) or not u.hostname:
+    raise SystemExit(1)
+h = u.hostname.lower().rstrip('.')
+if not (h == 'apkmirror.com' or h.endswith('.apkmirror.com') or
+        h == 'apkpure.com' or h.endswith('.apkpure.com')):
+    raise SystemExit(1)
+PY
+}
+
+pf_store_size_limit_bytes() {
+	python3 - "${PF_STORE_MAX_BYTES:-1024M}" <<'PY'
+import re
+import sys
+
+value = sys.argv[1].strip()
+match = re.fullmatch(r'(\d+)([KMGTP]?)', value, re.IGNORECASE)
+if not match:
+    raise SystemExit(1)
+number = int(match.group(1))
+unit = match.group(2).upper()
+multiplier = {'': 1, 'K': 1024, 'M': 1024 ** 2, 'G': 1024 ** 3,
+             'T': 1024 ** 4, 'P': 1024 ** 5}[unit]
+print(number * multiplier)
+PY
+}
+
+pf_curl_effective_host_ok() {
+	local effective=$1 store=${2:-store}
+	python3 - "$effective" "$store" <<'PY'
+import sys
+from urllib.parse import urlsplit
+u = urlsplit(sys.argv[1])
+if u.scheme != 'https' or u.username or u.password or u.port not in (None, 443) or not u.hostname:
+    raise SystemExit(1)
+h = u.hostname.lower().rstrip('.')
+print(f'STORE_FINAL_HOST {sys.argv[2]} {h}')
+PY
+}
+
+pf_wget_store_transfer() {
+	# W16o smoke run 40398219589: APKMirror's download endpoint answered curl with 403 on 8 of
+	# the 14 apps that downloaded from it (6 passed), where this exact wget request built 17 of 17
+	# the day before (W16n). Keep the base request byte for byte; add only local checks: a
+	# private candidate, never empty, size bounded. wget follows redirects without an HTTPS-only
+	# rule, as base did (OPEN-WORK item 2).
+	local url=$1 dest=$2 referer=$3 ua=$4 rc=0 candidate_bytes max_bytes
+	local -a cookie_args=()
+	[[ -n "${FS_COOKIES:-}" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
+	wget -q -O "$dest" \
+		--header="User-Agent: $ua" \
+		--referer="$referer" \
+		"${cookie_args[@]}" \
+		--timeout=120 \
+		"$url" || rc=$?
+	if [[ "$rc" -ne 0 ]]; then
+		rm -f -- "$dest"
+		return "$rc"
+	fi
+	max_bytes=$(pf_store_size_limit_bytes) || { rm -f -- "$dest"; return 1; }
+	candidate_bytes=$(stat -c %s -- "$dest") || { rm -f -- "$dest"; return 1; }
+	if [[ "$candidate_bytes" -eq 0 || "$candidate_bytes" -gt "$max_bytes" ]]; then
+		rm -f -- "$dest"
+		return 1
+	fi
+}
+
+pf_curl_store_transfer() {
+	local url=$1 dest=$2 referer=$3 ua=$4 store=$5 effective_file effective
+	local candidate_bytes max_bytes
+	local -a cookie_args=()
+	# --cookie with NAME=VALUE data is sent on every redirected request, as wget sent its
+	# Cookie header; a raw --header Cookie is dropped on a cross-host redirect (curl manual).
+	# Data without "=" would be read as a file name, so it is never passed.
+	[[ "${FS_COOKIES:-}" == *=* ]] && cookie_args=(--cookie "$FS_COOKIES")
+	effective_file=$(mktemp "$PF_TMP_DIR/store-effective.XXXXXX") || return 1
+	# Keep this as the sole binary request: its headers and cookies match the
+	# base wget transfer, while curl records the redirect result privately.
+	if ! curl --fail --silent --show-error --location \
+		--proto '=https' --proto-redir '=https' --max-redirs 10 \
+		--max-filesize "$PF_STORE_MAX_BYTES" \
+		--connect-timeout 30 --speed-limit 1024 --speed-time 120 \
+		--retry 5 --retry-delay 5 --retry-connrefused \
+		--header "User-Agent: $ua" --referer "$referer" \
+		"${cookie_args[@]}" --output "$dest" --write-out '%{url_effective}' "$url" \
+		>"$effective_file"; then
+		rm -f -- "$effective_file" "$dest"
+		return 1
+	fi
+	effective=$(cat "$effective_file") || { rm -f -- "$effective_file" "$dest"; return 1; }
+	rm -f -- "$effective_file"
+	pf_curl_effective_host_ok "$effective" "$store" || { rm -f -- "$dest"; return 1; }
+	max_bytes=$(pf_store_size_limit_bytes) || { rm -f -- "$dest"; return 1; }
+	candidate_bytes=$(stat -c %s -- "$dest") || { rm -f -- "$dest"; return 1; }
+	# --max-filesize checks Content-Length, so stat also bounds chunked bodies.
+	if [[ "$candidate_bytes" -eq 0 || "$candidate_bytes" -gt "$max_bytes" ]]; then
+		rm -f -- "$dest"
+		return 1
+	fi
+}
+
 _req() {
     local cookie_args=()
     [[ -n "$FS_COOKIES" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
@@ -240,29 +358,30 @@ _cfb_get() {
 	local attempt
 
 	for attempt in $(seq 1 $max_retries); do
-		local response_file
-		rm -f /tmp/cfb_response_headers.txt
-		response_file=$(mktemp)
+		local response_file headers_file
+		response_file=$(mktemp "$PF_TMP_DIR/cfb-response.XXXXXX") || return 1
+		headers_file=$(mktemp "$PF_TMP_DIR/cfb-headers.XXXXXX") || { rm -f -- "$response_file"; return 1; }
 		local http_code
 		http_code=$(curl -s -o "$response_file" -w '%{http_code}' \
-			-D /tmp/cfb_response_headers.txt \
+			-D "$headers_file" \
 			-G --data-urlencode "url=$url" \
 			--max-time 120 \
-			"http://localhost:8000/html")
+			"http://127.0.0.1:8000/html")
 		if [[ "$http_code" == "200" ]]; then
 			html=$(cat "$response_file")
 			if [[ -n "$html" ]]; then
 				export FS_COOKIES
-				FS_COOKIES=$(grep -i '^x-cf-bypasser-cookies:' /tmp/cfb_response_headers.txt 2>/dev/null | cut -d':' -f2- | xargs)
+				FS_COOKIES=$(grep -i '^x-cf-bypasser-cookies:' "$headers_file" 2>/dev/null | cut -d':' -f2- | xargs)
 				local cfb_ua
-				cfb_ua=$(grep -i '^x-cf-bypasser-user-agent:' /tmp/cfb_response_headers.txt 2>/dev/null | cut -d':' -f2- | xargs)
+				cfb_ua=$(grep -i '^x-cf-bypasser-user-agent:' "$headers_file" 2>/dev/null | cut -d':' -f2- | xargs)
 				[[ -n "$cfb_ua" ]] && user_agent="$cfb_ua"
-				rm -f "$response_file" /tmp/cfb_response_headers.txt
+				rm -f -- "$response_file" "$headers_file"
 				return 0
 			fi
 		else
 			yellow_log "[!] CFB attempt $attempt/$max_retries: HTTP $http_code (request URL withheld)"
 		fi
+		rm -f -- "$response_file" "$headers_file"
 	done
 	return 1
 }
@@ -272,12 +391,18 @@ _FFS_FAILED=0
 _PF_STORE_SVC=0
 
 _cf_get() {
+	if declare -F pf_store_url_check >/dev/null 2>&1; then
+		pf_store_url_check "$1" || { red_log "[-] store URL failed HTTPS/host policy"; return 1; }
+	fi
 	# W16g: the build no longer starts the store helpers up front. Start (or reuse) them the first
 	# time this shell needs one, so a step-down inside an attempt still finds them. Only the build step
 	# sets PF_STORE_LAZY=1; tests and other jobs never start containers (Validate red 24 Oct, L087).
 	if [[ "${PF_STORE_LAZY:-0}" == "1" && "$_PF_STORE_SVC" -eq 0 && -f src/build/store_services.sh ]]; then
 		_PF_STORE_SVC=1
-		bash src/build/store_services.sh >&2 || yellow_log "[!] store helpers could not be started"
+		if ! bash src/build/store_services.sh >&2; then
+			red_log "[-] store helpers could not be started; refusing store access"
+			return 1
+		fi
 	fi
 	if [[ "$_FFS_FAILED" -eq 0 ]]; then
 		_fs_get "$@" && return 0
@@ -369,10 +494,10 @@ get_apk() {
 	else
 		_cf_get "$list_url" || return 1
 
-		version_href=$(echo "$html" | $pup 'h5.appRowTitle a.fontBlack json{}' | \
+		version_href=$(echo "$html" | python3 ./src/build/html_select.py 'h5.appRowTitle a.fontBlack json{}' | \
 			jq -r '.[] | select(.text | test("(?i)beta|alpha") | not) | .href' | head -1)
 		[[ -z "$version_href" ]] && \
-			version_href=$(echo "$html" | $pup 'h5.appRowTitle a.fontBlack attr{href}' | head -1)
+			version_href=$(echo "$html" | python3 ./src/build/html_select.py 'h5.appRowTitle a.fontBlack attr{href}' | head -1)
 
 		if [[ -z "$version_href" ]]; then
 			red_log "[-] Could not find release on APKMirror"
@@ -406,7 +531,7 @@ get_apk() {
 			fi
 			_cf_get "$page_url" || return 1
 			if [[ -n "$target_ver_dot" ]]; then
-				version_href=$(echo "$html" | $pup 'h5.appRowTitle a.fontBlack json{}' | \
+				version_href=$(echo "$html" | python3 ./src/build/html_select.py 'h5.appRowTitle a.fontBlack json{}' | \
 					jq -r --arg v "$target_ver_dot" '.[] | select(.text | contains($v)) | .href' | head -1)
 				if [[ -z "$version_href" && "$allow_near_version" == "1" ]]; then
 					local release_text release_href release_version
@@ -419,11 +544,11 @@ get_apk() {
 								near_version_href="$release_href"
 							fi
 						fi
-					done < <(echo "$html" | $pup 'h5.appRowTitle a.fontBlack json{}' | \
+					done < <(echo "$html" | python3 ./src/build/html_select.py 'h5.appRowTitle a.fontBlack json{}' | \
 						jq -r '.[] | select(.text | test("(?i)beta|alpha") | not) | [.text, .href] | @tsv')
 				fi
 			else
-				version_href=$(echo "$html" | $pup 'h5.appRowTitle a.fontBlack json{}' | \
+				version_href=$(echo "$html" | python3 ./src/build/html_select.py 'h5.appRowTitle a.fontBlack json{}' | \
 					jq -r '.[] | select(.text | test("(?i)beta|alpha") | not) | .href' | head -1)
 			fi
 			[[ -n "$version_href" ]] && break
@@ -453,7 +578,7 @@ get_apk() {
 		local matched_type="$type_badge"
 		local variant_page_loaded=false
 	else
-	vtable_html=$(echo "$html" | $pup 'div.variants-table')
+	vtable_html=$(echo "$html" | python3 ./src/build/html_select.py 'div.variants-table')
 	rows=$(echo "$vtable_html" | tr '\n' ' ' | sed 's/<div class="table-row/\n<div class="table-row/g')
 
 	local dpi_fallback=("120-640dpi" "120-480dpi" "480-640dpi" "480dpi")
@@ -471,7 +596,7 @@ get_apk() {
 	# fit. Exit 4 = rows exist but none fits this phone: the caller tries the other store, then a
 	# lower version (build.sh). type_attempts stays for the log line only.
 	local pick pick_rc pick_log
-	pick_log=$(mktemp)
+	pick_log=$(mktemp "$PF_TMP_DIR/variant-pick.XXXXXX")
 	pick=$(printf '%s\n' "$rows" | python3 ./src/build/variant_pick.py --type "$type_badge" --arch "$arch" --dpi "$dpi" \
 		--ceiling "${PF_SDK_CEILING:-}" --minver "$minver" --pin "${PF_PIN_CODE:-}" 2>"$pick_log")
 	pick_rc=$?
@@ -491,7 +616,7 @@ get_apk() {
 
 	if [[ -z "$variant_href" ]]; then
 		local direct_apk_href
-		direct_apk_href=$(echo "$html" | $pup 'a.downloadButton attr{href}' | grep 'forcebaseapk' | head -1)
+		direct_apk_href=$(echo "$html" | python3 ./src/build/html_select.py 'a.downloadButton attr{href}' | grep 'forcebaseapk' | head -1)
 		if [[ -n "$direct_apk_href" && -z "$arch" && -z "$dpi" && -z "$minver" ]]; then
 			matched_type="APK"
 			variant_page_loaded=true
@@ -520,7 +645,7 @@ get_apk() {
 
 	local dl_btn_href
 	local all_dl_btns
-	all_dl_btns=$(echo "$html" | $pup 'a.downloadButton attr{href}')
+	all_dl_btns=$(echo "$html" | python3 ./src/build/html_select.py 'a.downloadButton attr{href}')
 	if [[ "$matched_type" == "BUNDLE" ]]; then
 		dl_btn_href=$(echo "$all_dl_btns" | grep -v 'forcebaseapk' | head -1)
 		[[ -z "$dl_btn_href" ]] && dl_btn_href=$(echo "$all_dl_btns" | head -1)
@@ -538,7 +663,7 @@ get_apk() {
 	_cf_get "$base_url$dl_btn_href" || return 1
 
 	local final_href
-	final_href=$(echo "$html" | $pup 'a#download-link attr{href}' | head -1)
+	final_href=$(echo "$html" | python3 ./src/build/html_select.py 'a#download-link attr{href}' | head -1)
 	[[ -z "$final_href" ]] && \
 		final_href=$(echo "$html" | grep -oP 'id="download-link"[^>]*href="\K[^"]+' | head -1)
 
@@ -547,11 +672,15 @@ get_apk() {
 		return 1
 	fi
 	final_href=$(echo "$final_href" | sed 's/&amp;/\&/g')
+	local final_url="$base_url$final_href"
+	if declare -F pf_store_url_check >/dev/null 2>&1; then
+		pf_store_url_check "$final_url" || { red_log "[-] APKMirror final URL failed HTTPS/host policy"; return 1; }
+	fi
 
 	# Do not print endpoint or redirected signed URLs; retain redacted diagnostics.
 	local cookie_args=()
 	[[ -n "$FS_COOKIES" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
-	if ! PF_DIAG_DEST="$base_url$final_href" PF_DIAG_REFERER="$base_url$dl_btn_href" \
+	if ! PF_DIAG_DEST="$final_url" PF_DIAG_REFERER="$base_url$dl_btn_href" \
 		PF_DIAG_COOKIES="$FS_COOKIES" PF_DIAG_UA="$user_agent" \
 		python3 src/build/transfer_diagnostic.py handoff; then
 		yellow_log "[!] Download diagnostic unavailable"
@@ -559,18 +688,41 @@ get_apk() {
 	# W15b (Photos, run 38643057188): wget -q hid why the transfer failed. Print wget's exit
 	# code and its documented meaning (never the URL, headers or cookies), retry once.
 	local wrc=0 try
+	local output_base_apk="$base_apk" transfer_tmp="" transfer_path="./download/$base_apk"
+	if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
+		transfer_tmp=$(mktemp "./download/.$base_apk.XXXXXX") || return 1
+		transfer_path="$transfer_tmp"
+	fi
 	for try in 1 2; do
 		wrc=0
-		wget -q -O "./download/$base_apk" \
-			--header="User-Agent: $user_agent" \
-			--referer="$base_url$dl_btn_href" \
-			"${cookie_args[@]}" \
-			--timeout=120 \
-			"$base_url$final_href" || wrc=$?
-		[[ "$wrc" -eq 0 ]] && break
-		echo "TRANSFER_FAILED store=apkmirror try=$try wget_exit=$wrc meaning=$(pf_wget_meaning "$wrc") bytes=$(stat -c %s "./download/$base_apk" 2>/dev/null || echo 0)"
-		rm -f "./download/$base_apk"
-		[[ "$try" -eq 1 ]] && sleep "${PF_TRANSFER_RETRY_WAIT:-20}"
+		if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
+			pf_wget_store_transfer "$final_url" "$transfer_path" "$base_url$dl_btn_href" "$user_agent" || wrc=$?
+		else
+			wget -q -O "./download/$base_apk" \
+				--header="User-Agent: $user_agent" \
+				--referer="$base_url$dl_btn_href" \
+				"${cookie_args[@]}" \
+				--timeout=120 \
+				"$base_url$final_href" || wrc=$?
+		fi
+		if [[ "$wrc" -eq 0 ]]; then
+			if [[ -n "$transfer_tmp" ]]; then mv -f -- "$transfer_tmp" "./download/$output_base_apk" || { rm -f -- "$transfer_tmp" "./download/$output_base_apk"; return 1; }; fi
+			base_apk="$output_base_apk"
+			break
+		fi
+		if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
+			echo "TRANSFER_FAILED store=apkmirror try=$try wget_exit=$wrc meaning=$(pf_wget_meaning "$wrc") bytes=$(stat -c %s "$transfer_path" 2>/dev/null || echo 0)"
+		else
+			echo "TRANSFER_FAILED store=apkmirror try=$try wget_exit=$wrc meaning=$(pf_wget_meaning "$wrc") bytes=$(stat -c %s "$transfer_path" 2>/dev/null || echo 0)"
+		fi
+		rm -f -- "$transfer_path"
+		if [[ "$try" -eq 1 ]]; then
+			sleep "${PF_TRANSFER_RETRY_WAIT:-20}"
+			if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
+				transfer_tmp=$(mktemp "./download/.$output_base_apk.XXXXXX") || return 1
+				transfer_path="$transfer_tmp"
+			fi
+		fi
 	done
 	if [[ "$wrc" -ne 0 ]]; then
 		red_log "[-] APKMirror transfer failed; refusing partial or empty output"
@@ -642,12 +794,12 @@ get_apkpure() {
 	fi
 
 	if [[ -z "$version" ]]; then
-		version=$(echo "$html" | $pup 'h2 text{}' | grep -oP '\d+(\.\d+)+' | head -1)
+		version=$(echo "$html" | python3 ./src/build/html_select.py 'h2 text{}' | grep -oP '\d+(\.\d+)+' | head -1)
 	fi
 	green_log "[+] Version: $version"
 
 	local download_url
-	download_url=$(echo "$html" | $pup 'a#download_link attr{href}' | head -1)
+	download_url=$(echo "$html" | python3 ./src/build/html_select.py 'a#download_link attr{href}' | head -1)
 	[[ -z "$download_url" ]] && \
 		download_url=$(echo "$html" | grep -oP '<a[^>]+id="download_link"[^>]+href="\Khttps://[^"]+' | head -1)
 
@@ -655,6 +807,9 @@ get_apkpure() {
 		red_log "[-] Could not find download link on APKPure"
 		printf '%s\n' 'DOWNLOAD_FAILURE {"source":"apkpure","stage":"link-extraction","reason":"missing-download-link","binary_transfer_started":false}'
 		return 1
+	fi
+	if declare -F pf_store_url_check >/dev/null 2>&1; then
+		pf_store_url_check "$download_url" || { red_log "[-] APKPure final URL failed HTTPS/host policy"; return 1; }
 	fi
 	if ! PF_DIAG_DEST="$download_url" PF_DIAG_REFERER="$dl_page_url" \
 		PF_DIAG_COOKIES="$FS_COOKIES" PF_DIAG_UA="$user_agent" \
@@ -664,19 +819,40 @@ get_apkpure() {
 
 	local cookie_args=()
 	[[ -n "$FS_COOKIES" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
-	if ! wget -q -O "./download/$base_apk" \
-		--header="User-Agent: $user_agent" \
-		--referer="$dl_page_url" \
-		"${cookie_args[@]}" \
-		--timeout=120 \
-		"$download_url"; then
-		red_log "[-] APKPure transfer failed; refusing partial or empty output"
-		return 1
+	local output_base_apk="$base_apk" transfer_tmp="" transfer_path="./download/$base_apk"
+	if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
+		transfer_tmp=$(mktemp "./download/.$base_apk.XXXXXX") || return 1
+		transfer_path="$transfer_tmp"
+	fi
+	# W16o: F-10, remove any stale destination before the bounded candidate transfer.
+	rm -f -- "$transfer_path"
+	if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
+		if ! pf_curl_store_transfer "$download_url" "$transfer_path" "$dl_page_url" "$user_agent" apkpure; then
+			rm -f -- "$transfer_path"
+			red_log "[-] APKPure transfer failed; refusing partial or empty output"
+			return 1
+		fi
+	else
+		if ! wget -q -O "./download/$base_apk" \
+			--header="User-Agent: $user_agent" \
+			--referer="$dl_page_url" \
+			"${cookie_args[@]}" \
+			--timeout=120 \
+			"$download_url"; then
+			rm -f -- "$transfer_path"
+			red_log "[-] APKPure transfer failed; refusing partial or empty output"
+			return 1
+		fi
+	fi
+	if [[ -n "$transfer_tmp" ]]; then
+		mv -f -- "$transfer_path" "./download/$output_base_apk" || { rm -f -- "$transfer_path" "./download/$output_base_apk"; return 1; }
+		base_apk="$output_base_apk"
 	fi
 
 	if [[ -s "./download/$base_apk" ]]; then
 		green_log "[+] Successfully downloaded $apk_name"
 	else
+		rm -f -- "./download/$base_apk"
 		red_log "[-] Failed to download $apk_name"
 		return 1
 	fi

@@ -30,7 +30,7 @@ def need(ok, why):
 
 def clean_env(env):
     result = resolved.safe_env(env)
-    for key in ("ANDROID_HOME", "ANDROID_SDK_ROOT"):
+    for key in ("ANDROID_HOME", "ANDROID_SDK_ROOT", "PF_ENFORCE_EFFECTIVE_URL", "PF_STORE_MAX_BYTES"):
         if key in env:
             result[key] = env[key]
     return result
@@ -134,7 +134,7 @@ def prepare(root, ident, env, run=None, metadata=None, publisher=None):
     t = shadow.target(root, ident)
     need(re.fullmatch(r"[A-Za-z0-9_-]+", t["apk_name"]), "unsafe APK name")
     # Fresh read-only resolution checkout; preserve all previous output/dirt.
-    for name in ("source-inputs", "download", "release", "APKEditor.jar", "pup", "pup.zip",
+    for name in ("source-inputs", "download", "release", "APKEditor.jar",
                  ".source-fallback-receipt.json"):
         p = root / name
         need(not p.exists() and not p.is_symlink(), "existing preparation output")

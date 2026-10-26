@@ -33,12 +33,45 @@ def pkgs_for(key):
     if key is None: return []
     return _PN.get(str(key), [])
 
-# package -> list of (bundle, [patch names])
+def _row(ref):
+    """W16o: the raw compatibility row a patch points at (None when it cannot resolve)."""
+    if ref is None: return None
+    if isinstance(compat, dict): return compat.get(str(ref))
+    try:
+        i = int(ref)
+    except (TypeError, ValueError):
+        return None
+    return compat[i] if 0 <= i < len(compat) else None
+
+def _same_patch(p):
+    """A doubled repository can list one patch twice with equivalent compatibility rows
+    under different keys: compare the resolved row, not the key (as community_model does)."""
+    ref = p.get("compatiblePackagesKey", p.get("compatibilityKey"))
+    rest = {k: v for k, v in p.items() if k not in ("compatiblePackagesKey", "compatibilityKey")}
+    row = _row(ref)
+    return json.dumps([rest, row, None if row is not None else ref], sort_keys=True, default=str)
+
+# package -> list of (provider, [patch names]). One repository is one provider even when
+# the community index repeats it with different metadata or bundle pages.
+providers = collections.OrderedDict()
+_seen_by_provider = {}
+for b in bundles:
+    source = b.get("source", "github")
+    repo = str(b.get("repo", ""))
+    key = (source, repo.lower())
+    provider = providers.setdefault(key, dict(b, patches=[]))
+    seen_patch = _seen_by_provider.setdefault(key, set())
+    for patch in b.get("patches") or []:
+        mark = _same_patch(patch)
+        if mark not in seen_patch:
+            seen_patch.add(mark)
+            provider["patches"].append(patch)
+
 bypkg = collections.defaultdict(list)
 allpkgs = set()
-for b in bundles:
+for b in providers.values():
     seen = collections.defaultdict(list)
-    for p in (b.get("patches") or []):
+    for p in b["patches"]:
         for pkg in pkgs_for(p.get("compatiblePackagesKey")):
             seen[pkg].append(p)
             allpkgs.add(pkg)
@@ -61,7 +94,7 @@ def wired_hit(b, pkg):
 
 print("compatibility rows parsed: %d, packages found: %d" % (len(_PN), len({p for v in _PN.values() for p in v})))
 print("index: %d bundles, %d distinct packages, %d compatibility rows" % (len(bundles), len(allpkgs), len(compat)))
-print("yours: %d enabled targets, %d wired bundles\n" % (len(mine), len(wired)))
+print("yours: %d enabled targets, %d wired providers\n" % (len(mine), len(wired)))
 
 print("="*76)
 print("A. PROVIDERS YOU ARE MISSING for apps you already build")
@@ -72,7 +105,7 @@ for pkg, x in sorted(mine.items(), key=lambda kv: kv[1]["id"]):
     have = [b for b,_ in offers if wired_hit(b, pkg)]
     lack = [(b,ps) for b,ps in offers if not wired_hit(b, pkg)]
     print("\n%-18s %s" % (x["id"], pkg))
-    print("   index knows %d bundle(s); you have %d wired" % (len(offers), len(have)))
+    print("   index knows %d provider(s); you have %d wired" % (len(offers), len(have)))
     for b, ps in sorted(lack, key=lambda z: -(z[0].get("patchCount") or 0)):
         miss += 1
         print("   MISSING  %-34s %-22s %d patches for this app" % (b.get("repo"), (b.get("name") or "")[:22], len(ps)))
@@ -80,7 +113,7 @@ for pkg, x in sorted(mine.items(), key=lambda kv: kv[1]["id"]):
             print("            %-44s default=%s" % (p.get("name","?")[:44], p.get("default")))
         if len(ps) > 6: print("            ... and %d more" % (len(ps)-6))
     if not offers: print("   (index has no bundle for this package)")
-print("\ntotal unwired bundles covering your apps: %d" % miss)
+print("\ntotal unwired providers covering your apps: %d" % miss)
 
 print("\n" + "="*76)
 print("B. NEW APPS: packages with the most community support that you do not build")
@@ -90,7 +123,7 @@ def score(v): return (len(v), sum(len(ps) for _, ps in v))
 for pkg, v in sorted(cand, key=lambda kv: score(kv[1]), reverse=True)[:15]:
     tot = sum(len(ps) for _, ps in v)
     who = ", ".join((b.get("repo") or "?") for b, _ in v[:3])
-    print("  %-44s %d bundle(s), %3d patches   %s" % (pkg, len(v), tot, who))
+    print("  %-44s %d provider(s), %3d patches   %s" % (pkg, len(v), tot, who))
 print("  (%d packages in the index you do not build)" % len(cand))
 
 # Discovery is read-only. Commit the snapshot only after reporting succeeds.

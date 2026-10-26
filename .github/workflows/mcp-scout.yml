@@ -55,6 +55,7 @@ jobs:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          # Keep this pin below 1.0 until settings move to the Policy Engine: https://geminicli.com/docs/core/policy-engine/
           gemini_cli_version: '0.65.0'
           gemini_model: 'gemini-3.5-flash'
           settings: |-
@@ -84,6 +85,7 @@ jobs:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          # Keep this pin below 1.0 until settings move to the Policy Engine: https://geminicli.com/docs/core/policy-engine/
           gemini_cli_version: '0.65.0'
           gemini_model: 'gemini-3.1-flash-lite'
           settings: |-

@@ -27,7 +27,6 @@ class Watch(unittest.TestCase):
 
     def test_asset_name_swaps_the_version(self):
         self.assertEqual(tw.asset_name('APKEditor-1.4.9.jar', 'V1.4.9', 'V1.5.0'), 'APKEditor-1.5.0.jar')
-        self.assertEqual(tw.asset_name('pup_v0.4.0_linux_amd64.zip', 'v0.4.0', 'v0.5.0'), 'pup_v0.5.0_linux_amd64.zip')
         self.assertIsNone(tw.asset_name('tool.jar', 'v1', 'v2'))
 
     def test_update_current_missing_and_mismatch(self):

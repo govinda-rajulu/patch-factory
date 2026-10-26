@@ -6,7 +6,49 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 26 Oct 2026, afternoon IST (packet W16n; start here)
+## 26 Oct 2026, evening IST (packet W16o; start here)
+
+- **Main** `5aa5433e` (W16n #257, merged 26 Oct; T1: 17 of 17 apps built, Nightly and Community
+  green, #248 and #249 closed by Notify) plus bot commits, plus W16o once merged. MCP scout
+  run 40315496589 was dispatched by the W16n controller; #250 closes on its green run.
+- **W16o** build hardening: the patcher runs with an allowlisted environment; private temp files;
+  store transfers move from wget to curl with the same user agent, referer and cookies, https
+  only, at most 10 redirects, a 1024M bound checked after the transfer, retries and a stall
+  guard, and a named `STORE_FINAL_HOST` line (no host allowlist: the real CDN hosts are not known
+  offline); Docker helpers on 127.0.0.1 and a failed helper stops the build; tool downloads
+  https-only, bounded, redirect hosts checked, atomic; FlareSolverr v3.5.2 digest; pup replaced
+  by `src/build/html_select.py`; patcher tag and sha256 recorded with optional pins; bundle
+  sha256 recorded with optional `expected_sha256`; release tidy apply bound to its preview;
+  publishing only from main; onboard review without pull-requests: write; community summaries
+  count a doubled repository once.
+- **Credits**: owner and architect Govindarajulu K; engineering ClickUp Brain on Anthropic's Claude (CREDITS.md "Who
+  built it", README, RESULT.json `built_by`; no banner line, owner 26 Oct).
+- **Proof before merge**: the W16o controller smokes all 17 apps on the packet branch (both
+  stores and the helpers) before it merges, then T1.
+- **Wrong calls**: 85. 85: I first read run 40398219589 as "curl gets 403 from APKMirror on every
+  download"; 6 of the 14 APKMirror apps passed on curl (no prepared source), so the cause (client
+  fingerprint or load on 14 parallel downloads) is unproven. 84: the third W16o run (26 Oct
+  night) smoked 17 apps; APKMirror's download endpoint answered curl with 403 on 8 of 14 apps.
+  Nothing merged. APKMirror is back on the base wget request (17 of 17 the day before) plus
+  local checks (private candidate, never empty, size bound); APKPure stays on curl (its 3 apps
+  passed). L112.
+  83: round 1 made a failed store helper fatal (`|| exit 1` on each), which
+  ended the build before the FlareSolverr to CloudflareBypass fallback could run; base never
+  failed there. Round 4 found it before any run: now only both helpers down refuses store
+  access, with a test. 82: the W16o curl move sent the store cookie as a raw header, which curl
+  drops on a redirect to another host (wget sent it on every request); round 3 review found it
+  before any run, now `--cookie` like wget (curl manual), with a test. 81: the fix for 80 added a test that assumed the stored snapshot had no
+  doubled repository; it already had one (epabafree/sabp-eppy-patches, Community report #258), so
+  Validate failed again (run 40338726723). Tests are now deltas against the stored snapshot, and
+  the full suite was run on a copy that mimics live main. 80: W16n changed how a repository listed twice is counted but kept a test
+  that compared the live snapshot to the raw record count; once Community watch stored an index
+  with the doubled repository (5960 raw, 5957 merged), Validate failed on the W16o pull request
+  (run 40333090933) and would fail on main. Fixed in W16o (L111). Agent errors caught in W16o review: an unsupported wget
+  option that would have failed every store download; a separate preflight request without the
+  store headers; a guessed CDN allowlist; a 300M bound below real bundle sizes (L110).
+- **Next**: W15g signing split; W17a and W17b Add app (map: `docs/review/W17A-MAP.md`); W18.
+
+## 26 Oct 2026, afternoon IST (packet W16n)
 
 - **Main** `f922446e31e9e6a50890ead58b64dd733b17da5e` (W16m #256) plus W16n once merged.
 - **W16n** fixes the three red watches by cause: Nightly listed names without `-x` (#249, L104);

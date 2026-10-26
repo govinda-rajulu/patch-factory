@@ -161,12 +161,19 @@ def fetch(owner, repo, channel, directory, env):
         upstream_digest = asset.get('digest')
         if upstream_digest:
             require(upstream_digest == 'sha256:' + fingerprint, 'GitHub asset digest mismatch')
+        else:
+            # W16o: GitHub may omit asset digests; retain the local digest and make
+            # the missing publisher-side anchor visible (H5/F-06), never silently.
+            print('::warning::GITHUB_BUNDLE_DIGEST_UNPINNED ' + owner + '/' + repo +
+                  ' tag=' + str(release['tag_name']) + ' asset=' + name +
+                  ' sha256=' + fingerprint, file=sys.stderr)
         dest = directory / name
         os.replace(temporary, dest)
         result = {'path': str(dest), 'sha256': fingerprint, 'bytes': size,
                   'tag': release['tag_name'], 'published_at': release['published_at'],
                   'asset_id': asset['id'], 'url': url,
-                  'channel_semantics': 'newest-published-including-stable' if channel == 'prerelease' else 'stable-only'}
+                  'channel_semantics': 'newest-published-including-stable' if channel == 'prerelease' else 'stable-only',
+                  'publisher_digest_verified': upstream_digest is not None}
         dest.with_suffix(dest.suffix + '.json').write_text(json.dumps(result, indent=2) + '\n')
         return result
     finally:

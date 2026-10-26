@@ -14,6 +14,18 @@ upstream commit `733e91b6fe90dace2295ac6a27ca66481c945e7d`; its large PR168/chur
 release tag, public signing material and broad CI permissions were reviewed as warnings, not
 as code or APKs to copy.
 
+## Who built it
+
+**Govindarajulu K** owns the repository and is its architect: he set the goals, chose the
+apps and providers, made every keep and drop call, and ran every packet, build check and phone
+test from his Google Cloud Shell.
+
+**ClickUp Brain**, the AI assistant in his ClickUp workspace, running on Anthropic's
+**Claude** models, is its engineer: it wrote the code, workflows, gates and tests, the packet
+controllers and owner probes he runs in Cloud Shell, and the review records in `docs/review/`.
+Each packet was built, tested and rehearsed in its sandbox, checked by its review agents, and
+handed to the owner as one command.
+
 ## Patch providers, per app
 
 | App | Provider | Source |
@@ -63,7 +75,6 @@ it will be removed the same day.
 | [morphe-desktop](https://github.com/MorpheApp/morphe-desktop) | GPL-3.0 | the patcher; every build calls it |
 | [morphe-patches](https://github.com/MorpheApp/morphe-patches) | GPL-3.0 | upstream patch set, and the YouTube bundle used here |
 | [APKEditor](https://github.com/REAndroid/APKEditor) | Apache-2.0 | merges split APKs into one installable file |
-| [pup](https://github.com/ericchiang/pup) | MIT | HTML parsing for the APKMirror lookup |
 | [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr) | MIT | Cloudflare challenge solver used to reach the stores |
 | [CloudflareBypassForScraping](https://github.com/sarperavci/CloudflareBypassForScraping) | MIT | second bypass path when FlareSolverr fails |
 | [ncipollo/release-action](https://github.com/ncipollo/release-action) | MIT | publishes each release |
