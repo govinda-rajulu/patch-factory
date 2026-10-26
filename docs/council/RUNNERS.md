@@ -1,6 +1,8 @@
 # Agent runners and MCP servers (research, 7 Oct 2026)
 
-Plan of record for giving repository agents tools. Nothing here runs yet. Free and open source
+Plan of record for giving repository agents tools, as researched on 7 Oct 2026. Since then the
+read-only MCP scout exists (`.github/workflows/mcp-scout.yml`, manual; docs/review/MCP-PLAN.md);
+the rest of this plan is not built. Free and open source
 only; every version pinned when it lands. Sources were read on 7 Oct 2026; re-check before use.
 
 ## MCP servers

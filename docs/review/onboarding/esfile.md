@@ -2,6 +2,7 @@
 
 Package: com.estrongs.android.pop
 Source APK: APKMirror, per the target's `source` (unchanged).
+Provider: BlazeFTL/FTL-Patches (ftl, primary; channel prerelease; licence: the LICENSE file at https://github.com/BlazeFTL/FTL-Patches, as in docs/review/onboarding/mxplayer.md).
 Provider: rushiranpise/morphe-patches (extra; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/rushiranpise/morphe-patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease). The community index lists its ES File patch for 4.4.3.7, the version ftl builds.
 
 ## Patches

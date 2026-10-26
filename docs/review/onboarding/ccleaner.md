@@ -5,7 +5,7 @@ Source APK: https://www.apkmirror.com/uploads/?appcategory=ccleaner
 Provider: mich111discord/MightyMichs-Patches (mich111discord, channel prerelease; bundle: the one .mpp asset of the newest release on that channel; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/mich111discord/MightyMichs-Patches)
 
 ## Patches
-- Unlock Premium: added 2026-10-25 by owner request; opens CCleaner's paid features on the phone. New in bundle v1.12.0. The owner keeps it (W16l): CCleaner joins ADOPT.json paid_ok_targets and the owner accepts the account risk.
+- Unlock Premium: added 2026-10-25 by owner request; opens CCleaner's paid features on the phone. New in bundle v1.12.0. The owner keeps it (W16l): CCleaner joins ADOPT.json paid_ok_targets and the owner accepts the account risk. The target is disabled since W16l (see Decision below).
 
 Owner approved: Unlock Premium
 

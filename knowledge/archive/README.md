@@ -11,3 +11,6 @@ over all of them. The files mention an "action book": an interactive page in the
 workspace that is not part of the repo and should not be recreated.
 
 The shared engineering handbook lives in [../handbook/](../handbook/), not here.
+
+`STATE-2026-09-to-2026-10-24.md` holds the dated STATE.md sections from 29 Sep to 24 Oct 2026,
+moved verbatim on 26 Oct 2026 (packet W16m). Historical, like the skills.

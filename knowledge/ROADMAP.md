@@ -1,31 +1,33 @@
 # patch-factory roadmap
 
-Updated 25 October 2026 (W16h). This is a short planning view, not a second source of
+Updated 26 October 2026 (W16m, chat handover). This is a short planning view, not a second source of
 truth. `src/targets.json`, the workflow files, `src/council/seats.json` and the newest
 [STATE.md](STATE.md) checkpoint win over this file. Owner rules and the live queue are in
 [AGENTS.md](../AGENTS.md) and [OPEN-WORK.md](../docs/review/OPEN-WORK.md).
 
 ## Current system to preserve
 
-- The generated README inventory covers 17 enabled apps. Providers, fallbacks, stores and poll
+- The generated README inventory covers 17 enabled apps (CCleaner is listed but disabled). Providers, fallbacks, stores and poll
   flags come from `src/targets.json`; run the generators instead of hand-editing their outputs.
 - Scheduled automations and IST times come from `.github/workflows/` through
   [`schedules.py`](../src/etc/schedules.py) and [SCHEDULES.md](../docs/SCHEDULES.md). The old
   keepalive cron is gone; `keepalive.yml` is manual only.
-- `Needs you` runs daily at 10:29 IST. It joins the five watch reports and accepts only the owner’s
-  `take`, `drop` or `hold` commands by item id. Provider `take` runs Explore; review effects are
+- `Needs you` runs daily at 10:29 IST. It joins the five watch reports and accepts the owner's
+  `take` (or `keep`), `drop` and `hold` by item id, group id or `all`, and `yes all` (src/etc/needs_you.py). Provider `take` runs Explore; review effects are
   recorded on the review issue; other decisions go to the watch-state ledger.
 - Status page data includes stale Actions-cache pruning. It keeps the newest cache in each
   conservative key-prefix group and removes only old, unused non-newest caches.
 - The council has nine seats on eight providers, with personas and shifts defined in
-  `src/council/seats.json`. Keep [PERSONAS.md](../docs/council/PERSONAS.md), [SETUP.md](../docs/council/SETUP.md)
+  `src/council/seats.json` (solo shifts run only on request since W16k). Keep [PERSONAS.md](../docs/council/PERSONAS.md), [SETUP.md](../docs/council/SETUP.md)
   and the roster aligned with that file.
 
 ## Now: owner work
 
 Follow the newest [OPEN-WORK.md](../docs/review/OPEN-WORK.md) checkpoint. The current first items
-are the read-only MCP pilot, owner decisions in Needs you and phone checks (store services
-already start on demand, W16g L087). The MCP plan is [MCP-PLAN.md](../docs/review/MCP-PLAN.md); it adds no schedule and must not
+(26 Oct) are W17 owner-only Add app and W18 combo planner
+([W17-BRIEF.md](../docs/review/W17-BRIEF.md)), the W15g signing split, owner decisions in Needs
+you, phone checks and one manual run of the read-only MCP scout (store services already start on
+demand, W16g L087). The MCP plan is [MCP-PLAN.md](../docs/review/MCP-PLAN.md); it adds no schedule and must not
 replace deterministic store scraping or feed model output into a build.
 
 ## Security and maintenance lanes

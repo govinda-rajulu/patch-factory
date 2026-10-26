@@ -127,7 +127,7 @@ Not included (exclude list):
 ## Risks
 - Hide read receipts, Hide typing indicator and View stories anonymously hold back signals Facebook normally receives, so Facebook can notice them and an account could be warned or limited. Owner decision: include them and test on the phone (Sunday 11 Oct 2026); drop them if the account shows warnings.
 - Hushfacebook supports one exact Facebook build at a time and Facebook ships weekly. A newer Facebook is not built until the provider supports it; the version-code pin stops a wrong download.
-- The provider pages disagree on 580 and 577 (README: no longer supported; v0.8.0 notes: still work). This record relies only on 581.0.0.45.58 build 475215365.
+- The provider pages disagree on 580 and 577 (README: no longer supported; v0.8.0 notes: still work). This record relied only on 581.0.0.45.58 build 475215365 when written; the target is on 584.0.0.51.56 (HushFacebook) since W15i.
 - Re-signed Facebook: account restrictions are possible. Test with the owner's phone before relying on it.
 
 ## Decision

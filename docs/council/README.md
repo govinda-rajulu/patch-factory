@@ -63,7 +63,8 @@ still stops that seat. GitHub Models retired on 30 July 2026, so no seat uses it
   number, or a repository path; uncited verdicts are dropped. One table on the chosen issue.
   It closes nothing; the owner or a packet does.
 - **Probe** (mode `probe`): shows which seats answer and which model each picked. Posts nothing.
-- **Desk rotation** (schedule): twice a day one audit shard, on Monday mornings triage, all on
+- **Desk rotation** (schedule): twice a day one audit shard; Monday morning is triage and Sunday
+  morning the model probe instead; all on
   the Council desk issue named in seats.json. Each comment is edited in place, never repeated.
   Sunday afternoon (the existing 15:17 UTC audit slot) is the weekly repo review slot: after
   quote verification, it creates at most eight issues titled `review: ...`, each with the
@@ -109,8 +110,10 @@ links, images, HTML or code fences from a model reach GitHub.
 at most eight lessons chosen by tag, and only the facts for this target or diff. A seat whose
 pack exceeds its budget abstains. Nothing is truncated silently.
 
-**Blast radius.** The script can call only four GitHub endpoints: read a PR, read an issue,
-list comments, and post or edit its own comment. Anything else is refused in code and tested.
+**Blast radius.** The script can call only the GitHub endpoints in `GH_ALLOWED`
+(src/council/council.py): read a pull request, an issue, issue lists, comments, the `review` label
+and the Actions run list; create the label, an issue (weekly review) and comments; edit a comment. Anything else is refused
+in code and tested.
 
 ## How it evolves without breaking anything
 

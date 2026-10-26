@@ -2,6 +2,96 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
+## Current checkpoint: 26 October 2026, morning IST (packet W16m, chat handover)
+
+Everything still open from the 23 to 26 Oct chat, in order. Older checkpoints below keep their
+detail; an item listed here wins over its older wording.
+
+1. W17: owner-only Add app from Pages ([W17-BRIEF.md](W17-BRIEF.md)). The owner answers its three
+   open questions (smokes on a bot pull request, who merges, logos) before code.
+1a. W18 combo planner (owner idea, W16j). Older records call it "W17 combo planner" (25 Oct) and
+   "W15f combo planner" (21 Oct); the label moved on 26 Oct (wrong call 69). Plan and first data:
+   [W17-BRIEF.md](W17-BRIEF.md), section "W18 combo planner".
+2. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)). morphe-desktop is unpinned, so
+   `--unsigned` needs a capability check first; it ends with one publishing build the owner
+   installs over the current app.
+3. CCleaner is disabled: MightyMichs v1.12.0 misses both fingerprints on 26.08.0 (provider issue
+   #18). After a newer release: Explore, enable, smoke with the provider named, phone test.
+   Disable Telemetry stays out unless the owner asks.
+4. Held names to retry when their provider updates: Instagram piko Hide feed posts; Reddit Alastor
+   "Reddit native post-menu originals (2026.41.0)"; brosssh Disable story auto flipping.
+5. Key Mapper ships the APKMirror 4.5.0 build through VARIANT_RETRY while source-fallbacks.json
+   says the APKMirror variant is not qualified as equivalent: qualify it or keep APKPure only.
+6. Three failure issues are still open from before W16k: Nightly watch #249 (run 40195009005),
+   Community watch #248 (run 40194762238) and MCP scout #250 (run 40196050562). Each closes on its
+   next green run. Lead for Nightly: that run's report (issue #27) says the provider list of
+   reddit/reddit-alastor is unreadable (UNVERIFIED, NO_PATCH_NAMES). Dispatch each watch once
+   on the new main and read what it prints before changing code.
+6a. Needs you #233 waits for the owner: 4 new providers (Instagram N-c33fb6 dawidd612, N-f86382
+   Dreaming-Codes, N-3ca866 giaaaacomo; Telegram N-25ba59 ch3thanhs/stylus, which he took and which
+   now fits 13.1.0) and 3 review items (N-333723 tooling report, N-4f0f81 Nightly on gg-photos
+   Change package name, N-eb4ad4 community report not produced). Ids as of 26 Oct; the issue wins.
+6b. Tooling watch #218: Obtainium pinned v1.7.1, newest v1.7.3 (docs/obtainium*.json follow its
+   import format); pup is unmaintained since 2016 (htmlq is the named candidate); it also lists
+   morphe-desktop 1.19.1.
+6c. Schedules ran thin overnight: from 25 Oct 18:10 to 26 Oct 06:40 UTC only 3 scheduled runs
+   started although about 10 crons were due; 2. Check new patch (05:53 IST) started at 10:30 IST.
+   Read the Actions list for 26 Oct: late runs are GitHub load (docs/SCHEDULES.md warns of hours);
+   crons that never started need a look before anyone relies on a daily watch.
+7. Council solo shifts are manual only since W16k; the owner may want one daily slot back.
+8. Daily watches could share one daily run (needs a status.py change first).
+9. Owner phone tests: Truecaller with MicroG RE, Telegram, Reddit 2026.41, Instagram piko,
+   Facebook 584.
+10. Mirror the generic parts of the assistant sandbox notes
+    ([controllers/README.md](controllers/README.md)) into the openskip handbook, from an openskip
+    chat by its own pull request (house rule 6).
+11. Carried from the 20 to 25 Oct checkpoints below (third check on 26 Oct; status from the repo,
+    not re-tested live). Still open:
+    - Standing rules: Amazon Music only on a throwaway account, never the main one. Photos'
+      Akash-Sriram extra has no declared licence; drop it if the author objects. Rushiranpise's
+      AMOLED copy stays excluded; a both-copies keep_going smoke only if the owner asks.
+    - MCP scout: the owner runs it once from the Actions tab; a green run with "checkout
+      unchanged" proves the lockdown and closes #250; only then weekly inside Community watch.
+    - Tooling pins (Obtainium in src/etc/upstreams.json, pup v0.4.0 in src/build/TOOLING.sha256)
+      need a networked sha check before any bump; then pup to htmlq, the FlareSolverr digest bump,
+      apkeep or the APKPure API as an extra source.
+    - Speed: a 1-app Check new patch took 6 min against a 5 min target (24 Oct); a tool cache saves
+      under 15 s per app.
+    - Retire or regenerate [UNREVIEWED.tsv](UNREVIEWED.tsv) (21 Oct).
+    - Council: read the desk after a week of v4; split the onboarding agent job so comments come
+      from a separate job (safe outputs); triage and digest templates for the Runner seat.
+    - Other repos, each by its own pull request: openskip and brain AGENT-PERSONAS.md and
+      REPORT-STYLE.md; openskip mirror of knowledge/handbook/PACKET-LESSONS.md.
+    - Owner, optional or one-off: re-import the Obtainium JSON if not done since W15h (certificate
+      pin, Obtainium 1.6.16 or newer); delete the TDL_BACKUP secret; Cloudflare keys; CodeRabbit; pf-vault (he
+      creates the private repository and token first). Outside the repository: delete the two stale
+      26 and 27 Sep comments on the assistant's PATCH-FACTORY-BUILDS skill (the assistant cannot).
+    - Unknown status since 17 Oct, check before acting: agent runner pilot, portal SRI, PR53,
+      F05/F06, ES File logo, CLUTTER-2026-10-07 sections 1, 3 and 4.
+    - Assistant tooling, not owner commands: the cleanup line packet.tmpl.py prints when
+      CLEANUP_APPLY is False has no OK/STOP result line of its own; suite.sh uses `a && b || c`
+      internally. Fix in the next packet that touches the controllers.
+    - Workflow comments (round 8, low): status.yml still mentions cancel-in-progress and a
+      "follower run" for Notify, notify-failure.yml's header too; Notify is a workflow_call job
+      inside Status page data. Shared handbook (both repos, by their own pull requests):
+      AGENT-PERSONAS.md says "fixed shift slots" and FREE-LLM-APIS-2026-10-v2.md points at an
+      "8 Oct section" of docs/council/PROVIDERS.md. Generator: README's app table (readmegen.py)
+      shows Truecaller as "heval99 + paresh + binarymend (fallback: bufferk)", but heval99 builds
+      alone and paresh and binarymend go with the bufferk combo.
+    Decided, not work: a Failing issue comments once per failed run (one app's failure must not hide
+    behind another's success).
+    Done since, so not carried: store services start on demand (W16g, L087); second store for the
+    five one-store apps (W16c); zizmor runs as an advisory step in Validate; Qualify plans per
+    candidate (W16j); paresh licence read (GPL-3.0-or-later); fiorenmas ce08d21 had nothing to
+    port; Facebook 583 and 0.16.1 installs are replaced by the 584 phone test (item 9); Failing
+    issue #237 (oxbow and legendsciber fetch) is closed; reference/faq.md's three missing screenshots
+    are replaced by text (W16m).
+12. Long-term engineering targets: the sections "Core engineering still open or partial" (nine
+    targets: full fingerprints and durable baselines (F05/F06), qualification trust, watcher
+    coverage, same-version Obtainium delivery, governance and onboarding, supply chain and recovery,
+    reconciliation and cleanup, official logo provenance, upstream attribution) and "Owner decisions
+    to preserve" at the end of this file. Written in September; still open, untouched by this chat.
+
 ## Current checkpoint: 25 October 2026, late night IST (packet W16l)
 
 - W17: one-form Add app from Pages (owner-only through GitHub's dispatch form; find providers,
@@ -103,7 +193,7 @@ Kilo and Z.AI council seats. Open, in order:
 
 W16 (one pull request from dev/w16): audit, Reddit on official Morphe v1.48.0 with Adobo fallback,
 shadow jobs only for apps that build, plain release notes and cards, one daily Needs you issue,
-council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](SESSION-2026-10-24.md). Open, in order:
+council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](history/SESSION-2026-10-24.md). Open, in order:
 
 0. Owner: after the merge, one Batch Patch for reddit with publish on. Phone: Morphe Reddit is
    2026.41.0 (42 needs Android 12); if the installed patched Reddit is 42, uninstall it first, then
@@ -136,7 +226,7 @@ Hushfacebook 0.17.0 (owner); Reddit 2026.42.0 retired (owner: delete it; src/etc
 so 2026.41.0 publishes again; council: Kilo and Z.AI, a seat with broken JSON moves to its next
 model, seats re-listed from the probe, the Sunday model watch on the desk; CodeQL: three fixes, the
 onboarding head is fetched as data only; T1 calls fallback builds a finding (L077).
-Record: [SESSION-2026-10-23.md](SESSION-2026-10-23.md). Open, in order:
+Record: [SESSION-2026-10-23.md](history/SESSION-2026-10-23.md). Open, in order:
 
 0. Owner, phone: Facebook 584 installs over the current patched Facebook (same key). Reddit 41 is
    older than the installed 42: uninstall the patched Reddit first, then install 41 (sign in again).
@@ -286,7 +376,7 @@ W15 merged (#187, main `8148af78`): publish guard (L059), Facebook 583 on Hushfa
 Obtainium tracks the build id, notify identity (L058), Dependabot bump applied and its test fixed,
 Reddit pin, SDK warnings, baseline reasons kept, council fix-lane guard, Nemotron 3.5 Super VL,
 pinned code picks the store row (L060), telegram_dl removed; 7 stale issues closed. H15: this
-record. Records: [SESSION-2026-10-17.md](history/SESSION-2026-10-17.md), [WIP-W15-2026-10-17.md](WIP-W15-2026-10-17.md). Open, in order:
+record. Records: [SESSION-2026-10-17.md](history/SESSION-2026-10-17.md), [WIP-W15-2026-10-17.md](history/WIP-W15-2026-10-17.md). Open, in order:
 
 1. Done 17 Oct: pf-t1 RESULT OK, 0 findings, 17 of 17 apps built; Facebook 583 published (run
    39055575670). Next: read the Selection watch issue and community issue #189 (new index report).
@@ -767,6 +857,8 @@ claim about the current branch.
 
 ## Core engineering still open or partial
 
+26 Oct 2026 (W16m): still open as written in September; listed as item 12 of the 26 Oct checkpoint.
+
 1. **Full fingerprints and durable baselines:** pre-resolve exact source APK and
    remaining runtime/OS/transitive/effective-default inputs; consume those exact
    files; observe every enabled target, including legacy-omitted ones. Preserve
@@ -805,8 +897,13 @@ claim about the current branch.
 
 ## Owner decisions to preserve
 
-Keep the generated enabled-target inventory, the frozen `truecaller-v26.10.6`
-release and the attic. SonyLIV/ZEE5 remain retired; do not invent a shared reason
+26 Oct 2026 (W16m): written in September. Since then the frozen `truecaller-v26.10.6` release was
+removed (W10, 9 Oct), Reddit builds on official Morphe (W16) and ES File carries rushiranpise Unlock
+VIP Lifetime as an extra (W16h); `src/targets.json` is the current configuration. The text below was corrected for these on 26 Oct;
+the rest stands.
+
+Keep the generated enabled-target inventory and the attic (the frozen `truecaller-v26.10.6`
+release was removed in W10, 9 Oct). SonyLIV/ZEE5 remain retired; do not invent a shared reason
 or reactivate them. The patcher intentionally moves with validated latest stable.
 Provider age is advisory. Preserve channels, pins, ceilings and per-bundle
 selection semantics unless separately reviewed.
@@ -816,8 +913,8 @@ approved GmsCore support, PoToken provider and Spoof video streams dependencies.
 The older differently spelled review-sheet entry does not override that decision.
 Remove Debug Info is quarantined, not established upstream-fixed.
 
-Optional Reddit Morphe, ES File/rushiranpise, Photos/RookieEnough and
-Instagram/Stylus remain candidates for review, not approved configuration changes.
+Photos/RookieEnough and Instagram/Stylus remain candidates for review, not approved
+configuration changes (Reddit Morphe became primary in W16, ES File/rushiranpise an extra in W16h).
 Patch-name presence is not proof of compatibility or collision-free composition.
 
 ## Keeping this page useful

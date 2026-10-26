@@ -1,7 +1,9 @@
 # App icon provenance record (26 September 2026, updated 6 October 2026)
 
 Status (6 October 2026): **brand tiles ship for 12 apps**, each with all four gate items below
-recorded; every other card keeps its letter monogram. This file is the durable record for
+recorded; every other card keeps its letter monogram. 26 Oct 2026: 16 app tiles ship
+(docs/assets/logos/, the LOGOS set in docs/portal.js), the later ones from the owner-supplied
+table below; ES File is not among them and still shows its monogram. This file is the durable record for
 REQ-027 / R08 so the decision cannot silently drop again between sessions.
 
 ## Shipped tiles (6 October 2026)
@@ -48,13 +50,16 @@ its file passed the PNG gate (PNG signature, 16 to 512 px, under 64 KB). Its has
 | `linkedin` | Google Play icon for LinkedIn (`com.linkedin.android`), uploaded by the owner in chat, 8 Oct 2026 | None; trademark, identification only |
 | `hotstar` | Google Play icon for JioHotstar (`in.startv.hotstar`), play-lh.googleusercontent.com `02xiO0pt...` | None; trademark, identification only |
 | `mxplayer` | Google Play icon for MX Player, play-lh.googleusercontent.com `pL-FlnQw...` | None; trademark, identification only |
-| `esfile` | Uptodown icon for ES File Explorer, img.utdstc.com `icon/826/725/82672572...` | None; trademark, identification only |
+| `esfile` | Uptodown icon for ES File Explorer, img.utdstc.com `icon/826/725/82672572...` (not bundled as of 26 Oct 2026: no docs/assets/logos/esfile.png) | None; trademark, identification only |
 
 ## 26 September 2026 record
 
 Status then: no official app artwork shipped.
 
 ## The gate
+
+Written 26 Sep. Since 6 Oct (section above) the owner also ships store icons he supplied, with the
+licence item recorded as "None; trademark, identification only"; that is his exception to item 2.
 
 An app mark may ship only when all four are recorded here per brand:
 
@@ -69,6 +74,9 @@ Anything without all four stays a letter monogram. A refused or removed mark sta
 forever; it is never replaced by a lookalike.
 
 ## Per-brand position
+
+As of 26 Sep; superseded where the two sections above ship a tile (16 tiles on 26 Oct 2026, ES File
+still a monogram).
 
 | App | Mark availability | Position |
 | --- | --- | --- |

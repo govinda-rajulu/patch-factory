@@ -8,7 +8,8 @@ anything you remember, and any number typed into prose"). Generated, CI-gated fi
 
 1. `../AGENTS.md`: hard limits and the selection rules. It overrides everything here.
 2. [WORKING-AGREEMENT.md](WORKING-AGREEMENT.md): how work is handed to the owner, gates, privacy.
-3. [STATE.md](STATE.md): the latest dated checkpoint and where to start.
+3. [STATE.md](STATE.md): the latest dated checkpoint and where to start. Then the newest
+   `../docs/review/HANDOVER-*.md`: the map of the last closed chat.
 4. `../docs/review/OPEN-WORK.md`: what is actually open (CI-checked phrases).
 5. The newest `../docs/review/SESSION-*.md`: per-session records (closed ones in
    `../docs/review/history/`).

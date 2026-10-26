@@ -592,3 +592,31 @@ of the primary, find its PATCH_FAILED name and hold that name, not the provider.
 Tags: ci
 Notify, called inside Status page data, threw "Unexpected triggering event" for a run started by an
 event it never reports, which turned Status red. The job's own if: now lists the events it reports.
+
+### L100 · Read the provider's issues before the second smoke
+Tags: sources, build
+CCleaner's first smoke failed on Disable Telemetry, so it was removed; the second failed on Unlock
+Premium. The provider's own tracker already had the same fingerprint failure from a phone, opened
+that afternoon (MightyMichs issue #18): the bundle did not fit the app version, the APK was fine.
+Read the provider's open issues for the package before removing names one by one.
+
+### L101 · Search the records before reusing a label; list before saying "cleaned"
+Tags: docs, evidence
+W16l named the owner's Add app idea "W17" while the 25 Oct records already used W17 for the combo
+planner, and the first W16m handover said the assistant sandbox was cleaned while /tmp still held
+three days of files. Both were found only on a third read. Before giving out a packet label, search
+every record for it; before writing that something was removed, list the place and quote the count.
+
+### L102 · Run a test the way the suite runs it and read the count
+Tags: tests, gates
+A docs contract file run as `python3 tests/x.py` has no main block: it ran zero tests, exited 0 and
+was reported as passing (W16m third check). The suite runs `python3 -m unittest discover -s tests -p
+x.py`. Run single tests that way and quote the "Ran N tests" line; exit 0 alone proves nothing.
+
+### L103 · The author's own checks are not a review
+Tags: review, evidence
+The W16m handover needed eight check rounds. In rounds 1 to 4 the author re-read his own records and
+each round found more; from round 5 independent agents with one lens each (open items, chat facts,
+code facts, stale docs, a fresh-chat simulation) found what he could not see. Check a handover the
+way docs/review/REVIEW-METHOD.md says: full populations split into shards, written evidence, a second
+pass on the fixes, done only when fresh reviewers find no HIGH or MED item.

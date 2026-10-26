@@ -5,7 +5,8 @@ APIs on that day; re-read them before any packet uses them. Nothing here runs ye
 
 ## Status (W16g)
 
-Built manual-only in W16g; first owner-dispatched run proves lockdown.
+Built manual-only in W16g. A green owner-dispatched run with "checkout unchanged" proves the lockdown;
+that run is still to come (OPEN-WORK 26 Oct item 11; Failing issue #250).
 
 ## 1. CI host/client
 

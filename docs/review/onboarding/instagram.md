@@ -43,8 +43,8 @@ Provider: aic0d3r/oxbow (third choice, fallback only, built alone; licence: GPL-
 - Story text fonts: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Hide Instants: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - View live anonymously: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
-- Disable background components: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
-- Disable background processes and telemetry: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Disable background components: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description (26 Oct 2026: absent from every current Instagram include-patches; the reason is not recorded here)
+- Disable background processes and telemetry: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description (26 Oct 2026: absent from every current Instagram include-patches; the reason is not recorded here)
 - Hidden chats: added 2026-10-23 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Custom font: added 2026-10-22 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Customize navigation bar: added 2026-10-22 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
@@ -172,7 +172,7 @@ Not included (exclude list):
 
 Removed from the piko list in W13: Remove build expired popup and Validate links. piko 3.10.0-dev.14 (10 Oct 2026) applies both always and no longer lists them; Nightly watch 10 Oct reported them MISSING. brosssh still applies Remove build expired popup.
 
-- Focus Lock: owner approved 24 Oct 2026 (packet W16g). Not a paid unlock: a self-limit mode the user turns on (blocks Reels or Explore for a chosen time); the community index matched the word "unlock" in its description. Once locked it cannot be switched off early without a 24 hour cooling-off.
+- Focus Lock: owner approved 24 Oct 2026 (packet W16g). Not a paid unlock: a self-limit mode the user turns on (blocks Reels or Explore for a chosen time); the community index matched the word "unlock" in its description. Once locked it cannot be switched off early without a 24 hour cooling-off. 26 Oct 2026: it is in src/patches/instagram-piko/include-patches.
 
 Owner approved: Focus Lock
 

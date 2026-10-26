@@ -1,3 +1,7 @@
+> Inherited from the upstream fork (FiorenMas) and kept as history. Its fork, folder and safety
+> answers do not describe this repository: use [docs/guide.md](../docs/guide.md) and
+> [docs/APPS.md](../docs/APPS.md).
+
 <h1 align="center">
   <br>
       Frequently Asked Questions
@@ -15,13 +19,13 @@ The issue might be that your Android OS is preventing MicroG (GMS Core) from run
 ### Q: How do I use this repository for patching my own app?
 
 You should [fork](https://github.com/FiorenMas/Revanced-And-Revanced-Extended-Non-Root/fork) the repository, and then go to the `Action` tab
-![Click Action](../docs/image/FAQ/patching-app-1.png)
+(Screenshot: Click Action; not kept in this repository.)
 
 Click "I understand my workflows, go ahead and enable them"
-![Click "I understand my workflows, go ahead and enable them"](../docs/image/FAQ/patching-app-2.png)
+(Screenshot: Click "I understand my workflows, go ahead and enable them"; not kept in this repository.)
 
 Follow these steps to run the workflow for Manual Patch apps!
-![](../docs/image/FAQ/patching-app-3.png)
+(Screenshot not kept in this repository.)
 
 And then go to Readme click download your patched apps!
 
