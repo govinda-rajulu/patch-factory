@@ -20,15 +20,37 @@ if isinstance(compat,dict):
 else:
     for i,v in enumerate(compat): PN[str(i)]=names(v)
 
+def _row(ref):
+    """W16o: the raw compatibility row a patch points at (None when it cannot resolve)."""
+    if ref is None: return None
+    if isinstance(compat, dict): return compat.get(str(ref))
+    try:
+        i = int(ref)
+    except (TypeError, ValueError):
+        return None
+    return compat[i] if 0 <= i < len(compat) else None
+
+def _same_patch(p):
+    """A doubled repository can list one patch twice with equivalent compatibility rows
+    under different keys: compare the resolved row, not the key (as community_model does)."""
+    ref = p.get("compatiblePackagesKey", p.get("compatibilityKey"))
+    rest = {k: v for k, v in p.items() if k not in ("compatiblePackagesKey", "compatibilityKey")}
+    row = _row(ref)
+    return json.dumps([rest, row, None if row is not None else ref], sort_keys=True, default=str)
+
 # A repeated repository is one provider. Merge its bundle pages before counting offers.
 providers = collections.OrderedDict()
+_seen_by_provider = {}
 for b in (d.get("bundles") or []):
     source = b.get("source", "github")
     repo = str(b.get("repo", ""))
     key = (source, repo.lower())
     provider = providers.setdefault(key, dict(b, patches=[]))
+    seen_patch = _seen_by_provider.setdefault(key, set())
     for patch in b.get("patches") or []:
-        if patch not in provider["patches"]:
+        mark = _same_patch(patch)
+        if mark not in seen_patch:
+            seen_patch.add(mark)
             provider["patches"].append(patch)
 
 bypkg=collections.defaultdict(list)

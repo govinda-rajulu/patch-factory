@@ -22,10 +22,15 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and
   publishing only from main; onboard review without pull-requests: write; community summaries
   count a doubled repository once.
 - **Credits**: owner and architect Govindarajulu K; engineering ClickUp Brain on Anthropic's Claude (CREDITS.md "Who
-  built it", README, controller banner and RESULT.json `built_by`).
+  built it", README, RESULT.json `built_by`; no banner line, owner 26 Oct).
 - **Proof before merge**: the W16o controller smokes all 17 apps on the packet branch (both
   stores and the helpers) before it merges, then T1.
-- **Wrong calls**: 80. 80: W16n changed how a repository listed twice is counted but kept a test
+- **Wrong calls**: 82. 82: the W16o curl move sent the store cookie as a raw header, which curl
+  drops on a redirect to another host (wget sent it on every request); round 3 review found it
+  before any run, now `--cookie` like wget (curl manual), with a test. 81: the fix for 80 added a test that assumed the stored snapshot had no
+  doubled repository; it already had one (epabafree/sabp-eppy-patches, Community report #258), so
+  Validate failed again (run 40338726723). Tests are now deltas against the stored snapshot, and
+  the full suite was run on a copy that mimics live main. 80: W16n changed how a repository listed twice is counted but kept a test
   that compared the live snapshot to the raw record count; once Community watch stored an index
   with the doubled repository (5960 raw, 5957 merged), Validate failed on the W16o pull request
   (run 40333090933) and would fail on main. Fixed in W16o (L111). Agent errors caught in W16o review: an unsupported wget

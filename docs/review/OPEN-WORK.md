@@ -22,6 +22,13 @@ afternoon item is carried as written there.
    extra_bundles[].expected_sha256. Set them only with the owner.
 5. Still open from the audit: W15g signing split (signing inputs still reach the patcher job),
    Gemini CLI below 1.0 until mcp-scout.yml moves to the Policy Engine.
+6. Round 3 review (fresh agents with the curl, GitHub, runner-image and Python docs) left these,
+   none blocking W16o: the controller checks main for human drift a moment before the merge call,
+   and the merge's `sha` guards only the pull request head, so a human push in that second is
+   caught only by the tree check after the merge (LOW, owner is the only human); the publishing
+   dispatch lookup is not filtered by `head_sha` (dormant, PUBLISH_DISPATCH is empty; fix before
+   W15g uses it); the bot-drift rule does not require the GitHub-committer case to be a merge
+   commit (LOW); tests/transfer_retry_contracts.py exercises only the wget branch (LOW).
 
 ## Earlier checkpoint: 26 October 2026, afternoon IST (packet W16n)
 

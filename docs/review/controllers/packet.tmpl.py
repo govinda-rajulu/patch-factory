@@ -91,7 +91,7 @@ MIRROR = None       # (W13) dict(repo, files, manifest, anchor, branch, title[, 
 PAGES_WAIT = int(os.environ.get('PF_PAGES_WAIT', '900'))
 BUNDLE = '@@BUNDLE@@'
 # -------------------------------------------------------------------------------------------
-# W16n owner request: the controller says who wrote it, in its first line and in RESULT.json.
+# W16n owner request: RESULT.json says who wrote the controller (owner, 26 Oct: no banner line on every run).
 BUILT_BY = 'ClickUp Brain on Claude (engineering) for Govindarajulu K (owner)'
 REMOTE = os.environ.get('PF_REMOTE', 'https://github.com/%s.git' % REPO)
 GH = os.environ.get('PF_GH', 'gh')
@@ -840,7 +840,6 @@ def finish(good):
 
 
 def main():
-    print('pf-%s controller by %s' % (PACKET, BUILT_BY), flush=True)
     save()
     pr, merged = gate()
     clone()
@@ -858,7 +857,12 @@ def main():
     early = PUBLISH_ALL or bool(PUBLISH_APPS)  # W16c: fresh releases before the cleanup, too
     tested = t1(R['merge']) if early else True
     previewed = preview()
-    cleaned = previewed and cleanup(R['merge'])
+    if deployed:
+        cleaned = previewed and cleanup(R['merge'])
+    else:
+        # W16o round 3: no cleanup apply without the merge's own finished Pages deploy.
+        say('cleanup', 'FAIL', 'not applied: the Pages deployment did not finish; the apply line is in cleanup-apply-command.txt')
+        cleaned = False
     tidied = tidy(R['merge'])
     mirrored = mirror(R['merge'])
     if not early:

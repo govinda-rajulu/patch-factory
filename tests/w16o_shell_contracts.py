@@ -64,6 +64,14 @@ class W16oShellContracts(unittest.TestCase):
         self.assertNotIn('apkpure.com', transfer)
         self.assertIn('pf_curl_effective_host_ok "$effective" "$store"', transfer)
 
+    def test_store_cookie_follows_redirects_like_wget(self):
+        # W16o round 3 (wrong call 82): curl drops a raw Cookie header on a cross-host
+        # redirect; wget sent it on every request. --cookie NAME=VALUE data is passed on.
+        transfer = self.utils.split('pf_curl_store_transfer() {', 1)[1].split('\n}', 1)[0]
+        self.assertIn('[[ "${FS_COOKIES:-}" == *=* ]] && cookie_args=(--cookie "$FS_COOKIES")', transfer)
+        self.assertNotIn('Cookie: ', transfer.replace('raw --header Cookie', ''))
+        self.assertNotIn('--location-trusted', transfer)
+
     def test_docker_helpers_are_loopback_fail_closed_and_cleaned(self):
         self.assertIn('-p "127.0.0.1:$port:$port"', self.services)
         self.assertIn('return 1', self.services[self.services.index('docker run'):])

@@ -46,5 +46,24 @@ class OneProviderPerRepository(unittest.TestCase):
             self.assertIn('unwired provider/app pairs: 1', out)
 
 
+    def test_equivalent_compatibility_rows_count_one_patch(self):
+        # W16o round 3: the live index doubles a repository with the same patch under a
+        # second, equivalent compatibility row; the summaries count it once, like the model.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            self.fixture(root)
+            row = {'packageName': 'com.example.app'}
+            patch = lambda key: {'name': 'Same', 'compatiblePackagesKey': key}
+            index = {'compatibilities': [row, dict(row)],
+                     'bundles': [{'source': 'github', 'repo': 'owner/repo', 'name': 'r', 'patches': [patch(0)]},
+                                 {'source': 'github', 'repo': 'Owner/Repo', 'name': 'r', 'patches': [patch(1)]}]}
+            (root / 'src/community/bundles.json').write_text(json.dumps(index))
+            path = root / 'index.json'
+            path.write_text(json.dumps(index))
+            out = self.run_script('community_discover.py', str(path), cwd=root)
+            self.assertIn('1 patches for this app', out)
+            out = self.run_script('community_all.py', cwd=root)
+            self.assertRegex(out, r'owner/repo.*\b1 patches|Owner/Repo.*\b1 patches')
+
 if __name__ == '__main__':
     unittest.main()

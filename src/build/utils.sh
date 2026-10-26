@@ -233,7 +233,10 @@ pf_curl_store_transfer() {
 	local url=$1 dest=$2 referer=$3 ua=$4 store=$5 effective_file effective
 	local candidate_bytes max_bytes
 	local -a cookie_args=()
-	[[ -n "${FS_COOKIES:-}" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
+	# --cookie with NAME=VALUE data is sent on every redirected request, as wget sent its
+	# Cookie header; a raw --header Cookie is dropped on a cross-host redirect (curl manual).
+	# Data without "=" would be read as a file name, so it is never passed.
+	[[ "${FS_COOKIES:-}" == *=* ]] && cookie_args=(--cookie "$FS_COOKIES")
 	effective_file=$(mktemp "$PF_TMP_DIR/store-effective.XXXXXX") || return 1
 	# Keep this as the sole binary request: its headers and cookies match the
 	# base wget transfer, while curl records the redirect result privately.
