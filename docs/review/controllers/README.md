@@ -9,7 +9,7 @@ tools. Added 10 Oct 2026 (packet H12) from the W9 to W12 controllers, which all 
 | `fake_gh.py` | A fake `gh` with a git-backed origin, for rehearsal. Knobs are listed at its top (W15b: `prs_as_issues`, a pull request in CLOSE). |
 | `rehearse.sh` | Runs a built controller against `fake_gh.py` in a throwaway world. A fix on top of a pushed packet: set PARENT in the controller; rehearse with `PRIOR_TREE=<old tree> PRIOR_BRANCH=packet/<name>` (and `PRIOR_MOVED=1` for the stop case). W15e: `DRIFT=<path>` puts a bot commit on main before the run, `DRIFT_MAIL=<mail>` makes it a human one (must stop), `MID_DRIFT=<path>` adds a bot commit mid-run; W15f: `DRIFT_MERGE=<path>` puts a Rule merge (bot author, GitHub committer) on main. |
 | `suite.sh` | Local copy of 3. Validate's offline steps. Run one instance at a time. |
-| `pf-t1.py` | The all-flows test: `PF_MAIN=<full main sha> python3 pf-t1.py`. One nonpublishing Batch Patch of every enabled app, then 2. Check new patch, Provider, Nightly, Community, Tooling and Selection watch, then the status page. Nothing merged or deleted. Added in W13. |
+| `pf-t1.py` | The all-flows test: `PF_MAIN=<full main sha> python3 pf-t1.py`. One Batch Patch of every enabled app (publish off unless PF_T1_PUBLISH=1, or PF_T1_PUBLISH_APPS for chosen apps), then 2. Check new patch (it publishes apps whose provider or store changed, like its schedule), then Provider, Community, Tooling and Selection watch, 11. Rule merge, Nightly watch and Needs you (FLOWS in pf-t1.py), then it waits for Status page data. No packet cleanup or release deletion; Rule merge may merge an eligible Selection watch pull request or delete a stale adopt branch. Added in W13. |
 | `render.cjs` | Headless render of `docs/index.html` (Playwright; set `PLAYWRIGHT_BROWSERS_PATH` if the browser lives elsewhere). |
 | `build_ctl.py` | W15i: fills the template from a CONFIG file, the packet branch, BASE, BASE_TREE and PREREQ (usage in its first lines). |
 | `owner-probes/pf-keys.py` | W15i: the owner's Cloud Shell probe: tests free AI keys live and saves only working ones as secrets, reads CodeQL alerts, runs morphe-desktop's list-versions to list the files it creates, dispatches a council probe and zips the logs. Rehearse new probes against fake APIs first. |
@@ -42,5 +42,55 @@ tools. Added 10 Oct 2026 (packet H12) from the W9 to W12 controllers, which all 
 - Merge only when CHECKS pass, OPTIONAL checks that appear pass, and every SMOKE build works
   and prints a COVERAGE line. Merging over a failed agent review is the owner's call (W11).
 - After the merge it waits for the Pages deployment of the merge before the cleanup preview,
-  or the token goes stale (W12: STOP, token mismatch; L049). Deletions stay the owner's
-  command: the controller prints the apply line and never runs it.
+  or the token goes stale (W12: STOP, token mismatch; L049). With CLEANUP_APPLY = False the
+  controller prints the apply line and never runs it; with True (W13 on, owner's choice per packet;
+  the W16m controller, handed to the owner and not stored
+  here, sets it) it applies that exact preview and keeps the receipt. PF_CLEANUP=keep skips it.
+
+## Assistant sandbox notes (W16, 23 to 26 Oct 2026)
+
+Things the assistant relearned in the W16 chat; read before building a controller.
+
+- **Inputs.** The sandbox has no internet. Live state comes from public API reads through the
+  assistant's web reader; code
+  comes from the owner's `git bundle --all` (check bytes and sha256 against his pasted line, then
+  `git clone` the bundle). A packet branch must sit on main's exact tree.
+- **Long commands.** A single command that sleeps quietly for 20 seconds or more can lose its
+  connection ("Failed to read sandbox RPC requests"). Background processes also seem to pause
+  between calls. Start the suite detached (`setsid nohup flock /tmp/pf-suite.lock bash
+  docs/review/controllers/suite.sh <tree> > log 2>&1 < /dev/null &`) and wait with a loop that
+  prints a dot every 4 to 5 seconds and stops at the `SUITE` line. A full suite takes about 7 to 9
+  minutes of that.
+- **Killing.** `pkill -f <pattern>` (and `kill $(pgrep -f <pattern>)`) also kills the calling shell
+  when the pattern is in its own command line (it happened again on 26 Oct). Kill by process id. An orphaned `unittest` from a killed suite still holds
+  `/tmp/pf-suite.lock`; find holders through `/proc/*/fd`.
+- **Tests that are not in the obvious place.** Anchors pin warning texts (version_steps_contracts
+  pins "Set max_app_version in src/targets.json." in check_sdk.sh); target counts come from
+  `tests/target_counts.py` (a disabled app changes ENABLED, not TOTAL).
+- **Rehearsal knobs used in W16k and W16l.** `smoke_winner` in the state JSON makes a named smoke
+  win with another provider (must STOP, L098); `PRIOR_TREE` and `PRIOR_BRANCH` rehearse a fix on top
+  of a pushed packet; `RERUN=1` proves a rerun publishes nothing twice (done files).
+- **A fix after a STOP.** The pushed packet commit is deterministic (tree, parent, fixed author,
+  WHEN, MESSAGE), so recompute its full sha with `git commit-tree` from the old controller's CONFIG,
+  check it against the short sha the owner pasted, and set PARENT to it. Rebuild, rehearse with
+  PRIOR_TREE, hand over a new launcher; the controller fast-forwards the branch and reuses the PR.
+- **Smokes.** Name the provider for any app with a fallback (`instagram/piko`). A first build of a
+  new provider bundle is the first real test: read the provider's open issues before blaming the
+  APK (L100).
+- **Cloud Shell.** It ends idle sessions and with them nohup jobs; every controller phase must be
+  rerunnable. Publishing batches are dispatched and not waited for.
+- **Working rules carried from the assistant's memory (26 Oct 2026).** Provider facts come from
+  `src/community/bundles.json` or a live list-patches run, never from a web search; check every
+  record against `docs/council/ONBOARD.md` before it ships; check the official Morphe bundle
+  before any community provider. Packets never edit bot-written paths (baselines, bot reports).
+  Names that leave a selection go to `exclude-patches`, so the Selection rule cannot add them
+  back. A packet closes the issues it serves (CLOSE) and deletes its merged branch
+  (DELETE_BRANCHES). `build_ctl.py` takes the packet worktree, not an older checkout. Exact bytes
+  of a file on main come from the git blob API by sha (raw reads collapse whitespace and can be
+  stale; about 16 KB of base64 per read). L061: never suppress a signal. The owner sends a Cloud
+  Shell file to the chat with `cloudshell download <file>`, then attaches it. In the 23 to 26 Oct chat
+  the assistant's memory and skill write tools twice reported success without saving: re-read after
+  every write. About 1000 MB of
+  Actions artifact zips sit in the owner's Cloud Shell home: he decides their fate later, so no
+  cleanup command may delete them. Delegate searches and doc preparation to agents with a scope,
+  sources, an output and a stop rule; the assistant still verifies, gates and merges.

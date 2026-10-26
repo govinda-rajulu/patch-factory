@@ -37,7 +37,9 @@ artificial completion cap; it is not a default audit seat because the trained au
 explicit cap supplied by a caller is still honored and doubled once after truncation. A busy/exhausted
 response (429/5xx or timeout) moves through the seat's own models and then its keyed backups.
 
-The schedule remains two audit slots daily, Monday triage, Sunday probes, and rotating solo shifts;
+The schedule remains two desk slots daily: Monday morning triage, Sunday morning model probe, the
+rest audits (Sunday afternoon files review issues); solo shifts run only
+on request since W16k (their crons were removed);
 `L039` keeps one heavy job per run. Audit parts remain capped at 10 and 70,000 characters, and
 the 30-minute audit deadline remains the per-run wall-clock cap. The workflow's concurrency group
 prevents a newer run for the same PR/desk invocation from racing an older one.

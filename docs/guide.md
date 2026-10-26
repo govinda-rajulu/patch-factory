@@ -32,7 +32,7 @@ Expand **Track with Obtainium**, choose All apps or Select only, prepare the con
 
 Choose **MicroG architecture** and **MicroG channel** before preparing the import. Universal (recommended) avoids assuming which device will open a shared configuration. Auto architecture uses Obtainium's filename-based filter; it is not device detection by this website. ARM64 and ARMv7 require the matching published file. **Done / collapse** hides the panel without discarding choices. **Reset choices** clears the page's selection and prepared links only; it never removes tracked or installed apps.
 
-Importing a matching tracked app may replace its tracking settings. Unselected apps are not removed. Refresh checks tracked apps; it is not subscription to this catalog or automatic configuration synchronization. Patched-app tracking currently extracts the app version, so delivery of patch-only rebuilds with the same app version remains limited.
+Importing a matching tracked app may replace its tracking settings. Unselected apps are not removed. Refresh checks tracked apps; it is not subscription to this catalog or automatic configuration synchronization. Patched-app tracking reads the app version and the build id (W15), so a patch-only rebuild of the same app version is a new release; re-import the Obtainium JSON once if your tracking is older than that.
 
 **Does an Obtainium update need patching again?** An APK downloaded from this repository's patched-app releases is already patched; Obtainium tracks and installs it, it does not run the patcher. An original APK from a store is not a replacement for that patched build. Keep each tracked app pointed at its intended source and inspect package/signature compatibility before updating. Do not switch patched entries to a stock store to work around a missing update.
 
@@ -53,7 +53,7 @@ The one home for the checks, limits and safety lines every release used to repea
 
 MicroG's download card has its own channel selector, synchronized with the Obtainium toolbar. The selected channel is visible even when both channels currently select the same release. Changing it updates page downloads and invalidates previously prepared imports; it does not update installed or tracked apps. To change Obtainium tracking, include MicroG, prepare a new import and confirm it in Obtainium. Refreshing this page resets the channel to stable.
 
-Build reports distinguish dependency-only checks from app-build jobs and summarize successful, failed and other/pending app builds. A red batch can contain a successful app publication. The step named `Patch apk` also performs source downloading, so its failure is not proof that applying a patch failed. Open the exact job for the actual error. Existing baseline qualification requires the whole source run to succeed, even when one app published successfully.
+Build reports distinguish dependency-only checks from app-build jobs and summarize successful, failed and other/pending app builds. A red batch can contain a successful app publication. The step named `Patch apk` also performs source downloading, so its failure is not proof that applying a patch failed. Open the exact job for the actual error. Existing baseline qualification requires the whole source run to succeed, even when one app published successfully (qualify-baselines.yml runs only on a successful run; W16j added one plan per candidate inside it).
 
 | Surface | What it means | What it does not prove |
 | --- | --- | --- |

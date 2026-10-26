@@ -4,13 +4,13 @@ Package: org.telegram.messenger
 Source APK: APKMirror, per the target's `source` (unchanged).
 
 **Current (W16j, 25 Oct 2026):** SysAdminDoc/HushTelegram is primary with 62 names in `src/patches/telegram-hushtelegram/include-patches` (owner: the most patches wins); rushiranpise/morphe-patches (12.10.1, 13 names, Unlock Premium among them) is the backup. newuser7171 is removed: it never built (24 and 25 Oct smokes: its fingerprints miss the APKMirror 12.10.4 build).
-Provider: rushiranpise/morphe-patches (primary since W16h; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/rushiranpise/morphe-patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease).
+Provider: SysAdminDoc/HushTelegram (primary since W16j; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/SysAdminDoc/HushTelegram; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease). Same author as HushFacebook and HushGram. Left out: Use registered Maps API key (BANNED), Use registered Telegram API credentials (needs your own API id), Repair Firebase push registration (hands Firebase the original certificate), HushTelegram icon and name (branding), Black and white launch logo (expert only, rebuilds resources).
+Provider: rushiranpise/morphe-patches (primary in W16h, fallback since W16j; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/rushiranpise/morphe-patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease).
 
-Owner decision, 24 Oct 2026 (packet W16g): newest version and most patches wins. newuser7171 targets 12.10.4 with every rushiranpise Telegram patch plus `Bypass translation restrictions`; rushiranpise (12.10.1) stays as the fallback. Owner keeps Remove ads, Bypass translation restrictions, Download speed boost, Hide typing indicator and Unlock Premium.
+Superseded in W16j (newuser7171 was removed; HushTelegram is primary, rushiranpise the fallback). Owner decision, 24 Oct 2026 (packet W16g): newest version and most patches wins. newuser7171 targets 12.10.4 with every rushiranpise Telegram patch plus `Bypass translation restrictions`; rushiranpise (12.10.1) stays as the fallback. Owner keeps Remove ads, Bypass translation restrictions, Download speed boost, Hide typing indicator and Unlock Premium.
 
 Owner approved: Unlock Premium
 
-Provider: SysAdminDoc/HushTelegram (primary since W16j; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/SysAdminDoc/HushTelegram; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease). Same author as HushFacebook and HushGram. Left out: Use registered Maps API key (BANNED), Use registered Telegram API credentials (needs your own API id), Repair Firebase push registration (hands Firebase the original certificate), HushTelegram icon and name (branding), Black and white launch logo (expert only, rebuilds resources).
 
 ## Patches
 - AMOLED black: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
@@ -75,7 +75,7 @@ Provider: SysAdminDoc/HushTelegram (primary since W16j; licence: GPL-3.0, the LI
 - Use system font: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
 - Voice messages in the music player: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
 
-Exclusive target; the newuser7171 fallback's names are in `src/patches/telegram-newuser7171/include-patches` (W16h removed Bypass channel restrictions from this list):
+Exclusive target. History: the W16h newuser7171 fallback list follows (that provider and its folder were removed in W16j). Today's fallback is rushiranpise; its 13 names are in `src/patches/telegram-rushiranpise/include-patches`: Anti-delete messages, Anti-disappearing media, Anti-screenshot notification, Bypass channel restrictions, Bypass content restrictions, Disable auto-update, Disable channel switching, Download speed boost, Hide typing indicator, Remove ads, Unlock Premium, Use normal paste, Voice to music. The old newuser7171 list:
 
 - Anti-delete messages: default on; same as the rushiranpise build.
 - Anti-disappearing media: default on; same as the rushiranpise build.
@@ -91,7 +91,7 @@ Exclusive target; the newuser7171 fallback's names are in `src/patches/telegram-
 - Use normal paste: default on; same as the rushiranpise build.
 - Voice to music: default on; same as the rushiranpise build.
 
-Left out of the fallback (its exclude-patches): `Bypass channel restrictions` (W16i: fails on 12.10.4, run 40108956377; excluded so the Selection rule cannot add it back, as PR #243 tried), `Bypass integrity check` (CONFIRM rule, held as before), `Fix Firebase after re-signing`, `Provide Original app certificate`, `Spoof app signature`, `Spoof install source` (all BANNED re-signing rules).
+Left out of the W16i newuser7171 fallback (its exclude-patches then; today's rushiranpise fallback includes Bypass channel restrictions and excludes the CONFIRM and BANNED names): `Bypass channel restrictions` (W16i: fails on 12.10.4, run 40108956377; excluded so the Selection rule cannot add it back, as PR #243 tried), `Bypass integrity check` (CONFIRM rule, held as before), `Fix Firebase after re-signing`, `Provide Original app certificate`, `Spoof app signature`, `Spoof install source` (all BANNED re-signing rules).
 
 ## Risks
 

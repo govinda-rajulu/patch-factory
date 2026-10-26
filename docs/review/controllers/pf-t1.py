@@ -3,7 +3,9 @@
 
 The all-flows test (packet W13: committed here, gated on a given main). Run it after a
 merge: PF_MAIN=<full sha of main> python3 pf-t1.py (a packet controller passes it).
-Nothing is merged or deleted. One dispatch at a time, each waited for. Phases:
+It runs no packet cleanup and deletes no release; the workflow it dispatches named "11. Rule merge"
+may merge an eligible Selection watch pull request or delete a stale adopt branch, and PF_T1_PUBLISH may
+publish. One dispatch at a time, each waited for. Phases:
   gate       gh logged in; live main is PF_MAIN (a rerun after a STOP accepts the main
              the first attempt recorded, because Community and Selection watch push to main)
   batch      9. Batch Patch, publish=false, every enabled app: builds all apps with the new

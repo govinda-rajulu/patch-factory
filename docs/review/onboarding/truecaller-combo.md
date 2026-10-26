@@ -4,19 +4,19 @@ Package: com.truecaller
 Source APK: the target's current source mapping (unchanged); the version follows the provider's compatible list.
 
 **Current (W16j, 25 Oct 2026):** heval99/Heval-Morphe-Patches is primary on 26.41.5 and builds alone (its candidate overrides drop the extras; src/build/build_attempts.py applies a lone primary's overrides since W16j). The backup is the combo: bufferk/morphe-patches with the paresh-patches and binarymend/morphe-patches extras (19 names, 26.10.6). Owner, 25 Oct 2026: "Make heval99 Truecaller's main provider, with the 19-patch set as the backup."
-Provider: heval99/Heval-Morphe-Patches (primary since W16j, fallback in W16h; licence: GPL-3.0, the LICENSE file at https://github.com/heval99/Heval-Morphe-Patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease). Names below come from the live list-patches run in Explore issue #234 (24 Oct 2026, 24 patches) and the community index (compatible 26.40.5, 26.41.5).
+Provider: heval99/Heval-Morphe-Patches (primary since W16j, fallback in W16h; licence: GPL-3.0, the LICENSE file at https://github.com/heval99/Heval-Morphe-Patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease). Names below come from the live list-patches run in Explore issue #234 (24 Oct 2026, 24 patches offered (21 chosen today, src/patches/truecaller-heval99/include-patches)) and the community index (compatible 26.40.5, 26.41.5).
 
 Owner decision, 24 Oct 2026 (packet W16g): use the provider with the newest app version and the most patches. heval99 targets 26.41.5 with 24 patches; the old combo (bufferk 7 + paresh 10 + binarymend 2) targets 26.10.6. heval99 becomes primary, built alone; bufferk alone (7 patches, 26.10.6) is the fallback. The paresh and binarymend extras leave: heval99 covers what they did, and their patches fit 26.10.6 only. Enable Premium and GmsCore support stay in, so the owner can compare.
 
 Owner approved: Enable Premium
 Owner approved: GmsCore support
 
-## heval99 names (primary in W16g, fallback since W16h)
+## heval99 names (primary since W16j; primary in W16g, fallback in W16h)
 - Hide Blocking tab: owner took it in the Needs you review file, 2026-10-25 (N-c4f7b1)
 - Hide business media: owner took it in the Needs you review file, 2026-10-25 (N-2a7712)
 - Hide call log filters: owner took it in the Needs you review file, 2026-10-25 (N-7de88d)
 
-Truecaller is an exclusive target; the heval99 fallback's names are in `src/patches/truecaller-heval99/include-patches`:
+Truecaller is an exclusive target; the heval99 primary's names are in `src/patches/truecaller-heval99/include-patches`:
 
 - Disable ads: default on; ad removal.
 - Hide promotions: default on; promotion removal.
@@ -37,7 +37,7 @@ Truecaller is an exclusive target; the heval99 fallback's names are in `src/patc
 - Remove screenshot restriction: default off; lets the owner take screenshots.
 - Hide after-call screen for contacts: default off; the after-call popup only for saved contacts.
 
-Left out: `Spoof signature` (default on; BANNED rule `spoof signature`, listed in heval99's exclude-patches; the combo's exclude list is empty). W16i also lists `Restore classic call log` and `Use SMS for verification codes` there: left out on purpose in W16g, they were only absent, so the Selection rule offered them again in PR #243, and the default-off ones that remove a core feature or change sign-in: `Hide Blocking tab`, `Hide Messages tab`, `Hide business media`, `Restore classic call log`, `Use SMS for verification codes`.
+Left out: `Spoof signature` (default on; BANNED rule `spoof signature`, listed in heval99's exclude-patches; the combo's exclude list is empty). W16i also lists `Restore classic call log` and `Use SMS for verification codes` there: left out on purpose in W16g, they were only absent, so the Selection rule offered them again in PR #243, and the default-off ones that remove a core feature or change sign-in: `Hide Blocking tab`, `Hide Messages tab`, `Hide business media`, `Restore classic call log`, `Use SMS for verification codes`. Since W16j (owner, Needs you 25 Oct) `Hide Blocking tab` and `Hide business media` are taken (see the names above); heval99's exclude-patches today: Spoof signature, Restore classic call log, Use SMS for verification codes, Hide Messages tab.
 
 ## Risks
 

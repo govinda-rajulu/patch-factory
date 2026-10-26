@@ -6,8 +6,9 @@ Two steps for every change (packet W2, 8 Oct 2026).
    fields that action needs (table below), run it. It writes every file, runs the repo checks
    and opens a pull request. Its run summary says what changed, or why it refused.
 2. **Merge that pull request** once **3. Validate** and **Onboarding review** are green.
-   An enabled app builds in the next scheduled run, or now through **1. Manual Patch**
-   (type the same id).
+   An enabled app builds when a scheduled check finds a new provider release, app version or
+   chosen-patch change for it, or now
+   through **1. Manual Patch** (type the same id).
 
 | Action | Fields | What it does |
 | --- | --- | --- |
@@ -47,5 +48,6 @@ The run summary then gives the compare link: one click opens it.
 
 Each build takes the newest app version its patch provider supports, or the store's newest
 when the provider says any version. If that version needs a newer Android than the phone cap
-(`min_sdk_ceiling`), the build tries up to three lower versions by itself. Set
+(`min_sdk_ceiling`), the build first tries the same version from the other store (W16k picker,
+src/build/variant_pick.py), then up to three lower versions by itself. Set
 `max_app_version` only to hold an app at or below one version on purpose.

@@ -14,6 +14,11 @@ first. Nothing here is current; `knowledge/STATE.md` and `../OPEN-WORK.md` are.
 | [SESSION-2026-10-20.md](SESSION-2026-10-20.md) | Session record, 20 October 2026 (archived). |
 | [SESSION-2026-10-21.md](SESSION-2026-10-21.md) | Session record, 21 October 2026 (archived). |
 | [SESSION-2026-10-22.md](SESSION-2026-10-22.md) | Session record, 22 October 2026 (archived). |
+| [SESSION-2026-10-23.md](SESSION-2026-10-23.md) | Session record, 23 October 2026, packet W15i (moved 26 Oct, W16m). |
+| [SESSION-2026-10-24.md](SESSION-2026-10-24.md) | Session record, 23 to 24 October 2026, W16 to W16g (moved 26 Oct, W16m). |
+| [HANDOVER-2026-10-23.md](HANDOVER-2026-10-23.md) | 20 to 23 October chat handover (moved 26 Oct, W16m). |
+| [W16-BRIEF.md](W16-BRIEF.md) | 23 October owner brief for W16 (moved 26 Oct, W16m). |
+| [WIP-W15-2026-10-17.md](WIP-W15-2026-10-17.md) | 17 October packet W15 work in progress (moved 26 Oct, W16m). |
 | [HANDOVER-2026-09-26.md](HANDOVER-2026-09-26.md) | 26 September session handover |
 | [SESSION-2026-09-29.md](SESSION-2026-09-29.md) | Packet L session record |
 | [AUDIT-2026-09-07.md](AUDIT-2026-09-07.md) | First repository audit |

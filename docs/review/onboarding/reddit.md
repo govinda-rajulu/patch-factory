@@ -25,7 +25,7 @@ Provider: Alastor-Kaneki/Morphe-Patches (extra on the Morphe build since W16j; A
 - Hide user flairs: owner took it in the Needs you review file, 2026-10-25 (N-75061a)
 - Hide Reddit search: owner took it in the Needs you review file, 2026-10-25 (N-612eb8)
 
-Rule: the same as YouTube and YouTube Music on Morphe: the provider's default-on Reddit patches, minus the banned and branding ones. Reddit is an exclusive target, so the 26 names are listed in `src/patches/reddit-morphe/include-patches`:
+Rule: the same as YouTube and YouTube Music on Morphe: the provider's default-on Reddit patches, minus the banned and branding ones. Reddit is an exclusive target, so the 27 names (26 before W16l) are listed in `src/patches/reddit-morphe/include-patches`:
 
 - Hide ads
 - Custom font
@@ -54,7 +54,7 @@ Rule: the same as YouTube and YouTube Music on Morphe: the provider's default-on
 - Sanitize sharing links
 - Redgifs audio
 
-Left out: `Disable modern home` (default on, but Morphe says it works only up to Reddit 2026.24.0 and every build of 41 printed "does not work with Reddit 2026.25.0+"; W16c), `Spoof signature` (default on; BANNED rule `spoof signature`), `App icon` (default on; branding, left out as Custom branding is on YouTube), and the default-off ones (`Custom branding name for Reddit`, `Hide Reddit search`, and the five universal patches Clone app, Change installer source, Override certificate pinning, Spoof signature, Disable Play Store updates).
+Left out: `Disable modern home` (default on, but Morphe says it works only up to Reddit 2026.24.0 and every build of 41 printed "does not work with Reddit 2026.25.0+"; W16c), `Spoof signature` (default on; BANNED rule `spoof signature`), `App icon` (default on; branding, left out as Custom branding is on YouTube), and the default-off ones (`Custom branding name for Reddit`, `Hide Reddit search` (taken since W16j, DECISIONS.json), and the five universal patches Clone app, Change installer source, Override certificate pinning, Spoof signature, Disable Play Store updates).
 
 Adobo choices with a Morphe match: ad and telemetry removal -> Hide ads; screenshot banner -> Disable screenshot popup; guest mode -> Start as guest; external links -> Open links directly; share links -> Sanitize sharing links. Adobo-only choices (Firebase and WebView telemetry switches, feed refresh and swipe switches, comment indent colours, transparent navigation bar) stay available on the Adobo fallback.
 
@@ -66,7 +66,7 @@ Adobo choices with a Morphe match: ad and telemetry removal -> Hide ads; screens
 
 ## Decision
 
-Owner brief, 23 Oct 2026: make official MorpheApp/morphe-patches primary for Reddit, keep Morphe 2026.42.0 (no owner downgrade to 41), and retain Adobo as fallback. The Morphe 42 path is experimental; verify it with morphe-desktop v1.19.0 and use the provider's 41 support only if 42 fails. The selection mapping is repository evidence only and remains subject to the live v1.48.0 list-patches check.
+History, not current: owner brief, 23 Oct 2026. Superseded version part: since W16b Reddit is capped at 2026.41.0 (max_app_version in src/targets.json) because 42 needs Android 12, so do not build 42. The brief said: make official MorpheApp/morphe-patches primary for Reddit, keep Morphe 2026.42.0 (no owner downgrade to 41), and retain Adobo as fallback. The Morphe 42 path is experimental; verify it with morphe-desktop v1.19.0 and use the provider's 41 support only if 42 fails. The selection mapping is repository evidence only and remains subject to the live v1.48.0 list-patches check.
 
 ## Held patch (W16l, 25 Oct 2026)
 

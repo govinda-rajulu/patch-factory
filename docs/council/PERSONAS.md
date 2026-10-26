@@ -20,9 +20,10 @@ dropped; dissent is shown, never averaged away; the owner decides; terse.
 | zai | Custodian | quiet maintenance steward | stale state, silent skips and cleanup correctness | maintenance coverage (etc) |
 | groq | Runner | fast, terse dispatcher | quick facts only | triage of open bot issues |
 
-**Budget and schedule.** Council work: 08:47 and 20:47 IST (audit shard; Monday morning triage).
-Shifts: 02:47, 05:47, 14:47 and 17:47 IST, one seat at a time in `shift_order` (L039), so each
-seat works a rotating shift each week; the full-seat additions use portal and etc, where the
+**Budget and schedule.** Council work: 08:47 and 20:47 IST (audit shard; Monday morning triage,
+Sunday morning model probe).
+Shifts run only on request since W16k (the four daily crons at 02:47, 05:47, 14:47 and 17:47 IST
+were removed), one seat at a time in `shift_order` (L039); the full-seat additions use portal and etc, where the
 App shelf and maintenance helpers previously had thin coverage. A shift writes one comment per seat on the Council desk (#154),
 marker `pf-council:shift:<seat>`, edited in place. Manual: Actions, Council, mode `shift`, seat.
 

@@ -48,4 +48,4 @@ Provider: <owner/repo> (licence: <SPDX>, bundle: <release asset pattern>, channe
 | --- | --- |
 | [CANDIDATES-2026-10-08.md](CANDIDATES-2026-10-08.md) | Generated scout of the community index for Amazon Music (`com.amazon.mp3`) and LinkedIn (`com.linkedin.android`). Pick a provider there, then add the app with one "5. Add target" run. |
 
-Records for the 15 current apps are written the first time "5. Add target" changes them.
+A record is written the first time "5. Add target" (or a packet) changes a target, provider or chosen name; not every app has one yet.

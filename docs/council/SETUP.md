@@ -22,7 +22,7 @@ repository, so free-tier prompt use for training costs nothing private.
 | `COHERE_API_KEY` | Cohere trial key | https://dashboard.cohere.com/api-keys | 1,000 calls/month, 20/min per chat model; evaluation use | command |
 | `GROQ_API_KEY` | Groq | https://console.groq.com/keys | 30/min, 1,000/day, 8,000 tokens/min (official table) | groq |
 | `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` | Cloudflare Workers AI (W15h, optional) | https://dash.cloudflare.com/profile/api-tokens (template "Workers AI", Read); the account id is on the dashboard Overview page (32 hex characters) | 10,000 neurons a day, reset 00:00 UTC; no training on inputs | backup for every seat |
-| `KILO_API_KEY` | Kilo Gateway (W16d full seat) | https://app.kilo.ai (API keys) | free models (ids end in :free, or kilo-auto/free) at 200 requests an hour (kilo.ai/docs/gateway/usage-and-billing) | full seat (plus backups) for the portal shard |
+| `KILO_API_KEY` | Kilo Gateway (W16d full seat) | https://app.kilo.ai (API keys) | free models (ids end in :free; kilo-auto/free was dropped in W16h, the probe refused it) at 200 requests an hour (kilo.ai/docs/gateway/usage-and-billing) | full seat (plus backups) for the portal shard |
 | `ZAI_API_KEY` | Z.AI (W16d full seat) | https://z.ai/manage-apikey/apikey-list | GLM-4.7-Flash and GLM-4.5-Flash free ([pricing](https://docs.z.ai/guides/overview/pricing)); numeric limits shown only in the account | full seat (plus backups) for the etc shard |
 
 W15h (22 Oct 2026): Cloudflare has an OpenAI-style endpoint
@@ -34,7 +34,7 @@ optional, the only paid step, owner's choice.
 Not seated, with the reason: Cerebras (trial credit with a card, no lasting free tier),
 GitHub Models (retired 30 Jul 2026), Hugging Face ($0.10 a month), Together, SambaNova, Scaleway, Chutes (credit
 or paid only), ModelScope and SiliconFlow (identity checks). Candidates for later, unverified:
-Ollama Cloud, Kilo Gateway, Z AI GLM Flash, LLM7. Research sources: the
+Ollama Cloud, LLM7 (Kilo Gateway and Z AI GLM Flash are seated since W15i). Research sources: the
 [awesome-free-llm-apis](https://github.com/mnfst/awesome-free-llm-apis) and
 [free-llm-api-resources](https://github.com/cheahjs/free-llm-api-resources) lists, then each
 provider's own pricing or rate-limit page.
@@ -82,7 +82,7 @@ spending the answer budget thinking (cut). Since W15h:
 | XL: whole repo | mode `audit` once per shard, same issue | every id in `src/council/shards.json` | one comment per shard on one issue |
 | M: issue hygiene | mode `triage` | `issue` (where the table goes) | close, keep or owner per open issue, cited |
 | health | mode `probe` | none | which seats answer, in the run summary |
-| rotation | schedule, 03:17 and 15:17 UTC | none (desk issue in seats.json) | one audit shard per run, triage on Monday mornings, on the desk |
+| rotation | schedule, 03:17 and 15:17 UTC | none (desk issue in seats.json) | one audit shard per run; Monday morning triage, Sunday morning model probe; on the desk |
 | fix lane (W14) | inside every audit | none | one-line fixes that apply and parse, as artifact `council-fixes`; never pushed |
 
 Run heavy jobs one at a time. On 7 Oct 2026 eleven audit shards dispatched together ran the free
@@ -90,7 +90,8 @@ tiers out (most seats busy); the schedule exists so that never happens again.
 
 Audit shards (`src/council/shards.json`): workflows, council, selection, build-shell,
 build-python, etc, portal, docs, tests-build, tests, rest. Each shard is split into parts of at
-most 70000 characters, so every part fits a 100000-character seat with its trusted context.
+most 70000 characters and goes only to seats whose max_input_chars can hold it with the trusted
+context (src/council/seats.json; a small seat such as Groq's is ask and probe only).
 Records under `docs/review/`, generated files, the licence, the archive and binary files are
 never sent. A run stops starting new parts after 30 minutes and names the parts it did not reach. The next run
 uses those recorded part numbers first, then resumes the normal path order; the line remains honest

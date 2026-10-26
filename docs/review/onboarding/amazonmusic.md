@@ -13,7 +13,7 @@ Provider: RookieEnough/De-Vanced (rookieenough, channel prerelease; bundle: the 
 
 ## Risks
 - "Unlock Unlimited" and "Unlimited track skipping" are paid-tier features that Amazon can check on its servers. The agent review on pull request #160 blocks them under rule 1.
-- Excluded: "Rename shared permissions" (the provider says it can break features). Add it only if the build will not install.
+- Excluded at first: "Rename shared permissions" (the provider says it can break features). Since W16j it is taken (DECISIONS.json) and in include-patches.
 
 ## Decision
 Owner request through "5. Add target" on 2026-10-08.
@@ -21,7 +21,8 @@ Owner request through "5. Add target" on 2026-10-08.
 2026-10-09: max_app_version 26.34.0. The provider's patches say "Any" version, so the build had no
 version to pick (Manual Patch run 37769298585: "no max_app_version to fall back on"). 26.34.0 is
 APKMirror's newest, universal, Android 10+ (read 2026-10-09). Raise it by hand until the build
-follows the store's newest Android 10 version itself (OPEN-WORK).
+follows the store's newest Android 10 version itself (OPEN-WORK). Superseded: max_app_version is
+null in src/targets.json today; the build picks the version itself (W16k picker).
 2026-10-10 (packet W13): the throwaway account was banned. As decided on 2026-10-08, "Unlock Unlimited" and "Unlimited track skipping" are removed before anyone signs in with a real account. Skip ads and Prevent log upload stay. The cause (patch or new account) is unknown; do not move the test to the main account without a fresh decision.
 Owner approved: Unlimited track skipping
 Owner approved: Unlock Unlimited
