@@ -81,6 +81,8 @@ PUBLISH_ALL = False  # (W15f) T1's batch publishes every enabled app, and T1 run
 PUBLISH_APPS = ()   # (W16c) T1 publishes only these apps after its no-publish batch, and runs before the cleanup
 PUBLISH_DISPATCH = ()  # (W16k) after the cleanup, dispatch ONE publishing Batch Patch on main for these apps and
                        # exit without waiting: W16j's controller died waiting (Cloud Shell idle timeout)
+WATCH_DISPATCH = ()  # (W16n) workflow files dispatched once on main after the cleanup, not waited for
+                     # (a green run closes its failing issue through Notify)
 DELETE_BRANCHES = ()  # (W16k) merged branches deleted after the merge ('packet/w16j', BRANCH); a miss is a NOTE
 SMOKES_PER_APP = 2  # (W16k) Manual Patch keeps one running and one pending run per app; a third is cancelled
 TIDY = False        # (W14) src/etc/release_tidy.py on the merge: preview, then apply with a backup in the logs
@@ -603,7 +605,7 @@ def cleanup(merge_sha):
     if already('cleanup', merge_sha):
         return True
     if not CLEANUP_APPLY or os.environ.get('PF_CLEANUP') == 'keep':
-        say('cleanup', 'SKIP', 'not applied here; the apply line is in cleanup-apply-command.txt')
+        say('cleanup', 'OK', 'not applied here; the apply line is in cleanup-apply-command.txt')
         return True
     receipt = LOGS / ('cleanup-receipt-%s.json' % STAMP)
     code, out, err = run([sys.executable, 'src/etc/cleanup.py', 'apply', '--token', R['cleanup']['token'], '--receipt', str(receipt)],
@@ -789,6 +791,25 @@ def publish_dispatch(merge_sha):
     return True
 
 
+def watch_dispatch(merge_sha):
+    """W16n: dispatch each WATCH_DISPATCH workflow once on main; a rerun skips the ones already sent."""
+    good = True
+    for wf in WATCH_DISPATCH:
+        done = WORK / ('pf-%s-watch-%s.done' % (PACKET, wf.replace('.yml', '')))
+        if done.is_file() and done.read_text(encoding='utf-8').strip() == merge_sha:
+            say('watch', 'SKIP', '%s already dispatched for %s' % (wf, merge_sha[:12]))
+            continue
+        code, out, err = run([GH, 'workflow', 'run', wf, '--repo', REPO, '--ref', 'main'], timeout=120)
+        if code != 0:
+            say('watch', 'FAIL', '%s dispatch failed: %s' % (wf, (err or out).decode('utf-8', 'replace')[:200]))
+            good = False
+            continue
+        done.write_text(merge_sha + '\n', encoding='utf-8')
+        R.setdefault('watch_dispatch', []).append(wf)
+        say('watch', 'OK', '%s dispatched on main; not waiting, its green run closes its failing issue' % wf)
+    return good
+
+
 def finish(good):
     if not good:
         R['result'] = 'STOP'
@@ -833,8 +854,9 @@ def main():
     mirrored = mirror(R['merge'])
     if not early:
         tested = t1(R['merge'])
+    watched = watch_dispatch(R['merge'])  # W16n
     dispatched = publish_dispatch(R['merge'])  # W16k: last, and not waited for
-    return finish(deployed and previewed and cleaned and tidied and mirrored and tested and dispatched)
+    return finish(deployed and previewed and cleaned and tidied and mirrored and tested and watched and dispatched)
 
 
 if __name__ == '__main__':

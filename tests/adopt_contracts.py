@@ -1,6 +1,7 @@
 """W15b auto-adopt (owner rule 17 Oct, details 20 Oct 2026): name AND index description, unsure
 means wait, one pull request, the bot never merges, the right provider folder gets the name."""
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -105,6 +106,9 @@ class Adopt(unittest.TestCase):
         self.addCleanup(self.t.cleanup)
         self.out = Path(self.t.name)
         self.calls = []
+        self.auth_env = mock.patch.dict(os.environ, {'GH_TOKEN': 'test-token', 'GITHUB_REPOSITORY': 'o/r', 'GITHUB_ACTIONS': 'true'})
+        self.auth_env.start()
+        self.addCleanup(self.auth_env.stop)
 
     def plan(self, waiting):
         (self.out / 'plan.json').write_text(json.dumps({'waiting': waiting}))
@@ -194,7 +198,7 @@ class Adopt(unittest.TestCase):
         self.assertEqual(sw.adopt(ROOT, self.out, 'o/r', run, stamp='2026-10-21'), 0)
         self.assertTrue(any(c[:2] == ['git', 'push'] for c in self.calls))
         # W15d: the spent branch is deleted, and only that one.
-        self.assertIn(['git', 'push', 'origin', '--delete', 'adopt/old'], self.calls)
+        self.assertIn(['git', 'push', 'https://x-access-token:test-token@github.com/o/r.git', '--delete', 'adopt/old'], self.calls)
         self.assertEqual(sum(1 for c in self.calls if '--delete' in c), 1)
 
     def test_a_workflow_change_is_never_pushed(self):

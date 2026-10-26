@@ -184,7 +184,7 @@ def explore_problems(text):
     rows = {r['name']: r for r in steps(text)}
     if not rows['List patches']['run'].lstrip().startswith('set -o pipefail'):
         found.append('listing pipeline hides java failures')
-    if 'java -jar "${{ steps.patcher.outputs.jar }}"' not in rows['List patches']['run']:
+    if 'java -jar "$JAR"' not in rows['List patches']['run']:
         found.append('listing no longer runs the verified patcher output')  # provider_watch_contracts pins this
     for r in rows.values():
         if '${{ inputs.' in r['run'] or '${{ github.event' in r['run']:

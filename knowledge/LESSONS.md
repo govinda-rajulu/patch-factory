@@ -145,7 +145,7 @@ lessons that are not in that ledger.
   45 names and shipped six spoof patches.
 - `-e`/`-d` bind to the nearest preceding `-p`; same-bundle `-d` wins.
 - Provider age is advisory. Configured, applied and owner-approved are separate states.
-- `list-patches -x -u` hides universal patches; a name check must include them.
+- `-u` hides universal patches and leaving out `-x` hides version-tied ones; a name check lists with `-x` and without `-u` (L104).
 - `channel: prerelease` on a provider with zero prereleases fails; resolve.sh falls back to
   stable. Compare the two command lines before blaming a parser.
 - Launchers are never rerun after a PUSH phase; paste the RESULT instead.

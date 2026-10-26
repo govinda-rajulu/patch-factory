@@ -42,6 +42,8 @@ jobs:
       pr: ${{ steps.pr.outputs.number }}
       base: ${{ steps.pr.outputs.base }}
       head_repo: ${{ steps.pr.outputs.head_repo }}
+      author: ${{ steps.pr.outputs.author }}
+      author_type: ${{ steps.pr.outputs.author_type }}
     steps:
       - name: Resolve the pull request
         id: pr
@@ -61,6 +63,7 @@ jobs:
             echo "head=$(jq -r .head.sha pr.json)"
             echo "head_repo=$(jq -r .head.repo.full_name pr.json)"
             echo "author=$(jq -r .user.login pr.json)"
+            echo "author_type=$(jq -r .user.type pr.json)"
           } >> "$GITHUB_OUTPUT"
       - name: Checkout the base (the checker that runs)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -129,8 +132,8 @@ jobs:
       pull-requests: write
       issues: write
     steps:
-      - name: Refuse fork and bot pull requests (no keys there)
-        if: needs.record.outputs.head_repo != github.repository || github.actor == 'dependabot[bot]'
+      - name: Refuse fork and Dependabot pull requests (no keys there)
+        if: needs.record.outputs.head_repo != github.repository || (needs.record.outputs.author == 'dependabot[bot]' && needs.record.outputs.author_type == 'Bot')
         run: |
           echo "::error::agent review needs the model keys, which fork and bot pull requests never receive; push the branch to this repository"
           exit 1

@@ -58,6 +58,13 @@ on:
         required: false
         type: boolean
         default: false
+    secrets:
+      KEYSTORE_B64:
+        required: true
+      KEYSTORE_PASS:
+        required: true
+      KEYSTORE_ALIAS:
+        required: true
 jobs:
   patch:
     name: Patch ${{ inputs.target }}
@@ -67,7 +74,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       repository: ${{ github.repository }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ github.token }}
       # W16j: keep_going lists every failing patch in one smoke run; never on a publishing run.
       COE: ${{ (inputs.keep_going && !inputs.publish) && 'true' || vars.COE }}
       PF_SHADOW_PLAN_KEY: ${{ inputs.shadow_plan_key || '' }}

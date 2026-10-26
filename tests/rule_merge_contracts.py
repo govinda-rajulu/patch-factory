@@ -16,19 +16,21 @@ import json
 POLICY = json.loads((ROOT / 'src/patches/ADOPT.json').read_text(encoding='utf-8'))
 REPO = 'govinda-rajulu/patch-factory'
 HEAD = 'a' * 40
-TARGETS = {'reddit': {'candidates': [{'name': 'adobo'}, {'name': 'alastor'}]},
-           'hotstar': {'candidates': [{'name': 'x'}]}}
+TARGETS = {'reddit': {'candidates': [{'name': 'adobo'}, {'name': 'alastor', 'patch_dir': 'reddit-alastor'}]},
+           'hotstar': {'candidates': [{'name': 'x', 'patch_dir': 'hotstar-x'}]}}
 
 
 def world():
     pr = {'number': 7, 'title': 'Adopt 2 names', 'user': {'login': 'github-actions[bot]'},
           'head': {'sha': HEAD, 'ref': 'adopt/2026-10-22-1', 'repo': {'full_name': REPO}},
+          'base': {'ref': 'main'},
           'body': 'Adopted by the rule.\n\n- reddit / alastor: `Hide ads`: ok\n- hotstar / x: `Disable analytics`: ok\n'}
     return {
         'pr': pr,
         'packets': [{'ref': 'refs/heads/packet/w15c', 'object': {'sha': 'c' * 40}}],
         'compare': {'c' * 40: 'ahead', 'e' * 40: 'diverged'},
-        'files': [{'filename': 'src/patches/reddit-alastor/include-patches', 'status': 'modified', 'deletions': 0},
+        'files': [{'filename': 'src/patches/reddit-alastor/include-patches', 'status': 'modified', 'deletions': 0, 'patch': '@@ -1 +1 @@\n+Hide ads\n'},
+                  {'filename': 'src/patches/hotstar-x/include-patches', 'status': 'modified', 'deletions': 0, 'patch': '@@ -1 +1 @@\n+Disable analytics\n'},
                   {'filename': 'docs/review/onboarding/hotstar.md', 'status': 'added', 'deletions': 0},
                   {'filename': 'README.md', 'status': 'modified', 'deletions': 2}],
         'full': {'mergeable': True},
@@ -77,6 +79,21 @@ def decide(w):
 
 
 class RuleMerge(unittest.TestCase):
+    def test_added_name_not_listed_in_body_is_refused(self):
+        w = world()
+        w['files'][0]['patch'] += '+Unlock Premium\n'
+        self.assertEqual(decide(w)[0], 'refuse')
+        self.assertIn('diff-only', decide(w)[1])
+
+    def test_missing_include_patch_is_refused(self):
+        w = world(); del w['files'][0]['patch']
+        self.assertEqual(decide(w)[0], 'refuse')
+        self.assertIn('no complete patch', decide(w)[1])
+
+    def test_non_main_base_is_refused(self):
+        w = world(); w['pr']['base']['ref'] = 'develop'
+        self.assertEqual(decide(w)[0], 'refuse')
+
     def test_all_green_merges_with_the_head_pinned_then_starts_validate_and_status(self):
         calls, started = [], []
         with contextlib.redirect_stdout(io.StringIO()) as out:
@@ -237,9 +254,12 @@ class RuleMerge(unittest.TestCase):
 
     def test_offline_app_paid_name_may_merge(self):
         w = world(); w['pr']['body'] = '- esfile / ftl: `Unlock VIP Lifetime`: x\n'
+        w['files'] = [{'filename': 'src/patches/esfile-ftl/include-patches', 'status': 'modified', 'deletions': 0,
+                       'patch': '@@ -1 +1 @@\n+Unlock VIP Lifetime\n'}]
         w['builds'] = [{'display_title': 'Manual esfile / publish=false', 'status': 'completed', 'conclusion': 'success'}]
         self.assertIn('esfile', POLICY['paid_ok_targets'])
-        self.assertEqual(rm.decide(REPO, w['pr'], api_for(w, []), POLICY, {'esfile': {'candidates': [{'name': 'ftl'}]}})[0], 'merge')
+        self.assertEqual(rm.decide(REPO, w['pr'], api_for(w, []), POLICY,
+                                   {'esfile': {'candidates': [{'name': 'ftl', 'patch_dir': 'esfile-ftl'}]}})[0], 'merge')
 
     def test_workflow_runs_main_code_with_no_stored_credentials(self):
         text = (ROOT / '.github/workflows/rule-merge.yml').read_text(encoding='utf-8')

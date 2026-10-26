@@ -211,6 +211,41 @@ class NeedsYouDecisions(unittest.TestCase):
             event.update(mutate)
             self.assertFalse(n.authorized_comment(event, "govinda-rajulu"))
 
+    def test_repeated_command_is_recorded_once_and_does_not_dispatch_again(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            comment = root / "comment.txt"
+            ledger = root / "ledger.json"
+            comment.write_text("take N-AAAAAA\n")
+            prior = [{"id": "N-AAAAAA", "verb": "take", "kind": "unknown", "except": []}]
+            ledger.write_text(json.dumps(prior))
+            body = '<!-- needs-you-item:{"id":"N-AAAAAA","kind":"decide","action":"patch","target":"example","patches":"Patch"} -->'
+            calls = []
+            def run(args, **kwargs):
+                calls.append(args)
+                if args[1:3] == ["issue", "list"]:
+                    return SimpleNamespace(returncode=0, stdout=json.dumps([{"number": 1, "title": "Needs you", "body": body, "author": {"is_bot": True}}]), stderr="")
+                return SimpleNamespace(returncode=0, stdout="", stderr="")
+            self.assertEqual(n.decide(comment, ledger, "o/r", run=run), "RECORDED")
+            self.assertEqual(json.loads(ledger.read_text()), prior)
+            self.assertFalse(any(args[1:3] == ["workflow", "run"] for args in calls))
+
+    def test_invalid_ledger_stops_decide_before_writing_history(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            comment = root / "comment.txt"
+            ledger = root / "ledger.json"
+            comment.write_text("take N-AAAAAA\n")
+            ledger.write_text("not json")
+            body = '<!-- needs-you-item:{"id":"N-AAAAAA","kind":"decide"} -->'
+            def run(args, **kwargs):
+                if args[1:3] == ["issue", "list"]:
+                    return SimpleNamespace(returncode=0, stdout=json.dumps([{"number": 1, "title": "Needs you", "body": body, "author": {"is_bot": True}}]), stderr="")
+                return SimpleNamespace(returncode=0, stdout="", stderr="")
+            with self.assertRaises(ValueError):
+                n.decide(comment, ledger, "o/r", run=run)
+            self.assertEqual(ledger.read_text(), "not json")
+
     def test_effect_mapping_is_review_only(self):
         self.assertEqual(n._review_item({"kind": "review", "first_line": "review: x"}), True)
         self.assertEqual(n._review_item({"kind": "community", "first_line": "review: x"}), False)

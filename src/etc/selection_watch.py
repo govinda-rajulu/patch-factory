@@ -47,6 +47,28 @@ import readable  # noqa: E402
 OUT = ROOT / 'selection-watch-evidence'
 TITLE = 'Selection watch'
 MORPHE = 'MorpheApp/morphe-patches'
+
+
+def push_remote():
+    """W16n: in Actions push to an explicit token URL (checkout keeps no credential) and fail
+    closed without a token; outside Actions (local tests) use the origin remote."""
+    if os.environ.get('GITHUB_ACTIONS') != 'true':
+        return 'origin'
+    token = os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN')
+    repo = os.environ.get('GITHUB_REPOSITORY')
+    if not token or not repo:
+        raise ValueError('PUSH_TOKEN_MISSING: GH_TOKEN and GITHUB_REPOSITORY are required in Actions')
+    return 'https://x-access-token:%s@github.com/%s.git' % (token, repo)
+
+
+def scrub(text):
+    """Remove any token from text before it is printed or raised (W16n)."""
+    text = text if isinstance(text, str) else (text or b'').decode('utf-8', 'replace')
+    for key in ('GH_TOKEN', 'GITHUB_TOKEN'):
+        value = os.environ.get(key)
+        if value:
+            text = text.replace(value, '***')
+    return re.sub(r'x-access-token:[^@\s]+@', 'x-access-token:***@', text)
 KEYWORDS = re.compile(r'(?i)\b(add|added|new|remov|drop|renam|deprecat|fix|support|break|always)')
 
 
@@ -494,7 +516,7 @@ def collect(root, out, observe, reader=gh_json, state_text=None, identity=None):
 def git(root, *args):
     r = subprocess.run(['git', *args], cwd=root, capture_output=True, timeout=120)
     if r.returncode != 0:
-        raise ValueError('git %s failed: %s' % (args[0], r.stderr.decode('utf-8', 'replace')[:200]))
+        raise ValueError('git %s failed: %s' % (args[0], scrub(r.stderr)[:200]))
     return r.stdout.decode().strip()
 
 
@@ -562,7 +584,7 @@ def apply(root, out, runner=git, push=True, compare=gh_compare):
         remote = runner(root, 'ls-remote', 'origin', 'refs/heads/main').split()
         if remote[:1] != [head]:
             raise ValueError('REMOTE_MAIN_MOVED: nothing pushed; tomorrow retries')
-        runner(root, 'push', 'origin', 'HEAD:refs/heads/main')
+        runner(root, 'push', push_remote(), 'HEAD:refs/heads/main')
     print('SELECTION_APPLY committed %d file(s)' % len(staged))
     return 'COMMITTED'
 
@@ -604,7 +626,7 @@ def adopt(root, out, repo, runner=None, stamp=None):
         # W15d: no adopt pull request is open (checked above), so this branch's is closed or
         # merged; it is spent. Delete it so old branches do not pile up (5S).
         if seen.returncode == 0:
-            gone = run(['git', 'push', 'origin', '--delete', name])
+            gone = run(['git', 'push', push_remote(), '--delete', name])
             print('SELECTION_ADOPT %s spent branch %s' % ('deleted' if gone.returncode == 0 else '::warning:: could not delete', name))
     branch = 'adopt/%s-%s' % (stamp, os.environ.get('GITHUB_RUN_ID', 'local'))
     groups = {}
@@ -618,7 +640,7 @@ def adopt(root, out, repo, runner=None, stamp=None):
             cmd.append('--approve-confirm')  # W16j: a CONFIRM name the owner already took (DECISIONS.json)
         r = run(cmd)
         if r.returncode != 0:
-            print('::warning::SELECTION_ADOPT %s/%s refused by app.py: %s' % (target, provider, (r.stderr or r.stdout)[-300:]))
+            print('::warning::SELECTION_ADOPT %s/%s refused by app.py: %s' % (target, provider, scrub(r.stderr or r.stdout)[-300:]))
             return 1
     if run(['git', 'diff', '--quiet', '--', '.github']).returncode != 0:
         print('::error::SELECTION_ADOPT touched a workflow file; nothing pushed')
@@ -627,11 +649,11 @@ def adopt(root, out, repo, runner=None, stamp=None):
              ['git', 'add', '-A', '--', 'src', 'docs', 'README.md', 'CREDITS.md'],
              ['git', '-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com',
               'commit', '-m', 'adopt: %d new name(s) by the Selection watch rule' % len(picks)],
-             ['git', 'push', 'origin', branch]]
+             ['git', 'push', push_remote(), branch]]
     for cmd in steps:
         r = run(cmd)
         if r.returncode != 0:
-            print('::warning::SELECTION_ADOPT %s failed: %s' % (cmd[1], (r.stderr or r.stdout)[-300:]))
+            print('::warning::SELECTION_ADOPT %s failed: %s' % (cmd[1], scrub(r.stderr or r.stdout)[-300:]))
             return 1
     return open_and_check(root, out, repo, run, branch, picks, stamp)
 
@@ -651,7 +673,7 @@ def open_and_check(root, out, repo, run, branch, picks, stamp, pending=False):
         note = ('SELECTION_ADOPT branch %s has no pull request; GitHub refused it: %s. Owner: open it from '
                 'https://github.com/%s/compare/main...%s or allow Actions to create pull requests '
                 '(Settings, Actions, General, Workflow permissions). No second branch is pushed meanwhile.'
-                % (branch, (r.stderr or '').strip()[-160:], repo, branch))
+                % (branch, scrub(r.stderr or '').strip()[-160:], repo, branch))
         print('::warning::' + note)
         report = out / 'report.md'
         if report.is_file():

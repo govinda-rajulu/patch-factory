@@ -620,3 +620,47 @@ each round found more; from round 5 independent agents with one lens each (open 
 code facts, stale docs, a fresh-chat simulation) found what he could not see. Check a handover the
 way docs/review/REVIEW-METHOD.md says: full populations split into shards, written evidence, a second
 pass on the fixes, done only when fresh reviewers find no HIGH or MED item.
+
+### L104 · Name checks list with -x and without -u
+Tags: selection, evidence
+`-u` hides universal patches; leaving out -x hides patches tied to experimental app versions. The
+Nightly name check listed with neither flag from 29 Sep 2026, so it was blind to version-tied patches;
+when the Alastor Reddit extra arrived on 25 Oct 2026 (both its patches are version-tied), every Nightly
+ran UNKNOWN (#249). Name checks pass -x and omit -u, the same view the Selection and Provider
+watches use. Supersedes the last sentence of L030.
+
+### L105 · morphe-desktop needs a writable data root
+Tags: tooling, sources
+Since 1.19 `morphe-desktop` keeps a data root next to its JAR, or in `~/morphe` when the JAR folder is
+not writable, and copies every bundle into tmp/shadow there before it lists or patches. In a read-only
+container it failed with FileNotFoundException before reading a patch (owner probe P0, 26 Oct 2026).
+Java takes the home folder from the passwd entry, not from $HOME: pass -Duser.home or give the JAR a
+writable folder. The W15g keyless patch job must keep a writable JAR folder.
+
+### L106 · A probe's isolation is part of the test
+Tags: evidence, gates
+The P0 probe ran list-patches in a locked-down container to keep provider code away from the owner's
+shell; the lock-down itself broke the tool, so both runs listed nothing and the proof was
+inconclusive (wrong call 78). Rehearsal fakes cannot catch this: run the isolation recipe once
+against the real tool, and print the tool's own error next to any count.
+
+### L107 · Check the premise before stating the impact
+Tags: evidence
+A review said the owner's Needs you answers were already lost; the owner had never answered by
+comment, so nothing was lost yet and the bug was latent (wrong call 77). Read the population (here
+the issue's comment authors) before writing what a bug already did.
+
+### L108 · Name the model and its fallback
+Tags: workflows, agents, evidence
+The MCP scout passed no model, so Gemini CLI 0.65 picked its default and got HTTP 503 "high demand"
+on all ten retries (run 40298683531, 26 Oct 2026); a headless run cannot accept the CLI's offer to
+switch models. Every workflow that calls a hosted model names a stable model, caps its turns and
+names one lighter fallback, and its last step prints which model answered or MODEL_UNAVAILABLE.
+Read the stderr before guessing a cause (wrong call 79).
+
+### L109 · An outside feed's duplicate is merged and named, and the raw input is kept first
+Tags: evidence, sources
+The community index listed one repository twice and the watch refused the whole index
+(DUPLICATE_PROVIDER, run 40294788256); the raw index was written only after the compare, so which
+repository was doubled is unknown. Merge duplicates on our own identity (here the repository a
+target wires), say each merge in the report, and write every raw input before parsing it.

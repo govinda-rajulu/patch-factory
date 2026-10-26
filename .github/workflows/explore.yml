@@ -98,9 +98,10 @@ jobs:
           IDENT: ${{ inputs.ident }}
           PKG: ${{ inputs.package }}
           CHAN: ${{ inputs.channel }}
+          JAR: ${{ steps.patcher.outputs.jar }}
         run: |
           set -o pipefail
-          java -jar "${{ steps.patcher.outputs.jar }}" list-patches --patches ./explore.mpp \
+          java -jar "$JAR" list-patches --patches ./explore.mpp \
             --with-packages --with-versions --with-options \
             --filter-package-name "$PKG" --out ./patches.txt 2>&1 | tail -3
           [ -s ./patches.txt ] || { echo "::error::no patches for $PKG in this bundle"; exit 1; }

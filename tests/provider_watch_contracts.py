@@ -277,7 +277,7 @@ class ProviderWatch(unittest.TestCase):
         self.assertNotIn("curl -sSL", source)
         self.assertNotIn("gh api repos/MorpheApp/morphe-desktop", source)
         self.assertNotIn("morphe-desktop.jar list-patches", source)
-        self.assertIn('java -jar "${{ steps.patcher.outputs.jar }}"', source)
+        self.assertIn('java -jar "$JAR"', source)
         self.assertLess(source.index("github_patcher.py"), source.index("java -jar"))
 
     def test_validate_rejects_gitlab_primary_candidates(self):

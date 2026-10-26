@@ -20,5 +20,9 @@ run python3 src/etc/readmegen.py --check
 run python3 src/etc/obtainium.py --check
 run bash src/etc/nointerp.sh
 for f in src/build/*.sh src/etc/*.sh; do bash -n "$f" || { echo "FAIL bash -n $f"; F=1; }; done
-echo "SUITE $([ $F = 0 ] && echo OK || echo FAIL)"
+if [ "$F" = 0 ]; then
+  echo "SUITE OK"
+else
+  echo "SUITE FAIL"
+fi
 exit $F

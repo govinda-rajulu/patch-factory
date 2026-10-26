@@ -89,10 +89,9 @@ def check(root, observe, out=print):
 
 def main():
     with tempfile.TemporaryDirectory(prefix="pf-selection-names-") as work:
-        # No "-x -u": those flags hide universal patches, which include lists name
-        # (ES/MX "Remove Ads", Reddit "Disable mobile ads"); the first live run on
-        # 29 Sep 2026 reported 15 applied names as missing because of them.
-        observer = provider_watch.Observer(ROOT, Path(work), flags=())
+        # Keep "-x" so patches tied to experimental app versions are visible; omit "-u"
+        # so universal patches stay visible (L003, L030, L104).
+        observer = provider_watch.Observer(ROOT, Path(work), flags=("-x",))
         checked, missing, unverified = check(ROOT, observer)
     return 1 if missing or not checked else 0
 

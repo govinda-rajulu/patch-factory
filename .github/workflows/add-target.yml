@@ -85,6 +85,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Make the change (src/etc/app.py)
         env:
           PF_ACTION: ${{ inputs.action }}
@@ -125,7 +127,7 @@ jobs:
             exit 0
           fi
           git commit -m "apps: $PF_ACTION $PF_ID (5. Add target run $GITHUB_RUN_ID)"
-          git push origin "$B"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "$B"
           if gh pr create --repo "$REPO" --base main --head "$B" --title "apps: $PF_ACTION $PF_ID" --body-file pr-body.md > pr-url.txt; then
             PR="$(gh pr view "$B" --repo "$REPO" --json number --jq .number)"
             echo "Pull request: $(cat pr-url.txt)" >> "$GITHUB_STEP_SUMMARY"

@@ -46,6 +46,9 @@ tools. Added 10 Oct 2026 (packet H12) from the W9 to W12 controllers, which all 
   controller prints the apply line and never runs it; with True (W13 on, owner's choice per packet;
   the W16m controller, handed to the owner and not stored
   here, sets it) it applies that exact preview and keeps the receipt. PF_CLEANUP=keep skips it.
+- W16n: WATCH_DISPATCH lists workflow files the controller dispatches once on main after the
+  cleanup, without waiting; a done file per workflow stops a rerun from sending them twice. A green
+  run closes that workflow's failing issue through Notify.
 
 ## Assistant sandbox notes (W16, 23 to 26 Oct 2026)
 

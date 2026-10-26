@@ -33,8 +33,11 @@ def build():
     poll=[t for t in en if t.get('poll')]
     rows=[]
     for t in sorted(en,key=lambda x:(x.get('label') or x['id']).lower()):
-        prov=[c['name'] for c in (t.get('candidates') or []) if not c.get('fallback')]+[e['name'] for e in (t.get('extra_bundles') or [])]
-        back=[c['name'] for c in (t.get('candidates') or []) if c.get('fallback')]
+        def group(c):
+            extras=(c.get('overrides') or {}).get('extra_bundles', t.get('extra_bundles') or [])
+            return ' + '.join([c['name']]+[e['name'] for e in extras])
+        prov=[group(c) for c in (t.get('candidates') or []) if not c.get('fallback')]
+        back=[group(c) for c in (t.get('candidates') or []) if c.get('fallback')]
         rows.append('| %s | `%s` | `%s` | %s | %s | %s |'%(
             t.get('label') or t['id'], t['id'], t.get('tag_prefix') or t['id'],
             t.get('source') or 'apkmirror', ' + '.join(prov)+(' (fallback: %s)'%', '.join(back) if back else ''),

@@ -50,7 +50,7 @@ class Watch(unittest.TestCase):
 
     def test_workflow_only_opens_pull_requests(self):
         text = (ROOT / '.github' / 'workflows' / 'tooling-watch.yml').read_text(encoding='utf-8')
-        self.assertIn('git push origin "$B"', text)
+        self.assertIn('git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" "$B"', text)
         self.assertNotIn('git push origin main', text)
         self.assertNotIn('git push\n', text)
         self.assertIn('gh pr create', text)

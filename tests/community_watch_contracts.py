@@ -140,14 +140,13 @@ class Model(unittest.TestCase):
                 m.read_json(value)
 
     def test_missing_duplicate_malformed_and_empty_refused(self):
-        for case in ("empty", "missing", "duplicate", "count", "map", "targets", "both"):
+        # W16n: a repository listed twice is merged and named, no longer refused (see DuplicateProvider).
+        for case in ("empty", "missing", "count", "map", "targets", "both"):
             data = fixture()
             if case == "empty":
                 data["bundles"] = []
             elif case == "missing":
                 data["bundles"][0]["patches"][0]["compatiblePackagesKey"] = 99
-            elif case == "duplicate":
-                data["bundles"].append(copy.deepcopy(data["bundles"][0]))
             elif case == "count":
                 data["bundles"][0]["patchCount"] = 10
             elif case == "map":
@@ -181,6 +180,13 @@ class Model(unittest.TestCase):
 
 class Delivery(unittest.TestCase):
     def setUp(self):
+        # W16n: these tests push to a local origin. suite.sh and Validate export GITHUB_ACTIONS=true,
+        # and push_remote now fails closed in Actions without a token, so pin "outside Actions".
+        env = patch.dict("os.environ", {})
+        env.start()
+        self.addCleanup(env.stop)
+        import os
+        os.environ.pop("GITHUB_ACTIONS", None)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name) / "repo"
@@ -283,12 +289,28 @@ class Delivery(unittest.TestCase):
                 w.load_report(self.root, self.out, self.ident)
             path.write_bytes(original)
 
+    def test_news_package_must_match_package_grammar_and_is_escaped(self):
+        bad = copy.deepcopy(self.news)
+        bad[0]["bundles"]["Display label only"]["apps"]["not a package"] = {"patches": ["x"]}
+        with self.assertRaisesRegex(ValueError, "INVALID_NEWS_APP"):
+            w.history(bad, TARGETS)
+        good = copy.deepcopy(self.news)
+        good[0]["bundles"]["Display label only"]["apps"] = {"com.example.app": {"patches": ["x"]}}
+        report = m.compare(fixture(), fixture(), TARGETS)
+        report["provider_ranks"] = []
+        report["website_history"] = w.history(good, TARGETS)
+        report["baseline_sha256"] = report["index_sha256"] = "a" * 64
+        self.assertIn("com.example.app", w.report_text(report))
+
     def test_html_malformed_or_empty_feed_fails_without_report(self):
         for data in (b"<html>fallback</html>", b"{}", b'{"bundles":[],"compatibilities":[]}'):
             out = Path(self.temp.name) / ("bad-" + str(len(data)))
             status = w.collect(self.root, out, self.ident, lambda url: data)
             self.assertEqual(status["state"], "FAILED")
             self.assertFalse((out / "report.json").exists())
+            # W16n: a failed compare still keeps the raw inputs for diagnosis.
+            self.assertEqual((out / "index.json").read_bytes(), data)
+            self.assertTrue((out / "baseline.json").exists())
 
     def test_exact_chunk_roundtrip_and_oversized_refusal(self):
         text = ("A full record, not a partial excerpt\n" * 5000)
@@ -535,6 +557,58 @@ class Delivery(unittest.TestCase):
         self.assertEqual(report["events"][0]["packages"], ["other.app"])
 
 
+
+class DuplicateProvider(unittest.TestCase):
+    """W16n, live 26 Oct 2026 run 40294788256: one repository listed twice stopped the watch."""
+
+    def test_identical_twice_merges_to_the_same_provider(self):
+        once, twice = fixture(), fixture()
+        twice["bundles"].append(copy.deepcopy(twice["bundles"][0]))
+        a, b = m.inventory(once), m.inventory(twice)
+        self.assertEqual(a["providers"], b["providers"])
+        self.assertEqual(b["coverage"]["patches"], 1)
+        self.assertEqual(b["coverage"]["merged_providers"], [dict(provider="github:owner/patches", bundles=2)])
+        self.assertEqual(m.compare(once, twice, TARGETS)["event_count"], 0)
+
+    def test_two_bundles_one_repo_keep_every_patch_and_both_names(self):
+        data = fixture()
+        other = copy.deepcopy(data["bundles"][0])
+        other.update(name="Test Extra", repo="Owner/Patches", targetApps=["com.example.other"],
+                     patches=[dict(name="Two", description="x", default=False)], patchCount=1)
+        data["bundles"].append(other)
+        parsed = m.inventory(data)
+        provider = parsed["providers"]["github:owner/patches"]
+        self.assertEqual(sorted(provider["patches"]), ["One", "Two"])
+        self.assertEqual(provider["metadata"]["name"], sorted(["Test", "Test Extra"], key=m.canonical))
+        self.assertEqual(provider["metadata"]["targetApps"], ["com.example.app", "com.example.other"])
+        self.assertEqual(parsed["coverage"]["providers"], 1)
+        self.assertEqual(parsed["coverage"]["bundles"], 2)
+
+    def test_merge_is_order_independent(self):
+        data = fixture()
+        other = copy.deepcopy(data["bundles"][0])
+        other.update(name="B", patches=[dict(name="One", description="changed", default=True, compatiblePackagesKey=0)])
+        data["bundles"].append(other)
+        flipped = copy.deepcopy(data)
+        flipped["bundles"].reverse()
+        self.assertEqual(m.digest(m.inventory(data)["providers"]), m.digest(m.inventory(flipped)["providers"]))
+        self.assertEqual(len(m.inventory(data)["providers"]["github:owner/patches"]["patches"]["One"]), 2)
+
+    def test_merge_is_named_in_the_report(self):
+        old, new = fixture(), fixture()
+        new["bundles"].append(copy.deepcopy(new["bundles"][0]))
+        text = m.render(m.compare(old, new, TARGETS))
+        self.assertIn("Merged (listed more than once in the index, kept as one provider): github:owner/patches x2.", text)
+        self.assertNotIn("Merged", m.render(m.compare(old, old, TARGETS)))
+
+    def test_bad_bundle_in_a_merged_repo_still_refuses(self):
+        data = fixture()
+        bad = copy.deepcopy(data["bundles"][0])
+        bad["patchCount"] = 7
+        data["bundles"].append(bad)
+        with self.assertRaises(ValueError):
+            m.inventory(data)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
 
@@ -564,6 +638,15 @@ class Supersede(unittest.TestCase):
         self.assertEqual(r.returncode, 2)
         self.assertIn("Community Watch stopped: ValueError INVALID_COMMAND.", r.stderr)
         self.assertIn('"?state=all&sort=created&direction=asc"', (root / "src/etc/community_watch.py").read_text())
+
+    def test_supersede_failure_is_counted_and_warned(self):
+        failures = []
+        def reader(method, path, payload=None):
+            raise ValueError("synthetic")
+        with self.assertLogs() if False else __import__('contextlib').redirect_stdout(__import__('io').StringIO()) as out:
+            self.assertEqual(w.supersede("repos/" + w.REPO + "/issues", 206, reader, failures), 0)
+        self.assertEqual(failures, [w.SUPERSEDE_FAILURE_CODE])
+        self.assertIn("SUPERSEDE_FAILURE", out.getvalue())
 
     def test_api_guard_allows_only_the_close_patch(self):
         with self.assertRaises(ValueError):

@@ -13,7 +13,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Touch keepalive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
           date -u +"%Y-%m-%dT%H:%M:%SZ" > .keepalive
           git config user.name "github-actions[bot]"
@@ -22,4 +27,4 @@ jobs:
           # Nothing staged is the only quiet exit; a failed commit or push fails the run.
           git diff --cached --quiet && exit 0
           git commit -m "chore: keepalive"
-          git push
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" HEAD:refs/heads/main

@@ -13,8 +13,15 @@ PAGE='docs/index.html'
 OPEN='// >>> CATALOG GENERATED FROM src/targets.json - edit targets.json, not this'
 CLOSE='// <<< CATALOG GENERATED'
 ANDROID={26:'8',27:'8.1',28:'9',29:'10',30:'11',31:'12',32:'12L',33:'13',34:'14',35:'15',36:'16'}
-def build():
-    T=json.load(io.open('src/targets.json',encoding='utf-8'))
+def js(value):
+    # Catalog values live in an inline script; escape HTML-significant code points too.
+    return (json.dumps(value, ensure_ascii=False)
+            .replace('<', r'\u003c').replace('>', r'\u003e').replace('&', r'\u0026')
+            .replace('\u2028', r'\u2028').replace('\u2029', r'\u2029'))
+
+def build(source='src/targets.json'):
+    with io.open(source, encoding='utf-8') as handle:
+        T=json.load(handle)
     rows=[]
     for t in T:
         if not t.get('enabled'): continue
@@ -28,8 +35,8 @@ def build():
         if cap!=29: needs.append('Android %s or newer'%ANDROID.get(cap,'API %s'%cap))
         if needs: note=(note+'. ' if note else '')+'. '.join(needs)
         rows.append(" { prefix:%s, target:%s, name:%s, note:%s }"%(
-            json.dumps(t.get('tag_prefix') or t['id']),json.dumps(t['id']),
-            json.dumps(t.get('label') or t['id']),json.dumps(note)))
+            js(t.get('tag_prefix') or t['id']),js(t['id']),
+            js(t.get('label') or t['id']),js(note)))
     return OPEN+"\nlet CATALOG = [\n"+",\n".join(rows)+"\n];\n"+CLOSE
 def main():
     check='--check' in sys.argv
@@ -68,4 +75,5 @@ def main():
     for m in re.finditer(r'target:"([^"]+)"',new):
         assert m.group(1) in live, 'catalog names a target that is not in targets.json: '+m.group(1)
     return 0
-sys.exit(main())
+if __name__ == '__main__':
+    sys.exit(main())

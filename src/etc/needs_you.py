@@ -659,14 +659,29 @@ def decision_state(item: dict, ledger: list[dict], now: datetime | None = None) 
     return "visible"
 
 
-def load_ledger(path: Path | None) -> list[dict]:
+def load_ledger(path: Path | None, fail_closed: bool = False) -> list[dict]:
     if not path or not path.is_file():
         return []
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
+    except (OSError, ValueError) as exc:
+        if fail_closed:
+            raise ValueError("decision ledger is not valid JSON") from exc
         return []
-    return data if isinstance(data, list) else []
+    if not isinstance(data, list):
+        if fail_closed:
+            raise ValueError("decision ledger must be a JSON list")
+        return []
+    if fail_closed:
+        # W16n review 2: a malformed row must stop, not make a repeated command look new.
+        for row in data:
+            if (not isinstance(row, dict) or not isinstance(row.get("id"), str)
+                    or not re.fullmatch(r"N-[0-9a-fA-F]{6}", row["id"])
+                    or row.get("verb") not in ("take", "drop", "hold")
+                    or not ("except" not in row or (isinstance(row["except"], list)
+                            and all(isinstance(x, str) for x in row["except"])))):
+                raise ValueError("decision ledger has a malformed row")
+    return data
 
 
 def _catalog_comment(body: str) -> dict[str, dict]:
@@ -1109,15 +1124,23 @@ def decide(comment_path: Path, ledger_path: Path, repo: str = REPO, comment_url:
     if not (author.get("is_bot") is True or author.get("login") in ("app/github-actions", "github-actions[bot]")):
         raise ValueError("Needs you issue is not bot-owned")
     catalog = _catalog_comment(issue.get("body") or "")
+    ledger = load_ledger(ledger_path, fail_closed=True)
     commands = parse_decisions(body, catalog)
     if not commands:
         return "IGNORED"
     excepts = parse_excepts(body)
-    ledger = load_ledger(ledger_path)
     stamp = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     receipts, batch = [], {}
     for verb, ident in commands:
         meta = catalog[ident]
+        requested_except = excepts.get(ident, [])
+        prior = next((row for row in reversed(ledger)
+                      if str(row.get("id", "")).upper() == ident
+                      and str(row.get("verb", "")).lower() == verb
+                      and (row.get("except") or []) == requested_except), None)
+        if prior is not None:
+            receipts.append("%s %s: already recorded; no-op" % (verb, ident))
+            continue
         record = {"id": ident, "verb": verb, "kind": meta.get("kind", "unknown"),
                   "first_line": meta.get("first_line", ""), "comment_url": comment_url, "time": stamp}
         if ident in excepts:

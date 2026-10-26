@@ -1,7 +1,6 @@
 name: 9. Batch Patch
 run-name: Batch ${{ inputs.targets }} / publish=${{ inputs.publish }}
-permissions:
-  contents: write
+permissions: {}
 on:
   workflow_dispatch:
     inputs:
@@ -18,10 +17,14 @@ jobs:
   fan:
     name: Plan
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Resolve ids
         id: plan
         env:
@@ -33,8 +36,13 @@ jobs:
       fail-fast: false
       max-parallel: 6
       matrix: ${{ fromJson(needs.fan.outputs.matrix) }}
+    permissions:
+      contents: write
     uses: ./.github/workflows/manual-patch.yml
     with:
       target: ${{ matrix.target }}
       publish: ${{ inputs.publish }}
-    secrets: inherit
+    secrets:
+      KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+      KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+      KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}

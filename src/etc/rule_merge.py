@@ -35,6 +35,37 @@ ALLOWED = [re.compile(p) for p in (
     r'docs/review/providers/[A-Za-z0-9._-]+', r'README\.md', r'CREDITS\.md', r'docs/index\.html',
     r'docs/portal\.js', r'docs/obtainium(-[a-z]+)?\.json')]
 LINE = re.compile(r'^- ([a-z0-9-]+) / ([A-Za-z0-9_.-]+): `([^`]+)`', re.M)
+
+
+def added_names(patch):
+    """Names from added include-file lines, using the build's option syntax."""
+    if not isinstance(patch, str) or not patch:
+        return None
+    names = []
+    for line in patch.splitlines():
+        if not line.startswith('+') or line.startswith('+++'):
+            continue
+        line = line[1:].strip()
+        if not line or line.startswith('#'):
+            continue
+        names.append(line.split('|', 1)[0].strip())
+    return names
+
+
+def path_identity(path, targets):
+    """Map an include file's patch directory to the body's app/provider pair."""
+    match = re.fullmatch(r'src/patches/([a-z0-9-]+)/include-patches', path)
+    if not match:
+        return None
+    patch_dir = match.group(1)
+    found = []
+    for target, data in targets.items():
+        for bundle in (data.get('candidates') or []) + (data.get('extra_bundles') or []):
+            if bundle.get('patch_dir') == patch_dir:
+                found.append((target, bundle.get('name')))
+    return found[0] if len(found) == 1 and found[0][1] else None
+
+
 VALIDATE = 'Validate targets and scripts'
 
 
@@ -70,19 +101,40 @@ def decide(repo, pr, api, policy, targets=None):
     if (pr.get('user') or {}).get('login') != BOT or not pr['head']['ref'].startswith('adopt/') \
             or (pr['head'].get('repo') or {}).get('full_name') != repo:
         return 'refuse', 'not a Selection watch rule pull request'
+    if (pr.get('base') or {}).get('ref') != 'main':
+        return 'refuse', 'pull request base is not main'
     files = api('repos/%s/pulls/%d/files?per_page=100' % (repo, n))
     if not files or len(files) >= 100:
         return 'refuse', 'file list empty or too long to read whole'
+    actual = set()
     for f in files:
         name = f['filename']
         if not any(p.fullmatch(name) for p in ALLOWED):
             return 'refuse', 'touches %s, which the adopt step never writes' % name
-        if name.endswith('/include-patches') and (f.get('deletions') or f.get('status') != 'modified'):
-            return 'refuse', '%s loses or replaces a line; adopting only adds' % name
+        if name.endswith('/include-patches'):
+            if f.get('deletions') or f.get('status') != 'modified':
+                return 'refuse', '%s loses or replaces a line; adopting only adds' % name
+            identity = path_identity(name, targets)
+            if identity is None:
+                return 'refuse', 'cannot map %s to one target/provider' % name
+            parsed = added_names(f.get('patch'))
+            if parsed is None:
+                return 'refuse', '%s has no complete patch from the files API' % name
+            actual.update((identity[0], identity[1], patch) for patch in parsed if patch)
     rows = LINE.findall(pr.get('body') or '')
     if not rows:
         return 'refuse', 'the body lists no adopted names'
-    for target, provider, name in rows:
+    listed = set(rows)
+    if actual != listed:
+        missing = sorted(listed - actual)
+        extra = sorted(actual - listed)
+        reason = []
+        if missing:
+            reason.append('body-only ' + repr(missing[0]))
+        if extra:
+            reason.append('diff-only ' + repr(extra[0]))
+        return 'refuse', 'include additions do not match PR body rows: ' + '; '.join(reason)
+    for target, provider, name in sorted(actual):
         low = name.lower()
         if any(w in low for w in policy['paid_words']) and target not in policy['paid_ok_targets']:
             return 'refuse', 'paid word in %s on %s (an account app): owner decides' % (name, target)
@@ -104,7 +156,10 @@ def decide(repo, pr, api, policy, targets=None):
     reviews = [r for r in api('repos/%s/actions/workflows/onboard-review.yml/runs?per_page=50' % repo).get('workflow_runs', [])
                if r.get('display_title') == 'Onboarding review #%d' % n and when(r['created_at']) >= born]
     if reviews:
+        # W16n: the newest review decides; an older run on another head cannot veto it.
         last = max(reviews, key=lambda r: r['created_at'])
+        if last.get('head_sha') and last.get('head_sha') != head:
+            return 'refuse', 'Onboarding review is for a different PR head'
         if last.get('status') != 'completed':
             return 'wait', 'Onboarding review still running'
         if last.get('conclusion') != 'success':

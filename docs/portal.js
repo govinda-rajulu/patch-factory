@@ -377,11 +377,21 @@ function releaseRecord(body){
 }
 function noteText(body){
  if(typeof body!=='string')return '';
- // W15i (CodeQL js/incomplete-multi-character-sanitization): strip comments until none are
- // left, then any unmatched opener, so "<!<!---->--" cannot leave a "<!--" behind.
- let text=body,prev;
- do{prev=text;text=text.replace(/<!--[\s\S]*?-->/g,'');}while(text!==prev);
- return text.replace(/<!--/g,'').replace(/^\[pf-release-v1\]: # "[A-Za-z0-9+/=]+"[ \t]*$/gm,'').trim();
+ // Walk comment delimiters once. This removes complete and unmatched comments without
+ // regex replacement that can leave a partial HTML opener behind.
+ let text='',i=0;
+ while(i<body.length){
+  if(body.startsWith('<!--',i)){
+   const end=body.indexOf('-->',i+4);
+   if(end<0)break;
+   i=end+3;continue;
+  }
+  text+=body[i++];
+ }
+ // Removing a span can join a stray '<!' to '--'. Remove any opener formed at that boundary.
+ let opener;
+ while((opener=text.indexOf('<!--'))>=0)text=text.slice(0,opener)+text.slice(opener+4);
+ return text.replace(/^\[pf-release-v1\]: # "[A-Za-z0-9+/=]+"[ \t]*$/gm,'').trim();
 }
 function readable(text){
  return text.replace(/\\([\\`*_[\]|])/g,'$1').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');

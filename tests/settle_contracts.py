@@ -61,7 +61,7 @@ class Settle(unittest.TestCase):
     def test_failure_notices_are_never_merged(self):
         # One notify run per finished run: merging them could hide app A's failure behind app B's success.
         text = (WF / 'notify-failure.yml').read_text()
-        self.assertIn('group: notify-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}\n      cancel-in-progress: false', text)
+        self.assertIn('group: notify-${{ github.event.workflow_run.workflow_id }}\n      cancel-in-progress: false', text)
         self.assertNotIn('sleep', text)
 
 

@@ -21,12 +21,36 @@ ROOT = Path(__file__).resolve().parents[2]
 REPO = "govinda-rajulu/patch-factory"
 TITLE = "community: index changed for apps you build"
 HOST = "morphe-patches.software"
+NEWS_PACKAGE_MAX = 255
+SUPERSEDE_FAILURE_CODE = "SUPERSEDE_FAILURE"
 INDEX_URL = "https://" + HOST + "/data/bundles.json"
 NEWS_URL = "https://" + HOST + "/data/whats-new.json"
 BASELINE = "src/community/bundles.json"
 RECEIPT = "src/community/watch-state.json"
 MAX_BYTES = 12 * 1024 * 1024
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+
+
+def push_remote():
+    """W16n: in Actions push to an explicit token URL (checkout keeps no credential) and fail
+    closed without a token; outside Actions (local tests) use the origin remote."""
+    if os.environ.get('GITHUB_ACTIONS') != 'true':
+        return 'origin'
+    token = os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN')
+    repo = os.environ.get('GITHUB_REPOSITORY')
+    if not token or not repo:
+        raise ValueError('PUSH_TOKEN_MISSING: GH_TOKEN and GITHUB_REPOSITORY are required in Actions')
+    return 'https://x-access-token:%s@github.com/%s.git' % (token, repo)
+
+
+def scrub(text):
+    """Remove any token from text before it is printed or raised (W16n)."""
+    text = text if isinstance(text, str) else (text or b'').decode('utf-8', 'replace')
+    for key in ('GH_TOKEN', 'GITHUB_TOKEN'):
+        value = os.environ.get(key)
+        if value:
+            text = text.replace(value, '***')
+    return re.sub(r'x-access-token:[^@\s]+@', 'x-access-token:***@', text)
 
 
 def need(ok, message):
@@ -92,7 +116,8 @@ def history(data, targets):
             model.string(label, "NEWS_LABEL")
             need(isinstance(bundle, dict) and isinstance(bundle.get("apps"), dict), "INVALID_NEWS_APPS")
             for package, app in bundle["apps"].items():
-                need(isinstance(package, str) and isinstance(app, dict), "INVALID_NEWS_APP")
+                need(isinstance(package, str) and len(package) <= NEWS_PACKAGE_MAX and
+                     model.PKG.fullmatch(package) and isinstance(app, dict), "INVALID_NEWS_APP")
                 patches = app.get("patches")
                 need(isinstance(patches, list) and all(isinstance(p, str) and p for p in patches), "INVALID_NEWS_PATCHES")
                 if package in packages:
@@ -129,11 +154,11 @@ def report_text(report):
     import readable
     if news["relevant_rows"]:
         text += "\n".join(readable.table(["Date", "Provider label", "App package", "Patches"],
-                                         [[model.safe(r["date"]), model.safe(r["provider_label"]), r["package"], len(r["patches"])]
+                                         [[model.safe(r["date"]), model.safe(r["provider_label"]), model.safe(r["package"]), len(r["patches"])]
                                           for r in news["relevant_rows"]])) + "\n\n"
         names = []
         for row in news["relevant_rows"]:
-            names.append("- " + model.safe(row["date"]) + " | " + model.safe(row["provider_label"]) + " | " + row["package"])
+            names.append("- " + model.safe(row["date"]) + " | " + model.safe(row["provider_label"]) + " | " + model.safe(row["package"]))
             names += ["  - " + model.safe(name) for name in row["patches"]]
         text += "\n".join(readable.details("Every patch name in the window", names)) + "\n"
     else:
@@ -172,6 +197,12 @@ def collect(root, out, ident, reader=fetch):
         raw_index = reader(INDEX_URL)
         stage = "fetch news"
         raw_news = reader(NEWS_URL)
+        # W16n: keep the raw inputs before comparing, so a failed compare still leaves the evidence
+        # (run 40294788256 failed at compare and its artifact held only status.json).
+        write(out / "index.json", raw_index)
+        write(out / "news.json", raw_news)
+        write(out / "baseline.json", baseline)
+        write(out / "targets.json", targets_raw)
         stage = "compare index"
         old, new = model.read_json(baseline), model.read_json(raw_index)
         report = model.compare(old, new, targets)
@@ -192,10 +223,6 @@ def collect(root, out, ident, reader=fetch):
         stage = "render report"
         text = report_text(report)
         pieces = chunks(text)
-        write(out / "index.json", raw_index)
-        write(out / "news.json", raw_news)
-        write(out / "baseline.json", baseline)
-        write(out / "targets.json", targets_raw)
         write(out / "report.json", encoded(report))
         write(out / "report.md", text.encode())
         write(out / "parts.json", encoded(pieces))
@@ -296,13 +323,15 @@ def verify_delivery(data, parts, number, reader):
              "REPORT_PART_READBACK_FAILED")
 
 
-def supersede(path, number, reader):
-    """W15e (owner, 22 Oct 2026): older open reports close once a newer one is read back, so the
-    issue list holds one community report. Best effort: a failure here never fails the report."""
+def supersede(path, number, reader, failures=None):
+    """W15e: close older reports best-effort, while exposing failures to the receipt."""
+    failures = failures if failures is not None else []
     try:
         old = [r for r in pages(path + "?state=open", reader) if "pull_request" not in r
                and r.get("title") == TITLE and r.get("number") != number and bot_record(r)]
     except Exception:
+        failures.append(SUPERSEDE_FAILURE_CODE)
+        print("::warning::COMMUNITY_WATCH %s count=%d" % (SUPERSEDE_FAILURE_CODE, len(failures)))
         return 0
     closed = 0
     for row in old:
@@ -312,7 +341,9 @@ def supersede(path, number, reader):
             reader("PATCH", path + "/" + str(row["number"]), dict(state="closed", state_reason="completed"))
             closed += 1
         except Exception:
-            pass
+            failures.append(SUPERSEDE_FAILURE_CODE)
+    if failures:
+        print("::warning::COMMUNITY_WATCH %s count=%d" % (SUPERSEDE_FAILURE_CODE, len(failures)))
     return closed
 
 
@@ -347,11 +378,14 @@ def report(root, out, ident, reader=api):
             reader("POST", issue_path + "/comments", dict(body=wanted))
     # Actual API readback, not trusting a local successful-write flag.
     verify_delivery(data, parts, number, reader)
-    supersede(path, number, reader)
+    supersede_failures = []
+    supersede(path, number, reader, supersede_failures)
     receipt = dict(report_key=data["report_key"], report_sha256=sha((out / "report.json").read_bytes()),
                    index_sha256=data["index_sha256"], baseline_sha256=data["baseline_sha256"],
                    issue=number, issue_url="https://github.com/" + REPO + "/issues/" + str(number),
-                   parts=len(parts), state="READBACK_VERIFIED", **ident)
+                   parts=len(parts), state="READBACK_VERIFIED",
+                   supersede_failure_count=len(supersede_failures),
+                   supersede_failure_code=SUPERSEDE_FAILURE_CODE if supersede_failures else None, **ident)
     write(out / "acknowledgement.json", encoded(receipt))
     return receipt
 
@@ -395,7 +429,7 @@ def advance(root, out, ident, runner=git, reader=api):
            "commit", "-m", "community: acknowledge reported index " + data["report_key"][:12])
     new_head = runner(root, "rev-parse", "HEAD")
     need(runner(root, "rev-parse", "HEAD^") == ident["head"], "SNAPSHOT_PARENT_DRIFT")
-    runner(root, "push", "origin", "HEAD:refs/heads/main")
+    runner(root, "push", push_remote(), "HEAD:refs/heads/main")
     need(runner(root, "ls-remote", "origin", "refs/heads/main").split() == [new_head, "refs/heads/main"],
          "SNAPSHOT_PUSH_READBACK_FAILED")
     return "SNAPSHOT_ADVANCED_AFTER_REPORT"
@@ -409,6 +443,9 @@ def execute_phase(phase, root, out, ident, reader=api, runner=git):
     try:
         result = report(root, out, ident, reader) if phase == "report" else advance(root, out, ident, runner, reader)
         state.update(state="SUCCEEDED", result=result)
+        if isinstance(result, dict) and "supersede_failure_count" in result:
+            state.update(supersede_failure_count=result["supersede_failure_count"],
+                        supersede_failure_code=result["supersede_failure_code"])
         return result
     except Exception as error:
         # A failed write/readback may already have had remote effects.

@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: "59 4 * * *"  # 10:29 IST daily, after Tooling watch at 09:59 IST
   workflow_dispatch:
-  issue_comment:
+  issue_comment:  # zizmor: ignore[dangerous-triggers] owner-only comment guard protects writes
     types: [created]
 concurrency:
   group: needs-you
@@ -79,6 +79,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Read the decision ledger (watch-state branch)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set +e
+          python3 src/etc/watch_state.py get needs-you-decisions.json "$RUNNER_TEMP/needs-you-decisions.json"
+          status=$?
+          set -e
+          if [ "$status" -eq 3 ]; then
+            printf '[]\n' > "$RUNNER_TEMP/needs-you-decisions.json"
+            echo "no decision ledger yet"
+          elif [ "$status" -ne 0 ]; then
+            exit "$status"
+          fi
       - name: Record owner decisions
         env:
           GH_TOKEN: ${{ github.token }}
@@ -91,11 +106,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
-        run: |
-          mkdir -p "$RUNNER_TEMP/pub"
-          cp "$RUNNER_TEMP/needs-you-decisions.json" "$RUNNER_TEMP/pub/needs-you-decisions.json"
-          cd "$RUNNER_TEMP/pub"
-          git init -q -b watch-state
-          git add needs-you-decisions.json
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "needs you decisions $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push -q -f "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" watch-state:watch-state
+        run: python3 src/etc/watch_state.py put needs-you-decisions.json "$RUNNER_TEMP/needs-you-decisions.json" "needs you decisions $(date -u +%Y-%m-%dT%H:%MZ)"

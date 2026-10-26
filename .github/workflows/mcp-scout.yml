@@ -40,9 +40,14 @@ jobs:
 
       # Gemini CLI 0.65.0 documents tools.core as an all-built-in allowlist and
       # tools.exclude as its explicit blocklist: https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/docs/tools/shell.md
+      # W16n (run 40298683531, 26 Oct 2026): no model was set, so the CLI used its default and got
+      # HTTP 503 "high demand" ten times in 6.5 minutes. The model is now named (GA flash in
+      # gemini-cli v0.65.0 packages/core/src/config/models.ts), turns are capped
+      # (model.maxSessionTurns, docs/cli/settings.md), and one retry runs on GA flash-lite.
       - name: Read-only GitHub MCP scout
         id: gemini
         if: steps.key.outputs.present == 'true'
+        continue-on-error: true
         uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0.1.22
         # W16k: Gemini CLI 0.65 refuses an untrusted folder in headless runs (run 25 Oct said so and
         # named this switch). Trusting the runner's own fresh checkout; the tools stay read-only above.
@@ -51,15 +56,46 @@ jobs:
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_cli_version: '0.65.0'
+          gemini_model: 'gemini-3.5-flash'
           settings: |-
-            {"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3","stdio","--read-only","--toolsets=repos"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
+            {"model":{"maxSessionTurns":25},"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132","stdio","--read-only","--toolsets=repos"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
           prompt: >-
             You are a read-only discovery scout. Using only the configured GitHub MCP server,
-            inspect the repository ${{ github.repository }} files src/targets.json and
-            src/community/bundles.json. For every app id in targets.json, find community
-            Morphe or ReVanced patch repositories relevant to that app that are not already
-            present in that target's candidates or extra_bundles (including bundle entries).
-            Return ONLY newline-delimited JSON objects with exactly these keys:
+            read the one file src/targets.json (about 19 KB) in ${{ github.repository }}.
+            Do not open src/community/bundles.json or any other large file. For every app id
+            in targets.json, search GitHub for community Morphe or ReVanced patch repositories
+            relevant to that app. Repositories the target already uses are removed later by a
+            checker, so you do not need to compare. Return ONLY newline-delimited JSON objects
+            with exactly these keys:
+            {"app":"target id","repo":"owner/name","reason":"brief evidence-based reason"}.
+            Use the target app id, not its package name. Do not return Markdown fences,
+            headings, URLs, duplicate prose, or anything except JSON lines. Never modify
+            files, issues, pull requests, or any GitHub content; never use shell or file-write tools.
+      - name: Clear the first attempt's runner-local files
+        if: steps.gemini.outcome == 'failure'
+        run: rm -rf .gemini gemini-artifacts
+
+      - name: Retry once on the lighter model
+        id: gemini_lite
+        if: steps.gemini.outcome == 'failure'
+        continue-on-error: true
+        uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0.1.22
+        env:
+          GEMINI_CLI_TRUST_WORKSPACE: 'true'
+        with:
+          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
+          gemini_cli_version: '0.65.0'
+          gemini_model: 'gemini-3.1-flash-lite'
+          settings: |-
+            {"model":{"maxSessionTurns":25},"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132","stdio","--read-only","--toolsets=repos"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
+          prompt: >-
+            You are a read-only discovery scout. Using only the configured GitHub MCP server,
+            read the one file src/targets.json (about 19 KB) in ${{ github.repository }}.
+            Do not open src/community/bundles.json or any other large file. For every app id
+            in targets.json, search GitHub for community Morphe or ReVanced patch repositories
+            relevant to that app. Repositories the target already uses are removed later by a
+            checker, so you do not need to compare. Return ONLY newline-delimited JSON objects
+            with exactly these keys:
             {"app":"target id","repo":"owner/name","reason":"brief evidence-based reason"}.
             Use the target app id, not its package name. Do not return Markdown fences,
             headings, URLs, duplicate prose, or anything except JSON lines. Never modify
@@ -68,7 +104,7 @@ jobs:
       - name: Validate scout output
         if: always()
         env:
-          MODEL_OUTPUT: ${{ steps.gemini.outputs.summary }}
+          MODEL_OUTPUT: ${{ steps.gemini.outputs.summary || steps.gemini_lite.outputs.summary }}
           SCOUT_DIR: ${{ runner.temp }}/mcp-scout-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           mkdir -p "$SCOUT_DIR"
@@ -103,3 +139,23 @@ jobs:
           path: ${{ runner.temp }}/mcp-scout-${{ github.run_id }}-${{ github.run_attempt }}/results.jsonl
           if-no-files-found: error
           retention-days: 30
+
+      # W16n: both attempts failing is a named red result, never a silent green and never a
+      # bare "exit 1". The Gemini step log above holds the API reason (for example 503 busy).
+      - name: Name the scout result
+        if: always()
+        env:
+          KEY_PRESENT: ${{ steps.key.outputs.present }}
+          FIRST: ${{ steps.gemini.outcome }}
+          RETRY: ${{ steps.gemini_lite.outcome }}
+        run: |
+          if [[ "$KEY_PRESENT" != "true" ]]; then
+            echo "MCP scout result: SKIPPED (no GEMINI_API_KEY)." | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [[ "$FIRST" == "success" ]]; then
+            echo "MCP scout result: OK on gemini-3.5-flash." | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [[ "$RETRY" == "success" ]]; then
+            echo "MCP scout result: OK on gemini-3.1-flash-lite after the first model failed." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::error::MCP scout: MODEL_UNAVAILABLE, both gemini-3.5-flash and gemini-3.1-flash-lite failed; read the Gemini step logs for the API reason. Nothing changed in the repo."
+            exit 1
+          fi
