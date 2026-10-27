@@ -107,6 +107,10 @@ jobs:
           PF_SEAT: ${{ inputs.seat }}
           PF_COUNCIL_STAGED: ${{ vars.PF_COUNCIL_STAGED }}
           PF_FIXES: council-out/fixes.patch
+          # W16p review, 27 Oct 2026: reserve 120 seconds for posting after the 2700 second provider budget.
+          PF_COUNCIL_SECONDS: '2700'
+          PF_DEADLINE_GUARD_SECONDS: '120'
+          PYTHONUNBUFFERED: '1'
         run: |
           # The PR that adds the council runs this against a base without it: nothing to do.
           if [ ! -f src/council/council.py ]; then echo "council code is not on the base commit yet"; exit 0; fi

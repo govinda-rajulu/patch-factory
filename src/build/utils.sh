@@ -205,13 +205,13 @@ import re
 import sys
 
 value = sys.argv[1].strip()
-match = re.fullmatch(r'(\d+)([KMGTP]?)', value, re.IGNORECASE)
+match = re.fullmatch(r'(\d+)([BKMG]?)', value, re.IGNORECASE)
 if not match:
+    print('PF_STORE_MAX_BYTES must be an integer with an optional curl suffix B, K, M, or G', file=sys.stderr)
     raise SystemExit(1)
 number = int(match.group(1))
 unit = match.group(2).upper()
-multiplier = {'': 1, 'K': 1024, 'M': 1024 ** 2, 'G': 1024 ** 3,
-             'T': 1024 ** 4, 'P': 1024 ** 5}[unit]
+multiplier = {'': 1, 'B': 1, 'K': 1024, 'M': 1024 ** 2, 'G': 1024 ** 3}[unit]
 print(number * multiplier)
 PY
 }
@@ -225,7 +225,11 @@ u = urlsplit(sys.argv[1])
 if u.scheme != 'https' or u.username or u.password or u.port not in (None, 443) or not u.hostname:
     raise SystemExit(1)
 h = u.hostname.lower().rstrip('.')
-print(f'STORE_FINAL_HOST {sys.argv[2]} {h}')
+known_final_hosts = {'apkpure': {'data.winudf.com'}}
+store = sys.argv[2]
+if h not in known_final_hosts.get(store, set()):
+    print(f'::warning:: STORE_FINAL_HOST {store} unknown final host {h}; allowing until live evidence grows')
+print(f'STORE_FINAL_HOST {store} {h}')
 PY
 }
 
@@ -257,7 +261,7 @@ pf_wget_store_transfer() {
 }
 
 pf_curl_store_transfer() {
-	local url=$1 dest=$2 referer=$3 ua=$4 store=$5 effective_file effective
+	local url=$1 dest=$2 referer=$3 ua=$4 store=$5 effective_file effective curl_rc=0
 	local candidate_bytes max_bytes
 	local -a cookie_args=()
 	# --cookie with NAME=VALUE data is sent on every redirected request, as wget sent its
@@ -267,7 +271,7 @@ pf_curl_store_transfer() {
 	effective_file=$(mktemp "$PF_TMP_DIR/store-effective.XXXXXX") || return 1
 	# Keep this as the sole binary request: its headers and cookies match the
 	# base wget transfer, while curl records the redirect result privately.
-	if ! curl --fail --silent --show-error --location \
+	if curl --fail --silent --show-error --location \
 		--proto '=https' --proto-redir '=https' --max-redirs 10 \
 		--max-filesize "$PF_STORE_MAX_BYTES" \
 		--connect-timeout 30 --speed-limit 1024 --speed-time 120 \
@@ -275,8 +279,11 @@ pf_curl_store_transfer() {
 		--header "User-Agent: $ua" --referer "$referer" \
 		"${cookie_args[@]}" --output "$dest" --write-out '%{url_effective}' "$url" \
 		>"$effective_file"; then
+		:
+	else
+		curl_rc=$?
 		rm -f -- "$effective_file" "$dest"
-		return 1
+		return "$curl_rc"
 	fi
 	effective=$(cat "$effective_file") || { rm -f -- "$effective_file" "$dest"; return 1; }
 	rm -f -- "$effective_file"
@@ -329,7 +336,10 @@ _fs_get() {
 		# Encode the request safely without requiring a persistent browser session.
 		request=$(jq -cn --arg url "$url" \
 			'{cmd:"request.get",url:$url,maxTimeout:60000}') || return 1
-		response=$(curl -s -X POST 'http://localhost:8191/v1' \
+		# FlareSolverr v3.5.2 starts its browser before applying maxTimeout. The README
+		# request.get/maxTimeout contract (https://github.com/FlareSolverr/FlareSolverr/blob/v3.5.2/README.md)
+		# therefore needs an outer deadline with room beyond the 60 s request timeout.
+		response=$(curl -s --connect-timeout 5 --max-time 180 -X POST 'http://localhost:8191/v1' \
 			-H 'Content-Type: application/json' \
 			-d "$request")
 		# Redacted observation only: never log cookies, signed URLs or raw response.
@@ -820,6 +830,7 @@ get_apkpure() {
 	local cookie_args=()
 	[[ -n "$FS_COOKIES" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
 	local output_base_apk="$base_apk" transfer_tmp="" transfer_path="./download/$base_apk"
+	local crc=0
 	if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
 		transfer_tmp=$(mktemp "./download/.$base_apk.XXXXXX") || return 1
 		transfer_path="$transfer_tmp"
@@ -827,7 +838,11 @@ get_apkpure() {
 	# W16o: F-10, remove any stale destination before the bounded candidate transfer.
 	rm -f -- "$transfer_path"
 	if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
-		if ! pf_curl_store_transfer "$download_url" "$transfer_path" "$dl_page_url" "$user_agent" apkpure; then
+		if pf_curl_store_transfer "$download_url" "$transfer_path" "$dl_page_url" "$user_agent" apkpure; then
+			:
+		else
+			crc=$?
+			echo "TRANSFER_FAILED store=apkpure curl_exit=$crc bytes=$(stat -c %s "$transfer_path" 2>/dev/null || echo 0)"
 			rm -f -- "$transfer_path"
 			red_log "[-] APKPure transfer failed; refusing partial or empty output"
 			return 1

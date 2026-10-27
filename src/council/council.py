@@ -15,6 +15,7 @@ Safety design (see docs/council/README.md):
 Standard library only: nothing is installed at run time.
 """
 import concurrent.futures
+import threading
 import datetime
 import difflib
 import hashlib
@@ -101,6 +102,23 @@ MAX_DIFF = 150000
 AUDIT_PART_CHARS = 70000
 AUDIT_MAX_PARTS = 10
 AUDIT_FILE_MAX = 200000
+# W16p (26 Oct 2026): the workflow gives this process 45 minutes inside its 50 minute
+# job. The value is deliberately an environment setting so a shorter manual job can
+# reserve its own margin without changing the code.
+RUN_SECONDS_DEFAULT = 2700.0
+DEADLINE_GUARD_DEFAULT = 120.0
+_DEADLINE_KEY = '_PF_DEADLINE_MONOTONIC'
+_START_KEY = '_PF_START_MONOTONIC'
+_RUN_DEADLINE = None
+_RUN_START = None
+_RUN_GUARD = DEADLINE_GUARD_DEFAULT
+# W16p review, 27 Oct 2026: tests may use loopback HTTP without weakening production HTTPS policy.
+_ALLOW_INSECURE_LOOPBACK = False
+# W16p round 2, 27 Oct 2026: GitHub calls get their own window, per thread, ending
+# GITHUB_GRACE_SECONDS after the provider deadline (providers stop DEADLINE_GUARD earlier). A
+# process-wide flag let provider lanes ignore the deadline while any GitHub call was running.
+GITHUB_GRACE_SECONDS = 60.0
+_TL = threading.local()
 GH_ALLOWED = (
     ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/pulls/\d+$')),
     ('GET', re.compile(r'^repos/[\w.-]+/[\w.-]+/issues/\d+$')),
@@ -131,6 +149,10 @@ class Busy(Refused):
 
 class Truncated(Busy):
     """The reply stopped at max_tokens with no answer text; the next model may fit."""
+
+
+class DeadlineExceeded(Refused):
+    """No new provider attempt can start inside this run's monotonic budget."""
 
 
 class Uncited(ValueError):
@@ -170,6 +192,85 @@ def reply_text(text, env):
 
 # ---------- transport (replaced by fakes in tests) ----------
 
+
+def install_deadline(env, seconds=None):
+    """Install one absolute monotonic deadline for this process and environment."""
+    global _RUN_DEADLINE, _RUN_START, _RUN_GUARD
+    now = time.monotonic()
+    _RUN_GUARD = max(0.0, float(env.get('PF_DEADLINE_GUARD_SECONDS', DEADLINE_GUARD_DEFAULT)))
+    value = env.get(_DEADLINE_KEY)
+    if value is None:
+        if seconds is None:
+            seconds = float(env.get('PF_COUNCIL_SECONDS', RUN_SECONDS_DEFAULT))
+        _RUN_DEADLINE = now + max(0.0, float(seconds))
+        try:
+            env[_DEADLINE_KEY] = str(_RUN_DEADLINE)
+        except (TypeError, AttributeError):
+            pass
+    else:
+        _RUN_DEADLINE = float(value)
+    _RUN_START = float(env.get(_START_KEY, now))
+    try:
+        env[_START_KEY] = str(_RUN_START)
+    except (TypeError, AttributeError):
+        pass
+    return _RUN_DEADLINE
+
+
+def cap_deadline(env, seconds):
+    """Shorten the shared deadline without ever moving it later."""
+    global _RUN_DEADLINE
+    install_deadline(env)
+    _RUN_DEADLINE = min(_RUN_DEADLINE, time.monotonic() + max(0.0, float(seconds)))
+    try:
+        env[_DEADLINE_KEY] = str(_RUN_DEADLINE)
+    except (TypeError, AttributeError):
+        pass
+    return _RUN_DEADLINE
+
+
+def run_elapsed():
+    return time.monotonic() - (_RUN_START or time.monotonic())
+
+
+def deadline_remaining(env=None):
+    """Return seconds left on the shared deadline, or install it for direct callers."""
+    if _RUN_DEADLINE is None:
+        install_deadline(env if env is not None else os.environ)
+    return max(0.0, _RUN_DEADLINE - time.monotonic())
+
+
+def deadline_guard(env=None):
+    if env is None:
+        return _RUN_GUARD
+    return max(0.0, float(env.get('PF_DEADLINE_GUARD_SECONDS', DEADLINE_GUARD_DEFAULT)))
+
+
+def deadline_ready(env):
+    return deadline_remaining(env) > deadline_guard(env)
+
+
+def _github_until():
+    return getattr(_TL, 'github_until', None)
+
+
+def bounded_timeout(timeout, env=None):
+    """Cap provider timeout so urllib cannot outlive the council run."""
+    until = _github_until()
+    if until is not None:
+        return max(0.0, min(float(timeout), until - time.monotonic()))
+    remaining = deadline_remaining(env)
+    available = remaining - deadline_guard(env)
+    if available <= 0:
+        return 0.0
+    return min(float(timeout), available)
+
+
+def progress(env, text):
+    """Emit scrubbed, short progress that survives a pipe when Python is unbuffered."""
+    print(scrub(text, env), flush=True)
+
+
 class _NoRedirect(urllib.request.HTTPRedirectHandler):
     def redirect_request(self, *args, **kwargs):
         return None  # surface 3xx to http(), which decides
@@ -195,23 +296,68 @@ def allowed_hosts():
     return hosts
 
 
+def _set_socket_timeout(response, timeout):
+    """Refresh urllib's socket timeout before every body read.
+
+    W16p review, 27 Oct 2026: urllib has no separate DNS timeout. That resolver phase
+    remains a known limit and is intentionally not replaced here with a custom resolver.
+    """
+    raw = getattr(getattr(response, 'fp', None), 'raw', None)
+    sock = getattr(raw, '_sock', None)
+    if sock is not None:
+        sock.settimeout(timeout)
+
+
+def _read_response(response, timeout, limit=None):
+    """Read bounded chunks while checking the absolute deadline between chunks."""
+    chunks, size = [], 0
+    while True:
+        wait = bounded_timeout(timeout)
+        if wait <= 0:
+            raise TimeoutError('deadline exceeded')
+        _set_socket_timeout(response, wait)
+        remaining_limit = min(64 * 1024, limit - size) if limit is not None else 64 * 1024
+        # W16p review, 27 Oct 2026: HTTPResponse.read can loop internally until EOF or the
+        # requested size. read1 performs one underlying socket operation and handles chunked
+        # framing, so the deadline is checked again before the next operation.
+        read_once = getattr(response, 'read1', response.read)
+        chunk = read_once(remaining_limit)
+        if not chunk:
+            break
+        chunks.append(chunk)
+        size += len(chunk)
+        if limit is not None and size >= limit:
+            break
+        until = _github_until()
+        if (time.monotonic() >= until) if until is not None else (deadline_remaining() <= 0):
+            raise TimeoutError('deadline exceeded')
+    return b''.join(chunks)
+
+
 def http(method, url, headers, body=None, timeout=90):
     """One HTTP call. Returns (status, text). Never raises for HTTP errors.
 
-    W15f: only https to a provider host or api.github.com (the gh-aw firewall idea, in-process);
-    nothing a model writes can aim a call elsewhere.
+    W15f: only HTTPS to a provider host or api.github.com, except the exact loopback test hook;
+    nothing a model writes can aim a call elsewhere. W16p reads responses in chunks because
+    urllib's timeout otherwise applies to each socket operation, not the whole response.
 
     urllib turns a redirected POST into a bodiless GET; follow one redirect by repeating
     the same method and body instead, and only within the same site."""
     parts = urllib.parse.urlsplit(url)
-    if parts.scheme != 'https' or (parts.hostname or '').lower() not in allowed_hosts():
+    loopback = (_ALLOW_INSECURE_LOOPBACK and parts.scheme == 'http' and parts.hostname == '127.0.0.1')
+    if ((parts.scheme != 'https' and not loopback)
+            or ((parts.hostname or '').lower() not in allowed_hosts() and not loopback)):
         return 0, 'host not allowed'
     data = None if body is None else json.dumps(body).encode()
     for hop in (1, 2):
+        wait = bounded_timeout(timeout)
+        if wait <= 0:
+            return 0, 'deadline exceeded'
         req = urllib.request.Request(url, data=data, method=method, headers=headers)
         try:
-            with _OPENER.open(req, timeout=timeout) as r:
-                return r.status, r.read().decode('utf-8', 'replace')
+            with _OPENER.open(req, timeout=wait) as r:
+                text = _read_response(r, timeout).decode('utf-8', 'replace')
+                return r.status, text
         except urllib.error.HTTPError as e:
             location = e.headers.get('Location') if e.headers else None
             if e.code in (301, 302, 303, 307, 308) and location and hop == 1:
@@ -219,8 +365,12 @@ def http(method, url, headers, body=None, timeout=90):
                 if same_site(url, location):
                     url = location
                     continue
-            return e.code, e.read().decode('utf-8', 'replace')[:2000]
-        except Exception as e:  # network error, timeout
+            try:
+                text = _read_response(e, timeout, 2000).decode('utf-8', 'replace')
+            except (TimeoutError, OSError):
+                text = 'deadline exceeded'
+            return e.code, text
+        except Exception as e:  # network error, timeout, or a trickling body past the deadline
             return 0, type(e).__name__
     return 0, 'redirect loop'
 
@@ -235,10 +385,24 @@ def scrub(text, env):
     return text
 
 
+def github_http(method, url, headers, body=None, timeout=60):
+    """W16p, 27 Oct 2026: GitHub requests run in their own window (this thread only), which
+    ends GITHUB_GRACE_SECONDS after the shared deadline, so posting still works after the
+    providers stop and no GitHub call can outlive the job."""
+    deadline_remaining()  # installs the shared deadline for direct callers
+    prev = _github_until()
+    until = _RUN_DEADLINE + GITHUB_GRACE_SECONDS
+    _TL.github_until = until if prev is None else min(prev, until)
+    try:
+        return http(method, url, headers, body, timeout=timeout)
+    finally:
+        _TL.github_until = prev
+
+
 def gh(env, method, path, body=None, accept='application/vnd.github+json'):
     if not any(m == method and rx.match(path) for m, rx in GH_ALLOWED):
         raise Refused('GitHub call outside the comment allowlist: %s %s' % (method, path))
-    status, text = http(method, 'https://api.github.com/' + path,
+    status, text = github_http(method, 'https://api.github.com/' + path,
                         {'Authorization': 'Bearer ' + env['GITHUB_TOKEN'], 'Accept': accept,
                          'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'pf-council'}, body, timeout=60)
     if status not in (200, 201):
@@ -411,14 +575,24 @@ def keyed(provider, env):
 
 
 def paced(provider, env):
-    """W15h: one call at a time per provider, spaced by PACE (seats share an account limit)."""
+    """W15h and W16p: pace calls but never sleep beyond the run deadline."""
     import threading
+    install_deadline(env)
     lock = _pace_lock.setdefault(provider, threading.Lock())
     scale = 0.0 if env.get('PF_RETRY_SLEEP') == '0' else float(env.get('PF_PACE_SCALE', '1'))
-    lock.acquire()
+    available = max(0.0, deadline_remaining(env) - deadline_guard(env))
+    if not lock.acquire(timeout=available):
+        raise DeadlineExceeded('deadline reached waiting for provider pacing lock')
     gap = PACE.get(provider, 2.0) * scale - (time.monotonic() - _pace_last.get(provider, -1e9))
     if gap > 0:
-        time.sleep(gap)
+        remaining = deadline_remaining(env)
+        if remaining <= deadline_guard(env) or gap > remaining:
+            lock.release()
+            raise DeadlineExceeded('deadline reached before provider pacing wait')
+        time.sleep(min(gap, remaining))
+    if not deadline_ready(env):
+        lock.release()
+        raise DeadlineExceeded('deadline reached before provider attempt')
     return lock
 
 
@@ -472,6 +646,9 @@ def remembered(kind):
 
 
 def complete(seat, model, system, user, env, retry=True, extra=()):
+    install_deadline(env)
+    if not deadline_ready(env):
+        raise DeadlineExceeded('deadline reached before model attempt')
     p = PROVIDERS[seat['provider']]
     key = (seat['provider'], model)
     # Do not impose an artificial output budget: providers enforce their own model output
@@ -494,7 +671,7 @@ def complete(seat, model, system, user, env, retry=True, extra=()):
         attempt += 1
         lock = paced(seat['provider'], env)
         try:
-            status, text = http('POST', url, headers, body)
+            status, text = http('POST', url, headers, body, timeout=bounded_timeout(90, env))
         finally:
             release(seat['provider'], lock)
         if status == 200:
@@ -520,7 +697,11 @@ def complete(seat, model, system, user, env, retry=True, extra=()):
             # Busy or unreachable (28 Sep 2026: Gemini 503 twice, minimax timeout): the seat
             # moves on to its next model instead of failing.
             raise Busy('provider returned %s' % status)
-        time.sleep(retry_wait(env, text))
+        wait = retry_wait(env, text)
+        remaining = deadline_remaining(env)
+        if remaining <= deadline_guard(env):
+            raise DeadlineExceeded('deadline reached before provider retry')
+        time.sleep(min(wait, max(0.0, remaining - deadline_guard(env))))
 
 
 def strip_think(text):
@@ -667,14 +848,22 @@ def persona_text(seat):
 
 
 def run_seat(seat, system, user, env, checker, canary):
+    install_deadline(env)
+    started = time.monotonic()
     system = system + persona_text(seat)
     row = {'seat': seat['id'], 'provider': seat['provider'], 'model': '', 'status': '', 'answer': None}
+    if not deadline_ready(env):
+        row['status'] = 'ABSTAIN_DEADLINE'
+        progress(env, 'council: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], time.monotonic() - started))
+        return row
     backups = [b for b in seat.get('backups') or [] if b.get('provider') in PROVIDERS and keyed(b['provider'], env)]
     if not keyed(seat['provider'], env) and not backups:
         row['status'] = 'SKIPPED_NO_KEY'
+        progress(env, 'council: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], time.monotonic() - started))
         return row
     if len(system) + len(user) > seat['max_input_chars']:
         row['status'] = 'ABSTAIN_OVER_BUDGET'
+        progress(env, 'council: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], time.monotonic() - started))
         return row
     try:
         missing, busy, cut = [], [], []
@@ -685,11 +874,17 @@ def run_seat(seat, system, user, env, checker, canary):
                                             if (b['provider'], b['model']) not in remembered('missing')]
         invalid = []
         for index, (who, model) in enumerate(tries):
+            if not deadline_ready(env):
+                row['status'] = 'ABSTAIN_DEADLINE'
+                break
             row['model'] = model if who is seat else '%s via %s (backup)' % (model, who['provider'])
             try:
                 # A busy model is retried only when it is the seat's last preference.
                 text = complete(who, model, system, user, env, retry=index == len(tries) - 1)
                 answered = who
+            except DeadlineExceeded:
+                row['status'] = 'ABSTAIN_DEADLINE'
+                break
             except ModelMissing:
                 remembered('missing').add((who['provider'], model))
                 missing.append(model)
@@ -705,6 +900,9 @@ def run_seat(seat, system, user, env, checker, canary):
                         answered.pop('max_tokens', None)
                     text = complete(answered, model, system, user, env, retry=False)
                     row['model'] += ' (more room)'
+                except DeadlineExceeded:
+                    row['status'] = 'ABSTAIN_DEADLINE'
+                    break
                 except (Truncated, Busy, ModelMissing):
                     cut.append(model)
                     continue
@@ -725,22 +923,28 @@ def run_seat(seat, system, user, env, checker, canary):
             row['model'] = ''
             if invalid:
                 row['status'] = 'INVALID_SCHEMA %s (%d model(s) answered invalid JSON)' % (invalid[0], len(invalid))
+                progress(env, 'council: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], time.monotonic() - started))
                 return row
             if busy or cut:
                 row['status'] = 'UNAVAILABLE no listed model answered (%d missing, %d busy%s)' % (
                     len(missing), len(busy), ', %d cut at max_tokens' % len(cut) if cut else '')
             else:
                 row['status'] = 'UNAVAILABLE no listed model is served (%d tried)' % len(missing)
+            progress(env, 'council: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], time.monotonic() - started))
             return row
-        row['status'] = 'OK'
+        if row['status'] == '':
+            row['status'] = 'OK'
     except CanaryLeak:
         row['status'] = 'INVALID_CANARY'
+    except DeadlineExceeded:
+        row['status'] = 'ABSTAIN_DEADLINE'
     except Refused as e:
         row['status'] = 'UNAVAILABLE ' + scrub(str(e), env)[:120]
     except Uncited:
         row['status'] = 'DROPPED_UNCITED'
     except (ValueError, TypeError) as e:
         row['status'] = 'INVALID_SCHEMA ' + str(e)[:40]
+    progress(env, 'council: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], time.monotonic() - started))
     return row
 
 
@@ -765,6 +969,8 @@ def valid_answer(seat, model, text, system, user, env, checker, canary, row):
                 text = complete(seat, model, system, user, env, retry=False, extra=(
                     {'role': 'assistant', 'content': text[:6000]},
                     {'role': 'user', 'content': 'Refused: %s. Reply with only the corrected JSON object.' % str(e)[:160]}))
+            except DeadlineExceeded:
+                raise
             except Refused:
                 raise e
             row['model'] += ' (repaired)'
@@ -854,6 +1060,7 @@ def convene(seats, system, user, env, checker, canary):
     provider pacing lock in ``complete``; no lane lock is held while waiting on another
     provider.  The indexed result list keeps rendering deterministic despite the overlap.
     """
+    install_deadline(env)
     groups = {}
     for index, seat in enumerate(seats):
         groups.setdefault(seat['provider'], []).append((index, seat))
@@ -1637,7 +1844,11 @@ def mode_audit(env, seats, cfg):
     if not files:
         raise Refused('shard has no files')
     parts, skipped = audit_parts(files)
-    deadline = time.time() + float(env.get('PF_AUDIT_SECONDS', '1800'))
+    install_deadline(env)
+    audit_seconds = float(env.get('PF_AUDIT_SECONDS', '1800'))
+    # W16p (26 Oct 2026): retain the old audit limit while sharing one process deadline.
+    if deadline_remaining(env) > audit_seconds:
+        cap_deadline(env, audit_seconds)
     instructions = prompt('AUDIT.md')
     context = trained('\n\n'.join(['REPOSITORY RULES (trusted):\n' + agents_limits(),
                                    'OWNER (trusted):\n' + read('docs/council/OWNER.md'),
@@ -1662,9 +1873,12 @@ def mode_audit(env, seats, cfg):
         digest.update(''.join(file_block(rel, body) for rel, body in part).encode())
     for position, index in enumerate(order):
         part = parts[index - 1]
-        if position >= AUDIT_MAX_PARTS or time.time() > deadline:
+        if position >= AUDIT_MAX_PARTS or not deadline_ready(env):
             unreached.append(index)
+            progress(env, 'council: part=%d status=ABSTAIN_DEADLINE elapsed=%.2fs' % (index, run_elapsed()))
             continue
+        part_started = time.monotonic()
+        progress(env, 'council: part=%d status=START elapsed=%.2fs' % (index, run_elapsed()))
         text = ''.join(file_block(rel, body) for rel, body in part)
         block, cut = envelope('files', text, AUDIT_PART_CHARS)
         if cut:
@@ -1676,6 +1890,7 @@ def mode_audit(env, seats, cfg):
         for r in verify_quotes(convene(seats, base_system(canary), user, env, check_review, canary), file_sources(part)):
             r['part'] = index
             rows.append(r)
+        progress(env, 'council: part=%d status=DONE elapsed=%.2fs' % (index, time.monotonic() - part_started))
     fixes, patch = propose_fixes(merge_findings(rows))
     target = env.get('PF_FIXES', '').strip()
     if target and patch:  # the only file this program writes besides the job summary
@@ -1888,6 +2103,7 @@ def summary(env, text):
 
 def main(env=None):
     env = dict(os.environ if env is None else env)
+    install_deadline(env)
     cfg = json.loads(read('src/council/seats.json'))
     event, mode = env.get('PF_EVENT', ''), env.get('PF_MODE') or 'probe'
     if event == 'schedule':

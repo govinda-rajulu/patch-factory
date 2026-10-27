@@ -163,6 +163,10 @@ jobs:
           PF_REPO: ${{ github.repository }}
           PF_PR: ${{ needs.record.outputs.pr }}
           PF_MANIFEST: onboard-manifest/manifest.json
+          # W16p review, 27 Oct 2026: reserve 120 seconds for posting after the 1020 second provider budget.
+          PF_COUNCIL_SECONDS: '1020'
+          PF_DEADLINE_GUARD_SECONDS: '120'
+          PYTHONUNBUFFERED: '1'
         run: python3 src/council/onboard_review.py
   wake:
     # W15e (L069): a run the bot starts wakes no workflow_run, so the review wakes 11. Rule merge

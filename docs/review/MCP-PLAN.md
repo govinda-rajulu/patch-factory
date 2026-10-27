@@ -133,3 +133,52 @@ one: the Gemini CLI action runs in --yolo mode, so the tool lockdown (no shell, 
 the read-only GitHub server) must be proven on one real run before it is scheduled. Store scraping
 stays deterministic. Candidates reach the owner as Needs you items (take, drop, hold) and are only
 facts after list-patches.
+
+## W16p (27 Oct 2026): YOLO MCP lockdown
+
+Official source review for the pinned action and Gemini CLI v0.65.0 found that the action's
+composite `Run Gemini CLI` step invokes `gemini --yolo --prompt ... --output-format json` in both
+debug and normal branches. The action exposes no approval-mode or YOLO override input. Its
+`settings` input is a JSON string written verbatim to the checkout's `.gemini/settings.json`, so
+settings are the available control point while the action remains pinned:
+
+* Action source: https://raw.githubusercontent.com/google-github-actions/run-gemini-cli/f77273f4c914e4bf38440cf36a0369cb64a37489/action.yml
+* CLI settings reference: `security.disableYoloMode` means disable YOLO even when a flag enables it.
+  `general.defaultApprovalMode` cannot enable YOLO; the reference says YOLO is only enabled by
+  `--yolo` or `--approval-mode=yolo`: https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/docs/cli/settings.md
+* CLI MCP reference: `mcp.allowed` limits connected servers, `trust` bypasses confirmations for
+  one server, `includeTools` is an allowlist, and `excludeTools` wins over `includeTools`:
+  https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/docs/tools/mcp-server.md
+* CLI policy types: `ApprovalMode` includes `DEFAULT`, `AUTO_EDIT`, `YOLO`, and `PLAN`; the policy
+  settings type includes `mcp.allowed`, `mcp.autoAllowInHeadless`, `tools.core`, `tools.exclude`,
+  and per-server `trust`: https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/packages/core/src/policy/types.ts
+* GitHub MCP v2.0.3 configuration: local `--read-only` removes write tools, `--tools` selects
+  individual tools, and tool names must match exactly. The repository read tools used here are
+  `get_file_contents` and `search_repositories`:
+  https://raw.githubusercontent.com/github/github-mcp-server/v2.0.3/docs/server-configuration.md
+  https://raw.githubusercontent.com/github/github-mcp-server/v2.0.3/README.md
+
+Round 4 correction (27 Oct 2026, before the owner ran the controller): an earlier draft set
+`security.disableYoloMode: true`. Gemini CLI 0.65.0 throws a FatalConfigError at startup when the
+approval mode is YOLO and that setting is on (packages/cli/src/config/config.ts, "Override approval
+mode if disableYoloMode is set"; its own test "should throw an error if YOLO mode is attempted when
+disableYoloMode is true"), and the action always passes `--yolo`, also on its main branch. The
+scout would have failed on every run. The setting is removed. YOLO stays on, but the policy engine
+ranks rules by priority (packages/core/src/policy/config.ts at v0.65.0): YOLO's allow-all is
+1.998 (policies/yolo.toml; the scheduler checks the policy for every call, YOLO included), `tools.core: []` adds a deny-all at 4.24 in every mode including YOLO, `tools.allowed`
+allows the two tools at 4.3 and `tools.exclude` denies at 4.4, so only the two read tools can run.
+Turning YOLO itself off needs the CLI run without this action (a later packet, proven by a
+dispatch).
+
+The workflow keeps headless MCP execution explicitly enabled with `mcp.allowed: ["github"]` and
+`mcp.autoAllowInHeadless: true`, while `tools.core: []` leaves no built-in tool on the allowlist.
+The `tools.allowed` list also names only the two fully qualified MCP tools, which is an exact
+approval allowlist rather than a discovery list. The GitHub server is the only configured server.
+Its Gemini-side `includeTools` allowlist and server-side `--tools` allowlist both contain exactly
+`get_file_contents` and `search_repositories`; the server also receives `--read-only`. The
+existing shell and file-write exclusions remain, the image stays pinned by digest, and the Gemini
+CLI pin remains below 1.0.
+
+This is configuration evidence and synthetic contract-test evidence only. The first live run after
+merge is the proof: the controller will dispatch `mcp-scout.yml` once, and the workflow must show
+that the scout used the read-only GitHub MCP server and left the checkout unchanged.

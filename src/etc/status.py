@@ -36,6 +36,11 @@ MARKER = re.compile(r'(?m)^\[pf-release-v1\]: # "([A-Za-z0-9+/=]+)"[ \t]*$')
 TOKEN = re.compile(r'\b(?:gh[pousr]_[A-Za-z0-9_]{10,}|github_pat_[A-Za-z0-9_]{10,}|AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9_-]{20,})')
 NOISE = re.compile(r'^(Process completed with exit code \d+\.?|The job was canceled because .*|The operation was canceled\.?'
                    r'|No files were found with the provided path: .*)$')
+VERDICT_TITLE = 'ONBOARD_REVIEW_VERDICT'
+ONBOARD_RUN_RX = re.compile(r'(?i)^Onboarding review #([0-9]{1,7})$')
+DEPENDABOT_EXTERNAL_RX = re.compile(
+    r'(?is)\bDependabot encountered an unexpected problem\b.*(?:\bmissing response\b|\bfetching job details\b)')
+DEPENDABOT_CONFIG_RX = re.compile(r'(?is)\bdependabot[.]yml\b|\bconfig(?:uration)?\b|\bparse error\b')
 ANDROID = {21: '5.0', 22: '5.1', 23: '6', 24: '7.0', 25: '7.1', 26: '8.0', 27: '8.1', 28: '9', 29: '10', 30: '11',
            31: '12', 32: '12L', 33: '13', 34: '14', 35: '15', 36: '16'}
 
@@ -186,17 +191,51 @@ def reasons(reader, job_id, cap=3):
     rows = reader.get('repos/%s/check-runs/%s/annotations?per_page=50' % (REPO, job_id), 'the error lines of job %s' % job_id)
     out = []
     # W14: errors first; Reddit's page led with an upload-artifact warning, not the store miss.
-    rows = sorted([a for a in rows or [] if isinstance(a, dict)], key=lambda a: a.get('annotation_level') != 'failure')
+    rows = sorted([a for a in rows or [] if isinstance(a, dict)],
+                  key=lambda a: (a.get('annotation_level') != 'failure', a.get('title') != VERDICT_TITLE))
     for a in rows:
         if a.get('annotation_level') not in ('failure', 'warning'):
             continue
         msg = clean(a.get('message'), 400)
-        if not msg or NOISE.match(msg) or msg in out:
+        title = clean(a.get('title'), 120)
+        if not msg and title != VERDICT_TITLE:
             continue
-        out.append(plain_reason(msg))
+        if msg and NOISE.match(msg):
+            continue
+        text = (VERDICT_TITLE + ': ' + plain_reason(msg)) if title == VERDICT_TITLE else plain_reason(msg)
+        if text in out:
+            continue
+        out.append(text)
         if len(out) >= cap:
             break
     return out
+
+
+def failure_kind(workflow):
+    """Classify only exact, workflow-owned special failures; all others stay red."""
+    # W16p round 3, 27 Oct 2026: a workflow with no completed run has 'last': None; .get('last', {})
+    # returned None and crashed the whole status page.
+    last = (workflow or {}).get('last') or {}
+    if last.get('result') != 'failure':
+        return None
+    texts = [text for job in last.get('jobs') or [] for text in job.get('why') or []]
+    if workflow.get('file') == 'onboard-review.yml' and any(text.startswith(VERDICT_TITLE + ':') for text in texts):
+        return 'verdict'
+    if (workflow.get('file') == 'dependabot-updates.yml' and workflow.get('name') == 'Dependabot Updates'
+            and any(DEPENDABOT_EXTERNAL_RX.search(text) and not DEPENDABOT_CONFIG_RX.search(text) for text in texts)):
+        return 'external'
+    return None
+
+
+def pull_request_url(run):
+    m = ONBOARD_RUN_RX.fullmatch(str(run.get('name') or '').strip())
+    return link(WEB + '/pull/' + m[1]) if m else None
+
+
+def headline_ref(workflow):
+    last = workflow.get('last') or {}
+    return {'name': workflow.get('name'), 'file': workflow.get('file'),
+            'url': last.get('pr_url') or workflow.get('url'), 'pr_url': last.get('pr_url')}
 
 
 def runs_of(reader, wf, n):
@@ -252,7 +291,7 @@ def changed_since(reader, path, stamp):
 def run_row(run):
     code, words = result_of(run)
     return {'when': when(run), 'result': code, 'words': words, 'event': clean(run.get('event'), 30),
-            'url': link(run.get('html_url'))}
+            'url': link(run.get('html_url')), 'pr_url': pull_request_url(run)}
 
 
 def android(api):
@@ -373,16 +412,26 @@ def build(reader, targets, now=None):
             continue
         out['issues'].append({'title': title, 'url': link(i.get('html_url')), 'number': i.get('number')})
     bad_apps = [a['label'] for a in out['apps'] if a['last_build'] and a['last_build']['result'] in BAD]
+    verdicts, external = [], []
+    for workflow in out['workflows']:
+        kind = failure_kind(workflow)
+        if kind == 'verdict':
+            verdicts.append(headline_ref(workflow))
+        elif kind == 'external':
+            external.append(headline_ref(workflow))
     bad_wfs = [w['name'] for w in out['workflows'] if w['last'] and w['last']['result'] in BAD
-               and not w['last'].get('per_app')]
+               and not w['last'].get('per_app') and failure_kind(w) is None]
     confirm = [w['name'] for w in out['workflows'] if w['last'] and w['last'].get('changed_since')]
     if out['problems']:
         head = 'Partly unknown: some GitHub reads failed (listed at the bottom).'
     elif bad_apps or bad_wfs:
         head = '%d app build(s) and %d automation(s) need a look.' % (len(bad_apps), len(bad_wfs))
+    elif verdicts or external:
+        head = '%d review verdict(s) and %d GitHub-side failure(s) need follow-up.' % (len(verdicts), len(external))
     else:
         head = 'Everything that ran recently worked.'
-    out['headline'] = {'text': head, 'apps': bad_apps, 'workflows': bad_wfs, 'run_once_to_confirm': confirm}
+    out['headline'] = {'text': head, 'apps': bad_apps, 'workflows': bad_wfs, 'verdicts': verdicts,
+                       'external': external, 'run_once_to_confirm': confirm}
     return out
 
 

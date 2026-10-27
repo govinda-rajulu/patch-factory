@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,obtainiumRelease,obtainiumName,ago,isOld,headline,reportIdentity,reportBinding,checkCompleteness,patchList,providerNames,bundleText,badgeLabels};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,obtainiumRelease,obtainiumName,ago,isOld,headline,workflowKind,unresolved,reportIdentity,reportBinding,checkCompleteness,patchList,providerNames,bundleText,badgeLabels};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 const ENABLED=targets.filter(t=>t.enabled===true).length; // W4: counts follow src/targets.json
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
@@ -141,6 +141,19 @@ check('build runs keyed by app: an app-only failure is not a failed automation',
  assert.match(c.headline({apps:[],workflows:[perApp]}).className,/ok/);
  delete context.document.createElement;
  assert.ok(source.includes("see that app under Builds"));
+});
+check('headline classifications keep verdicts and external failures calm and linked',()=>{
+ context.document.createElement=()=>({});
+ const when=new Date().toISOString(),verdict={name:'Onboarding review',file:'onboard-review.yml',last:{result:'failure',when}},external={name:'Dependabot Updates',file:'dependabot-updates.yml',last:{result:'failure',when}};
+ const d={apps:[],workflows:[verdict,external],headline:{workflows:[],verdicts:[{name:'Onboarding review',url:'https://github.com/govinda-rajulu/patch-factory/pull/254'}],external:[{name:'Dependabot Updates',url:'https://github.com/govinda-rajulu/patch-factory/actions/workflows/dependabot-updates.yml'}]}};
+ const out=c.headline(d);
+ assert.match(out.className,/wait/);assert.match(out.textContent,/Review verdicts: Onboarding review/);assert.match(out.textContent,/GitHub-side failures: Dependabot Updates/);
+ assert.equal(c.unresolved(verdict.last),false);assert.equal(c.unresolved(external.last),false);
+ // W16p round 3: a same-named workflow in another file stays red.
+ const vh={headline:{verdicts:[{name:'Onboarding review',file:'onboard-review.yml'}]}};
+ assert.equal(c.workflowKind({name:'Onboarding review',file:'other.yml'},vh),null);
+ assert.equal(c.workflowKind({name:'Onboarding review',file:'onboard-review.yml'},vh),'verdict');
+ delete context.document.createElement;
 });
 check('MicroG card is short: one download for the chosen file, every file folded away',()=>{
  const card=source.slice(source.indexOf('async function microgCard(root){'),source.indexOf('function clearImportLinks'));

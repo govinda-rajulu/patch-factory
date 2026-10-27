@@ -237,7 +237,9 @@ def drift_tree(main, phase):
     if subprocess.run(['git', 'merge-base', '--is-ancestor', BASE, main], cwd=CLONE, capture_output=True).returncode != 0:
         stop(phase, 'MAIN_MOVED: main %s does not contain the base %s. Nothing merged.' % (main[:12], BASE[:12]))
     rows = [l.split(' ') for l in git_out(['log', '--format=%H %ae %ce %P', BASE + '..' + main], phase).splitlines() if l.strip()]
-    human = [r[0][:12] for r in rows if r[1] != BOT_MAIL or not (r[2] == BOT_MAIL and len(r) == 4 or r[2] == MERGER_MAIL)]
+    human = [r[0][:12] for r in rows if r[1] != BOT_MAIL or not (
+        (r[2] == BOT_MAIL and len(r) == 4) or
+        (r[2] == MERGER_MAIL and len(r) == 5))]
     if human:
         stop(phase, 'MAIN_MOVED: main %s has %d commit(s) after the base that are not bot commits (%s). Nothing merged.'
              % (main[:12], len(human), ', '.join(human[:5])))
@@ -783,13 +785,17 @@ def publish_dispatch(merge_sha):
         say('publish', 'FAIL', 'dispatch failed: %s' % (err or out).decode('utf-8', 'replace')[:200])
         return False
     found = None
+    expected_title = 'Batch %s / publish=true' % ','.join(PUBLISH_DISPATCH)
     for _ in range(12):
         time.sleep(10)
         rows = must('repos/%s/actions/workflows/batch-patch.yml/runs?event=workflow_dispatch&branch=main&per_page=10' % REPO,
                     'publish').get('workflow_runs', [])
-        rows = [r for r in rows if str(r.get('created_at', '')) >= started]
+        rows = [r for r in rows
+                if str(r.get('created_at', '')) >= started
+                and r.get('head_sha') == merge_sha
+                and r.get('display_title') == expected_title]
         if rows:
-            found = rows[-1]
+            found = rows[0]
             break
     done.write_text(merge_sha + '\n', encoding='utf-8')
     R['publish_dispatch'] = dict(apps=list(PUBLISH_DISPATCH), run=found and found.get('id'), url=found and found.get('html_url'),

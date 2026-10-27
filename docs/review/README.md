@@ -4,7 +4,7 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **26 October 2026** for packets W16n and W16o ([SESSION-2026-10-26.md](SESSION-2026-10-26.md)); earlier that day for packet W16m (chat handover; closed W15 and W16 records moved to `history/`); before that **25 October 2026** for packet W16h; before that **20 October 2026** for W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
+Last indexed **27 October 2026** for packet W16p ([SESSION-2026-10-27.md](SESSION-2026-10-27.md)); before that **26 October 2026** for packets W16n and W16o ([SESSION-2026-10-26.md](SESSION-2026-10-26.md)); earlier that day for packet W16m (chat handover; closed W15 and W16 records moved to `history/`); before that **25 October 2026** for packet W16h; before that **20 October 2026** for W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
@@ -17,6 +17,7 @@ Last indexed **26 October 2026** for packets W16n and W16o ([SESSION-2026-10-26.
 | [W17-BRIEF.md](W17-BRIEF.md) | Plan for the owner-only Add app flow from Pages (W17), with its open questions, and the W18 combo planner. Next packet. |
 | [AUDIT-ACTIONS-2026-10-25.md](AUDIT-ACTIONS-2026-10-25.md) | Workflow runs of 25 Oct counted mid-day (298) by workflow and conclusion: the basis of the W16k run diet. |
 | [AUDIT-AGENTS-2026-10-25.md](AUDIT-AGENTS-2026-10-25.md) | 42 agent and bot points from 23 to 25 Oct classified real, false, infra, stale, duplicate: the basis of the W16k agent changes. |
+| [SESSION-2026-10-27.md](SESSION-2026-10-27.md) | 27 Oct morning: W16o result and packet W16p (Council shared deadline, status-page verdict and external rows, MCP scout held to two read-only tools by policy rules that outrank YOLO, carried transfer and controller items, four review rounds, wrong calls 84 to 86, L113, L114). |
 | [SESSION-2026-10-26.md](SESSION-2026-10-26.md) | 26 Oct afternoon: packet W16n (three red watches fixed by cause, watch-state through the contents API, workflow token hardening, Rule merge diff check, CodeQL fixes, review rounds, wrong calls 77 to 79, L108, L109). |
 | [W17A-MAP.md](W17A-MAP.md) | 26 Oct: W17a Add app mapped to the code (existing files and functions, gaps, tests, risks, packet split), by a read-only agent; verify before use. |
 | [PLAN-2026-10-26.md](PLAN-2026-10-26.md) | 26 Oct: all-phases plan in WH form and the owner's decisions D1 to D11 (packet chain W16n, W16o, W15g, W17a/b, W18). |

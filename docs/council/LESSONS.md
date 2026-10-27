@@ -689,3 +689,19 @@ answered curl with 403 on 8 of the 14 apps that downloaded from it (run 40398219
 84), while the wget request had built all 17 the day before. A manual cannot show what a store's
 bot filter accepts, and a partial failure is not explained by one cause. The smokes stopped it before the merge, as designed, but a live probe of each store with
 the new client belongs before the packet is built.
+
+### L113 · A long job prints as it goes and stops itself before the runner does
+Tags: ci, evidence
+The scheduled Council run of 26 Oct hit its 50 minute job limit and left no output at all: Python
+buffers stdout into a pipe, so the cut run lost every line, and the audit checked its time budget
+only before each part, while one part could run far past it. Every long job now has one deadline
+shared by all its calls, keeps a reserve to post what it has, reads answers in pieces against that
+deadline, and prints a line per step unbuffered, so a cut run still shows where the time went.
+
+### L114 · A setting's one-line meaning is not its behavior: read the code for the caller's flags
+Tags: ci, evidence
+W16p set Gemini CLI's security.disableYoloMode because its settings reference says it disables YOLO
+even when a flag enables it, and two reviewers read the same line. The CLI code throws at startup
+when the action's --yolo meets that setting, so the scout would have failed on every run (wrong call
+86). When a setting must interact with a flag another tool passes, read the code path that resolves
+both, and its tests, before relying on the reference.

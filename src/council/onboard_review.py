@@ -46,7 +46,7 @@ GH_ALLOWED = (
 def gh(env, method, path, body=None):
     if not any(m == method and rx.match(path) for m, rx in GH_ALLOWED):
         raise council.Refused('GitHub call outside the onboarding allowlist: %s %s' % (method, path))
-    status, text = council.http(method, 'https://api.github.com/' + path,
+    status, text = council.github_http(method, 'https://api.github.com/' + path,
                                 {'Authorization': 'Bearer ' + env['GITHUB_TOKEN'],
                                  'Accept': 'application/vnd.github+json',
                                  'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'pf-onboard'},
@@ -116,19 +116,33 @@ def check_answer(obj, canary, haystack, excluded=frozenset()):
 
 
 def ask_seat(seat, system, user, env, canary, haystack, excluded=frozenset()):
+    council.install_deadline(env)
+    started = council.time.monotonic()
     row = {'seat': seat['id'], 'provider': seat['provider'], 'model': '', 'status': '', 'answer': None}
+    if not council.deadline_ready(env):
+        row['status'] = 'ABSTAIN_DEADLINE'
+        print('onboard: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], council.time.monotonic() - started), flush=True)
+        return row
     if not env.get(council.PROVIDERS[seat['provider']]['key']):
         row['status'] = 'SKIPPED_NO_KEY'
+        print('onboard: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], council.time.monotonic() - started), flush=True)
         return row
     if len(system) + len(user) > seat['max_input_chars']:
         row['status'] = 'ABSTAIN_OVER_BUDGET'
+        print('onboard: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], council.time.monotonic() - started), flush=True)
         return row
     models = [m for m in council.candidates(seat, env)
               if (seat['provider'], m) not in council.remembered('missing')][:4]
     for index, model in enumerate(models):
+        if not council.deadline_ready(env):
+            row['status'] = 'ABSTAIN_DEADLINE'
+            break
         row['model'] = model
         try:
             text = council.complete(seat, model, system, user, env, retry=index == len(models) - 1)
+        except council.DeadlineExceeded:
+            row['status'] = 'ABSTAIN_DEADLINE'
+            break
         except council.ModelMissing:
             council.remembered('missing').add((seat['provider'], model))
             continue
@@ -136,6 +150,7 @@ def ask_seat(seat, system, user, env, canary, haystack, excluded=frozenset()):
             continue
         except council.Refused as e:
             row['status'] = 'REFUSED ' + council.scrub(str(e), env)[:120]
+            print('onboard: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], council.time.monotonic() - started), flush=True)
             return row
         last = 'no JSON object'
         try:
@@ -146,13 +161,17 @@ def ask_seat(seat, system, user, env, canary, haystack, excluded=frozenset()):
             try:
                 row['answer'] = check_answer(obj, canary, haystack, excluded)
                 row['status'] = 'OK'
+                print('onboard: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], council.time.monotonic() - started), flush=True)
                 return row
             except ValueError as e:
                 last = str(e)
         row['status'] = 'INVALID ' + last
+        print('onboard: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], council.time.monotonic() - started), flush=True)
         return row
     row['model'] = ''
-    row['status'] = 'UNAVAILABLE no listed model answered'
+    if row['status'] == '':
+        row['status'] = 'UNAVAILABLE no listed model answered'
+    print('onboard: seat=%s status=%s elapsed=%.2fs' % (seat['id'], row['status'], council.time.monotonic() - started), flush=True)
     return row
 
 
@@ -169,6 +188,21 @@ def decide(rows, deterministic_ok):
     else:
         why = '%d counted verdict(s), %d block' % (len(counted), len(blocks))
     return ok, why
+
+
+def verdict_failed(rows, deterministic_ok):
+    """Whether the failed review is a counted seat verdict, not review plumbing."""
+    counted = [r for r in rows if r['answer'] and r['answer']['counted']]
+    blocks = [r for r in counted if r['answer']['verdict'] == 'block']
+    return deterministic_ok and len(counted) >= ONBOARD_QUORUM and 2 * len(blocks) >= len(counted)
+
+
+def verdict_annotation(rows, deterministic_ok):
+    """Return the GitHub command for a policy verdict, or no command for tool failure."""
+    ok, why = decide(rows, deterministic_ok)
+    if not ok and verdict_failed(rows, deterministic_ok):
+        return '::error title=ONBOARD_REVIEW_VERDICT::' + why
+    return None
 
 
 def render(rows, ok, why, m):
@@ -249,7 +283,21 @@ def post(env, repo, pr, body):
         gh(env, 'POST', 'repos/%s/issues/%s/comments' % (repo, pr), {'body': body})
 
 
+def publish_review(body, env, annotation, post_fn=post):
+    """Publish the body first; emit a verdict annotation only after every publish succeeds."""
+    print(body)
+    summary = env.get('GITHUB_STEP_SUMMARY')
+    if summary:
+        with open(summary, 'a', encoding='utf-8') as fh:
+            fh.write(body)
+    if env.get('PF_PR') and env.get('PF_REPO'):
+        post_fn(env, env['PF_REPO'], env['PF_PR'], body)
+    if annotation:
+        print(annotation)
+
+
 def main(env=os.environ):
+    council.install_deadline(env)
     path = Path(env.get('PF_MANIFEST', 'onboard-manifest/manifest.json'))
     if not path.is_file():
         print('::error::onboarding manifest missing: ' + str(path))
@@ -268,16 +316,14 @@ def main(env=os.environ):
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         off = not_shipped(m)
         rows = list(pool.map(lambda s: ask_seat(s, system, user, env, canary, raw[:PACK_LIMIT], off), seats))
-    ok, why = decide(rows, not m.get('problems'))
+    deterministic_ok = not m.get('problems')
+    ok, why = decide(rows, deterministic_ok)
+    annotation = verdict_annotation(rows, deterministic_ok)
     body = render(rows, ok, why, m)
-    print(body)
-    summary = env.get('GITHUB_STEP_SUMMARY')
-    if summary:
-        with open(summary, 'a', encoding='utf-8') as fh:
-            fh.write(body)
-    if env.get('PF_PR') and env.get('PF_REPO'):
-        post(env, env['PF_REPO'], env['PF_PR'], body)
     print('ONBOARD_REVIEW %s: %s' % ('PASS' if ok else 'FAIL', why))
+    # This is the final publication operation for a blocked verdict. If rendering, summary
+    # writing, or comment posting fails first, the outer error has no verdict title.
+    publish_review(body, env, annotation)
     return 0 if ok else 1
 
 
