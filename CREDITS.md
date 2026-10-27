@@ -20,9 +20,9 @@ as code or APKs to copy.
 apps and providers, made every keep and drop call, and ran every packet, build check and phone
 test from his Google Cloud Shell.
 
-**ClickUp Brain**, the AI assistant in his ClickUp workspace, running on Anthropic's
-**Claude** models, is its engineer: it wrote the code, workflows, gates and tests, the packet
-controllers and owner probes he runs in Cloud Shell, and the review records in `docs/review/`.
+Anthropic's **Claude models** (Opus, Sonnet and Haiku; model selection may vary) provided
+engineering assistance: code, workflows, gates, tests, packet controllers, owner probes and
+review records. Govindarajulu K reviewed the work and ran the resulting checks in Google Cloud Shell.
 Each packet was built, tested and rehearsed in its sandbox, checked by its review agents, and
 handed to the owner as one command.
 

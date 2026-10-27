@@ -1,5 +1,9 @@
 # Open work
 
+## Current checkpoint: 27 October 2026, final repair pass (packet W16u)
+
+W16u is not owner-ready until rebuilt against live main e6cc9203 and the fresh full suite/rehearsal matrix passes. Do not run the older W16t combo.
+
 ## Current checkpoint: 27 October 2026, afternoon IST (packet W16s)
 
 W16r is being widened before owner rerun. The combo now collects `case-review.json`: sanitized open issues and comments, open PRs, recent failed/cancelled/timed-out/action-required runs with bad jobs, then the fixed evidence already in P2. It never stores raw case bodies or comments. The combo also requires both child RESULT lines to say OK before it removes itself.

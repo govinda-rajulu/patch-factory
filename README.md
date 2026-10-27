@@ -11,7 +11,7 @@ checks the finished output, and publishes a separate signed release per build.
 | [Open work](docs/review/OPEN-WORK.md)
 | [Review desk](docs/review/README.md)
 
-Built by **Govindarajulu K** (owner and architect) with **ClickUp Brain** on Anthropic's **Claude** (engineering):
+Built and maintained on GitHub by **Govindarajulu K** (owner and architect), with engineering assistance from Anthropic's **Claude models** using Google Cloud Shell and GitHub Actions:
 [who did what](CREDITS.md#who-built-it).
 
 The generated table below is the configured patched-app inventory. Morphe MicroG
@@ -76,8 +76,8 @@ Equal applied names do not mean equal provider code, options or defaults.
 
 Since W15 (17 Oct 2026) the generated Obtainium imports track **APPVERSION-bBUILDID**
 with version detection off, so a patch-only rebuild of the same app version shows as an
-update. Imports made before W15 tracked APPVERSION only: import the JSON again once
-(it replaces the tracking settings of matching apps), then install each app once.
+update. Imports made before W15 tracked APPVERSION only; imports made before W15h may lack the signer pin: import the JSON again once
+(it replaces the tracking settings of matching apps), then update one non-critical app in place first. Do not reinstall every app.
 Import behavior: the [guide](docs/guide.md#obtainium).
 
 ## Selection and source decisions

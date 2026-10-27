@@ -6,6 +6,12 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
+## W16u (27 Oct 2026, final repair pass): start here
+
+- Current packet repairs public attribution, signer guidance, icon provenance, probe safety, controller locking, PR/base binding, pagination and downstream side-effect gates.
+- Live main is e6cc9203f6b69f58aa2f8af7be611f5f4f96ae45, tree bf9ffb9063047eecb7ca23b51913b220b09b14c0. Rebuild and rerun gates before owner use.
+- Historical dated records are preserved; later corrections live in docs/review/CORRECTION-2026-10-27-W16t.md.
+
 ## W16s (27 Oct 2026, afternoon IST): start here
 
 - **Purpose**: expand the owner combo into a bounded handover collector: sanitized open issues and comments, open PRs, recent failed/cancelled runs with bad jobs, fixed run evidence, workflow histories, status branch, local logs, and a fresh main bundle.
@@ -87,7 +93,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and
   sha256 recorded with optional `expected_sha256`; release tidy apply bound to its preview;
   publishing only from main; onboard review without pull-requests: write; community summaries
   count a doubled repository once.
-- **Credits**: owner and architect Govindarajulu K; engineering ClickUp Brain on Anthropic's Claude (CREDITS.md "Who
+- **Credits**: owner and architect Govindarajulu K; engineering Anthropic Claude models (CREDITS.md "Who
   built it", README, RESULT.json `built_by`; no banner line, owner 26 Oct).
 - **Proof before merge**: the W16o controller smokes all 17 apps on the packet branch (both
   stores and the helpers) before it merges, then T1.

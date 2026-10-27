@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""pf-p2: read-only probe after W16p (27 Oct 2026). Engineered by ClickUp Brain on Anthropic's
-Claude for Govindarajulu K (owner). One trip for the handover packet W16q:
+"""pf-p2: read-only probe after W16p (27 Oct 2026). Engineered with Anthropic Claude models (Opus, Sonnet and Haiku; model selection may vary) for the repository owner.
+One trip for the handover packet W16t:
   1. this Cloud Shell's W16p controller logs (newest pf-w16p-* and pf-t1-* folders and the nohup
      log), copied, never moved or deleted;
   2. the first live MCP scout run after the merge (40444460398): details, full log, its result
@@ -10,7 +10,7 @@ Claude for Govindarajulu K (owner). One trip for the handover packet W16q:
   3. every scheduled run of the last 60 (the 27 Oct morning crons started hours late), Nightly and
      Community watch history, and the live status.json from Pages;
   4. a git bundle --all of a fresh clone of main (the next packet's starting point), verified.
-It writes nothing to GitHub and never prints a secret. Everything goes into one zip. W16s also
+It writes nothing to GitHub and never prints a secret. Everything goes into one zip. W16u also
 sanitizes a bounded review of open issues/comments, open PRs, and recent failed/cancelled runs."""
 import json, os, pathlib, re, shutil, subprocess, sys, time
 from datetime import datetime, timezone
@@ -31,10 +31,12 @@ CLUES = ('TRANSFER_FAILED', 'STORE_CHAIN', 'DOWNLOAD_FAILURE', 'ATTEMPTS_FAILED'
          'Patching aborted', 'ERROR: FAILED', 'refusing to release', 'stderr was not valid JSON',
          'Error when talking to Gemini', 'TerminalQuotaError', 'status 429', 'status 503', 'denied by policy')
 COPY_MAX = 200 * 1024 * 1024  # W16q: a local log folder above this is named, not copied
-STAMP = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
+STAMP = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime()) + ('-%d' % os.getpid())
 HOME = pathlib.Path(os.environ.get('PF_HOME', str(pathlib.Path.home())))
 OUT = HOME / 'work' / 'run-logs' / ('pf-p2-' + STAMP)
 lines, bad = [], [0]
+DOWNLOADED = [0]
+OUTPUT_MAX = 200 * 1024 * 1024
 
 
 def say(status, text):
@@ -78,7 +80,8 @@ def clues(name, out, limit=12):
     for l in (out or b'').decode('utf-8', 'replace').splitlines():
         if any(c in l for c in CLUES):
             if limit:
-                say('CLUE', '%s: %s' % (name, l.strip()[-300:]))
+                clue = TOKENISH.sub('[REDACTED]', l.strip()[-300:]) if 'TOKENISH' in globals() else l.strip()[-300:]
+                say('CLUE', '%s: %s' % (name, clue))
                 limit -= 1
             else:
                 more += 1
@@ -105,10 +108,20 @@ def artifacts(run, name):
         if a.get('size_in_bytes', 0) > ARTIFACT_MAX:
             say('NOTE', '%s artifact %s is %d bytes, not downloaded' % (name, a.get('name'), a.get('size_in_bytes', 0)))
             continue
+        safe = pathlib.Path(str(a.get('name') or ''))
+        if safe.name != str(safe) or str(safe) in ('', '.', '..') or not re.fullmatch(r'[A-Za-z0-9._-]{1,160}', str(safe)):
+            say('FAIL', '%s artifact name is unsafe: %r' % (name, a.get('name')))
+            continue
+        size = int(a.get('size_in_bytes') or 0)
+        if DOWNLOADED[0] + size > OUTPUT_MAX:
+            say('NOTE', '%s artifact %s would exceed the %d MB probe budget; not downloaded' % (name, safe, OUTPUT_MAX // 2**20))
+            continue
         dest = OUT / ('%s-%s-artifacts' % (name, run))
         dest.mkdir(exist_ok=True)
-        code, _ = gh(['run', 'download', run, '-R', REPO, '-n', a['name'], '-D', str(dest / a['name'])])
-        say('OK' if code == 0 else 'FAIL', '%s artifact %s (%d bytes)' % (name, a['name'], a.get('size_in_bytes', 0)))
+        code, _ = gh(['run', 'download', run, '-R', REPO, '-n', str(safe), '-D', str(dest / str(safe))])
+        if code == 0:
+            DOWNLOADED[0] += size
+        say('OK' if code == 0 else 'FAIL', '%s artifact %s (%d bytes)' % (name, safe, size))
     if not rows:
         say('NOTE', '%s run %s has no artifacts' % (name, run))
 
@@ -128,6 +141,20 @@ def api_json(path, timeout=120):
     code, out = gh(['api', path, '-H', 'Accept: application/vnd.github+json',
                     '-H', 'X-GitHub-Api-Version: 2022-11-28'], timeout=timeout)
     return code, loads(out, None)
+
+
+def pages(path, limit=100):
+    rows, page = [], 1
+    while page <= 10:
+        url = '%s&per_page=%d&page=%d' % (path, limit, page) if '?' in path else '%s?per_page=%d&page=%d' % (path, limit, page)
+        code, data = api_json(url)
+        if code != 0 or not isinstance(data, list):
+            return code, rows, False
+        rows.extend(data)
+        if len(data) < limit:
+            return 0, rows, True
+        page += 1
+    return 0, rows, False
 
 
 def person(row):
@@ -175,20 +202,26 @@ def case_review():
         for row in rows:
             if 'pull_request' not in row:
                 item = project_issue(row)
-                cc, comments = api_json('repos/%s/issues/%s/comments?per_page=100&page=1' % (REPO, row.get('number')))
+                cc, comments, complete = pages('repos/%s/issues/%s/comments' % (REPO, row.get('number')))
                 item['comments'] = [project_comment(x) for x in comments] if cc == 0 and isinstance(comments, list) else []
-                item['comments_complete'] = cc == 0
+                item['comments_complete'] = cc == 0 and complete
+                if not item['comments_complete']:
+                    result['coverage']['errors'].append('issue comments incomplete #%s' % row.get('number'))
                 result['issues'].append(item)
     else:
         result['coverage']['errors'].append('open issues unreadable')
-    code, rows = api_json('repos/%s/pulls?state=open&sort=updated&direction=desc&per_page=100&page=1' % REPO)
+    code, rows, complete = pages('repos/%s/pulls?state=open&sort=updated&direction=desc' % REPO)
     if code == 0 and isinstance(rows, list):
         for row in rows:
             item = project_pr(row)
-            cc, comments = api_json('repos/%s/issues/%s/comments?per_page=100&page=1' % (REPO, row.get('number')))
+            cc, comments, comments_complete = pages('repos/%s/issues/%s/comments' % (REPO, row.get('number')))
             item['comments'] = [project_comment(x) for x in comments] if cc == 0 and isinstance(comments, list) else []
-            item['comments_complete'] = cc == 0
+            item['comments_complete'] = cc == 0 and comments_complete
+            if not item['comments_complete']:
+                result['coverage']['errors'].append('PR comments incomplete #%s' % row.get('number'))
             result['pull_requests'].append(item)
+        if not complete:
+            result['coverage']['errors'].append('open PR collection capped')
     else:
         result['coverage']['errors'].append('open PRs unreadable')
     code, rows = api_json('repos/%s/actions/runs?created=>=%s&per_page=100&page=1' % (REPO, CASE_WINDOW))
@@ -249,13 +282,16 @@ def local_logs():
         if not rows:
             say('NOTE', 'no %s* folder in %s' % (prefix, logs))
             continue
-        files = [x for x in rows[-1].rglob('*') if x.is_file() and not x.is_symlink()]
+        if any(x.is_symlink() for x in rows[-1].rglob('*')):
+            say('FAIL', '%s contains symlinks; not copied' % rows[-1].name)
+            continue
+        files = [x for x in rows[-1].rglob('*') if x.is_file()]
         size = sum(x.stat().st_size for x in files)
         # W16q review: never double a big folder on a small disk; the owner can zip it himself.
         if size > COPY_MAX or size > shutil.disk_usage(str(HOME)).free // 4:
             say('NOTE', '%s is %d MB, not copied (zip it yourself if needed)' % (rows[-1].name, size // 2**20))
             continue
-        shutil.copytree(str(rows[-1]), str(dest / rows[-1].name), symlinks=True)
+        shutil.copytree(str(rows[-1]), str(dest / rows[-1].name), symlinks=False)
         say('OK', 'copied %s (%d files, %d bytes)' % (rows[-1].name, len(files), size))
     nohup = logs / 'pf-w16p-nohup.log'
     if nohup.is_file() and not nohup.is_symlink():
@@ -301,7 +337,11 @@ def main():
     if free < 500 * 1024 * 1024:
         print('RESULT STOP: only %d MB free in your home folder; free 500 MB, then run the same command again. Script kept.' % (free // 2**20))
         return 1
-    OUT.mkdir(parents=True, exist_ok=True)
+    try:
+        OUT.mkdir(parents=True, exist_ok=False)
+    except FileExistsError:
+        print('RESULT STOP: probe output already exists; nothing ran. Script kept.')
+        return 1
     try:
         return reads()
     except Exception as e:  # keep whatever was read: zip it and stop

@@ -1,7 +1,9 @@
-# App icon provenance record (26 September 2026, updated 6 October 2026)
+# App icon provenance record (26 September 2026, reviewed 27 October 2026)
 
-Status (6 October 2026): **brand tiles ship for 12 apps**, each with all four gate items below
-recorded; every other card keeps its letter monogram. 26 Oct 2026: 16 app tiles ship
+Public policy: app marks are identification aids, not endorsements. Source links are documentation, not runtime hotlinks or permission to redistribute an owner's artwork. Prefer official developer or Play Store links; when redistribution terms are not recorded, use the letter monogram. Badges are CSS/text labels and do not use third-party image files.
+
+Status (6 October 2026): **brand tiles ship for 11 apps**, each with all four gate items below
+recorded; every other card keeps its letter monogram. 26 Oct 2026: 11 app tiles ship
 (docs/assets/logos/, the LOGOS set in docs/portal.js), the later ones from the owner-supplied
 table below; ES File is not among them and still shows its monogram. This file is the durable record for
 REQ-027 / R08 so the decision cannot silently drop again between sessions.
@@ -20,7 +22,6 @@ only these local files; a missing file falls back to the monogram.
 | `instagram` | [File:Instagram logo 2016.svg](https://commons.wikimedia.org/wiki/File:Instagram_logo_2016.svg) | Public domain, trademarked |
 | `telegram` | [File:Telegram logo.svg](https://commons.wikimedia.org/wiki/File:Telegram_logo.svg) | Public domain, trademarked |
 | `photos` | [File:Google Photos icon (2020).svg](https://commons.wikimedia.org/wiki/File:Google_Photos_icon_(2020-2025).svg) | Public domain, trademarked |
-| `edge` | [File:Microsoft Edge logo (2019).svg](https://commons.wikimedia.org/wiki/File:Microsoft_Edge_logo_(2019).svg) | MIT, trademarked |
 | `primevideo` | [File:Amazon Prime Video logo (2024).svg](https://commons.wikimedia.org/wiki/File:Amazon_Prime_Video_logo_(2024).svg) | Public domain, trademarked |
 | `adguard` | [File:AdGuard Logo.png](https://commons.wikimedia.org/wiki/File:AdGuard_Logo.png) | Public domain, trademarked |
 | `keymapper` | GitHub keymapperorg/KeyMapper, branch develop, app/src/main/ic_launcher-playstore.png | GPL-3.0 repository; app mark |
@@ -32,14 +33,25 @@ and JioHotstar (only wide wordmarks or a retired Disney+ Hotstar mark on Commons
 (Morphe branding is not open-licensed: **Blocked**). The section below supersedes this for the
 first three. The 26 September table below is history.
 
-## Owner-supplied store icons (6 October 2026, night, packet T1)
+## Official source links for public users
 
-Owner approval: the owner supplied these exact icon links in chat on 6 October 2026 and asked
-for them on the page. They are **official store artwork, not open-licensed**: each is the
-trademark of its owner, shown only to identify the app this repository patches, bundled
-locally, never hotlinked, and removed on any request from the mark's owner. Gate items 1, 3
-and 4 are recorded here; item 2 (licence) is recorded as "none; identification only" by owner
-decision. The packet controller fetched each file on the owner's machine; a tile ships only if
+These links identify the upstream app pages. They are documentation links only; the portal does not
+hotlink third-party artwork. The safest fallback for an app mark without recorded redistribution terms
+is the portal's letter monogram.
+
+| App | Official page |
+| --- | --- |
+| Amazon Music | [Google Play](https://play.google.com/store/apps/details?id=com.amazon.mp3) |
+| LinkedIn | [Google Play](https://play.google.com/store/apps/details?id=com.linkedin.android) |
+| JioHotstar | [Google Play](https://play.google.com/store/apps/details?id=in.startv.hotstar) |
+| MX Player | [Google Play](https://play.google.com/store/apps/details?id=com.mxtech.videoplayer.ad) |
+| MicroG RE | [MorpheApp/MicroG-RE](https://github.com/MorpheApp/MicroG-RE) |
+| Obtainium | [ImranR98/Obtainium](https://github.com/ImranR98/Obtainium) |
+
+## Withdrawn owner-supplied store icons (not shipped)
+
+These owner-supplied store icons are withdrawn from the public bundle because redistribution
+permission was not recorded. The rows remain only as provenance history; the portal uses monograms. The packet controller fetched each file on the owner's machine; a tile ships only if
 its file passed the PNG gate (PNG signature, 16 to 512 px, under 64 KB). Its hash is in
 `docs/assets/NOTICE.txt`; a tile that failed keeps its monogram and is named in the PR.
 
@@ -75,7 +87,7 @@ forever; it is never replaced by a lookalike.
 
 ## Per-brand position
 
-As of 26 Sep; superseded where the two sections above ship a tile (16 tiles on 26 Oct 2026, ES File
+As of 26 Sep; superseded where the two sections above ship a tile (11 tiles on 27 Oct 2026, ES File
 still a monogram).
 
 | App | Mark availability | Position |
