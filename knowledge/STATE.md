@@ -6,7 +6,14 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W16v (27 Oct 2026, evening IST): start here
+## W16w (28 Oct 2026, night IST): start here
+
+- **W16v merged** as #268 (`750f3448`). Read docs/review/KT-2026-10-28.md, then docs/review/HANDOVER-2026-10-28-W16w.md.
+- **Owner, 28 Oct**: Instagram Home empty (Hide feed content and Hide the home feed dropped in W16w); keep releases and tags this week (no cleanup apply); never drop patches to pass a build; non-Hush providers primary.
+- **W16w**: Instagram pinned to APKMirror build 385811006 with every chosen piko patch (Custom font back; the six long-standing exclusions stay); hoo-dles on stable for Prime Video; ES File and CCleaner icons; CodeQL test fix. Wrong calls through 97.
+- **Owner devices** unchanged: Android 10 main phone with Signer pin off; Android 11 and 12 devices keep the pin.
+
+## W16v (27 Oct 2026, evening IST)
 
 - **W16u merged** as #267 (`97abdc7c`, tree `1fd9861b`): combo RESULT OK, 3 smokes worked, Pages OK. Probe: 7 open issues (#262 closed), one bad run (the W16p T1 Amazon Music failure).
 - **W16v** (this packet): #262 root cause. When the first store resolved version V and failed, the second store is asked for V exactly (APKPure `.../download/V`); any other version prints `STORE_DOWNGRADE_REFUSED store=... got=... wanted=V` and nothing is released. APKMirror retry 2 fetches a fresh download page and link. The attempt reason names the refusal. Probe P2: an empty list is complete, not capped (wrong call 94); open issues, runs and jobs paginated.

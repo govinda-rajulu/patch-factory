@@ -145,3 +145,7 @@ Conversion (W16v review): JPEG or WebP fetches are converted to PNG and resized 
 ## 28 October 2026 (W16v): refresh shipped
 
 Probe P2 fetched 8 of the 9 owner URLs (ES File on Uptodown answered an HTTP error; its tile stays a monogram). Hotstar and MX Player came back byte for byte the shipped tiles. Amazon Music, Edge, LinkedIn, Google Photos and Reddit now ship the 240 px Play icons (PNG, under 64 KB, checked by eye); sizes and sha256 in docs/assets/NOTICE.txt. CCleaner is a disabled target and gets no tile.
+
+## 28 October 2026 (W16w): ES File and CCleaner
+
+Probe P2 of 27 Oct 19:17 UTC fetched all nine owner URLs. ES File ships as a PNG converted from Uptodown's 100 px JPEG; CCleaner ships the Play 240 px PNG unchanged (the store image carries a "2026" badge) and shows once the target is enabled. Both checked by eye; sizes and sha256 in docs/assets/NOTICE.txt.

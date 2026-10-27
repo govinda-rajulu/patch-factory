@@ -152,3 +152,13 @@ logos/reddit.png
   source: owner-supplied Google Play icon for Reddit (com.reddit.frontpage), https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY=w240-h480
   licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
   tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 17275 bytes; sha256 e782da14890b60d96f4acadcceb2aeb9df8978e124ac0ac33269f71c31afeb0b
+
+28 October 2026 (packet W16w): two more official icons from the owner URLs of 27 Oct 2026, fetched by probe P2 20261027T191758Z.
+logos/esfile.png
+  source: owner-supplied official icon for ES File Explorer (com.estrongs.android.pop), https://img.utdstc.com/icon/826/725/82672572ac96972a9e4e56717258c0651d296e707ae49309ce6bf81630ce3159
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: Uptodown 100 px JPEG converted to PNG, 100x100, 11489 bytes; sha256 43bb92bdb73fb9e61cdce342b55a9eda9dc9b6946419ab5889b1ca83c6495899 (fetched sha256 33fb773faeaff3b178ef0b2c6beb4fa82fd0cb69780d852977d5fa23d990c3e7)
+logos/ccleaner.png
+  source: owner-supplied official icon for CCleaner (com.piriform.ccleaner), https://play-lh.googleusercontent.com/4TzP6UEY4IJCNntREn5fm1eojCC1MeBvR5B2Hl2-IICBAtU8HT5HrM1wcruwtLbVCQbfezTbonVbv-pgf8-UUg=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: Google Play 240 px PNG, unchanged bytes (shows the store's "2026" badge), 240x240, 38037 bytes; sha256 c1334a7427c983b3a910f46ce0293ade5d827f092e7a4e9ce7402e65ed29438a (fetched sha256 c1334a7427c983b3a910f46ce0293ade5d827f092e7a4e9ce7402e65ed29438a)

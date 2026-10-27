@@ -1,6 +1,16 @@
 # Open work
 
-## Current checkpoint: 27 October 2026, evening IST (packet W16v)
+## Current checkpoint: 28 October 2026, night IST (packet W16w)
+
+W16v merged (#268). W16w: Instagram pinned build 385811006 with every chosen piko patch, Prime Video on hoo-dles stable, ES File and CCleaner icons, CodeQL fix (docs/review/HANDOVER-2026-10-28-W16w.md).
+
+0a. Owner calls: PR #274 (3 HushGram names), Needs you #233, AdGuard dumketo fallback, Prime Video near-version (1b). Cleanup apply paused this week.
+0. Owner: run the W16w combo; then phone setup (OBTAINIUM-SIGNER-2026-10-27.md, Owner action).
+1. Move the Instagram pin when piko supports build 385914182 or a newer version; hoo-dles back to prerelease when morphe-desktop stable reads its new bundles.
+1b. Owner call: should APKMirror's nearest-lower-version pick (Prime Video builds 3.0.470.x while hoo-dles lists 3.0.470.1047) refuse like the W16v store fallback, or stay as it is?
+2. W15g signing split (docs/review/W15G-MAP.md), then MCP quota, YOLO off, W17a/W17b, W18 (carried).
+
+## Earlier checkpoint: 27 October 2026, evening IST (packet W16v)
 
 W16u merged (#267). W16v fixes #262 by cause (no silent older fallback APK; fresh APKMirror retry link) and the probe's false "capped" note.
 

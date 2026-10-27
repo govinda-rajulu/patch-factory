@@ -144,9 +144,9 @@
     {
       "target": "instagram",
       "name": "Hide feed content",
-      "call": "take",
+      "call": "drop",
       "id": "N-aab6e3",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "instagram",
@@ -774,9 +774,9 @@
     },
     {
       "target": "instagram",
-      "name": "Custom font",
+      "name": "Hide the home feed",
       "call": "drop",
-      "id": "N-421628",
+      "id": "N-6fdcf0",
       "date": "2026-10-28"
     }
   ],

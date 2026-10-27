@@ -200,3 +200,6 @@ Instruction not found in method implementation" (W16k smoke run 40212332258 and 
 `src/patches/instagram-piko/exclude-patches`; piko's other 62 names (61 since the owner dropped Custom font on 28 Oct) and the brosssh extras build again.
 The owner's take (N-2a0061) stands: put it back when a piko build applies it on the Instagram we build.
 - Custom font: dropped 2026-10-28 by the owner (DECISIONS.json N-421628) after Piko 3.11.0-dev.3 stopped matching it on the new APKPure file of 452.1.0.53.64
+
+- Custom font: back in the list 2026-10-28 (owner: never drop patches); Instagram pinned to APKMirror build 385811006, where every chosen piko patch applied on 27 Oct (W16w)
+- Hide feed content (brosssh, taken 2026-10-25 as N-aab6e3) and Hide the home feed (hushgram): dropped 2026-10-28; Home stayed empty on the owner's phone (the brosssh patch has no in-app switch and leaves only Stories)
