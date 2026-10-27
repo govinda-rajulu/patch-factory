@@ -2,7 +2,33 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
-## Current checkpoint: 27 October 2026, morning IST (packet W16p)
+## Current checkpoint: 27 October 2026, midday IST (packet W16q)
+
+W16p merged (#261). Supersedes items 1 and 2 of the morning checkpoint below (they move here);
+items 3 to 7 there are carried as written.
+
+0. Amazon Music failed in the W16p T1 batch on main (run 40441656177, step "Patch apk", issue
+   #262 open) after its branch smoke worked. Its job annotation: "APKMirror transfer failed;
+   refusing partial or empty output" after 4 s, so a store download, not a patch (no provider
+   release or APKMirror version change in between). The probe prints the `TRANSFER_FAILED`
+   lines (wget exit, bytes) as CLUE lines; read them and the W16q keep-going smoke. If it repeats,
+   fix in `src/build/utils.sh` `get_apk()`: on retry fetch a fresh APKMirror download page and
+   final link instead of reusing the same one; keep the refusal of partial files.
+1. Read the W16q combo's probe zip first. MCP scout run 40444460398: the first attempt failed
+   after 96 s (exit 1), the lighter model ran 31 s and a 617 byte result was uploaded. From the
+   log: the first attempt's error (503 busy, a policy denial, or a CLI error), whether
+   `mcp_github_get_file_contents` and `mcp_github_search_repositories` were called, and what the
+   checker accepted. Fix by cause in the next packet.
+2. Council: the next scheduled audit (15:17 or 03:17 UTC) must end under 50 min with a line per
+   part and seat. The 27 Oct 03:17 run had not started by 07:18 UTC (L024); if it never comes,
+   dispatch mode audit.
+3. YOLO fully off: run Gemini CLI without run-gemini-cli (it always passes `--yolo`), default
+   approval mode with the same policy settings; prove with one dispatch (MCP-PLAN.md, W16p).
+4. W15g signing split (own packet, phone test); W17a and W17b Add app (W17A-MAP.md); W18.
+5. Owner: Needs you #233 (9 choices on 27 Oct, including the gg-photos / Change package name item), optional pins, CLOUDFLARE seat keys (add them or drop the
+   two seats), the APKMirror curl probe before curl returns there.
+
+## Earlier checkpoint: 27 October 2026, morning IST (packet W16p)
 
 Supersedes items 3 and 7 (FlareSolverr deadline, size suffixes) and the publishing-lookup and
 drift-shape parts of item 6 of the 26 Oct evening checkpoint below; everything else there is

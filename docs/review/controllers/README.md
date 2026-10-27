@@ -40,7 +40,8 @@ tools. Added 10 Oct 2026 (packet H12) from the W9 to W12 controllers, which all 
   are merged over when they touch no packet file; the merge tree must be the packet tree plus
   their files (W15e, L071). Any human commit on main still stops with MAIN_MOVED.
 - Merge only when CHECKS pass, OPTIONAL checks that appear pass, and every SMOKE build works
-  and prints a COVERAGE line. Merging over a failed agent review is the owner's call (W11).
+  and prints a COVERAGE line; entries also in SMOKE_ADVISORY or SMOKE_KEEP_GOING are the
+  exception: a failed one is a NOTE, its log kept, and the merge goes on (W16q, Amazon Music). Merging over a failed agent review is the owner's call (W11).
 - After the merge it waits for the Pages deployment of the merge before the cleanup preview,
   or the token goes stale (W12: STOP, token mismatch; L049). With CLEANUP_APPLY = False the
   controller prints the apply line and never runs it; with True (W13 on, owner's choice per packet;
@@ -49,6 +50,17 @@ tools. Added 10 Oct 2026 (packet H12) from the W9 to W12 controllers, which all 
 - W16n: WATCH_DISPATCH lists workflow files the controller dispatches once on main after the
   cleanup, without waiting; a done file per workflow stops a rerun from sending them twice. A green
   run closes that workflow's failing issue through Notify.
+
+## One owner file: probe plus controller (W16q, 27 Oct 2026)
+
+`build_combo.py PROBE.py pf-<packet>-<sha8>.py PACKET OUT` joins a read-only probe (for example
+`owner-probes/pf-p2.py`) and a built controller into one owner file: it runs the probe (collect),
+then the controller (do), streams both, and ends with one RESULT line. Inner scripts are embedded
+with their sha256 and unpacked into `~/work/run-logs`, so the launcher still checks exactly one
+`~/pf-<packet>-*.py`. The controller is kept on a STOP, so the same launcher resumes. One combo
+runs at a time (a lock in `~/work/run-logs`; a second launcher stops at once), and any setup error
+still ends in one RESULT line. Probe P2 never downloads `test-apk-*` artifacts (evidence only, 5 MB
+cap) and prints CLUE lines, the log lines that name a cause. Tests: `tests/combo_contracts.py`.
 
 ## Assistant sandbox notes (W16, 23 to 26 Oct 2026)
 

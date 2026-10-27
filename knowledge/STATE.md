@@ -6,9 +6,27 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W16p (27 Oct 2026, morning IST): start here
+## W16q (27 Oct 2026, midday IST): start here
 
-- **W16o merged** as #259 (`c24d34f`, 27 Oct 03:15 IST): 17 of 17 smokes, T1 17 of 17 and every
+- **Read first**: docs/review/HANDOVER-2026-10-27.md (this chat's map) and the probe zip the W16q
+  combo made (`pf-p2-*.zip`: first live MCP scout and Council probe logs, W16p controller and T1
+  logs, scheduled-run history, status.json, bundle of main).
+- **W16p merged** as #261 (`697eb875`, 27 Oct 08:29 IST, tree `be1428b2`); the controller ran to
+  the end: MCP scout (40444460398) and Council probe (40444463398) dispatched and green as jobs.
+- **W16q** (this packet): handover, one-file combo (`docs/review/controllers/build_combo.py`:
+  probe then controller, one RESULT line), probe P2 kept in `controllers/owner-probes/`.
+- **Watches**: Nightly and Community green since W16n (scheduled Nightly #83 green, started 06:47
+  UTC, 5 h late: L024). Council's 03:17 UTC audit had not started by 07:18 UTC.
+- **Wrong calls**: 88 (87: told the owner no failure issue was open; #262 was. 88: probe P2 would
+  have zipped the T1 test APKs; caught in review round 3, before the run).
+- **Open red**: #262 Failing: 9. Batch Patch (W16p T1, Amazon Music at Patch apk: the annotation says
+  APKMirror transfer failed, 4 s, no patching); W16q smokes it again.
+- **Next**: read the probe zip (MCP first attempt failed after 96 s; did the tools run?); YOLO
+  fully off (CLI without the action); W15g; W17a and W17b; W18.
+
+## W16p (27 Oct 2026, morning IST)
+
+- **W16o merged** as #259 (`c24d34f`, 27 Oct 03:28 IST): 17 of 17 smokes, T1 17 of 17 and every
   watch it runs green, cleanup kept the newest release of all 17 apps. Record:
   docs/review/SESSION-2026-10-27.md.
 - **W16p** (this packet): Council hard time budget with visible progress; the status page tells a
