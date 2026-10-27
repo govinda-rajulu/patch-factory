@@ -14,11 +14,12 @@ const OBTAINIUM_API='https://api.github.com/repos/ImranR98/Obtainium/releases';
 const $=id=>document.getElementById(id);
 let tab='apps',generation=0,importGeneration=0,pollTimer=null;
 let targets=null,importBlob=null,customApps=[];
+let signerPin=true;
 let appQuery='',appCategory='all',appType='all',appAge='all',appSort='name';
 let microgChannel='stable',microgArch='universal',microgIcon='icon';
 // Local identification tiles are optional; provenance links live in docs/review/ICON-PROVENANCE.md.
 // A missing or withdrawn mark falls back to the monogram. No runtime third-party hotlinks.
-const LOGOS=new Set(['adguard','facebook','instagram','keymapper','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
+const LOGOS=new Set(['adguard','amazonmusic','edge','facebook','hotstar','instagram','keymapper','linkedin','mxplayer','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
 const GROUPS=[
  ['media','Watch & listen',['youtube','ytmusic','primevideo','hotstar','mxplayer','amazonmusic']],
  ['social','Social & communities',['instagram','facebook','reddit','telegram','linkedin']],
@@ -310,13 +311,29 @@ function resetImport(){
  $('customApps').replaceChildren();$('customApps').hidden=true;
  $('importMessage').textContent='';
 }
+function exportApps(apps){
+ need(Array.isArray(apps)&&apps.length>0,'Cannot export an empty import');
+ if(signerPin)return apps;
+ // Only remove the reviewed CI pin from patched entries. Companions keep their own
+ // upstream settings, and validateImport() has already rejected unreviewed app data.
+ return apps.map(app=>{
+  if(app.url!==WEB)return app;
+  const copy=JSON.parse(JSON.stringify(app)),settings=JSON.parse(copy.additionalSettings);
+  need(settings.allowedSigningCertHashes===CI_CERT,'Pinned import changed; prepare it again');
+  delete settings.allowedSigningCertHashes;
+  copy.additionalSettings=JSON.stringify(settings);
+  return copy;
+ });
+}
 function setImportLinks(apps,pack){
  clearImportLinks();
- const uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(apps));need(uri.length<100000,'Configuration link too large for this page');
- $('openImport').href=uri;$('openImport').textContent='Import / update '+apps.length+' apps in Obtainium';$('openImport').hidden=false;
- importBlob=URL.createObjectURL(new Blob([JSON.stringify({apps},null,2)+'\n'],{type:'application/json'}));
- $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected.json':apps.length===1&&apps[0].id==='app.revanced.android.gms'?'obtainium-microg.json':apps.length===1&&apps[0].id==='dev.imranr.obtainium'?'obtainium-self.json':'obtainium.json';$('downloadImport').hidden=false;
- $('importMessage').textContent='Ready: '+apps.length+' configs. Tap Open, then confirm in Obtainium. Unselected apps already tracked in Obtainium are not removed. If the link cannot open, use the JSON fallback.';
+ const exported=exportApps(apps),uri='obtainium://apps/'+encodeURIComponent(JSON.stringify(exported));need(uri.length<100000,'Configuration link too large for this page');
+ $('openImport').href=uri;$('openImport').textContent='Import / update '+exported.length+' apps in Obtainium';$('openImport').hidden=false;
+ importBlob=URL.createObjectURL(new Blob([JSON.stringify({apps:exported},null,2)+'\n'],{type:'application/json'}));
+ const suffix=signerPin?'':'-nopin';
+ $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected'+suffix+'.json':exported.length===1&&exported[0].id==='app.revanced.android.gms'?'obtainium-microg.json':exported.length===1&&exported[0].id==='dev.imranr.obtainium'?'obtainium-self.json':'obtainium'+suffix+'.json';$('downloadImport').hidden=false;
+ $('importMessage').textContent='Ready: '+exported.length+' configs. Tap Open, then confirm in Obtainium. Unselected apps already tracked in Obtainium are not removed. If the link cannot open, use the JSON fallback.';
+ if(!signerPin)$('importMessage').textContent+=' Signer pin is OFF: only for Android 9 or 10, where Obtainium cannot read any signer. Android still refuses updates signed by another key.';
  if(apps.some(app=>app.id==='app.revanced.android.gms'))$('importMessage').textContent+=' Includes MicroG RE ('+(microgIcon==='noicon'?'no icon':'with icon')+', '+({auto:'CPU picked by Obtainium',universal:'universal','arm64-v8a':'ARM64','armeabi-v7a':'ARMv7'})[microgArch]+', '+(microgChannel==='stable'?'stable only':'pre-releases allowed')+'). Existing tracked settings may change; installed signer compatibility is unverified.';
  if(apps.some(app=>app.id==='dev.imranr.obtainium'))$('importMessage').textContent+=' Includes standard Obtainium tracking. F-Droid installs are not replaced or migrated.';
 }
@@ -847,9 +864,10 @@ $('microgChannel').addEventListener('change',()=>changeMicrogChannel($('microgCh
 $('microgArch').addEventListener('change',()=>{need(['auto','universal','arm64-v8a','armeabi-v7a'].includes($('microgArch').value),'Unknown architecture');microgArch=$('microgArch').value;refreshMicrogPick();resetImport();$('prepareImport').disabled=false;});
 $('microgIcon').addEventListener('change',()=>{need(['icon','noicon'].includes($('microgIcon').value),'Unknown icon choice');microgIcon=$('microgIcon').value;refreshMicrogPick();resetImport();$('prepareImport').disabled=false;});
 $('includeMicrog').addEventListener('change',()=>{resetImport();$('prepareImport').disabled=false;});
+$('signerPin').addEventListener('change',()=>{signerPin=$('signerPin').checked;resetImport();$('prepareImport').disabled=false;});
 $('collapseImport').addEventListener('click',()=>{$('importPanel').open=false;$('importPanel').querySelector('summary').focus();});
 $('resetChoices').addEventListener('click',()=>{
- resetImport();$('pack').value='all';$('includeMicrog').checked=true;$('includeObtainium').checked=false;$('includeMicrog').parentElement.hidden=false;
+ resetImport();$('pack').value='all';$('includeMicrog').checked=true;$('signerPin').checked=true;signerPin=true;$('includeObtainium').checked=false;$('includeMicrog').parentElement.hidden=false;
  $('microgChannel').value='stable';microgChannel='stable';$('microgArch').value='universal';microgArch='universal';$('microgIcon').value='icon';microgIcon='icon';refreshMicrogPick();$('prepareImport').disabled=false;
  $('importMessage').textContent='Page choices reset. No tracked or installed apps were changed.';
  if(tab==='apps')render();

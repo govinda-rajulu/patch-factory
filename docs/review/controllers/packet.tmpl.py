@@ -38,7 +38,8 @@ result line. Phases:
 Checks: CHECKS must pass; OPTIONAL checks that appear must pass; ADVISORY checks are
 waited for and recorded, never blocking (owner's call, written in the packet record).
 PRECHECKS: live GitHub facts the packet's records rely on, read before anything is pushed.
-RESULT OK: removes its clone and this script, appends a ledger line, keeps logs.
+RESULT OK, or RESULT FINDINGS (merged; the all-flows test listed failures): removes its clone and
+this script, appends a ledger line, keeps logs.
 Any STOP: keeps everything and says where.
 """
 import base64
@@ -531,7 +532,8 @@ def delete_branches():
             continue
         data, err = api('repos/%s/git/refs/heads/%s' % (REPO, name), 'DELETE', None, 'branches')
         if data is None:
-            say('branches', 'NOTE', '%s not deleted: %s' % (name, str(err)[:160]))
+            gone = 'HTTP 404' in str(err) or 'HTTP 422' in str(err)
+            say('branches', 'NOTE', '%s %s: %s' % (name, 'already gone' if gone else 'not deleted; delete it in GitHub, Branches', str(err)[:160]))
         else:
             say('branches', 'OK', 'deleted branch %s' % name)
     return True
@@ -567,12 +569,16 @@ def pages(merge_sha):
     its token stale (W12: STOP, token mismatch). Wait for the merge's own deployment first."""
     end = time.time() + PAGES_WAIT
     while True:
-        rows = must('repos/%s/deployments?environment=github-pages&sha=%s&per_page=5' % (REPO, merge_sha), 'pages')
+        rows = must('repos/%s/deployments?environment=github-pages&sha=%s&per_page=20' % (REPO, merge_sha), 'pages')
         if rows:
-            st = must('repos/%s/deployments/%s/statuses?per_page=5' % (REPO, rows[0]['id']), 'pages')
-            state = (st[0].get('state') if st else '') or 'pending'
+            # W16v review a127: the API does not promise an order; a Pages rerun adds a newer deployment.
+            dep = max(rows, key=lambda r: int(r.get('id') or 0))
+            st = must('repos/%s/deployments/%s/statuses?per_page=20' % (REPO, dep['id']), 'pages')
+            st = sorted(st or [], key=lambda r: int(r.get('id') or 0))
+            state = (st[-1].get('state') if st else '') or 'pending'
             if state in ('success', 'failure', 'error', 'inactive'):
-                say('pages', 'OK' if state == 'success' else 'FAIL', 'Pages deployment %s for %s: %s' % (rows[0]['id'], merge_sha[:12], state))
+                say('pages', 'OK' if state == 'success' else 'FAIL', 'Pages deployment %s for %s: %s%s' % (dep['id'], merge_sha[:12], state,
+                    '' if state == 'success' else '. Fix: GitHub, Actions, the failed Pages run on main, Re-run all jobs; when it is green paste the same launcher again'))
                 return state == 'success'
         if time.time() > end:
             say('pages', 'FAIL', 'no finished Pages deployment for %s after %d s; the cleanup token may go stale' % (merge_sha[:12], PAGES_WAIT))
@@ -765,10 +771,13 @@ def t1(merge_sha):
         code = subprocess.run([sys.executable, str(script)], cwd=CLONE, env=env, stdout=out, stderr=subprocess.STDOUT).returncode
     lines = (LOGS / 'pf-t1.out').read_bytes().decode('utf-8', 'replace').splitlines()
     result = [l for l in lines if l.startswith('RESULT ')]
-    R['t1'] = dict(code=code, result=(result or ['no RESULT line'])[-1], findings=[l for l in lines if l.startswith('FINDING ')][:30])
+    found = [l for l in lines if l.startswith('FINDING ')]
+    R['t1'] = dict(code=code, result=(result or ['no RESULT line'])[-1], count=len(found), findings=found[:30])
     if code == 0:
         mark('t1', merge_sha)
-    say('t1', 'OK' if code == 0 else 'FAIL', R['t1']['result'])
+    # W16v (review a126): T1 ends RESULT OK when every run was read, even with app failures; the
+    # merge stands and a rerun would only skip, so findings end the run as RESULT FINDINGS, never OK.
+    say('t1', 'FAIL' if code != 0 else ('FINDING' if found else 'OK'), R['t1']['result'])
     return code == 0
 
 
@@ -841,7 +850,8 @@ def finish(good):
         save()
         print('RESULT STOP: see the FAIL lines above. Kept: clone %s, this script, logs %s. Paste RESULT.json back.' % (CLONE, LOGS))
         return 1
-    R['result'] = 'OK'
+    t1n = (R.get('t1') or {}).get('count') or 0
+    R['result'] = 'FINDINGS' if t1n else 'OK'
     save()
     shutil.rmtree(CLONE, ignore_errors=True)
     if CLONE.exists():
@@ -854,8 +864,12 @@ def finish(good):
     if removed:
         SELF.unlink()
     with open(WORK / 'run-ledger.txt', 'a', encoding='utf-8') as f:
-        f.write('%s pf-%s.py %s OK pr=#%s merge=%s smoke=%s token=%s\n' % (STAMP, PACKET, digest[:12], R.get('pr'), (R.get('merge') or '')[:12],
+        f.write('%s pf-%s.py %s %s pr=#%s merge=%s smoke=%s token=%s\n' % (STAMP, PACKET, digest[:12], R['result'], R.get('pr'), (R.get('merge') or '')[:12],
                 ','.join('%s:%s' % (k, v.get('run')) for k, v in R.get('smoke', {}).items()), R.get('cleanup', {}).get('token')))
+    if t1n:
+        print('RESULT FINDINGS: merged #%s, but the all-flows test listed %d finding(s) (FINDING lines in pf-t1.out). Nothing to rerun. Logs: %s. Zip and upload that folder with the pf-t1 logs folder. Clone removed; script %s.'
+              % (R.get('pr'), t1n, LOGS, 'removed' if removed else 'kept (name does not carry its sha)'))
+        return 0
     print('RESULT OK. Logs: %s (RESULT.json, cleanup files, smoke logs, pf-t1.out). Zip and upload that folder with the pf-t1 logs folder. Clone removed; script %s.'
           % (LOGS, 'removed' if removed else 'kept (name does not carry its sha)'))
     return 0

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""pf-p2: read-only probe after W16p (27 Oct 2026). Engineered with Anthropic Claude models (Opus, Sonnet and Haiku; model selection may vary) for the repository owner.
-One trip for the handover packet W16t:
-  1. this Cloud Shell's W16p controller logs (newest pf-w16p-* and pf-t1-* folders and the nohup
-     log), copied, never moved or deleted;
-  2. the first live MCP scout run after the merge (40444460398): details, full log, its result
-     artifact; the Council probe (40444463398), the W16p pull request review (40440538008) and
-     the W16p T1 batch (40441656177, Amazon Music failed at Patch apk, issue #262; only its small
-     evidence artifacts, never the test APKs), and prints the store and patch failure lines it finds;
+"""pf-p2: read-only owner probe for W16v (27 Oct 2026). Engineered with Anthropic Claude models (Opus, Sonnet and Haiku; model selection may vary) for the repository owner.
+One trip for the W16v handover packet:
+  1. this Cloud Shell's retained W16p controller logs (newest pf-w16p-* and pf-t1-* folders and
+     the nohup log), copied, never moved or deleted;
+  2. the fixed live MCP scout run (40444460398): details, full log, its result artifact; the
+     Council probe (40444463398), the W16p pull request review (40440538008) and the W16p T1
+     batch (40441656177, Amazon Music failed at Patch apk, issue #262; only its small evidence
+     artifacts, never the test APKs), and prints the store and patch failure lines it finds;
   3. every scheduled run of the last 60 (the 27 Oct morning crons started hours late), Nightly and
      Community watch history, and the live status.json from Pages;
   4. a git bundle --all of a fresh clone of main (the next packet's starting point), verified.
-It writes nothing to GitHub and never prints a secret. Everything goes into one zip. W16u also
+It writes nothing to GitHub and never prints a secret. Everything goes into one zip. W16v also
 sanitizes a bounded review of open issues/comments, open PRs, and recent failed/cancelled runs."""
-import json, os, pathlib, re, shutil, subprocess, sys, time
+import hashlib, json, os, pathlib, re, shutil, struct, subprocess, sys, time
 from datetime import datetime, timezone
 REPO = 'govinda-rajulu/patch-factory'
 RUNS = {'40444460398': 'mcp-scout', '40444463398': 'council-probe', '40440538008': 'council-pr261',
@@ -27,7 +27,7 @@ ARTIFACT_MAX = 5 * 1024 * 1024  # W16q round 3: evidence only; a test APK is nev
 SKIP_ARTIFACT = ('test-apk-',)
 # failure markers only. W16q run (wrong call 90): DOWNLOAD_DIAGNOSTIC is printed on every store
 # page, so 12 of them filled the cap and the patcher's own error stayed off the owner's screen.
-CLUES = ('TRANSFER_FAILED', 'STORE_CHAIN', 'DOWNLOAD_FAILURE', 'ATTEMPTS_FAILED', 'PATCH_FAILED',
+CLUES = ('TRANSFER_FAILED', 'STORE_CHAIN', 'STORE_DOWNGRADE_REFUSED', 'DOWNLOAD_FAILURE', 'ATTEMPTS_FAILED', 'PATCH_FAILED',
          'Patching aborted', 'ERROR: FAILED', 'refusing to release', 'stderr was not valid JSON',
          'Error when talking to Gemini', 'TerminalQuotaError', 'status 429', 'status 503', 'denied by policy')
 COPY_MAX = 200 * 1024 * 1024  # W16q: a local log folder above this is named, not copied
@@ -80,7 +80,10 @@ def clues(name, out, limit=12):
     for l in (out or b'').decode('utf-8', 'replace').splitlines():
         if any(c in l for c in CLUES):
             if limit:
-                clue = TOKENISH.sub('[REDACTED]', l.strip()[-300:]) if 'TOKENISH' in globals() else l.strip()[-300:]
+                # W16v review: redact the whole line first, then shorten it (a cut can hide the key name).
+                clue = TOKENISH.sub('[REDACTED]', l.strip())
+                at = min([clue.find(c) for c in CLUES if c in clue] or [0])
+                clue = clue[at:at + 300] if len(clue) > 300 else clue  # the marker stays on screen
                 say('CLUE', '%s: %s' % (name, clue))
                 limit -= 1
             else:
@@ -128,7 +131,16 @@ def artifacts(run, name):
 
 MAX_TEXT = 800
 CASE_WINDOW = '2026-10-20T00:00:00Z'
-TOKENISH = re.compile(r'(?i)(ghp_[A-Za-z0-9_\-]+|github_pat_[A-Za-z0-9_\-]+|bearer\s+[A-Za-z0-9._\-]+|(?:token|secret|api[_-]?key)\s*[:=]\s*[^\s,;]+)')
+# W16v review (27 Oct 2026): every GitHub token prefix, auth headers, key=value secrets,
+# credentials inside URLs and private key blocks.
+TOKENISH = re.compile(
+    r'(?is)(-----BEGIN [A-Z ]*PRIVATE KEY-----.*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)'
+    r'|gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|(?:bearer|basic)\s+[A-Za-z0-9._~+/=\-]+'
+    r'|authorization\s*:\s*\S+(?:\s+\S+)?|://[^/\s:@]+:[^/\s@]+@'
+    # W16v round 2: bounded key names (no runaway scan on a 2 MB line), spaced aliases, and the
+    # workflow words `secrets: inherit` / `tokens: read|write|none` stay readable.
+    r'|(?<![A-Za-z0-9_])[A-Za-z0-9_]{0,40}?(?:token|secret|password|passwd|api[ _-]?key|access[ _-]?key|private[ _-]?key|client[ _-]?secret)[A-Za-z0-9_]{0,40}'
+    r'\s*[:=]\s*(?!(?:inherit|read|write|none)\b)[^\s,;]+)')
 
 
 def clean_text(value, limit=MAX_TEXT):
@@ -143,15 +155,31 @@ def api_json(path, timeout=120):
     return code, loads(out, None)
 
 
-def pages(path, limit=100):
+def pages(path, limit=100, key=None):
+    """Read at most ten pages, preserving valid empty JSON collections.
+
+    GitHub returns bare lists for issues, pulls, and comments, but wraps workflow
+    runs and jobs in an object.  A collection is complete only after a short
+    page; a full tenth page is a truthful cap, not proof that there are no more.
+    """
     rows, page = [], 1
     while page <= 10:
         url = '%s&per_page=%d&page=%d' % (path, limit, page) if '?' in path else '%s?per_page=%d&page=%d' % (path, limit, page)
         code, data = api_json(url)
-        if code != 0 or not isinstance(data, list):
+        if code != 0:
             return code, rows, False
-        rows.extend(data)
-        if len(data) < limit:
+        if key is None:
+            batch = data if isinstance(data, list) else None
+        else:
+            batch = data.get(key) if isinstance(data, dict) else None
+            if not isinstance(batch, list):
+                batch = None
+        if batch is None:
+            # api_json can have a successful HTTP/gh status but no decoded JSON;
+            # that is unreadable, not evidence that the ten-page cap was reached.
+            return 1, rows, False
+        rows.extend(batch)
+        if len(batch) < limit:
             return 0, rows, True
         page += 1
     return 0, rows, False
@@ -197,17 +225,19 @@ def case_review():
     result = {'schema': 1, 'generated_at': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'), 'repo': REPO,
               'coverage': {'errors': [], 'window_from': CASE_WINDOW}, 'issues': [], 'pull_requests': [],
               'recent_runs': [], 'counts': {}}
-    code, rows = api_json('repos/%s/issues?state=open&sort=updated&direction=desc&per_page=100&page=1' % REPO)
+    code, rows, complete = pages('repos/%s/issues?state=open&sort=updated&direction=desc' % REPO)
     if code == 0 and isinstance(rows, list):
         for row in rows:
             if 'pull_request' not in row:
                 item = project_issue(row)
-                cc, comments, complete = pages('repos/%s/issues/%s/comments' % (REPO, row.get('number')))
+                cc, comments, comments_complete = pages('repos/%s/issues/%s/comments' % (REPO, row.get('number')))
                 item['comments'] = [project_comment(x) for x in comments] if cc == 0 and isinstance(comments, list) else []
-                item['comments_complete'] = cc == 0 and complete
+                item['comments_complete'] = cc == 0 and comments_complete
                 if not item['comments_complete']:
                     result['coverage']['errors'].append('issue comments incomplete #%s' % row.get('number'))
                 result['issues'].append(item)
+        if not complete:
+            result['coverage']['errors'].append('open issues collection capped')
     else:
         result['coverage']['errors'].append('open issues unreadable')
     code, rows, complete = pages('repos/%s/pulls?state=open&sort=updated&direction=desc' % REPO)
@@ -224,16 +254,22 @@ def case_review():
             result['coverage']['errors'].append('open PR collection capped')
     else:
         result['coverage']['errors'].append('open PRs unreadable')
-    code, rows = api_json('repos/%s/actions/runs?created=>=%s&per_page=100&page=1' % (REPO, CASE_WINDOW))
-    if code == 0 and isinstance(rows, dict):
-        for row in rows.get('workflow_runs', []):
+    code, rows, complete = pages('repos/%s/actions/runs?created=>=%s' % (REPO, CASE_WINDOW), key='workflow_runs')
+    if code == 0 and isinstance(rows, list):
+        for row in rows:
             if row.get('conclusion') in ('failure', 'cancelled', 'timed_out', 'action_required'):
                 item = project_run(row)
-                jc, jobs = api_json('repos/%s/actions/runs/%s/attempts/%s/jobs?per_page=100&page=1' % (REPO, row.get('id'), row.get('run_attempt') or 1))
-                if jc == 0 and isinstance(jobs, dict):
+                jc, jobs, jobs_complete = pages('repos/%s/actions/runs/%s/attempts/%s/jobs' % (REPO, row.get('id'), row.get('run_attempt') or 1), key='jobs')
+                if jc == 0 and isinstance(jobs, list):
                     item['bad_jobs'] = [{'id': j.get('id'), 'name': clean_text(j.get('name'), 240), 'conclusion': j.get('conclusion'),
-                                         'failed_steps': [clean_text(x.get('name'), 160) for x in j.get('steps', []) if x.get('conclusion') in ('failure', 'cancelled', 'timed_out')]} for j in jobs.get('jobs', []) if j.get('conclusion') in ('failure', 'cancelled', 'timed_out')]
+                                         'failed_steps': [clean_text(x.get('name'), 160) for x in j.get('steps', []) if x.get('conclusion') in ('failure', 'cancelled', 'timed_out')]} for j in jobs if j.get('conclusion') in ('failure', 'cancelled', 'timed_out')]
+                    if not jobs_complete:
+                        result['coverage']['errors'].append('run jobs collection capped #%s' % row.get('id'))
+                else:
+                    result['coverage']['errors'].append('run jobs unreadable #%s' % row.get('id'))
                 result['recent_runs'].append(item)
+        if not complete:
+            result['coverage']['errors'].append('recent runs collection capped')
     else:
         result['coverage']['errors'].append('recent runs unreadable')
     result['counts'] = {'open_issues': len(result['issues']), 'open_prs': len(result['pull_requests']),
@@ -272,13 +308,17 @@ def git_bundle():
 
 
 def local_logs():
-    """Copy (never move) the newest W16p and T1 log folders and the nohup log of this Cloud Shell."""
+    """Copy (never move) the newest packet and T1 log folders and the two newest nohup logs of this Cloud Shell.
+    W16v round 3: the old W16p-only names and the seconds-only stamp missed every later packet folder
+    (pf-w16u-20261027T111847693701Z-4573)."""
     logs = HOME / 'work' / 'run-logs'
     dest = OUT / 'local'
     dest.mkdir(exist_ok=True)
-    for prefix in ('pf-w16p-', 'pf-t1-'):
-        rows = sorted(p for p in logs.glob(prefix + '*') if p.is_dir() and not p.is_symlink()
-                      and re.fullmatch(r'\d{8}T\d{6}Z', p.name[len(prefix):]))
+    stamp = r'-\d{8}T\d{6,12}Z(-\d+)?'
+    # Any packet name (w16u, h12), never this probe's own output (pf-p2-) or T1, which has its own row.
+    for prefix, pat in (('pf-', r'pf-(?!t1-|p2-)[a-z][a-z0-9]*' + stamp), ('pf-t1-', r'pf-t1' + stamp)):
+        rows = sorted((p for p in logs.glob(prefix + '*') if p.is_dir() and not p.is_symlink()
+                       and re.fullmatch(pat, p.name)), key=lambda p: p.stat().st_mtime)
         if not rows:
             say('NOTE', 'no %s* folder in %s' % (prefix, logs))
             continue
@@ -293,12 +333,16 @@ def local_logs():
             continue
         shutil.copytree(str(rows[-1]), str(dest / rows[-1].name), symlinks=False)
         say('OK', 'copied %s (%d files, %d bytes)' % (rows[-1].name, len(files), size))
-    nohup = logs / 'pf-w16p-nohup.log'
-    if nohup.is_file() and not nohup.is_symlink():
+    nohups = sorted((p for p in logs.glob('pf-*-nohup*.log') if p.is_file() and not p.is_symlink()
+                     and p.stat().st_size <= COPY_MAX), key=lambda p: p.stat().st_mtime)[-2:]
+    for nohup in nohups:
+        if nohup.stat().st_size > shutil.disk_usage(str(HOME)).free // 4:
+            say('NOTE', '%s not copied: low disk' % nohup.name)
+            continue
         shutil.copy2(str(nohup), str(dest / nohup.name))
         say('OK', 'copied %s (%d bytes)' % (nohup.name, nohup.stat().st_size))
-    else:
-        say('NOTE', 'no pf-w16p-nohup.log')
+    if not nohups:
+        say('NOTE', 'no pf-*-nohup*.log in %s' % logs)
 
 
 def status_json():
@@ -316,11 +360,175 @@ def status_json():
         say('NOTE', 'status.json not read (curl exit %s)' % code)
 
 
+ICON_SOURCES = (
+    ('amazonmusic', 'https://play-lh.googleusercontent.com/9v2z1-7g8pWbxek8IW3Q9gGsAqD-YkTvy_rmyd4Cfb-OkpVR2T6jt-Ev2eKDcvx72njhCQ_4fEd9qg8-T9AaDA'),
+    ('hotstar', 'https://play-lh.googleusercontent.com/02xiO0ptbXjD8NR3sbS2StP1P9aytDN56dDR15zqM_i66Vwq5W_hD-98CoFxvRVoUS4uV_xMSv-iQh3nQFeDeQ'),
+    ('mxplayer', 'https://play-lh.googleusercontent.com/pL-FlnQwdyKetEhT_Uzre61MnGKhMgLC7wnV12KgC_wrQbU0UbSkYs4T5fQQWL_QLZZ48fl1mBmN-cNbc1wSZA'),
+    ('linkedin', 'https://play-lh.googleusercontent.com/oij55bxj3e-4JrhGntpki0lnQyE8yQn8X5FPEzZ0t7cLppeiSINynEk7n9COoh7QSaCOZ_yiPO31NVaW4SDbWg'),
+    ('reddit', 'https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY'),
+    ('ccleaner', 'https://play-lh.googleusercontent.com/4TzP6UEY4IJCNntREn5fm1eojCC1MeBvR5B2Hl2-IICBAtU8HT5HrM1wcruwtLbVCQbfezTbonVbv-pgf8-UUg'),
+    ('esfile', 'https://img.utdstc.com/icon/826/725/82672572ac96972a9e4e56717258c0651d296e707ae49309ce6bf81630ce3159'),
+    ('edge', 'https://play-lh.googleusercontent.com/4Z1Nt1I9HUDevt5VJ7BmgpqSTUpsC0Ei1K-IiXSmkH5Dzorz_isDzq4qdpb75RA1SfOV7v6csav-atWBur1wJQM'),
+    ('photos', 'https://play-lh.googleusercontent.com/kErBTF4VcGwhtKbCr80Bs2R1lNZiYkHbKcf1i3ZF6dg_5LqDAlCI4wU-nzwvo7PAbxeBXM_tv1hc11gr4aIIW-Q'),
+)
+ICON_HOSTS = {'play-lh.googleusercontent.com', 'img.utdstc.com'}
+ICON_MAX = 2 * 1024 * 1024
+ICON_CURL_TIMEOUT = 75
+
+
+def icon_dimensions(data):
+    """Return (format, extension, width, height) from a bounded image header."""
+    if data.startswith(b'\x89PNG\r\n\x1a\n'):
+        if len(data) < 24 or data[12:16] != b'IHDR':
+            raise ValueError('invalid PNG header')
+        width, height = struct.unpack('>II', data[16:24])
+        if not width or not height:
+            raise ValueError('invalid PNG dimensions')
+        return 'PNG', 'png', width, height
+    if data.startswith(b'\xff\xd8'):
+        # JPEG dimensions live in a Start Of Frame segment. APP/COM segments may
+        # occur first; SOS/EOI before SOF means the header is incomplete.
+        i = 2
+        sof = set(range(0xc0, 0xc4)) | set(range(0xc5, 0xc8)) | set(range(0xc9, 0xcc)) | set(range(0xcd, 0xd0))
+        while i < len(data):
+            while i < len(data) and data[i] == 0xff:
+                i += 1
+            if i >= len(data):
+                break
+            marker = data[i]
+            i += 1
+            if marker in (0x01, 0xd8, 0xd9) or 0xd0 <= marker <= 0xd7:
+                continue
+            if marker == 0xda:
+                break
+            if i + 2 > len(data):
+                break
+            size = struct.unpack('>H', data[i:i + 2])[0]
+            if size < 2 or i + size > len(data):
+                break
+            if marker in sof:
+                if size < 7:
+                    break
+                height, width = struct.unpack('>HH', data[i + 3:i + 7])
+                if not width or not height:
+                    break
+                return 'JPEG', 'jpg', width, height
+            i += size
+        raise ValueError('invalid JPEG header')
+    if len(data) >= 12 and data[:4] == b'RIFF' and data[8:12] == b'WEBP':
+        # W16v review: the RIFF size must cover the container; chunks may not run past it.
+        riff_end = 8 + struct.unpack('<I', data[4:8])[0]
+        if riff_end < 12 or riff_end > len(data):
+            raise ValueError('invalid WebP container size')
+        data = data[:riff_end]
+        i = 12
+        while i + 8 <= len(data):
+            kind = data[i:i + 4]
+            size = struct.unpack('<I', data[i + 4:i + 8])[0]
+            start, end = i + 8, i + 8 + size
+            if end > len(data):
+                break
+            payload = data[start:end]
+            if kind == b'VP8X' and len(payload) >= 10:
+                width = 1 + int.from_bytes(payload[4:7], 'little')
+                height = 1 + int.from_bytes(payload[7:10], 'little')
+                return 'WebP', 'webp', width, height
+            if kind == b'VP8 ' and len(payload) >= 10 and payload[3:6] == b'\x9d\x01\x2a':
+                width = struct.unpack('<H', payload[6:8])[0] & 0x3fff
+                height = struct.unpack('<H', payload[8:10])[0] & 0x3fff
+                if width and height:
+                    return 'WebP', 'webp', width, height
+            if kind == b'VP8L' and len(payload) >= 5 and payload[0] == 0x2f:
+                width = 1 + (payload[1] | ((payload[2] & 0x3f) << 8))
+                height = 1 + (((payload[2] >> 6) & 0x03) | (payload[3] << 2) | ((payload[4] & 0x0f) << 10))
+                return 'WebP', 'webp', width, height
+            i = end + (size & 1)
+        raise ValueError('invalid WebP header')
+    raise ValueError('unsupported image magic')
+
+
+def icons():
+    """Fetch owner-supplied app icons into the packet, never following untrusted hosts."""
+    from urllib.parse import urlsplit
+    dest = OUT / 'icons'
+    dest.mkdir(exist_ok=True)
+    records = []
+    for app_id, source_url in ICON_SOURCES:
+        tmp = None
+        try:
+            if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,63}', str(app_id)):
+                raise ValueError('icon id is not a plain name')
+            parsed = urlsplit(source_url)
+            if parsed.scheme != 'https' or parsed.hostname not in ICON_HOSTS or parsed.username or parsed.password or parsed.port:
+                raise ValueError('URL host or scheme is not allowlisted')
+            fetch_url = source_url + ('=w240-h480' if parsed.hostname == 'play-lh.googleusercontent.com' else '')
+            ext_path = dest / (app_id + '.download')
+            if ext_path.exists():
+                ext_path.unlink()
+            tmp = ext_path
+            # W16v review: curl streams to this process, which stops at ICON_MAX + 1 bytes, so a
+            # reply without Content-Length cannot pass the cap (--max-filesize alone does not hold).
+            p = subprocess.Popen(
+                ['curl', '--fail', '--silent', '--show-error', '--proto', '=https',
+                 '--max-filesize', str(ICON_MAX), '--connect-timeout', '20', '--max-time', '60',
+                 '--output', '-', fetch_url], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            chunks, size, start = [], 0, time.time()
+            try:
+                while True:
+                    chunk = p.stdout.read(65536)
+                    if not chunk:
+                        break
+                    size += len(chunk)
+                    if size > ICON_MAX:
+                        break
+                    chunks.append(chunk)
+                    if time.time() - start > ICON_CURL_TIMEOUT:
+                        raise ValueError('download took longer than %d s' % ICON_CURL_TIMEOUT)
+            finally:
+                if p.poll() is None:
+                    p.kill()
+                code = p.wait()
+                if p.stdout is not None:
+                    p.stdout.close()
+            if size > ICON_MAX:
+                raise ValueError('download is over %d bytes' % ICON_MAX)
+            if code != 0:
+                raise ValueError('curl exit %d' % code)
+            if not size:
+                raise ValueError('download is empty')
+            data = b''.join(chunks)
+            tmp.write_bytes(data)
+            fmt, ext, width, height = icon_dimensions(data)
+            final = dest / (app_id + '.' + ext)
+            if final.exists():
+                final.unlink()
+            tmp.replace(final)
+            tmp = None
+            records.append({'id': app_id, 'url': source_url, 'bytes': size,
+                            'sha256': hashlib.sha256(data).hexdigest(), 'format': fmt,
+                            'width': width, 'height': height})
+            say('OK', 'icon %s (%s, %dx%d, %d bytes)' % (app_id, fmt, width, height, size))
+        except Exception as e:
+            say('NOTE', 'icon %s FAIL: %s' % (app_id, str(e)[:180]))
+        finally:
+            if tmp is not None:
+                try:
+                    tmp.unlink()
+                except OSError:
+                    pass
+    (dest / 'icons.json').write_text(json.dumps(records, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+    return records
+
+
 def loads(data, default):
-    try:
-        return json.loads(data or b'null') or default
-    except ValueError:
+    """Decode JSON without turning valid empty collections into the default."""
+    if not data:
         return default
+    try:
+        value = json.loads(data)
+    except (TypeError, ValueError):
+        return default
+    return default if value is None else value
 
 
 def seconds(r):
@@ -368,27 +576,45 @@ def reads():
         ok = isinstance(data, dict) and isinstance(data.get('workflow_runs'), list)
         say('OK' if ok else 'FAIL', 'history %s (%d bytes%s)' % (name, len(out), '' if ok else ', unreadable'))
     status_json()
+    got = icons()
+    ICON_COUNT[0] = len(got)
     case_review()
     return finish()
 
 
+ICON_COUNT = [0]
+
+
 def finish():
-    (OUT / 'P2-RESULT.txt').write_text('\n'.join(lines) + '\n', encoding='utf-8')
     try:
+        (OUT / 'P2-RESULT.txt').write_text('\n'.join(lines) + '\n', encoding='utf-8')
         z = shutil.make_archive(str(OUT), 'zip', root_dir=str(OUT.parent), base_dir=OUT.name)
         size = pathlib.Path(z).stat().st_size
-    except OSError as e:
+    except Exception as e:  # W16v round 2: any failure here still ends in one RESULT line
         print('RESULT STOP: zip failed (%s); the folder %s keeps everything read. Script kept.' % (e, OUT))
         return 1
     if bad[0]:
         print('RESULT STOP: %d read(s) failed; upload %s (%d bytes) anyway. Script kept.' % (bad[0], z, size))
         return 1
-    me = pathlib.Path(__file__).resolve()
+    me, gone = pathlib.Path(__file__).resolve(), False
     if me.parent == HOME and me.name.startswith('pf-p2-'):
-        me.unlink()
-    print('RESULT OK. Upload %s (%d bytes). Script removed.' % (z, size))
+        try:
+            me.unlink()
+            gone = True
+        except OSError:
+            pass
+    print('RESULT OK. Upload %s (%d bytes). Icons %d of %d.%s' % (z, size, ICON_COUNT[0], len(ICON_SOURCES), ' Script removed.' if gone else ''))
     return 0
 
 
+def entry():
+    """W16v review: one RESULT line even when setup fails (home folder unusable, disk check)."""
+    try:
+        return main()
+    except Exception as e:
+        print('RESULT STOP: probe setup error %s: %s. Script kept.' % (type(e).__name__, str(e)[:200]), flush=True)
+        return 1
+
+
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(entry())

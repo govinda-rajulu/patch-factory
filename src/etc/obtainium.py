@@ -33,7 +33,7 @@ assert re.fullmatch("[0-9a-f]{64}", CI_CERT), "src/build/ci-signer.json: not a S
 # Imports describe configured enabled targets; availability is a separate live concern.
 CHECK = "--check" in sys.argv
 
-def entry(p):
+def entry(p, pin=True):
     adds = {
       "includePrereleases": False,
       "fallbackToOlderReleases": True,
@@ -53,18 +53,21 @@ def entry(p):
       # includePrereleases, fallbackToOlderReleases, filterReleaseTitlesByRegEx, apkFilterRegEx,
       # versionExtractionRegEx, matchGroupToUse, versionDetection, trackOnly, appName, and
       # allowedSigningCertHashes.
-      "allowedSigningCertHashes": CI_CERT,
     }
+    if pin:
+        # Keep the default import pinned; the no-pin companion is an explicit fallback for
+        # Obtainium versions that report a readable certificate as None.
+        adds["allowedSigningCertHashes"] = CI_CERT
     return {"id": pkg[p], "url": APP_URL, "author": AUTHOR, "name": LABELS[p],
             "categories": ["patch-factory"], "preferredApkIndex": 0,
             "additionalSettings": json.dumps(adds)}
 
-def write(path, wanted):
+def write(path, wanted, pin=True):
     ok = [p for p in wanted if p in live and p not in SKIP]
     ids = [pkg[p] for p in ok]
     assert ok, "refusing to write an empty import file: " + path
     assert len(ids) == len(set(ids)), ("two apps share a package id", ids)
-    content = json.dumps({"apps": [entry(p) for p in ok]}, indent=1)
+    content = json.dumps({"apps": [entry(p, pin) for p in ok]}, indent=1)
     dest = pathlib.Path(path)
     if CHECK:
         if not dest.exists() or dest.read_text() != content:
@@ -74,6 +77,10 @@ def write(path, wanted):
     print(path, len(ok), "apps:", " ".join(ok))
 
 write("docs/obtainium.json", ALL_APPS)
+# Explicit fallback for Android 9 and 10, where Obtainium reads no APK signer at all
+# (docs/review/OBTAINIUM-SIGNER-2026-10-27.md). Android still enforces same-signer updates;
+# the portal warns before exporting it.
+write("docs/obtainium-nopin.json", ALL_APPS, pin=False)
 # Upstream companion, NOT a patched target or a change to the patched-app import.
 # Release 6.1.4, commit d8df10ab687a1c1ca05221634cfa46bad262023a:
 # build.gradle basePackageName + play-services-core applicationId => this ID.

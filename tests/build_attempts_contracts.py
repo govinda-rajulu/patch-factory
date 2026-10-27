@@ -89,6 +89,17 @@ class Attempts(unittest.TestCase):
                                  'APK from apkpure after the first store failed')
         self.assertNotIn('APKMirror transfer', reason)
 
+    def test_a_refused_downgrade_is_the_reason(self):
+        """W16v (27 Oct 2026): the store refused APKPure's older APK; that ends the attempt."""
+        (self.r / 'src/build/build.sh').write_text(
+            '#!/bin/bash\necho "[+] winner=a (o/r) app=1"\n'
+            'echo "[-] APKMirror transfer failed; refusing partial or empty output"\n'
+            'echo "STORE_CHAIN apkmirror failed for p 26.36.1; trying apkpure"\n'
+            'echo "STORE_DOWNGRADE_REFUSED store=apkpure got=25.20.0 wanted=26.36.1"\nexit 1\n')
+        rc, winner, reason = build_attempts.attempt(self.r, 'x', dict(os.environ), self.log())
+        self.assertEqual(rc, 1)
+        self.assertEqual(reason, 'store: refused a fallback APK of another version (store=apkpure got=25.20.0 wanted=26.36.1)')
+
     def test_without_a_patcher_line_the_last_red_line_is_the_reason(self):
         (self.r / 'src/build/build.sh').write_text(
             '#!/bin/bash\necho "[+] winner=a (o/r) app=1"\necho "[-] first"\necho "[-] last one"\nexit 2\n')

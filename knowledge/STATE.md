@@ -6,7 +6,20 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W16u (27 Oct 2026, final repair pass): start here
+## W16v (27 Oct 2026, evening IST): start here
+
+- **W16u merged** as #267 (`97abdc7c`, tree `1fd9861b`): combo RESULT OK, 3 smokes worked, Pages OK. Probe: 7 open issues (#262 closed), one bad run (the W16p T1 Amazon Music failure).
+- **W16v** (this packet): #262 root cause. When the first store resolved version V and failed, the second store is asked for V exactly (APKPure `.../download/V`); any other version prints `STORE_DOWNGRADE_REFUSED store=... got=... wanted=V` and nothing is released. APKMirror retry 2 fetches a fresh download page and link. The attempt reason names the refusal. Probe P2: an empty list is complete, not capped (wrong call 94); open issues, runs and jobs paginated.
+- **Evidence**: De-Vanced `SkipAdsPatch.kt` declares no Amazon Music version but requires `GetNextEntityInput` (absent in 25.20.0); APKPure lists 26.36.1 and 26.38.1 while its "latest" label says 25.20.0.
+- **Proof**: all 17 apps smoked on the branch (store code, L112), T1 on the merge.
+- **Obtainium "Downloaded certificate hash: None"**: Obtainium reads signers with GET_SIGNING_CERTIFICATES only; Android 9 and 10 return nothing for that (docs/review/OBTAINIUM-SIGNER-2026-10-27.md). Portal Signer pin checkbox and docs/obtainium-nopin.json for those phones; upstream issue text ready for the owner.
+- **Icons**: five official tiles restored (wrong call 95); probe fetches the owner's nine official URLs into icons/ for the next packet.
+- **Run 1 and the fix**: Owner run 1 (27 Oct, 23:37 IST): probe OK (icons 8 of 9), PR #268 opened, 16 of 17 smokes worked, Amazon Music included (#262 fix shown on a real build). Instagram piko failed: the same day APKPure swapped its 452.1.0.53.64 file (base 143.2 MB plus mdpi split became 145.4 MB plus xxhdpi; APKMirror lists a new arm64 build 385914182 uploaded 27 Oct 04:16 UTC beside 385811006), and Piko 3.11.0-dev.3 "Custom font" no longer finds its code (ReactNativeFontRegistrationFingerprint). W16v store code does not choose the APKPure file. Owner call 28 Oct: drop Custom font (instagram-piko exclude-patches, DECISIONS.json N-421628). The fix commit fast-forwards packet/w16v; it smokes Instagram only, applies the cleanup and runs T1. Five official 240 px tiles shipped (Amazon Music, Edge, LinkedIn, Google Photos, Reddit).
+- **Owner devices**: Android 10 main phone (most apps): import with Signer pin unticked. Android 11 and 12 devices (MX Player Pro, YouTube, Facebook): keep the pin. Steps in OBTAINIUM-SIGNER-2026-10-27.md.
+- **Results**: RESULT FINDINGS = merged, T1 listed failures (never OK). Cloud Shell cuts and the upload order: docs/review/controllers/README.md. Wrong calls 1 to 96: ledger pointer in HANDOVER-2026-10-27-W16u.md.
+- **Next**: W15g signing split, mapped in docs/review/W15G-MAP.md (keystore password still reaches the third-party patcher as an argument: HIGH).
+
+## W16u (27 Oct 2026, final repair pass)
 
 - Current packet repairs public attribution, signer guidance, icon provenance, probe safety, controller locking, PR/base binding, pagination and downstream side-effect gates.
 - Live main is e6cc9203f6b69f58aa2f8af7be611f5f4f96ae45, tree bf9ffb9063047eecb7ca23b51913b220b09b14c0. Rebuild and rerun gates before owner use.

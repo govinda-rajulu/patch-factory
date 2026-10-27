@@ -52,8 +52,8 @@ App marks are trademarks of their owners. They are shown only to identify the
 app each card builds; this page is not affiliated with or endorsed by them.
 Tiles are locally bundled identification aids; each file hash is recorded below. Source links document provenance only; trademark rights remain with their owners.
 Licence as stated on the source page on 6 October 2026; trademark rights remain.
-Apps without recorded redistribution permission (ES File Explorer, Amazon Music, LinkedIn,
-JioHotstar, MX Player, Morphe, Edge) keep the letter monogram.
+As of 27 October 2026 (owner decision 6 Oct, reaffirmed 27 Oct): official store icons are
+shown for identification only; ES File Explorer and Morphe keep the letter monogram.
 
 logos/youtube.png
   source: https://commons.wikimedia.org/wiki/File:YouTube_full-color_icon_(2017).svg (File:YouTube full-color icon (2017).svg)
@@ -79,6 +79,10 @@ logos/photos.png
   source: https://commons.wikimedia.org/wiki/File:Google_Photos_icon_(2020-2025).svg (File:Google Photos icon (2020).svg)
   licence: Public domain, trademarked; original sha1 39e64fce4490d648d9c77ac094cf4488b5f17a4a
   tile: rendered locally from the SVG/PNG original; sha256 82934751cea9cb87c39ba288b9c7616b0e4b443b24527383f19e160da59cb949
+logos/edge.png
+  source: https://commons.wikimedia.org/wiki/File:Microsoft_Edge_logo_(2019).svg (File:Microsoft Edge logo (2019).svg)
+  licence: MIT, trademarked; original sha1 e62225ca8f64ceb4746cf45423f5884cf7e6a1db
+  tile: rendered locally from the SVG/PNG original; sha256 4dab2209b2af5a380b9394be2162ccb1fe75edf3878949ae1b5f9ce50d274116
 logos/primevideo.png
   source: https://commons.wikimedia.org/wiki/File:Amazon_Prime_Video_logo_(2024).svg (File:Amazon Prime Video logo (2024).svg)
   licence: Public domain, trademarked; original sha1 10f0537fef900ab880c4fb8ef16e239c55a41d3a
@@ -109,3 +113,42 @@ obtainium.svg
   source: Obtainium upstream icon, https://github.com/ImranR98/Obtainium/blob/main/assets/graphics/icon.svg (fetched 11 October 2026, packet W14)
   licence: Obtainium is GPL-3.0; the icon is the project's mark, shown only to identify the upstream app
   file: unchanged bytes, 4239 bytes, git blob 091d8253af3ef7a6333c6a0b147f41d570dca964
+logos/linkedin.png
+  source: owner-supplied Google Play icon for LinkedIn (com.linkedin.android), uploaded in chat 8 October 2026
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: converted from the owner's 128 px WebP to PNG in packet W4; sha256 9ed76d8bd8af150dde6371ef97ccc4678585d9b9eccb7ffc4bd85d703afde4c7
+logos/amazonmusic.png
+  source: owner-supplied Google Play icon for Amazon Music (com.amazon.mp3), uploaded in chat 8 October 2026
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: converted from the owner's 128 px WebP to PNG in packet W4; sha256 7e87bcdf5663f919349ee436c8a416fd771ebfdf5244a68aba3391d4fe50e760
+logos/hotstar.png
+  source: owner-supplied Google Play icon for JioHotstar (in.startv.hotstar), https://play-lh.googleusercontent.com/02xiO0ptbXjD8NR3sbS2StP1P9aytDN56dDR15zqM_i66Vwq5W_hD-98CoFxvRVoUS4uV_xMSv-iQh3nQFeDeQ=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by the packet T1 controller 20261007T065326Z; sha256 64da72afa7cdb504d3ffd8c34d787abad279da43f6f4653cd1335115d91c7dae
+logos/mxplayer.png
+  source: owner-supplied Google Play icon for MX Player, https://play-lh.googleusercontent.com/pL-FlnQwdyKetEhT_Uzre61MnGKhMgLC7wnV12KgC_wrQbU0UbSkYs4T5fQQWL_QLZZ48fl1mBmN-cNbc1wSZA=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by the packet T1 controller 20261007T065326Z; sha256 a602a7e7c900cba9a32c62c9f3128367459064d53a6cad32962ab7c51a04af11
+
+28 October 2026 refresh (packet W16v): official Google Play icons from the URLs the owner gave on 27 Oct 2026,
+fetched by probe P2 at 240 px (PNG, checked by eye and by the gate). These entries supersede earlier entries for the same files.
+logos/amazonmusic.png
+  source: owner-supplied Google Play icon for Amazon Music (com.amazon.mp3), https://play-lh.googleusercontent.com/9v2z1-7g8pWbxek8IW3Q9gGsAqD-YkTvy_rmyd4Cfb-OkpVR2T6jt-Ev2eKDcvx72njhCQ_4fEd9qg8-T9AaDA=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 32279 bytes; sha256 3dd5eb189763b3d13b1a27d0320c75430068262bad1c9a939ef065a869ef6b15
+logos/edge.png
+  source: owner-supplied Google Play icon for Microsoft Edge (com.microsoft.emmx), https://play-lh.googleusercontent.com/4Z1Nt1I9HUDevt5VJ7BmgpqSTUpsC0Ei1K-IiXSmkH5Dzorz_isDzq4qdpb75RA1SfOV7v6csav-atWBur1wJQM=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 19902 bytes; sha256 b50c3f4285ef6924275b6e2ca1ad355ed514d7ffd4b32e442cd1f26cd62479b3
+logos/linkedin.png
+  source: owner-supplied Google Play icon for LinkedIn (com.linkedin.android), https://play-lh.googleusercontent.com/oij55bxj3e-4JrhGntpki0lnQyE8yQn8X5FPEzZ0t7cLppeiSINynEk7n9COoh7QSaCOZ_yiPO31NVaW4SDbWg=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 5008 bytes; sha256 dffbe865da77a4865b11c7c8686259ac31213d2c7b61a672c23eb5cac5bff4b5
+logos/photos.png
+  source: owner-supplied Google Play icon for Google Photos (com.google.android.apps.photos), https://play-lh.googleusercontent.com/kErBTF4VcGwhtKbCr80Bs2R1lNZiYkHbKcf1i3ZF6dg_5LqDAlCI4wU-nzwvo7PAbxeBXM_tv1hc11gr4aIIW-Q=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 11681 bytes; sha256 b82152bf6b9f33014c54f8f77882680242e520100bdd90acb97a312685c698fd
+logos/reddit.png
+  source: owner-supplied Google Play icon for Reddit (com.reddit.frontpage), https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 17275 bytes; sha256 e782da14890b60d96f4acadcceb2aeb9df8978e124ac0ac33269f71c31afeb0b

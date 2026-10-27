@@ -197,5 +197,6 @@ brosssh names applied. Put it back when brosssh ships a build that lists Instagr
 `Hide feed posts` (piko 3.11.0-dev.2) fails on Instagram 452.1.0.53.64: "Patch "Hide feed posts" failed:
 Instruction not found in method implementation" (W16k smoke run 40212332258 and the publish batch run
 40212870923), so both builds fell back to HushGram. The name moves to
-`src/patches/instagram-piko/exclude-patches`; piko's other 62 names and the brosssh extras build again.
+`src/patches/instagram-piko/exclude-patches`; piko's other 62 names (61 since the owner dropped Custom font on 28 Oct) and the brosssh extras build again.
 The owner's take (N-2a0061) stands: put it back when a piko build applies it on the Instagram we build.
+- Custom font: dropped 2026-10-28 by the owner (DECISIONS.json N-421628) after Piko 3.11.0-dev.3 stopped matching it on the new APKPure file of 452.1.0.53.64
