@@ -114,7 +114,7 @@ class Repair(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
         self.assertEqual(path.read_bytes(), before)
         exports = sorted(p.name for p in (self.r/'docs').glob('obtainium*.json'))
-        self.assertEqual(exports, ['obtainium-microg.json', 'obtainium-self.json', 'obtainium.json'])
+        self.assertEqual(exports, ['obtainium-microg.json', 'obtainium-nopin.json', 'obtainium-self.json', 'obtainium.json'])
         apps = json.loads(before)['apps']
         targets = json.loads((self.r/'src/targets.json').read_text())
         self.assertEqual({a['name'] for a in apps},
@@ -494,6 +494,136 @@ transfer(){
                     self.assertEqual(result.returncode, expected, result.stdout+result.stderr)
                     self.assertEqual('Successfully downloaded' in result.stdout, expected == 0)
                     self.assertNotIn('FAKE_SIGNED_URL_LEAK', result.stdout+result.stderr)
+
+    def test_store_chain_accepts_the_same_version_written_differently(self):
+        # W16v review (27 Oct 2026): 26.36.01 names the same release as 26.36.1.
+        self.put('src/build/helper/apps.json', json.dumps({
+            'apkpure': {'com.fixture': {'download_url': 'https://apkpure.com/fixture/com.fixture/download'}},
+            'apkmirror': {}
+        }))
+        command = r"""
+source src/build/store_chain.sh
+green_log(){ :; }; yellow_log(){ :; }; red_log(){ :; }
+get_apkpure(){ version=26.36.01; mkdir -p download; touch download/fixture.apk; return 0; }
+try_other_store com.fixture fixture apk apkmirror 26.36.1 true '' ''
+printf 'RESULT=%s\n' "$?"
+"""
+        result = self.run_cmd(['bash', '-c', command])
+        self.assertIn('RESULT=0', result.stdout, result.stdout + result.stderr)
+        self.assertIn('STORE_CHAIN used apkpure', result.stdout)
+        self.assertNotIn('STORE_DOWNGRADE_REFUSED', result.stdout)
+
+    def test_failed_apkmirror_refresh_never_retries_the_old_link(self):
+        # W16v review (27 Oct 2026): retry 2 with a failed page refresh ends the attempt.
+        source = (ROOT / 'src/build/utils.sh').read_text()
+        start = source.index('\tlocal cookie_args=()', source.index('get_apk()'))
+        end = source.index('\n\tif [[ "$matched_type" == "BUNDLE" ]]', start)
+        command = r"""
+green_log(){ :; }; yellow_log(){ :; }; red_log(){ :; }
+PF_ENFORCE_EFFECTIVE_URL=1; PF_TRANSFER_RETRY_WAIT=0
+PF_TMP_DIR="$PWD/tmp"; mkdir -p "$PF_TMP_DIR" download
+base_apk=fixture.apk; output_base_apk=fixture.apk; apk_name=fixture
+base_url=https://www.apkmirror.com; dl_btn_href=/button; final_href=/old.apk
+final_url=https://www.apkmirror.com/old.apk; user_agent=UA; FS_COOKIES=
+matched_type=APK; pkg_type=apk; type_badge=APK
+_cf_get(){ return 1; }
+pf_store_url_check(){ return 0; }
+pf_wget_store_transfer(){ printf '%s\n' "$1" >> links; return 8; }
+f(){
+""" + source[start:end] + r"""
+}
+f; printf 'RESULT=%s\n' "$?"
+"""
+        result = self.run_cmd(['bash', '-c', command])
+        self.assertNotIn('RESULT=0', result.stdout, result.stdout + result.stderr)
+        self.assertEqual((self.r / 'links').read_text().splitlines(), ['https://www.apkmirror.com/old.apk'])
+        self.assertFalse((self.r / 'download/fixture.apk').exists())
+
+    def test_variant_retry_refuses_another_version_before_any_fallback(self):
+        # W16v review (27 Oct 2026): the same-version retry may not take APKMirror's near pick.
+        text = (ROOT / 'src/build/build.sh').read_text()
+        guard = text.index('if [ "$GA" -eq 0 ] && [ -n "$FORCE_STORE" ] && [ -n "$RVER" ] && ! pf_ver_same "$version" "$RVER"; then')
+        self.assertLess(guard, text.index('python3 src/build/source_fallback.py "$ID" "$RVER"'))
+        self.assertGreater(guard, text.index('try_other_store "$PKG"'))
+        self.assertIn('STORE_DOWNGRADE_REFUSED store=$USE_SRC got=${version:-unknown} wanted=$RVER', text[guard:guard + 400])
+
+    def test_apkpure_primary_must_serve_the_requested_version(self):
+        # W16v round 2 (27 Oct 2026): APKPure's page names another version than asked: refused.
+        command = r"""
+set -u
+source src/build/store_chain.sh
+mkdir -p download; touch download/fx.apk
+pf_apkpure_exact apkpure 25.20.0 26.36.1 false fx; printf 'A=%s\n' "$?"
+touch download/fx.apk
+pf_apkpure_exact apkpure 26.36.01 26.36.1 false fx; printf 'B=%s\n' "$?"
+pf_apkpure_exact apkmirror 1.0 2.0 false fx; printf 'C=%s\n' "$?"
+pf_apkpure_exact apkpure 1.0 '' false fx; printf 'D=%s\n' "$?"
+pf_apkpure_exact apkpure 1.0 2.0 true fx; printf 'E=%s\n' "$?"
+pf_ver_same 999999999999999 999999999999998; printf 'F=%s\n' "$?"
+"""
+        result = self.run_cmd(['bash', '-c', command])
+        out = result.stdout
+        self.assertIn('STORE_DOWNGRADE_REFUSED store=apkpure got=25.20.0 wanted=26.36.1', out, out + result.stderr)
+        for line in ('A=1', 'B=0', 'C=0', 'D=0', 'E=0', 'F=1'):
+            self.assertIn(line, out)
+        for name in ('build.sh', 'source_download.sh'):
+            text = (ROOT / 'src/build' / name).read_text()
+            self.assertLess(text.index('pf_apkpure_exact '), text.index('try_other_store "$PKG"'))
+
+    def test_store_chain_refuses_a_fallback_downgrade(self):
+        # W16v (27 Oct 2026). A fallback may not replace the first store's resolved version.
+        self.put('src/build/helper/apps.json', json.dumps({
+            'apkpure': {'com.fixture': {'download_url': 'https://apkpure.com/fixture/com.fixture/download'}},
+            'apkmirror': {}
+        }))
+        command = r'''
+source src/build/store_chain.sh
+green_log(){ :; }; yellow_log(){ :; }; red_log(){ :; }
+get_apkpure(){ [ "$version" = 26.36.1 ] || return 2; version=25.20.0; touch download/fixture.apk; return 0; }
+version=26.36.1
+try_other_store com.fixture fixture apk apkmirror 26.36.1 true '' ''
+printf 'RESULT=%s VERSION=%s\n' "$?" "$version"
+'''
+        result = self.run_cmd(['bash', '-c', command])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('STORE_DOWNGRADE_REFUSED store=apkpure got=25.20.0 wanted=26.36.1', result.stdout)
+        self.assertNotIn('STORE_CHAIN used apkpure', result.stdout)
+        self.assertFalse((self.r / 'download/fixture.apk').exists())
+
+    def test_apkmirror_retry_refreshes_final_link(self):
+        # W16v (27 Oct 2026). The second transfer uses a newly resolved final link.
+        source = (ROOT / 'src/build/utils.sh').read_text()
+        start = source.index('\tlocal cookie_args=()', source.index('get_apk()'))
+        end = source.index('\n\tif [[ "$matched_type" == "BUNDLE" ]]', start)
+        block = source[start:end]
+        command = r'''
+green_log(){ :; }; yellow_log(){ :; }; red_log(){ :; }
+PF_ENFORCE_EFFECTIVE_URL=1
+PF_TRANSFER_RETRY_WAIT=0
+PF_TMP_DIR="$PWD/tmp"; mkdir -p "$PF_TMP_DIR"
+base_apk=fixture.apk; output_base_apk=fixture.apk; apk_name=fixture
+base_url=https://www.apkmirror.com; dl_btn_href=/button; final_href=/old.apk
+final_url=https://www.apkmirror.com/old.apk; user_agent=UA; FS_COOKIES=
+matched_type=APK; pkg_type=apk; type_badge=APK
+_cf_get(){ html='<a id="download-link" href="/new.apk">new</a>'; return 0; }
+pf_store_url_check(){ return 0; }
+count=0
+pf_wget_store_transfer(){
+  printf '%s\n' "$1" >> links
+  count=$((count+1))
+  if [ "$count" -eq 1 ]; then return 8; fi
+  printf fixture > "$2"
+  return 0
+}
+''' + block + r'''
+printf 'RESULT=%s\n' "$?"
+'''
+        result = self.run_cmd(['bash', '-c', command])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((self.r / 'links').read_text().splitlines(), [
+            'https://www.apkmirror.com/old.apk',
+            'https://www.apkmirror.com/new.apk'])
+        self.assertEqual((self.r / 'download/fixture.apk').read_text(), 'fixture')
 
     def test_store_failed_transfer_stops_before_conversion(self):
         source = (ROOT / 'src/build/utils.sh').read_text()

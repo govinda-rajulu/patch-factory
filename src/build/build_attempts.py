@@ -42,6 +42,8 @@ RECOVERABLE = "[-] Can't found lastest user-agent"
 # patcher then failed on the APKPure APK. Morphe's abort line wins, else the last red line.
 PATCH_ABORT = re.compile(r'Patching aborted: (.{1,200})')
 STORE_USED = re.compile(r'STORE_CHAIN used ([A-Za-z0-9_-]+)')
+# W16v (27 Oct 2026): a refused older fallback APK ends the attempt; name it, not the transfer line.
+DOWNGRADE = re.compile(r'STORE_DOWNGRADE_REFUSED (.{1,200})')
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
 
 
@@ -130,7 +132,7 @@ def cleanup_store_services(root, env):
 
 
 def attempt(root, ident, env, log):
-    winner, reason, abort, store = None, None, None, None
+    winner, reason, abort, store, downgrade = None, None, None, None, None
     # restore_signals=False: build.sh keeps SIGPIPE ignored, as in a plain Actions step. Python's
     # default resets it, and `unzip -l | grep -q` under pipefail then dies with 141 (W13 smoke, L052).
     with subprocess.Popen(['bash', 'src/build/build.sh', ident], cwd=root, env=env, stdout=subprocess.PIPE,
@@ -154,6 +156,11 @@ def attempt(root, ident, env, log):
             m = STORE_USED.search(line)
             if m:
                 store = m[1]
+            m = DOWNGRADE.search(line)
+            if m:
+                downgrade = m[1].strip()
+    if downgrade and not abort:
+        reason = 'store: refused a fallback APK of another version (%s)' % downgrade
     if abort:
         reason = 'patcher: ' + abort.rstrip(';')
     if reason and store:

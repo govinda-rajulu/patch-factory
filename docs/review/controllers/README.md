@@ -62,6 +62,19 @@ runs at a time (a lock in `~/work/run-logs`; a second launcher stops at once), a
 still ends in one RESULT line. Probe P2 never downloads `test-apk-*` artifacts (evidence only, 5 MB
 cap) and prints CLUE lines, the log lines that name a cause. Tests: `tests/combo_contracts.py`.
 
+W16v (27 Oct 2026) additions:
+
+- **RESULT FINDINGS**: the packet merged and every step finished, but the all-flows test (T1) printed
+  FINDING lines. Never RESULT OK; nothing to rerun; upload the zips and read pf-t1.out first.
+- **Launcher log**: each launch writes a new `~/work/run-logs/pf-<packet>-nohup-<UTC stamp>.log`, so a
+  second paste cannot wipe the live log; the combo lock stops the second run at once.
+- **Cloud Shell limits** (Google quotas page): a session ends after 12 hours, and the VM ends after
+  20 minutes with no one using the tab. Keep the tab open and touch it now and then. After a cut,
+  paste the same launcher again: done files skip finished phases and T1 reuses runs it already dispatched.
+- **Pages FAIL**: rerun the failed Pages run on main in GitHub Actions, then paste the same launcher.
+- **Upload reading order**: probe zip `P2-RESULT.txt`, `case-review.json`, `icons/icons.json` and
+  `icons/`; controller folder `RESULT.json`, `pf-t1.out`, then the `pf-t1-*` logs folder.
+
 ## Assistant sandbox notes (W16, 23 to 26 Oct 2026)
 
 Things the assistant relearned in the W16 chat; read before building a controller.
@@ -98,7 +111,7 @@ Things the assistant relearned in the W16 chat; read before building a controlle
   rerunnable. Publishing batches are dispatched and not waited for. Google's limits page (W16o
   round 4): "Non-interactive sessions are ended automatically after 40 minutes" and sessions are
   capped at 12 hours. Run long controllers in Cloud Shell's tmux, keep the tab open, and expect
-  to rerun the same launcher after a cut (the script is kept on anything but RESULT OK).
+  to rerun the same launcher after a cut (the script is kept on anything but RESULT OK or RESULT FINDINGS).
 - **Working rules carried from the assistant's memory (26 Oct 2026).** Provider facts come from
   `src/community/bundles.json` or a live list-patches run, never from a web search; check every
   record against `docs/council/ONBOARD.md` before it ships; check the official Morphe bundle

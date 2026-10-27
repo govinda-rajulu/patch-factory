@@ -194,11 +194,20 @@ else
 near_version=1
 set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"; GA=$?; set -u
 fi
+if [ "$GA" -eq 0 ] && [ -z "$FORCE_STORE" ]; then pf_apkpure_exact "$USE_SRC" "$version" "$RVER" "$ANYVER" "$APK_NAME" || exit 1; fi
 if [ "$GA" -ne 0 ] && [ -z "$FORCE_STORE" ]; then
-  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$USE_SRC" "$RVER" "$ANYVER" "$ARCH" "$DPI"; GA=$?
+  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$USE_SRC" "${version:-$RVER}" "$ANYVER" "$ARCH" "$DPI"; GA=$?
   if [ "$USE_SRC" = "apkpure" ]; then TRIED="$TRIED apkmirror"; else TRIED="$TRIED apkpure"; fi
 fi
+# W16v (27 Oct 2026): VARIANT_RETRY asks the other store for the SAME version; a different one
+# (APKMirror's near-version pick) is refused like a store-chain downgrade.
+if [ "$GA" -eq 0 ] && [ -n "$FORCE_STORE" ] && [ -n "$RVER" ] && ! pf_ver_same "$version" "$RVER"; then
+  echo "STORE_DOWNGRADE_REFUSED store=$USE_SRC got=${version:-unknown} wanted=$RVER"
+  rm -rf "./download/$APK_NAME.apk" "./download/$APK_NAME.apkm" "./download/$APK_NAME.xapk" "./download/$APK_NAME"
+  exit 1
+fi
 if [ "$GA" -ne 0 ]; then
+  [ "${PF_STORE_DOWNGRADE_REFUSED:-0}" = "1" ] && exit 1
   if python3 src/build/source_fallback.py "$ID" "$RVER"; then
     version="$RVER"
   else

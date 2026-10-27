@@ -5,7 +5,7 @@ Covers what packet.tmpl.py and src/etc/cleanup.py call: auth, branches, commits,
 check runs, Manual Patch dispatch/runs/jobs/logs, issues, deployments and their statuses,
 releases. Knobs in the state file: checks{name: conclusion}, extra_checks[], smoke{app:
 conclusion}, smoke_log{app: line}, issues{n: state}, pages_state, main, license{repo: spdx},
-flows{workflow file: conclusion}, smoke_extra{app: [lines]}, pulls[] (a seeded open pull request follows its branch). W13: provider dispatch input and run names (display_title),
+flows{workflow file: conclusion}, smoke_extra{app: [lines]}, pages_rows[ids] with pages_status{id: state}, pulls[] (a seeded open pull request follows its branch). W13: provider dispatch input and run names (display_title),
 cleanup apply calls, and the pf-t1 flows (any workflow file, status.json, targets.json).
 W14: release_bodies{id: body} and release edits (PATCH --input); tidy_mangle makes an edit come back different.
 W15b: prs_as_issues[n]: issue n is a pull request (GET shows pull_request; PATCH with state_reason refused; PATCH pulls/n closes);
@@ -148,6 +148,10 @@ if p.startswith(R + 'pulls/') and m == 'GET' and p[len(R + 'pulls/'):] in st.get
     row = dict(st['pull_rows'][p[len(R + 'pulls/'):]]); row['state'] = st.get('issues', {}).get(p[len(R + 'pulls/'):], row.get('state', 'open')); out(row)
 if p.startswith(R + 'pulls/') and m == 'PATCH' and p[len(R + 'pulls/'):].isdigit() and int(p[len(R + 'pulls/'):]) != NUM:
     n = p[len(R + 'pulls/'):]; st.setdefault('issues', {})[n] = f['state']; st.setdefault('pr_closes', []).append(n); out({'state': f['state']})
+if p.startswith(R + 'deployments') and 'sha=' in p and st.get('pages_rows'):  # W16v: a Pages rerun, rows in no promised order
+    out([{'id': i} for i in st['pages_rows']])
+if '/statuses' in p and m == 'GET' and st.get('pages_rows'):
+    out([{'id': 1, 'state': st.get('pages_status', {}).get(p.split('/')[-2], 'success')}])
 if p.startswith(R + 'deployments') and 'sha=' in p:
     sha = p.split('sha=')[1].split('&')[0]
     st['pages_polls'] = st.get('pages_polls', 0) + 1

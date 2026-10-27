@@ -1,6 +1,6 @@
 # App icon provenance record (26 September 2026, reviewed 27 October 2026)
 
-Public policy: app marks are identification aids, not endorsements. Source links are documentation, not runtime hotlinks or permission to redistribute an owner's artwork. Prefer official developer or Play Store links; when redistribution terms are not recorded, use the letter monogram. Badges are CSS/text labels and do not use third-party image files.
+Public policy (current; owner decision 6 Oct 2026, reaffirmed 27 Oct 2026): app cards show the app's **official icon**, from its official store listing (Google Play CDN) or official site, or an open-licensed official mark. Icons are identification aids, not endorsements: bundled locally (the page never hotlinks third-party images), trademark of their owners, removed on request from a mark's owner. Badges are CSS/text labels. The dated sections below are history; the current inventory is in the 27 October 2026 (W16v) section at the end.
 
 Status (6 October 2026): **brand tiles ship for 11 apps**, each with all four gate items below
 recorded; every other card keeps its letter monogram. 26 Oct 2026: 11 app tiles ship
@@ -106,3 +106,38 @@ never written down, so that estimate is not evidence. This table replaces it: no
 Manrope (OFL) and Heroicons (MIT), bundled locally with `docs/assets/NOTICE.txt` (PR61).
 Those cover typography and UI symbols only; they are not app logos and must not be presented
 as such.
+
+## 27 October 2026 (W16v): owner decision restored
+
+W16u (27 Oct, wrong call 95) withdrew five owner-approved tiles (Amazon Music, LinkedIn, JioHotstar,
+MX Player, Edge) as unlicensed, against the owner's 6 Oct decision; the owner restated it on 27 Oct
+("take online pics of app icons from official sources"). W16v restores the five files byte for byte
+from git history (sha256 in `docs/assets/NOTICE.txt`) and puts them back in the LOGOS set.
+
+Current inventory: **16 tiles** (adguard, amazonmusic, edge, facebook, hotstar, instagram, keymapper,
+linkedin, mxplayer, photos, primevideo, reddit, telegram, truecaller-combo, youtube, ytmusic). ES File
+Explorer keeps its monogram until its fetched icon passes the gate. This section supersedes the
+"Withdrawn" heading above and the "Blocked" (Edge) and "Unavailable" (MX Player, Key Mapper) rows of the
+26 September per-brand table.
+
+## 27 October 2026 refresh queue (owner-supplied official URLs)
+
+The owner supplied these official icon URLs on 27 Oct 2026. Probe P2 (W16v combo) fetches each on the
+owner's Cloud Shell (https, hosts play-lh.googleusercontent.com and img.utdstc.com only, Google Play
+size suffix `=w240-h480`, 2 MB cap, PNG/JPEG/WebP magic, sha256 and size recorded in `icons/icons.json`).
+The next packet ships them after a visual check and the PNG gate (PNG, 16 to 512 px, under 64 KB);
+hotstar and mxplayer come from the same URLs as the shipped tiles.
+
+| Target | Official source |
+| --- | --- |
+| `amazonmusic` | https://play-lh.googleusercontent.com/9v2z1-7g8pWbxek8IW3Q9gGsAqD-YkTvy_rmyd4Cfb-OkpVR2T6jt-Ev2eKDcvx72njhCQ_4fEd9qg8-T9AaDA |
+| `hotstar` | https://play-lh.googleusercontent.com/02xiO0ptbXjD8NR3sbS2StP1P9aytDN56dDR15zqM_i66Vwq5W_hD-98CoFxvRVoUS4uV_xMSv-iQh3nQFeDeQ |
+| `mxplayer` | https://play-lh.googleusercontent.com/pL-FlnQwdyKetEhT_Uzre61MnGKhMgLC7wnV12KgC_wrQbU0UbSkYs4T5fQQWL_QLZZ48fl1mBmN-cNbc1wSZA |
+| `linkedin` | https://play-lh.googleusercontent.com/oij55bxj3e-4JrhGntpki0lnQyE8yQn8X5FPEzZ0t7cLppeiSINynEk7n9COoh7QSaCOZ_yiPO31NVaW4SDbWg |
+| `reddit` | https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY |
+| `ccleaner` (disabled target) | https://play-lh.googleusercontent.com/4TzP6UEY4IJCNntREn5fm1eojCC1MeBvR5B2Hl2-IICBAtU8HT5HrM1wcruwtLbVCQbfezTbonVbv-pgf8-UUg |
+| `esfile` | https://img.utdstc.com/icon/826/725/82672572ac96972a9e4e56717258c0651d296e707ae49309ce6bf81630ce3159 |
+| `edge` | https://play-lh.googleusercontent.com/4Z1Nt1I9HUDevt5VJ7BmgpqSTUpsC0Ei1K-IiXSmkH5Dzorz_isDzq4qdpb75RA1SfOV7v6csav-atWBur1wJQM |
+| `photos` | https://play-lh.googleusercontent.com/kErBTF4VcGwhtKbCr80Bs2R1lNZiYkHbKcf1i3ZF6dg_5LqDAlCI4wU-nzwvo7PAbxeBXM_tv1hc11gr4aIIW-Q |
+
+Conversion (W16v review): JPEG or WebP fetches are converted to PNG and resized before the gate; the original bytes and sha256 stay in `icons/icons.json` for provenance.

@@ -1,6 +1,15 @@
 # Open work
 
-## Current checkpoint: 27 October 2026, final repair pass (packet W16u)
+## Current checkpoint: 27 October 2026, evening IST (packet W16v)
+
+W16u merged (#267). W16v fixes #262 by cause (no silent older fallback APK; fresh APKMirror retry link) and the probe's false "capped" note.
+
+0. Owner, after W16v merges: Android 10 main phone imports with Signer pin unticked (or `docs/obtainium-nopin.json`); the Android 11 and 12 devices (MX Player Pro, YouTube, Facebook) keep the pin; file the upstream Obtainium issue (text and steps in OBTAINIUM-SIGNER-2026-10-27.md). Owner runs only the combo file and launcher a chat hands over; upload what its RESULT line names (reading order: docs/review/controllers/README.md). RESULT FINDINGS means merged, with all-flows test failures to read. Next packet: ship the icons the W16v probe fetched, after a visual check and the PNG gate.
+1. W15g signing split (docs/review/W15G-MAP.md): patch job keyless with `--unsigned`, sign job with apksigner and a sha256 handoff, publish keyless; full nonpublishing batch, one publishing build, owner phone test.
+2. Optional owner cleanup: older builds listed in the W16v cleanup preview.
+3. MCP quota, YOLO fully off, W17a/W17b, W18 (carried).
+
+## Earlier checkpoint: 27 October 2026, final repair pass (packet W16u)
 
 W16u is not owner-ready until rebuilt against live main e6cc9203 and the fresh full suite/rehearsal matrix passes. Do not run the older W16t combo.
 

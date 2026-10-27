@@ -126,20 +126,29 @@ class OperationalDocs(unittest.TestCase):
                 if tag=='select':self.select=None
         c=Controls();c.feed(self.text('docs/index.html'))
         self.assertIn('includeObtainium',c.ids)
+        self.assertIn('signerPin',c.ids)
         self.assertEqual(c.options['microgArch'],
                          {'universal','auto','arm64-v8a','armeabi-v7a'})
         text=self.text('docs/guide.md')
         for phrase in ('Include Obtainium self-update','Universal (recommended)',
                        'Auto architecture','ARM64','ARMv7','dev.imranr.obtainium.fdroid',
-                       'you must also select its row','already patched'):
+                       'you must also select its row','already patched','Downloaded certificate hash: None','same-signer'):
             self.assertIn(phrase,text)
         self.assertNotIn('using the standard universal APK.',text)
 
     def test_no_unreviewed_companion_import_added(self):
         import json
         paths=sorted(p.name for p in (ROOT/'docs').glob('obtainium*.json'))
-        self.assertEqual(paths,['obtainium-microg.json','obtainium-self.json','obtainium.json'])
+        self.assertEqual(paths,['obtainium-microg.json','obtainium-nopin.json','obtainium-self.json','obtainium.json'])
         main=json.loads(self.text('docs/obtainium.json'))['apps']
+        no_pin=json.loads(self.text('docs/obtainium-nopin.json'))['apps']
         self.assertEqual(len(main),ENABLED)
+        self.assertEqual([a['id'] for a in no_pin],[a['id'] for a in main])
+        for pinned, fallback in zip(main,no_pin):
+            ps=json.loads(pinned['additionalSettings']); ns=json.loads(fallback['additionalSettings'])
+            self.assertIn('allowedSigningCertHashes',ps)
+            self.assertNotIn('allowedSigningCertHashes',ns)
+            ps.pop('allowedSigningCertHashes')
+            self.assertEqual(ps,ns)
         extra=json.loads(self.text('docs/obtainium-self.json'))['apps']
         self.assertEqual([a['id'] for a in extra],['dev.imranr.obtainium'])

@@ -76,6 +76,31 @@ class Combo(unittest.TestCase):
             self.assertNotIn('probe ran', r.stdout)
             self.assertIn('does not match its sha256', r.stdout + r.stderr)
 
+    def test_t1_findings_are_never_result_ok(self):
+        # W16v review a126: a merged packet whose all-flows test listed findings ends RESULT FINDINGS.
+        with tempfile.TemporaryDirectory() as home:
+            src = pathlib.Path(home) / 'src'
+            src.mkdir()
+            (src / 'pf-p2.py').write_text(PROBE % ('OK', 0))
+            body = "print('RESULT FINDINGS: merged #1, but the all-flows test listed 2 finding(s)')\n"
+            ctl = src / ('pf-w16q-%s.py' % hashlib.sha256(body.encode()).hexdigest()[:8])
+            ctl.write_text(body)
+            text = combo.build(str(src / 'pf-p2.py'), str(ctl), 'w16q')
+            out = pathlib.Path(home) / ('pf-w16q-combo-%s.py' % hashlib.sha256(text.encode()).hexdigest()[:8])
+            out.write_text(text)
+            r = self.run_combo(out, home)
+            self.assertEqual(r.returncode, 0, r.stdout)
+            last = r.stdout.strip().splitlines()[-1]
+            self.assertTrue(last.startswith('RESULT FINDINGS'), last)
+            self.assertNotIn('RESULT OK.', last)
+            self.assertFalse(out.exists(), 'nothing to rerun after a merge')
+
+    def test_controller_t1_findings_contract(self):
+        src = (ROOT / 'docs/review/controllers/packet.tmpl.py').read_text()
+        self.assertIn("R['result'] = 'FINDINGS' if t1n else 'OK'", src)
+        self.assertIn("print('RESULT FINDINGS: merged #%s", src)
+        self.assertIn("'FINDING' if found else 'OK'", src)
+
     def test_zero_exit_stop_is_not_combo_success(self):
         with tempfile.TemporaryDirectory() as home:
             src = pathlib.Path(home) / 'src'; src.mkdir()
@@ -155,6 +180,33 @@ class remote:
 
 
 class ProbeP2(unittest.TestCase):
+    def test_w16v_redaction_covers_token_forms_before_shortening(self):
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('p2red', str(ROOT / 'docs/review/controllers/owner-probes/pf-p2.py'))
+        m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+        m.lines.clear()
+        long = 'ERROR: FAILED token=' + 'A' * 400
+        m.clues('x', ('ERROR: FAILED ghs_supersecret\nERROR: FAILED password=hunter2\n'
+                      'ERROR: FAILED Authorization: Bearer abc.def\nERROR: FAILED https://u:pw@host/x\n' + long).encode())
+        out = '\n'.join(m.lines)
+        for secret in ('ghs_supersecret', 'hunter2', 'abc.def', 'u:pw@', 'AAAA'):
+            self.assertNotIn(secret, out)
+        for leak in ('api key=abc1', 'access key=abc2', 'private key=abc3',
+                     '-----BEGIN RSA PRIVATE KEY-----\nLEAKEDKEY\n-----END RSA PRIVATE KEY-----',
+                     '-----BEGIN PRIVATE KEY-----LEAKEDKEY-----END PRIVATE KEY-----'):
+            cleaned = m.clean_text(leak, 300)
+            self.assertNotIn('abc', cleaned); self.assertNotIn('LEAKEDKEY', cleaned)
+        for keep in ('secrets: inherit', 'tokens: read', 'TRANSFER_FAILED store=apkmirror try=2 wget_exit=8',
+                     'STORE_DOWNGRADE_REFUSED store=apkpure got=25.20.0 wanted=26.36.1'):
+            self.assertEqual(m.clean_text(keep, 300), keep)
+        import time
+        m.lines.clear()
+        start = time.time(); m.clues('x', ('TRANSFER_FAILED store=apkmirror ' + 'x' * (2 * 1024 * 1024)).encode())
+        self.assertLess(time.time() - start, 5)
+        self.assertIn('TRANSFER_FAILED store=apkmirror', m.lines[-1])
+        self.assertEqual(m.loads(b'null', 'D'), 'D')
+        self.assertEqual(m.loads(b'[]', 'D'), [])
+
     """W16q round 3: the probe pulls evidence, never test APKs, and names the cause lines."""
 
     def test_test_apks_and_big_artifacts_are_never_downloaded(self):
@@ -204,6 +256,93 @@ class ProbeP2(unittest.TestCase):
             mod = load_p2(home)
             self.assertEqual(mod.PAGES, 'https://raw.githubusercontent.com/govinda-rajulu/patch-factory/status/status.json')
 
+    def test_icons_fake_curl_validates_magic_hosts_and_size(self):
+        """Owner icon downloads never use the network in this contract test."""
+        fake = """#!/usr/bin/env python3
+import json, os, pathlib, struct, sys
+target = sys.argv[sys.argv.index('--output') + 1]
+pathlib.Path(os.environ['FAKE_CURL_LOG']).write_text(json.dumps(sys.argv))
+mode = os.environ['FAKE_CURL_MODE']
+if mode == 'png':
+    data = b'\\x89PNG\\r\\n\\x1a\\n' + struct.pack('>I', 13) + b'IHDR' + struct.pack('>II', 3, 4) + b'\\x08\\x06\\x00\\x00\\x00'
+elif mode == 'webp':
+    data = b'RIFF' + struct.pack('<I', 22) + b'WEBPVP8X' + struct.pack('<I', 10) + b'\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x03\\x00\\x00'
+elif mode == 'html':
+    data = b'<html>error</html>'
+elif mode == 'stream':
+    data = b'\\x89PNG\\r\\n\\x1a\\n' + b'x' * (3 * 1024 * 1024)  # no Content-Length: --max-filesize cannot stop it
+else:
+    data = b'x' * (2 * 1024 * 1024 + 1)
+if target == '-':
+    sys.stdout.buffer.write(data)
+else:
+    pathlib.Path(target).write_bytes(data)
+"""
+        cases = (
+            ('png', 'https://play-lh.googleusercontent.com/fake', 'png', 'PNG', 3, 4),
+            ('webp', 'https://img.utdstc.com/fake', 'webp', 'WebP', 3, 4),
+            ('html', 'https://play-lh.googleusercontent.com/fake', None, 'FAIL', None, None),
+            ('oversize', 'https://play-lh.googleusercontent.com/fake', None, 'FAIL', None, None),
+            ('stream', 'https://play-lh.googleusercontent.com/fake', None, 'FAIL', None, None),
+        )
+        with tempfile.TemporaryDirectory() as td:
+            td = pathlib.Path(td)
+            curl = td / 'curl'
+            curl.write_text(fake)
+            curl.chmod(0o755)
+            before_path = os.environ.get('PATH', '')
+            before_mode = os.environ.get('FAKE_CURL_MODE')
+            before_log = os.environ.get('FAKE_CURL_LOG')
+            try:
+                os.environ['PATH'] = str(td) + os.pathsep + before_path
+                os.environ['FAKE_CURL_LOG'] = str(td / 'curl-args')
+                for mode, url, ext, marker, width, height in cases:
+                    home = td / mode
+                    home.mkdir()
+                    mod = load_p2(str(home))
+                    mod.ICON_SOURCES = [('fixture', url)]
+                    os.environ['FAKE_CURL_MODE'] = mode
+                    mod.icons()
+                    data = json.loads((mod.OUT / 'icons' / 'icons.json').read_text())
+                    if ext:
+                        self.assertEqual(len(data), 1)
+                        self.assertEqual((data[0]['format'], data[0]['width'], data[0]['height']),
+                                         (marker, width, height))
+                        self.assertEqual(len(data[0]['sha256']), 64)
+                        self.assertEqual(mod.bad[0], 0)
+                        self.assertTrue((mod.OUT / 'icons' / ('fixture.' + ext)).is_file())
+                        self.assertTrue(any(x.startswith('OK icon fixture') for x in mod.lines))
+                        args = json.loads((td / 'curl-args').read_text())
+                        self.assertEqual(('=w240-h480' in args[-1]), 'play-lh.googleusercontent.com' in url)
+                        self.assertIn('--max-filesize', args)
+                    else:
+                        self.assertEqual(data, [])
+                        self.assertEqual(mod.bad[0], 0)
+                        self.assertTrue(any(x.startswith('NOTE icon fixture FAIL:') for x in mod.lines))
+            finally:
+                if before_mode is None:
+                    os.environ.pop('FAKE_CURL_MODE', None)
+                else:
+                    os.environ['FAKE_CURL_MODE'] = before_mode
+                if before_log is None:
+                    os.environ.pop('FAKE_CURL_LOG', None)
+                else:
+                    os.environ['FAKE_CURL_LOG'] = before_log
+                os.environ['PATH'] = before_path
+
+            # A disallowed host must be rejected before curl is even launched.
+            home = td / 'wrong-host'
+            home.mkdir()
+            mod = load_p2(str(home))
+            mod.ICON_SOURCES = [('fixture', 'https://evil.example/icon.png')]
+            (td / 'curl-args').unlink(missing_ok=True)
+            os.environ['FAKE_CURL_MODE'] = 'png'
+            mod.icons()
+            self.assertFalse((td / 'curl-args').exists())
+            self.assertEqual(json.loads((mod.OUT / 'icons' / 'icons.json').read_text()), [])
+            self.assertEqual(mod.bad[0], 0)
+            self.assertTrue(any(x.startswith('NOTE icon fixture FAIL:') for x in mod.lines))
+
     def test_case_review_separates_issues_prs_and_redacts(self):
         with tempfile.TemporaryDirectory() as home:
             mod = load_p2(home)
@@ -224,6 +363,88 @@ class ProbeP2(unittest.TestCase):
             self.assertEqual((len(data['issues']), len(data['pull_requests'])), (1, 1))
             self.assertIn('[REDACTED]', data['issues'][0]['body'])
             self.assertIn('[REDACTED]', data['issues'][0]['comments'][0]['body'])
+
+    def test_zero_open_prs_are_complete_without_a_partial_note(self):
+        with tempfile.TemporaryDirectory() as home:
+            mod = load_p2(home)
+            self.assertEqual(mod.loads(b'[]', None), [])
+
+            def fake(path, timeout=120):
+                if '/issues?' in path or '/pulls?' in path:
+                    return 0, []
+                if '/actions/runs?' in path:
+                    return 0, {'workflow_runs': []}
+                return 1, None
+
+            mod.api_json = fake
+            mod.case_review()
+            data = json.loads((mod.OUT / 'case-review.json').read_text())
+            self.assertEqual(data['pull_requests'], [])
+            self.assertEqual(data['coverage']['errors'], [])
+            self.assertFalse(any('case review partial' in line for line in mod.lines))
+
+    def test_zero_comments_are_complete(self):
+        with tempfile.TemporaryDirectory() as home:
+            mod = load_p2(home)
+            issue = {'number': 1, 'title': 'Issue', 'body': '', 'state': 'open', 'comments': 0,
+                     'updated_at': 'x', 'created_at': 'x', 'labels': [], 'user': {'login': 'bot', 'type': 'Bot'}}
+            pr = {'number': 2, 'title': 'PR', 'body': '', 'state': 'open', 'draft': False, 'updated_at': 'x',
+                  'base': {'ref': 'main', 'sha': 'a'}, 'head': {'ref': 'x', 'sha': 'b'},
+                  'user': {'login': 'me', 'type': 'User'}}
+
+            def fake(path, timeout=120):
+                if '/issues?' in path:
+                    return 0, [issue]
+                if '/pulls?' in path:
+                    return 0, [pr]
+                if '/issues/1/comments' in path or '/issues/2/comments' in path:
+                    return 0, []
+                if '/actions/runs?' in path:
+                    return 0, {'workflow_runs': []}
+                return 1, None
+
+            mod.api_json = fake
+            mod.case_review()
+            data = json.loads((mod.OUT / 'case-review.json').read_text())
+            self.assertTrue(data['issues'][0]['comments_complete'])
+            self.assertTrue(data['pull_requests'][0]['comments_complete'])
+            self.assertEqual(data['coverage']['errors'], [])
+
+    def test_exact_full_page_then_empty_page_is_complete(self):
+        with tempfile.TemporaryDirectory() as home:
+            mod = load_p2(home)
+            calls = []
+
+            def fake(path, timeout=120):
+                calls.append(path)
+                page = path.rsplit('page=', 1)[1]
+                return 0, ([{'n': n} for n in range(100)] if page == '1' else [])
+
+            mod.api_json = fake
+            code, rows, complete = mod.pages('repos/example/things')
+            self.assertEqual((code, len(rows), complete), (0, 100, True))
+            self.assertEqual(len(calls), 2)
+            self.assertTrue(calls[0].endswith('per_page=100&page=1'))
+            self.assertTrue(calls[1].endswith('per_page=100&page=2'))
+
+    def test_unreadable_collection_is_reported_as_an_error(self):
+        with tempfile.TemporaryDirectory() as home:
+            mod = load_p2(home)
+
+            def fake(path, timeout=120):
+                if '/issues?' in path:
+                    return 0, []
+                if '/pulls?' in path:
+                    return 0, None
+                if '/actions/runs?' in path:
+                    return 0, {'workflow_runs': []}
+                return 1, None
+
+            mod.api_json = fake
+            mod.case_review()
+            data = json.loads((mod.OUT / 'case-review.json').read_text())
+            self.assertIn('open PRs unreadable', data['coverage']['errors'])
+            self.assertTrue(any('case review partial' in line for line in mod.lines))
 
     def test_bundle_without_main_is_a_failure(self):
         with tempfile.TemporaryDirectory() as home:

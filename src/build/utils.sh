@@ -529,6 +529,16 @@ get_apk() {
 
 	_cf_get "$base_url$version_href" || return 1
 
+	# W16v (27 Oct 2026). Record the first store's selected version before any fallback.
+	if [[ -z "$version" ]]; then
+		local resolved_version
+		resolved_version=$(printf '%s\n' "$version_href" | grep -oP '[0-9]+(?:-[0-9]+)+(?=-release(?:/|$))' | tail -1 | tr '-' '.')
+		if [[ -n "$resolved_version" ]]; then
+			version="$resolved_version"
+			export version
+		fi
+	fi
+
 	if [[ "$html" == *"Page Not Found"* ]] || [[ "$html" == *"404 Whoops"* ]]; then
 		yellow_log "[!] Version page not found, searching uploads pages..."
 		local target_ver_dot="$version"
@@ -575,6 +585,14 @@ get_apk() {
 		fi
 		green_log "[+] APKMirror release page selected (URL withheld)"
 	_cf_get "$base_url$version_href" || return 1
+		if [[ -z "$version" ]]; then
+			local resolved_version
+			resolved_version=$(printf '%s\n' "$version_href" | grep -oP '[0-9]+(?:-[0-9]+)+(?=-release(?:/|$))' | tail -1 | tr '-' '.')
+			if [[ -n "$resolved_version" ]]; then
+				version="$resolved_version"
+				export version
+			fi
+		fi
 	fi
 
 	local type_badge="APK"
@@ -705,9 +723,28 @@ get_apk() {
 	fi
 	for try in 1 2; do
 		wrc=0
-		if [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
+		if [[ "$try" -eq 2 ]] && declare -F _cf_get >/dev/null 2>&1; then
+			# W16v (27 Oct 2026). Refresh the download page so retry never reuses a stale link;
+			# a failed refresh ends the attempt instead of retrying the old link.
+			final_href=""; final_url=""
+			if _cf_get "$base_url$dl_btn_href"; then
+				cookie_args=()
+				[[ -n "$FS_COOKIES" ]] && cookie_args=(--header "Cookie: $FS_COOKIES")
+				final_href=$(echo "$html" | python3 ./src/build/html_select.py 'a#download-link attr{href}' | head -1)
+				[[ -z "$final_href" ]] && final_href=$(echo "$html" | grep -oP 'id="download-link"[^>]*href="\K[^"]+' | head -1)
+				if [[ -n "$final_href" ]]; then
+					final_href=$(echo "$final_href" | sed 's/&amp;/\&/g')
+					final_url="$base_url$final_href"
+					if declare -F pf_store_url_check >/dev/null 2>&1; then
+						pf_store_url_check "$final_url" || final_href=""
+					fi
+				fi
+			fi
+			[[ -n "$final_href" ]] || wrc=1
+		fi
+		if [[ "$wrc" -eq 0 && "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]; then
 			pf_wget_store_transfer "$final_url" "$transfer_path" "$base_url$dl_btn_href" "$user_agent" || wrc=$?
-		else
+		elif [[ "$wrc" -eq 0 ]]; then
 			wget -q -O "./download/$base_apk" \
 				--header="User-Agent: $user_agent" \
 				--referer="$base_url$dl_btn_href" \
@@ -803,8 +840,10 @@ get_apkpure() {
 		yellow_log "[!] Download page diagnostic unavailable"
 	fi
 
-	if [[ -z "$version" ]]; then
-		version=$(echo "$html" | python3 ./src/build/html_select.py 'h2 text{}' | grep -oP '\d+(\.\d+)+' | head -1)
+	local page_version
+	page_version=$(echo "$html" | python3 ./src/build/html_select.py 'h2 text{}' | grep -oP '\d+(\.\d+)+' | head -1)
+	if [[ -n "$page_version" ]]; then
+		version="$page_version"
 	fi
 	green_log "[+] Version: $version"
 

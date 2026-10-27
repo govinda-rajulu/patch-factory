@@ -7,11 +7,11 @@ main), then the controller (do: the packet), streaming both, and ends with one R
 
 Usage: build_combo.py PROBE.py CONTROLLER.py PACKET OUT
   CONTROLLER.py must already carry its final name pf-<packet>-<sha8>.py (build_ctl.py), so it
-  removes itself on RESULT OK. Name OUT pf-<packet>-combo-<first 8 of its sha256>.py.
+  removes itself on RESULT OK or RESULT FINDINGS. Name OUT pf-<packet>-combo-<first 8 of its sha256>.py.
 Both inner scripts are embedded with their sha256 and unpacked into ~/work/run-logs, never into
 the home folder, so the launcher's "exactly one ~/pf-<packet>-*.py" check sees only the combo.
-The probe copy is removed after it runs; the controller is kept on anything but its RESULT OK
-(it removes itself then), so running the same combo again resumes the packet as designed.
+The probe copy is removed after it runs; the controller is kept on anything but its RESULT OK or
+RESULT FINDINGS (it removes itself then), so running the same combo again resumes the packet as designed.
 """
 import base64, hashlib, pathlib, re, sys
 
@@ -69,7 +69,7 @@ def main():
     try:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
-        print('RESULT STOP: another %s combo is still running; watch ~/work/run-logs/pf-%s-nohup.log instead. Nothing ran. Combo kept.' % (PACKET, PACKET), flush=True)
+        print('RESULT STOP: another %s combo is still running; watch the newest ~/work/run-logs/pf-%s-nohup-*.log instead. Nothing ran. Combo kept.' % (PACKET, PACKET), flush=True)
         return 1
     try:
         return steps()
@@ -92,11 +92,16 @@ def steps():
     print('COMBO probe: ' + res1, flush=True)
     print('COMBO packet: ' + res2, flush=True)
     me = pathlib.Path(__file__).resolve()
-    if code1 == 0 and code2 == 0 and res1.startswith('RESULT OK') and res2.startswith('RESULT OK'):
+    if code1 == 0 and code2 == 0 and res1.startswith('RESULT OK') and res2.startswith(('RESULT OK', 'RESULT FINDINGS')):
         mine = me.parent == HOME and re.fullmatch(r'pf-%s-combo-[0-9a-f]{8}\.py' % re.escape(PACKET), me.name) and \
             hashlib.sha256(me.read_bytes()).hexdigest().startswith(me.stem.split('-')[-1])
         if mine:
             me.unlink()
+        if res2.startswith('RESULT FINDINGS'):
+            # W16v (review a126): merged and finished, but the all-flows test found app failures: never RESULT OK.
+            print('RESULT FINDINGS: the packet merged; the all-flows test listed failures. Upload the two zips or folders the lines above name. %s'
+                  % ('Combo removed.' if mine else 'Combo kept.'))
+            return 0
         print('RESULT OK. Upload the two zips or folders the lines above name. %s' % ('Combo removed.' if mine else 'Combo kept.'))
         return 0
     print('RESULT STOP: read the two COMBO lines above; upload what they name. Combo kept; running the same launcher again resumes.')
