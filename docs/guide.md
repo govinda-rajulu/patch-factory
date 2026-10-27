@@ -38,6 +38,8 @@ Importing a matching tracked app may replace its tracking settings. Unselected a
 
 ## Install and update
 
+**Signing warning:** Obtainium's expected certificate is the repository's CI signer, not the original app publisher's signer. If Obtainium shows the downloaded signer as **none**, stop: the APK certificate was unavailable to the verifier. Do not bypass the warning. Reinstalling everything is **not** required: re-import the current JSON once if your import predates W15h, then update one non-critical app in place first. Use Obtainium 1.6.16 or newer for certificate-pin enforcement. Reinstall only after Android itself refuses an update and after backing up that app.
+
 Check the APK's package, minimum Android API, architecture, size and SHA-256 against the release's **Download evidence**. Patched downloads use ARM64 naming; an APK may contain no native libraries. Prefer an in-place update when Android permits it. A matching key/package does not guarantee data preservation or rollback; MicroG data and signer compatibility need the same care. What CI does and does not check: [About these builds](#about-these-builds).
 
 ## About these builds
@@ -46,7 +48,7 @@ The one home for the checks, limits and safety lines every release used to repea
 
 - **CI checks** APK identity, the declared minimum Android API, native payloads, applied patch names and the configured signing certificate.
 - **Not checked**: builds are not phone-tested by this pipeline. The CI signing certificate is not proof of original-publisher authenticity or installed-app compatibility.
-- **Updates**: a new build is not necessarily a new app version. Since 17 Oct 2026 the import tracks the build id too, so Obtainium offers a same-version patch-only rebuild as an update. Imported before then? Import the JSON once more (it replaces the tracking settings of matching apps), then install each app once.
+- **Updates**: a new build is not necessarily a new app version. Since 17 Oct 2026 the import tracks the build id too, so Obtainium offers a same-version patch-only rebuild as an update. Imported before W15h? Import the JSON once more (it replaces the tracking settings of matching apps), then update one non-critical app in place first. Do not reinstall every app.
 - **Never needed**: No automatic uninstall, import migration or device-protection bypass is required or recommended. Do not uninstall, clear app data or disable device protections just to force an update.
 
 ## Reading status

@@ -16,8 +16,9 @@ let tab='apps',generation=0,importGeneration=0,pollTimer=null;
 let targets=null,importBlob=null,customApps=[];
 let appQuery='',appCategory='all',appType='all',appAge='all',appSort='name';
 let microgChannel='stable',microgArch='universal',microgIcon='icon';
-// Local brand tiles only (docs/assets/logos, provenance in docs/review/ICON-PROVENANCE.md); others keep the monogram.
-const LOGOS=new Set(['adguard','amazonmusic','edge','facebook','hotstar','instagram','keymapper','linkedin','mxplayer','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
+// Local identification tiles are optional; provenance links live in docs/review/ICON-PROVENANCE.md.
+// A missing or withdrawn mark falls back to the monogram. No runtime third-party hotlinks.
+const LOGOS=new Set(['adguard','facebook','instagram','keymapper','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
 const GROUPS=[
  ['media','Watch & listen',['youtube','ytmusic','primevideo','hotstar','mxplayer','amazonmusic']],
  ['social','Social & communities',['instagram','facebook','reddit','telegram','linkedin']],

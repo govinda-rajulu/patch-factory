@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Join a read-only owner probe and a built packet controller into ONE owner file (W16q, 27 Oct 2026).
+"""Join a read-only owner probe and a built packet controller into ONE owner file (W16u, 27 Oct 2026).
 
 Owner ask (27 Oct): "1 file that does some work and collects some work for you so i can reduce
 some back and forth". The combo first runs the probe (collect: logs, run evidence, a bundle of
@@ -13,15 +13,14 @@ the home folder, so the launcher's "exactly one ~/pf-<packet>-*.py" check sees o
 The probe copy is removed after it runs; the controller is kept on anything but its RESULT OK
 (it removes itself then), so running the same combo again resumes the packet as designed.
 """
-import base64, hashlib, pathlib, sys
+import base64, hashlib, pathlib, re, sys
 
 TEMPLATE = r'''#!/usr/bin/env python3
-"""@@NAME@@: one owner run, built by build_combo.py (patch-factory W16q). Engineered by ClickUp
-Brain on Anthropic's Claude for Govindarajulu K (owner and architect).
+"""@@NAME@@: one owner run, built by build_combo.py (patch-factory W16u). Engineered with Anthropic Claude models (Opus, Sonnet and Haiku; model selection may vary) for the repository owner.
 Step 1 runs the read-only probe @@PROBE_NAME@@ (collects evidence into one zip, writes nothing to
 GitHub). Step 2 runs the packet controller @@CTL_NAME@@. Both print as they go; the last line is
 one RESULT line for both."""
-import base64, fcntl, hashlib, os, pathlib, subprocess, sys, time
+import base64, fcntl, hashlib, os, pathlib, re, subprocess, sys, time
 PACKET = '@@PACKET@@'
 PROBE_NAME, PROBE_SHA = '@@PROBE_NAME@@', '@@PROBE_SHA@@'
 CTL_NAME, CTL_SHA = '@@CTL_NAME@@', '@@CTL_SHA@@'
@@ -59,7 +58,7 @@ def run(path):
 
 
 def main():
-    """One combo at a time (W16q round 3): a second launcher while the first still runs (a Cloud
+    """One combo at a time (W16u round 3): a second launcher while the first still runs (a Cloud
     Shell reconnect) stops at once instead of racing it; any setup error still ends in one RESULT."""
     try:
         RUN.mkdir(parents=True, exist_ok=True)
@@ -94,7 +93,7 @@ def steps():
     print('COMBO packet: ' + res2, flush=True)
     me = pathlib.Path(__file__).resolve()
     if code1 == 0 and code2 == 0 and res1.startswith('RESULT OK') and res2.startswith('RESULT OK'):
-        mine = me.parent == HOME and me.name.startswith('pf-%s-combo-' % PACKET) and \
+        mine = me.parent == HOME and re.fullmatch(r'pf-%s-combo-[0-9a-f]{8}\.py' % re.escape(PACKET), me.name) and \
             hashlib.sha256(me.read_bytes()).hexdigest().startswith(me.stem.split('-')[-1])
         if mine:
             me.unlink()
@@ -112,7 +111,7 @@ if __name__ == '__main__':
 def build(probe_path, ctl_path, packet):
     probe, ctl = pathlib.Path(probe_path).read_bytes(), pathlib.Path(ctl_path).read_bytes()
     name = pathlib.Path(ctl_path).name
-    if not (name.startswith('pf-%s-' % packet) and hashlib.sha256(ctl).hexdigest().startswith(name[:-3].split('-')[-1])):
+    if not re.fullmatch(r'pf-%s-[0-9a-f]{8}\.py' % re.escape(packet), name) or not hashlib.sha256(ctl).hexdigest().startswith(name[:-3].split('-')[-1]):
         raise SystemExit('controller must be named pf-%s-<first 8 of its sha256>.py' % packet)
     out = TEMPLATE
     for k, v in (('@@PROBE_B64@@', base64.b64encode(probe).decode()), ('@@CTL_B64@@', base64.b64encode(ctl).decode()),
@@ -125,5 +124,7 @@ def build(probe_path, ctl_path, packet):
 
 if __name__ == '__main__':
     probe_path, ctl_path, packet, out = sys.argv[1:5]
+    if not re.fullmatch(r'pf-[a-z0-9]+-combo-[0-9a-f]{8}\.py', pathlib.Path(out).name):
+        raise SystemExit('combo output must be pf-<packet>-combo-<sha8>.py')
     pathlib.Path(out).write_text(build(probe_path, ctl_path, packet), encoding='utf-8')
     print('wrote %s (%d bytes)' % (out, pathlib.Path(out).stat().st_size))

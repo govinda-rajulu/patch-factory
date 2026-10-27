@@ -65,9 +65,11 @@ is undetectable, a same-key update preserves data, or a checksum makes software
 safe. Never recommend routine uninstall, data clearing or device-protection
 bypass to force an update.
 
-Obtainium imports require user confirmation and may replace tracking settings.
-MicroG is optional upstream software, not a build signed here. A new same-version
-release does not necessarily trigger an Obtainium update.
+Obtainium imports require user confirmation and may replace tracking settings. A downloaded signer of
+`none` means the APK certificate was unavailable to the verifier, not that the APK is safely unsigned:
+stop and do not bypass the pin. Reinstall is not a routine fix; test one app in place first and back
+up app data before considering a package/key transition.
+MicroG is optional upstream software, not a build signed here. Current imports track the app version plus build ID, so a same-version patch-only rebuild can appear as an Obtainium update. Legacy imports that tracked only the app version must be re-imported once.
 
 ## Reporting
 

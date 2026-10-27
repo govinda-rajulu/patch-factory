@@ -50,10 +50,10 @@ SOFTWARE.
 BRAND TILES (docs/assets/logos/, added 6 October 2026, owner-approved in chat)
 App marks are trademarks of their owners. They are shown only to identify the
 app each card builds; this page is not affiliated with or endorsed by them.
-Each tile is a PNG of at most 128 px, scaled and padded, otherwise unmodified.
+Tiles are locally bundled identification aids; each file hash is recorded below. Source links document provenance only; trademark rights remain with their owners.
 Licence as stated on the source page on 6 October 2026; trademark rights remain.
-Apps without a cleared open source (ES File Explorer, MX Player, JioHotstar,
-Morphe) keep the letter monogram.
+Apps without recorded redistribution permission (ES File Explorer, Amazon Music, LinkedIn,
+JioHotstar, MX Player, Morphe, Edge) keep the letter monogram.
 
 logos/youtube.png
   source: https://commons.wikimedia.org/wiki/File:YouTube_full-color_icon_(2017).svg (File:YouTube full-color icon (2017).svg)
@@ -79,10 +79,6 @@ logos/photos.png
   source: https://commons.wikimedia.org/wiki/File:Google_Photos_icon_(2020-2025).svg (File:Google Photos icon (2020).svg)
   licence: Public domain, trademarked; original sha1 39e64fce4490d648d9c77ac094cf4488b5f17a4a
   tile: rendered locally from the SVG/PNG original; sha256 82934751cea9cb87c39ba288b9c7616b0e4b443b24527383f19e160da59cb949
-logos/edge.png
-  source: https://commons.wikimedia.org/wiki/File:Microsoft_Edge_logo_(2019).svg (File:Microsoft Edge logo (2019).svg)
-  licence: MIT, trademarked; original sha1 e62225ca8f64ceb4746cf45423f5884cf7e6a1db
-  tile: rendered locally from the SVG/PNG original; sha256 4dab2209b2af5a380b9394be2162ccb1fe75edf3878949ae1b5f9ce50d274116
 logos/primevideo.png
   source: https://commons.wikimedia.org/wiki/File:Amazon_Prime_Video_logo_(2024).svg (File:Amazon Prime Video logo (2024).svg)
   licence: Public domain, trademarked; original sha1 10f0537fef900ab880c4fb8ef16e239c55a41d3a
@@ -113,19 +109,3 @@ obtainium.svg
   source: Obtainium upstream icon, https://github.com/ImranR98/Obtainium/blob/main/assets/graphics/icon.svg (fetched 11 October 2026, packet W14)
   licence: Obtainium is GPL-3.0; the icon is the project's mark, shown only to identify the upstream app
   file: unchanged bytes, 4239 bytes, git blob 091d8253af3ef7a6333c6a0b147f41d570dca964
-logos/linkedin.png
-  source: owner-supplied Google Play icon for LinkedIn (com.linkedin.android), uploaded in chat 8 October 2026
-  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
-  tile: converted from the owner's 128 px WebP to PNG in packet W4; sha256 9ed76d8bd8af150dde6371ef97ccc4678585d9b9eccb7ffc4bd85d703afde4c7
-logos/amazonmusic.png
-  source: owner-supplied Google Play icon for Amazon Music (com.amazon.mp3), uploaded in chat 8 October 2026
-  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
-  tile: converted from the owner's 128 px WebP to PNG in packet W4; sha256 7e87bcdf5663f919349ee436c8a416fd771ebfdf5244a68aba3391d4fe50e760
-logos/hotstar.png
-  source: owner-supplied Google Play icon for JioHotstar (in.startv.hotstar), https://play-lh.googleusercontent.com/02xiO0ptbXjD8NR3sbS2StP1P9aytDN56dDR15zqM_i66Vwq5W_hD-98CoFxvRVoUS4uV_xMSv-iQh3nQFeDeQ=w240-h480
-  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
-  tile: fetched by the packet T1 controller 20261007T065326Z; sha256 64da72afa7cdb504d3ffd8c34d787abad279da43f6f4653cd1335115d91c7dae
-logos/mxplayer.png
-  source: owner-supplied Google Play icon for MX Player, https://play-lh.googleusercontent.com/pL-FlnQwdyKetEhT_Uzre61MnGKhMgLC7wnV12KgC_wrQbU0UbSkYs4T5fQQWL_QLZZ48fl1mBmN-cNbc1wSZA=w240-h480
-  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
-  tile: fetched by the packet T1 controller 20261007T065326Z; sha256 a602a7e7c900cba9a32c62c9f3128367459064d53a6cad32962ab7c51a04af11

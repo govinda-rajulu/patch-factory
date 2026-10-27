@@ -47,7 +47,7 @@ Keep useful ideas from other reviewers while rejecting unverified implementation
 
 
 
-Before public delivery, inspect for unrequested branding or injected UI. A generated page once shipped a Brain badge unintentionally. Verify the actual artifact rather than trusting arbitrary word-count/grep zeroes that could hide legitimate content.
+Before public delivery, inspect for unrequested branding or injected UI. A generated page once shipped a unrequested assistant badge unintentionally. Verify the actual artifact rather than trusting arbitrary word-count/grep zeroes that could hide legitimate content.
 
 
 

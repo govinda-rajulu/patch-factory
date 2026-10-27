@@ -80,6 +80,7 @@ f = {}
 for i, x in enumerate(a):
     if x in ('-f', '-F'): k, v = a[i + 1].split('=', 1); f[k] = v
 for pr in st['pulls']:  # like GitHub: an open pull request follows its branch (state seeds may name a prior head)
+    pr.setdefault('base', {'ref': 'main', 'repo': {'full_name': 'govinda-rajulu/patch-factory'}})  # W16u: like GitHub, rows name their base
     if not pr.get('merged_at') and pr.get('head', {}).get('ref'):
         pr['head']['sha'] = git('rev-parse', 'refs/heads/' + pr['head']['ref']) or pr['head']['sha']
 if p.startswith(R + 'branches/main') and st.get('later_main') and st['pulls']:  # W15e MID_DRIFT: a bot commit lands mid-run
@@ -88,7 +89,8 @@ if p.startswith(R + 'branches/main'): out({'commit': {'sha': st['main']}})
 if p.startswith(R + 'git/commits/'): out({'tree': {'sha': git('rev-parse', p.split('/')[-1] + '^{tree}')}})
 if p.startswith(R + 'pulls?state=all'): out(st['pulls'])
 if p == R + 'pulls' and m == 'POST':
-    pr = {'number': NUM, 'head': {'sha': git('rev-parse', 'refs/heads/' + f['head']), 'ref': f['head']}, 'merged_at': None, 'html_url': 'u', 'state': 'open'}
+    pr = {'number': NUM, 'head': {'sha': git('rev-parse', 'refs/heads/' + f['head']), 'ref': f['head']}, 'merged_at': None, 'html_url': 'u', 'state': 'open',
+          'base': {'ref': 'main', 'repo': {'full_name': 'govinda-rajulu/patch-factory'}}}
     st['pulls'].append(pr); out(pr)
 if p.startswith(R + 'pulls/%d/merge' % NUM) and m == 'PUT':
     pr = st['pulls'][0]

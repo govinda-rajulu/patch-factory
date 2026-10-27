@@ -43,6 +43,7 @@ Any STOP: keeps everything and says where.
 """
 import base64
 import datetime
+import fcntl
 import hashlib
 import json
 import os
@@ -92,19 +93,24 @@ PAGES_WAIT = int(os.environ.get('PF_PAGES_WAIT', '900'))
 BUNDLE = '@@BUNDLE@@'
 # -------------------------------------------------------------------------------------------
 # W16n owner request: RESULT.json says who wrote the controller (owner, 26 Oct: no banner line on every run).
-BUILT_BY = 'ClickUp Brain on Claude (engineering) for Govindarajulu K (owner)'
+BUILT_BY = 'Anthropic Claude models (Opus, Sonnet, Haiku; model selection may vary) engineering assistance; repository owner Govindarajulu K'
 REMOTE = os.environ.get('PF_REMOTE', 'https://github.com/%s.git' % REPO)
+# W16u: the real repository URL, or a local folder (offline rehearsal); never another host or repository.
+if REMOTE.rstrip('/').removesuffix('.git') != 'https://github.com/%s' % REPO and not (os.path.isabs(REMOTE) and os.path.isdir(REMOTE)):
+    raise SystemExit('RESULT STOP: PF_REMOTE must be the canonical repository URL; nothing ran.')
 GH = os.environ.get('PF_GH', 'gh')
 WAIT = int(os.environ.get('PF_WAIT', '2700'))
 BUILD_WAIT = int(os.environ.get('PF_BUILD_WAIT', '5400'))
 POLL = int(os.environ.get('PF_POLL', '30'))
 
-STAMP = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+STAMP = datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ') + ('-%d' % os.getpid())
 HOME = pathlib.Path(os.environ.get('PF_HOME', str(pathlib.Path.home())))
 WORK = HOME / 'work'
 CLONE = WORK / ('patch-factory-%s-%s' % (PACKET, STAMP))
 LOGS = WORK / 'run-logs' / ('pf-%s-%s' % (PACKET, STAMP))
 SELF = pathlib.Path(__file__).resolve()
+LOCK = WORK / ('pf-%s-controller.lock' % PACKET)
+LOCK_HANDLE = None
 R = {'script': SELF.name, 'built_by': BUILT_BY, 'stamp': STAMP, 'base': BASE, 'tree': TREE, 'phases': [], 'result': 'RUNNING'}
 
 
@@ -148,7 +154,10 @@ def api(path, method='GET', fields=None, phase='api'):
     if code != 0:
         return None, (err or out).decode('utf-8', 'replace').strip()[:300]
     text = out.decode('utf-8', 'replace').strip()
-    return (json.loads(text) if text else {}), ''
+    try:
+        return (json.loads(text) if text else {}), ''
+    except (TypeError, ValueError):
+        return None, 'invalid JSON from gh api'
 
 
 def must(path, phase, method='GET', fields=None):
@@ -167,7 +176,8 @@ def find_pr(phase):
     rows = must('repos/%s/pulls?state=all&head=govinda-rajulu:%s&per_page=20' % (REPO, BRANCH), phase)
     for p in rows:
         sha = (p.get('head') or {}).get('sha') or ''
-        if (p.get('head') or {}).get('ref') != BRANCH or not sha:
+        base = p.get('base') or {}
+        if ((p.get('state') != 'open' and not p.get('merged_at')) or base.get('ref') != 'main' or (base.get('repo') or {}).get('full_name') != REPO or (p.get('head') or {}).get('ref') != BRANCH or not sha):
             continue
         c = must('repos/%s/git/commits/%s' % (REPO, sha), phase)
         if (c.get('tree') or {}).get('sha') == TREE:
@@ -358,7 +368,8 @@ def validate():
         for name in CHECKS + tuple(n for n in OPTIONAL if any(c.get('name') == n for c in runs)):
             mine = [c for c in runs if c.get('name') == name]
             done = [c for c in mine if c.get('status') == 'completed']
-            if any(c.get('conclusion') == 'success' for c in done):
+            latest = max(done, key=lambda c: (c.get('completed_at') or '', c.get('id') or 0)) if done else None
+            if latest and latest.get('conclusion') == 'success':
                 state[name] = 'success'
             elif done and len(done) == len(mine):
                 stop('validate', '%s ended %s: %s. Nothing merged. If it is the agent review, read its pull request comment; '
@@ -833,6 +844,11 @@ def finish(good):
     R['result'] = 'OK'
     save()
     shutil.rmtree(CLONE, ignore_errors=True)
+    if CLONE.exists():
+        R['result'] = 'STOP'
+        save()
+        print('RESULT STOP: clone cleanup failed; kept script and logs.')
+        return 1
     digest = hashlib.sha256(SELF.read_bytes()).hexdigest()
     removed = SELF.name.startswith('pf-%s-' % PACKET) and digest.startswith(SELF.stem.split('-')[-1])
     if removed:
@@ -846,6 +862,14 @@ def finish(good):
 
 
 def main():
+    global LOCK_HANDLE
+    WORK.mkdir(parents=True, exist_ok=True)
+    LOCK_HANDLE = open(str(LOCK), 'a')
+    try:
+        fcntl.flock(LOCK_HANDLE.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        print('RESULT STOP: another %s controller is running; nothing ran.' % PACKET)
+        return 1
     save()
     pr, merged = gate()
     clone()
@@ -856,9 +880,14 @@ def main():
         validate()
         smoke()
     R['merge'] = merge(pr)
+    deployed = pages(R['merge'])
+    if not deployed:
+        R['result'] = 'STOP'
+        save()
+        print('RESULT STOP: Pages deployment failed; close, cleanup, T1 and dispatch phases were not run.')
+        return 1
     close_issues()
     delete_branches()
-    deployed = pages(R['merge'])
     # W15f: with PUBLISH_ALL the fresh releases exist before the cleanup keeps the newest per app.
     early = PUBLISH_ALL or bool(PUBLISH_APPS)  # W16c: fresh releases before the cleanup, too
     tested = t1(R['merge']) if early else True

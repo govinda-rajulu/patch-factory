@@ -9,8 +9,13 @@ Last indexed **27 October 2026** for packets W16p and W16q ([HANDOVER-2026-10-27
 
 ## Start here
 
+[HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) is the current final-repair packet pointer. Do not run older W16t/W16s combos.
+
+
 | Read | Why |
 | --- | --- |
+| [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) | Current W16u final-repair pointer: live main, what W16u repairs, which combo to run. Read first. |
+| [CORRECTION-2026-10-27-W16t.md](CORRECTION-2026-10-27-W16t.md) | 27 Oct dated correction: current public credits, withdrawn unlicensed icons, W15 vs W15h re-import wording, CI is not a phone test. Dated records stay as written. |
 | [HANDOVER-2026-10-27.md](HANDOVER-2026-10-27.md) | 26 to 27 Oct chat handover (W16n to W16r): how to start the next chat, where things stand, what shipped, owner asks, wrong calls 77 to 90, lessons L108 to L114, afternoon addendum (W16r), open work. Read first. |
 | [HANDOVER-2026-10-26.md](HANDOVER-2026-10-26.md) | 23 to 26 Oct chat handover (W16 to W16l): how to start the next chat, where things stand, what shipped, owner decisions, wrong calls 51 to 76, lessons, open work, what is not covered. |
 | [REVIEW-METHOD.md](REVIEW-METHOD.md) | How a handover is checked: the old self-review, the independent-agent method that replaced it, the exit rule, and the W16m and W16n round logs. Read before any handover check. |
