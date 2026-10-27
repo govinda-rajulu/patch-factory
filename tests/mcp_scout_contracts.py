@@ -1,6 +1,7 @@
 """Contracts for the manual-only, read-only MCP community scout."""
 import importlib.util
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -39,12 +40,47 @@ class McpScoutWorkflow(unittest.TestCase):
         self.assertTrue(all(re.fullmatch(r"[0-9a-f]{40}", sha) for _, sha in refs), refs)
         self.assertIn("google-github-actions/run-gemini-cli", dict(refs))
 
+    def _settings_payloads(self):
+        payloads = []
+        lines = self.text.splitlines()
+        for index, line in enumerate(lines):
+            if line.strip() != "settings: |-":
+                continue
+            for candidate in lines[index + 1:]:
+                if candidate.strip():
+                    payloads.append(json.loads(candidate.strip()))
+                    break
+        return payloads
+
     def test_server_is_read_only_and_minimal(self):
         self.assertIn("ghcr.io/github/github-mcp-server:v2.0.3", self.text)
         self.assertIn('"--read-only"', self.text)
-        self.assertIn('"--toolsets=repos"', self.text)
+        self.assertIn('"--tools=get_file_contents,search_repositories"', self.text)
         self.assertIn('"core":[]', self.text)
         self.assertIn('"exclude":["run_shell_command","write_file","replace"]', self.text)
+
+    def test_identical_settings_allow_only_read_mcp_tools_under_yolo(self):
+        payloads = self._settings_payloads()
+        self.assertEqual(len(payloads), 2)
+        self.assertEqual(payloads[0], payloads[1])
+        settings = payloads[0]
+        # W16p: the action passes --yolo and Gemini CLI 0.65.0 exits at startup when
+        # security.disableYoloMode is set, so it must not be set; the policy rules carry the lockdown.
+        self.assertNotIn("disableYoloMode", json.dumps(settings))
+        self.assertNotIn("secureModeEnabled", json.dumps(settings))
+        self.assertEqual(settings["tools"]["core"], [])
+        self.assertEqual(settings["tools"]["allowed"], ["mcp_github_get_file_contents", "mcp_github_search_repositories"])
+        self.assertEqual(settings["mcp"], {"allowed": ["github"], "autoAllowInHeadless": True})
+        self.assertEqual(set(settings["mcpServers"]), {"github"})
+        github = settings["mcpServers"]["github"]
+        read_tools = ["get_file_contents", "search_repositories"]
+        self.assertEqual(github["includeTools"], read_tools)
+        self.assertIn("--read-only", github["args"])
+        self.assertIn("--tools=get_file_contents,search_repositories", github["args"])
+        image = next(arg for arg in github["args"] if arg.startswith("ghcr.io/github/github-mcp-server:"))
+        self.assertRegex(image, r"@sha256:[0-9a-f]{64}$")
+        self.assertNotIn("write", " ".join(github["includeTools"]).lower())
+        self.assertNotIn("create", " ".join(github["includeTools"]).lower())
 
     def test_lockdown_and_missing_key_paths_are_present(self):
         self.assertIn("GEMINI_API_KEY is not configured", self.text)

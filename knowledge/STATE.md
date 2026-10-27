@@ -6,7 +6,22 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## 26 Oct 2026, evening IST (packet W16o; start here)
+## W16p (27 Oct 2026, morning IST): start here
+
+- **W16o merged** as #259 (`c24d34f`, 27 Oct 03:15 IST): 17 of 17 smokes, T1 17 of 17 and every
+  watch it runs green, cleanup kept the newest release of all 17 apps. Record:
+  docs/review/SESSION-2026-10-27.md.
+- **W16p** (this packet): Council hard time budget with visible progress; the status page tells a
+  review verdict and a GitHub-side failure from a broken automation; MCP scout limited to two read
+  tools by policy rules that outrank YOLO (YOLO cannot be switched off under this action); carried store and controller fixes. Evidence: probe P1 (27 Oct).
+- **After the merge**: read the dispatched MCP scout run (first live proof of the lockdown) and
+  the dispatched Council probe; the next scheduled Council audit (08:47 or 20:47 IST) must finish
+  under 50 min and print one line per part and seat.
+- **Wrong calls**: 86 (86: disableYoloMode would have stopped the scout; caught before the run).
+- **Next**: W15g signing split (own packet, phone test); W17a and W17b Add app; W18. Owner:
+  Needs you #233 (five provider choices).
+
+## 26 Oct 2026, evening IST (packet W16o)
 
 - **Main** `5aa5433e` (W16n #257, merged 26 Oct; T1: 17 of 17 apps built, Nightly and Community
   green, #248 and #249 closed by Notify) plus bot commits, plus W16o once merged. MCP scout

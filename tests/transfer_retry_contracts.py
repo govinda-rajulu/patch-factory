@@ -49,6 +49,29 @@ class TransferRetry(unittest.TestCase):
         self.assertNotIn('TRANSFER_FAILED', out)
         self.assertTrue(kept)
 
+    def test_apkpure_curl_failure_is_counted_and_partial_is_removed(self):
+        start = TEXT.index('get_apkpure() {')
+        branch_start = TEXT.rindex('\tif [[ "${PF_ENFORCE_EFFECTIVE_URL:-0}" == "1" ]]', start, TEXT.index('\n}', start))
+        branch_end = TEXT.index('\n\telse\n', branch_start)
+        branch = TEXT[branch_start:branch_end]
+        with tempfile.TemporaryDirectory() as d:
+            candidate = Path(d) / 'candidate.apk'
+            body = """red_log(){ echo "$*"; }
+PF_ENFORCE_EFFECTIVE_URL=1
+pf_curl_store_transfer(){ printf partial > "$2"; return 28; }
+f(){
+local download_url=https://data.winudf.com/a.apk transfer_path=%s dl_page_url=https://apkpure.com/page user_agent=UA crc=0
+%s
+	fi
+}
+f
+""" % (candidate, branch)
+            result = subprocess.run(['bash', '-c', body], capture_output=True, text=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('TRANSFER_FAILED store=apkpure curl_exit=28', result.stdout)
+        self.assertIn('APKPure transfer failed; refusing partial or empty output', result.stdout)
+        self.assertFalse(candidate.exists())
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,7 +2,30 @@
 
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
-## Current checkpoint: 26 October 2026, evening IST (packet W16o)
+## Current checkpoint: 27 October 2026, morning IST (packet W16p)
+
+Supersedes items 3 and 7 (FlareSolverr deadline, size suffixes) and the publishing-lookup and
+drift-shape parts of item 6 of the 26 Oct evening checkpoint below; everything else there is
+carried as written.
+
+1. After the W16p merge: read the dispatched MCP scout run. Green with candidate lines means the
+   lockdown works headless under YOLO; "tool not allowed" or an empty answer means the allowlist
+   names are wrong: read the Gemini step output before changing anything (MCP-PLAN.md, W16p
+   section). YOLO itself can only go off by running the CLI without the action (later packet).
+2. The next scheduled Council audit must end under 50 min and print a line per part and seat;
+   ABSTAIN_DEADLINE rows say which provider ate the time.
+3. Status page: Onboarding review shows as a verdict and Dependabot as external until each runs
+   again; Council stays red until a scheduled run finishes.
+4. W15g signing split, own packet with a phone test (SIGNING-SPLIT.md).
+5. W17a and W17b Add app (W17A-MAP.md; verify every file:line against live code), then W18.
+6. Owner: Needs you #233 (Instagram: crimera/piko-ig-lite, dawidd612, Dreaming-Codes; Telegram:
+   ch3thanhs/stylus, rahul9999xda) and N-ab4278 (gg-photos / Change package name; the ban check
+   lists it as a documented exception: read the Nightly line before taking it).
+7. Known limits left: urllib has no DNS timeout (Council); APKPure host list has one sample, so an
+   unknown host only warns; github-mcp-server `--tools` may add to its default toolsets, so the
+   Gemini side `includeTools` is the binding limit (both read-only).
+
+## Earlier checkpoint: 26 October 2026, evening IST (packet W16o)
 
 W16o did item 2 of the afternoon checkpoint below, except what is listed here. Its "manual
 dispatch builds only from main" became: publishing only from main; nonpublishing smokes on

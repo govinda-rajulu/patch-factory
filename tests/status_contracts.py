@@ -89,11 +89,81 @@ def reader(w, missing=()):
     return st.Reader(None, fetch)
 
 
+def special_world():
+    w = world()
+    workflows = w[R + '/actions/workflows?per_page=100']['workflows']
+    workflows.extend([
+        {'id': 4, 'name': 'Onboarding review', 'path': '.github/workflows/onboard-review.yml', 'state': 'active'},
+        {'id': 5, 'name': 'Dependabot Updates', 'path': '.github/workflows/dependabot-updates.yml', 'state': 'active'},
+        {'id': 6, 'name': 'Council', 'path': '.github/workflows/council.yml', 'state': 'active'},
+        {'id': 7, 'name': 'Ordinary failure', 'path': '.github/workflows/ordinary.yml', 'state': 'active'},
+        {'id': 8, 'name': 'Unrelated verdict text', 'path': '.github/workflows/unrelated.yml', 'state': 'active'},
+        {'id': 9, 'name': 'Spoof review', 'path': '.github/workflows/other.yml', 'state': 'active'},
+    ])
+    w[R + '/actions/workflows/4/runs?per_page=5'] = {'workflow_runs': [run(41, 'Onboarding review #254', 'failure')]}
+    w[R + '/actions/workflows/5/runs?per_page=5'] = {'workflow_runs': [run(51, 'Dependabot Updates', 'failure')]}
+    w[R + '/actions/workflows/6/runs?per_page=5'] = {'workflow_runs': [run(61, 'Council', 'cancelled')]}
+    w[R + '/actions/workflows/7/runs?per_page=5'] = {'workflow_runs': [run(71, 'Ordinary failure', 'failure')]}
+    w[R + '/actions/workflows/8/runs?per_page=5'] = {'workflow_runs': [run(81, 'Unrelated verdict text', 'failure')]}
+    w[R + '/actions/workflows/9/runs?per_page=5'] = {'workflow_runs': [run(91, 'Spoof review', 'failure')]}
+    w[R + '/actions/runs/41/attempts/1/jobs?per_page=100'] = {'jobs': [
+        job(401, 'Agent review (required for onboarding)', 'failure', 'Convene the onboarding review')]}
+    w[R + '/actions/runs/51/attempts/1/jobs?per_page=100'] = {'jobs': [
+        job(501, 'Dependabot', 'failure', 'Run Dependabot')]}
+    w[R + '/actions/runs/61/attempts/1/jobs?per_page=100'] = {'jobs': []}
+    w[R + '/actions/runs/71/attempts/1/jobs?per_page=100'] = {'jobs': [
+        job(701, 'Ordinary job', 'failure', 'Run ordinary check')]}
+    w[R + '/actions/runs/81/attempts/1/jobs?per_page=100'] = {'jobs': [
+        job(801, 'Unrelated job', 'failure', 'Run unrelated check')]}
+    w[R + '/actions/runs/91/attempts/1/jobs?per_page=100'] = {'jobs': [
+        job(901, 'Spoof job', 'failure', 'Run spoof check')]}
+    w[R + '/check-runs/401/annotations?per_page=50'] = [
+        {'annotation_level': 'failure', 'title': 'ONBOARD_REVIEW_VERDICT', 'message': '4 of 6 counted verdicts say block'}]
+    w[R + '/check-runs/501/annotations?per_page=50'] = [
+        {'annotation_level': 'failure', 'message': 'Dependabot encountered an unexpected problem. Error: fetching job details: missing response'}]
+    w[R + '/check-runs/701/annotations?per_page=50'] = [
+        {'annotation_level': 'failure', 'message': 'The ordinary automation failed'}]
+    w[R + '/check-runs/801/annotations?per_page=50'] = [
+        {'annotation_level': 'failure', 'message': 'ONBOARD_REVIEW_VERDICT is only text here'}]
+    w[R + '/check-runs/901/annotations?per_page=50'] = [
+        {'annotation_level': 'failure', 'title': 'ONBOARD_REVIEW_VERDICT', 'message': '2 of 2 counted verdicts say block'}]
+    return w
+
+
 class Status(unittest.TestCase):
     def setUp(self):
         self.r = reader(world())
         self.d = st.build(self.r, TARGETS, now='2026-10-08T07:00:00Z')
         self.apps = {a['id']: a for a in self.d['apps']}
+
+    def test_special_failures_are_headlined_separately_and_ordinary_failures_stay_red(self):
+        d = st.build(reader(special_world()), TARGETS, now='2026-10-08T07:00:00Z')
+        names = {w['name']: w for w in d['workflows']}
+        self.assertNotIn('Onboarding review', d['headline']['workflows'])
+        self.assertEqual(d['headline']['verdicts'], [
+            {'name': 'Onboarding review', 'file': 'onboard-review.yml', 'url': WEB + '/pull/254', 'pr_url': WEB + '/pull/254'}])
+        self.assertIn(st.VERDICT_TITLE + ': 4 of 6 counted verdicts say block', names['Onboarding review']['last']['jobs'][0]['why'])
+        self.assertNotIn('Dependabot Updates', d['headline']['workflows'])
+        self.assertEqual(d['headline']['external'][0]['name'], 'Dependabot Updates')
+        self.assertIn('Council', d['headline']['workflows'])
+        self.assertIn('Ordinary failure', d['headline']['workflows'])
+        self.assertIn('Unrelated verdict text', d['headline']['workflows'])
+        self.assertEqual(names['Unrelated verdict text']['last']['jobs'][0]['why'][0], 'ONBOARD_REVIEW_VERDICT is only text here')
+        self.assertIn('Spoof review', d['headline']['workflows'])
+
+    def test_dependabot_without_the_transient_pair_stays_red(self):
+        w = special_world()
+        w[R + '/check-runs/501/annotations?per_page=50'] = [
+            {'annotation_level': 'failure', 'message': 'Dependabot encountered an unexpected problem'}]
+        d = st.build(reader(w), TARGETS, now='2026-10-08T07:00:00Z')
+        self.assertIn('Dependabot Updates', d['headline']['workflows'])
+        self.assertEqual(d['headline']['external'], [])
+        w = special_world()
+        w[R + '/check-runs/501/annotations?per_page=50'] = [
+            {'annotation_level': 'failure', 'message': 'Dependabot encountered an unexpected problem while parsing dependabot.yml config: missing response'}]
+        d = st.build(reader(w), TARGETS, now='2026-10-08T07:00:00Z')
+        self.assertIn('Dependabot Updates', d['headline']['workflows'])
+        self.assertEqual(d['headline']['external'], [])
 
     def test_failed_build_says_where_and_why_in_plain_words(self):
         lb = self.apps['reddit']['last_build']
@@ -262,3 +332,17 @@ class SdkReason(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class NoRunsYet(unittest.TestCase):
+    """W16p round 3, 27 Oct 2026: a workflow with no completed run ('last': None) must not crash
+    the status page, and is never a verdict or an external failure."""
+
+    def test_failure_kind_without_a_last_run(self):
+        self.assertIsNone(st.failure_kind({'file': 'onboard-review.yml', 'name': 'Onboarding review', 'last': None}))
+        self.assertIsNone(st.failure_kind({'file': 'x.yml', 'name': 'X'}))
+        self.assertIsNone(st.failure_kind(None))
+
+    def test_headline_ref_names_the_file(self):
+        ref = st.headline_ref({'name': 'Onboarding review', 'file': 'onboard-review.yml', 'url': 'u', 'last': None})
+        self.assertEqual(ref['file'], 'onboard-review.yml')

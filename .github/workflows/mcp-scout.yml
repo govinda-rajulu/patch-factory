@@ -38,8 +38,17 @@ jobs:
             echo "GEMINI_API_KEY is not configured; the manual MCP scout will not run." | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
-      # Gemini CLI 0.65.0 documents tools.core as an all-built-in allowlist and
-      # tools.exclude as its explicit blocklist: https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/docs/tools/shell.md
+      # W16p (27 Oct 2026): the action always runs `gemini --yolo` (no input changes it, in
+      # v0.1.22 and on main), and Gemini CLI 0.65.0 refuses to start when --yolo meets
+      # security.disableYoloMode (packages/cli/src/config/config.ts, FatalConfigError), so YOLO
+      # cannot be switched off here. The policy rules outrank YOLO instead
+      # (packages/core/src/policy/config.ts): YOLO's allow-all is priority 1.998 (policies/yolo.toml), tools.core []
+      # adds a deny-all at 4.24 for every mode including YOLO, and tools.allowed allows exactly
+      # the two MCP read tools at 4.3. Only those two can run. Official references:
+      # https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/packages/core/src/policy/config.ts
+      # https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/docs/cli/settings.md
+      # https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/docs/tools/mcp-server.md
+      # https://raw.githubusercontent.com/github/github-mcp-server/v2.0.3/docs/server-configuration.md
       # W16n (run 40298683531, 26 Oct 2026): no model was set, so the CLI used its default and got
       # HTTP 503 "high demand" ten times in 6.5 minutes. The model is now named (GA flash in
       # gemini-cli v0.65.0 packages/core/src/config/models.ts), turns are capped
@@ -59,7 +68,7 @@ jobs:
           gemini_cli_version: '0.65.0'
           gemini_model: 'gemini-3.5-flash'
           settings: |-
-            {"model":{"maxSessionTurns":25},"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132","stdio","--read-only","--toolsets=repos"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
+            {"model":{"maxSessionTurns":25},"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"],"allowed":["mcp_github_get_file_contents","mcp_github_search_repositories"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132","stdio","--read-only","--tools=get_file_contents,search_repositories"],"includeTools":["get_file_contents","search_repositories"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
           prompt: >-
             You are a read-only discovery scout. Using only the configured GitHub MCP server,
             read the one file src/targets.json (about 19 KB) in ${{ github.repository }}.
@@ -89,7 +98,7 @@ jobs:
           gemini_cli_version: '0.65.0'
           gemini_model: 'gemini-3.1-flash-lite'
           settings: |-
-            {"model":{"maxSessionTurns":25},"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132","stdio","--read-only","--toolsets=repos"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
+            {"model":{"maxSessionTurns":25},"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"],"allowed":["mcp_github_get_file_contents","mcp_github_search_repositories"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132","stdio","--read-only","--tools=get_file_contents,search_repositories"],"includeTools":["get_file_contents","search_repositories"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
           prompt: >-
             You are a read-only discovery scout. Using only the configured GitHub MCP server,
             read the one file src/targets.json (about 19 KB) in ${{ github.repository }}.

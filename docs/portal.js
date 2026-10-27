@@ -613,10 +613,11 @@ const WATCH_FLOWS=['6. Provider watch','7. Nightly watch','8. Community watch','
 const WATCH=[['agent-watch.yml','6. Provider watch','provider watch:'],['community-watch.yml','8. Community watch','community: index changed for apps you build'],['watch.yml','7. Nightly watch','watch: repo and provider status'],['selection-watch.yml','10. Selection watch','Selection watch']];
 function daysOld(v){const t=Date.parse(v);return Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/86400000)):null;}
 // W6: a build run whose only failures are app jobs is keyed by app; the app row carries it.
-function unresolved(row){return !!row&&BAD_RUN.has(row.result)&&!row.per_app;}
+function unresolved(row){return !!row&&BAD_RUN.has(row.result)&&!row.per_app&&!calmWorkflow(row);}
 function isOld(row){const d=daysOld(row&&row.when);return !!row&&BAD_RUN.has(row.result)&&d!==null&&d>STALE_DAYS;}
 function pill(row){
- const code=row&&row.result,bad=!!row&&BAD_RUN.has(code);
+ const code=row&&row.result,calm=calmWorkflow(row),bad=!!row&&BAD_RUN.has(code)&&!calm;
+ if(calm)return el('span',row._classification==='verdict'?'Review verdict':'GitHub-side failure','pill wait');
  if(bad&&row.per_app)return el('span','Failed for '+(Array.isArray(row.apps)?row.apps.join(', '):'one app')+': see that app under Builds','pill wait');
  if(bad&&row.changed_since)return el('span','Changed since it failed: run once to confirm','pill wait');
  return el('span',row?(bad&&isOld(row)?'Failed '+daysOld(row.when)+' days ago, not fixed yet':row.words||'Unknown'):'No run yet','pill '+(bad?'bad':code==='success'?'ok':'wait'));
@@ -633,12 +634,44 @@ function freshness(root,d){
  root.append(p);
  if(Array.isArray(d.problems)&&d.problems.length)root.append(el('p','Partly unknown: '+d.problems.length+' GitHub read(s) failed when the data was written. Unknown is not fine.','notice'));
 }
+function appendNode(parent,child){
+ if(parent&&typeof parent.append==='function')parent.append(child);
+ else if(parent)parent.textContent=String(parent.textContent||'')+String(child&&child.textContent!==undefined?child.textContent:'');
+ return parent;
+}
+function sameWorkflow(ref,row){
+ // W16p round 3: names can repeat; when the status data names the file, the file must match too.
+ return !!ref&&!!row&&ref.name===row.name&&(!ref.file||!row.file||ref.file===row.file);
+}
+function workflowKind(row,d){
+ const h=d&&d.headline||{},name=row&&row.name;
+ if(Array.isArray(h.verdicts)&&h.verdicts.some(v=>sameWorkflow(v,row)))return 'verdict';
+ if(Array.isArray(h.external)&&h.external.some(v=>sameWorkflow(v,row)))return 'external';
+ if(Array.isArray(h.workflows)&&h.workflows.includes(name))return 'bad';
+ return null;
+}
+function classifyWorkflows(d){
+ for(const w of (d&&d.workflows||[])){const kind=workflowKind(w,d);if(kind){w._classification=kind;if(w.last)w.last._classification=kind;}}
+ return d;
+}
+function calmWorkflow(row){return !!row&&['verdict','external'].includes(row._classification);}
 function headline(d){
  // A failure stays here until a later run of the same app or workflow works; age never hides it.
+ classifyWorkflows(d);
  const apps=d.apps.filter(a=>unresolved(a.last_build)).map(a=>a.label);
  const flows=d.workflows.filter(w=>unresolved(w.last)).map(w=>w.name);
- if(!apps.length&&!flows.length)return el('p','Nothing is failing: the latest run of every app and automation worked.','headline ok');
- return el('p','Needs a look: '+[...apps,...flows].join(', ')+'.','headline bad');
+ const h=d.headline||{},verdicts=Array.isArray(h.verdicts)?h.verdicts:[],external=Array.isArray(h.external)?h.external:[];
+ if(!apps.length&&!flows.length&&!verdicts.length&&!external.length)return el('p','Nothing is failing: the latest run of every app and automation worked.','headline ok');
+ const box=el('div',undefined,'headline '+(apps.length||flows.length?'bad':'wait'));
+ if(apps.length||flows.length)appendNode(box,el('p','Needs a look: '+[...apps,...flows].join(', ')+'.'));
+ else appendNode(box,el('p','No broken automation is currently listed.'));
+ if(verdicts.length){
+  const p=el('p','Review verdicts: ');verdicts.forEach((v,i)=>{if(i)appendNode(p,el('span',', '));appendNode(p,link(v.name||'Onboarding review',v.url));});appendNode(box,p);
+ }
+ if(external.length){
+  const p=el('p','GitHub-side failures: ');external.forEach((v,i)=>{if(i)appendNode(p,el('span',', '));appendNode(p,link(v.name||'External failure',v.url));});appendNode(p,el('span',' (the next run decides).'));appendNode(box,p);
+ }
+ return box;
 }
 function whyLines(row){
  const out=[];if(!unresolved(row))return out;

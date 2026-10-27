@@ -176,6 +176,31 @@ class Reviewer(unittest.TestCase):
         a = onboard_review.check_answer(answer('c1', 'block', ['Hide ads']), 'c1', hay, off)
         self.assertEqual([f['quote'] for f in a['findings']], ['Hide ads'])
 
+    def test_publish_crash_does_not_emit_verdict_annotation(self):
+        import contextlib
+        import io
+        with tempfile.TemporaryDirectory() as d, contextlib.redirect_stdout(io.StringIO()) as output:
+            with self.assertRaisesRegex(RuntimeError, 'comment failed'):
+                onboard_review.publish_review('review body\n', {
+                    'GITHUB_STEP_SUMMARY': str(Path(d) / 'summary.md'), 'PF_PR': '254', 'PF_REPO': 'owner/repo'},
+                    '::error title=ONBOARD_REVIEW_VERDICT::blocked',
+                    post_fn=lambda *args: (_ for _ in ()).throw(RuntimeError('comment failed')))
+        self.assertNotIn('ONBOARD_REVIEW_VERDICT', output.getvalue())
+
+    def test_verdict_annotation_is_emitted_after_render_summary_and_comment(self):
+        text = (ROOT / 'src' / 'council' / 'onboard_review.py').read_text()
+        main = text[text.index('def main('):]
+        self.assertLess(main.index('body = render(rows, ok, why, m)'), main.index('publish_review(body, env, annotation)'))
+        self.assertLess(main.index("print('ONBOARD_REVIEW %s: %s'"), main.index('publish_review(body, env, annotation)'))
+
+    def test_fail_annotation_identifies_a_verdict_but_tool_errors_do_not(self):
+        def row(verdict, counted=True):
+            return {'answer': {'verdict': verdict, 'counted': counted}}
+        annotation = onboard_review.verdict_annotation([row('block'), row('block'), row('approve')], True)
+        self.assertEqual(annotation, '::error title=ONBOARD_REVIEW_VERDICT::2 of 3 counted verdicts say block')
+        self.assertIsNone(onboard_review.verdict_annotation([{'answer': None}, {'answer': None}], True))
+        self.assertIsNone(onboard_review.verdict_annotation([row('block'), row('block')], False))
+
     def test_quorum_and_majority_block(self):
         def row(verdict, counted=True):
             return {'answer': {'verdict': verdict, 'counted': counted}}
