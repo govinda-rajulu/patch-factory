@@ -76,6 +76,19 @@ class Combo(unittest.TestCase):
             self.assertNotIn('probe ran', r.stdout)
             self.assertIn('does not match its sha256', r.stdout + r.stderr)
 
+    def test_zero_exit_stop_is_not_combo_success(self):
+        with tempfile.TemporaryDirectory() as home:
+            src = pathlib.Path(home) / 'src'; src.mkdir()
+            (src / 'pf-p2.py').write_text("print('RESULT STOP: probe', flush=True)\n")
+            body = "print('RESULT OK: controller', flush=True)\n"
+            sha = hashlib.sha256(body.encode()).hexdigest()
+            ctl = src / ('pf-w16q-%s.py' % sha[:8]); ctl.write_text(body)
+            text = combo.build(str(src / 'pf-p2.py'), str(ctl), 'w16q')
+            out = pathlib.Path(home) / ('pf-w16q-combo-%s.py' % hashlib.sha256(text.encode()).hexdigest()[:8]); out.write_text(text)
+            r = self.run_combo(out, home)
+            self.assertEqual(r.returncode, 1)
+            self.assertIn('RESULT STOP:', r.stdout)
+
     def test_controller_must_carry_its_final_name(self):
         with tempfile.TemporaryDirectory() as home:
             p = pathlib.Path(home) / 'pf-w16q.py'
@@ -175,9 +188,42 @@ class ProbeP2(unittest.TestCase):
     def test_routine_lines_never_crowd_out_a_failure(self):
         with tempfile.TemporaryDirectory() as home:
             mod = load_p2(home)
-            log = b'Detected version 26.36.1\n' * 20 + b'TRANSFER_FAILED store=apkmirror try=1\n'
+            log = (b'Detected version 26.36.1\n' + b'DOWNLOAD_DIAGNOSTIC {"stage": "resolver"}\n') * 20 + b'TRANSFER_FAILED store=apkmirror try=1\n'
             mod.clues('batch', log)
             self.assertEqual([l for l in mod.lines if l.startswith('CLUE')], ['CLUE batch: TRANSFER_FAILED store=apkmirror try=1'])
+
+    def test_the_patcher_error_reaches_the_screen(self):
+        """W16q run: the Amazon Music cause was Morphe's abort line, not the store lines."""
+        with tempfile.TemporaryDirectory() as home:
+            mod = load_p2(home)
+            mod.clues('batch', b'ERROR: Patching aborted: Patching failed: Patch "Skip ads" failed\n')
+            self.assertEqual(len([l for l in mod.lines if l.startswith('CLUE') and 'Skip ads' in l]), 1)
+
+    def test_status_json_is_read_from_the_status_branch(self):
+        with tempfile.TemporaryDirectory() as home:
+            mod = load_p2(home)
+            self.assertEqual(mod.PAGES, 'https://raw.githubusercontent.com/govinda-rajulu/patch-factory/status/status.json')
+
+    def test_case_review_separates_issues_prs_and_redacts(self):
+        with tempfile.TemporaryDirectory() as home:
+            mod = load_p2(home)
+            issue = {'number': 262, 'title': 'Fail', 'body': 'token=ghp_secret', 'state': 'open', 'comments': 1,
+                     'updated_at': 'x', 'created_at': 'x', 'labels': [], 'user': {'login': 'bot', 'type': 'Bot'}, 'html_url': 'https://github.com/govinda-rajulu/patch-factory/issues/262'}
+            pr = {'number': 264, 'title': 'PR', 'body': 'safe', 'state': 'open', 'draft': False, 'updated_at': 'x',
+                  'base': {'ref': 'main', 'sha': 'a'}, 'head': {'ref': 'x', 'sha': 'b'}, 'user': {'login': 'me', 'type': 'User'}, 'html_url': 'https://github.com/govinda-rajulu/patch-factory/pull/264'}
+            comment = {'id': 1, 'body': 'bearer ABC123', 'created_at': 'x', 'updated_at': 'x', 'user': {'login': 'me', 'type': 'User'}, 'html_url': 'https://github.com/c'}
+            def fake(path, timeout=120):
+                if '/issues?' in path: return 0, [issue]
+                if '/pulls?' in path: return 0, [pr]
+                if '/issues/262/comments' in path or '/issues/264/comments' in path: return 0, [comment]
+                if '/actions/runs?' in path: return 0, {'workflow_runs': []}
+                return 1, None
+            mod.api_json = fake
+            mod.case_review()
+            data = json.loads((mod.OUT / 'case-review.json').read_text())
+            self.assertEqual((len(data['issues']), len(data['pull_requests'])), (1, 1))
+            self.assertIn('[REDACTED]', data['issues'][0]['body'])
+            self.assertIn('[REDACTED]', data['issues'][0]['comments'][0]['body'])
 
     def test_bundle_without_main_is_a_failure(self):
         with tempfile.TemporaryDirectory() as home:

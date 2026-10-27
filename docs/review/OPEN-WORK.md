@@ -1,20 +1,51 @@
 # Open work
 
+## Current checkpoint: 27 October 2026, afternoon IST (packet W16s)
+
+W16r is being widened before owner rerun. The combo now collects `case-review.json`: sanitized open issues and comments, open PRs, recent failed/cancelled/timed-out/action-required runs with bad jobs, then the fixed evidence already in P2. It never stores raw case bodies or comments. The combo also requires both child RESULT lines to say OK before it removes itself.
+
+1. Read `case-review.json` first: current open cases include #263 community observation, #262 Batch Patch, #233 Needs you, #218 tooling, #213 provider, #182 Selection, #154 Council desk and #27 repo/provider status; no open PRs in the fresh API read.
+2. Run T1 on the merge. Then fix Amazon Music: any-version fallback must not silently take APKPure 25.20.0 after APKMirror resolved 26.36.1; pin the first resolved version or refuse the downgrade. Run all 17 smokes in that packet.
+3. MCP quota/tool-call evidence, scheduled Council audit, YOLO fully off, W15g, W17a/W17b, W18.
+
+
 Maintenance history: the unused source path was removed; its implementation remains in Git history.
 
-## Current checkpoint: 27 October 2026, midday IST (packet W16q)
+## Current checkpoint: 27 October 2026, afternoon IST (packet W16r)
+
+W16q merged (#264, `af41c3e7`). Replaces item 0 and closes item 1 of the midday checkpoint below;
+items 2 to 5 there are carried.
+
+0. Amazon Music (#262), cause from the W16p T1 log (run 40441656177, job 121985185263): APKMirror transfer failed twice (wget exit 8, server error, 0 bytes); the store chain then took APKPure, whose "latest" was 25.20.0 (APKMirror and our release: 26.36.1); patch "Skip ads" failed on it (class `GetNextEntityInput` missing) and the patcher exited 1.
+   Fix by cause in its own packet: for an any-version target the second store must serve the
+   version the first store resolved (APKMirror's newest release row), or the build refuses the
+   downgrade with a clear line. Then APKMirror's retry fetches a fresh download page and link
+   instead of reusing the same one (`get_apk()` in `src/build/utils.sh`; refusal of partial files
+   stays). Store code: all 17 smokes (L112). W16r already makes the error line name the patcher
+   failure and the store used.
+1. MCP scout (run 40444460398): first attempt 503 then `TerminalQuotaError` (free tier: 20 requests
+   a day on the flash model); the lite model wrote 39 lines, the checker accepted 10, 29 already
+   wired, 0 dropped. Next: say which model and key the scout and the Council gemini seat share,
+   so one daily quota is not spent twice; log tool calls (stats) on the retry too.
+2. Council 27 Oct 03:17 UTC scheduled audit never started (L024); watch 15:17 UTC; if it is
+   missed again, dispatch mode audit (WATCH_DISPATCH only sends the default probe mode).
+3. Owner, optional: apply the W16q cleanup (2 older releases and tags) with the line in its
+   `cleanup-apply-command.txt`; preview tokens go stale after the next Pages deployment.
+
+## Midday checkpoint: 27 October 2026 (packet W16q)
 
 W16p merged (#261). Supersedes items 1 and 2 of the morning checkpoint below (they move here);
 items 3 to 7 there are carried as written.
 
-0. Amazon Music failed in the W16p T1 batch on main (run 40441656177, step "Patch apk", issue
+0. (Replaced by the afternoon item 0: the annotation read below was wrong, wrong call 89.)
+   Amazon Music failed in the W16p T1 batch on main (run 40441656177, step "Patch apk", issue
    #262 open) after its branch smoke worked. Its job annotation: "APKMirror transfer failed;
    refusing partial or empty output" after 4 s, so a store download, not a patch (no provider
    release or APKMirror version change in between). The probe prints the `TRANSFER_FAILED`
    lines (wget exit, bytes) as CLUE lines; read them and the W16q keep-going smoke. If it repeats,
    fix in `src/build/utils.sh` `get_apk()`: on retry fetch a fresh APKMirror download page and
    final link instead of reusing the same one; keep the refusal of partial files.
-1. Read the W16q combo's probe zip first. MCP scout run 40444460398: the first attempt failed
+1. (Done in W16r: see the afternoon item 1.) Read the W16q combo's probe zip first. MCP scout run 40444460398: the first attempt failed
    after 96 s (exit 1), the lighter model ran 31 s and a 617 byte result was uploaded. From the
    log: the first attempt's error (503 busy, a policy denial, or a CLI error), whether
    `mcp_github_get_file_contents` and `mcp_github_search_repositories` were called, and what the

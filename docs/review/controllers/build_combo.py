@@ -54,7 +54,8 @@ def run(path):
         print(line, end='', flush=True)
         if line.startswith('RESULT'):
             last = line.strip()
-    return p.wait(), last or 'RESULT missing (exit %s)' % p.returncode
+    code = p.wait()
+    return code, last or 'RESULT missing (exit %s)' % code
 
 
 def main():
@@ -92,7 +93,7 @@ def steps():
     print('COMBO probe: ' + res1, flush=True)
     print('COMBO packet: ' + res2, flush=True)
     me = pathlib.Path(__file__).resolve()
-    if code1 == 0 and code2 == 0:
+    if code1 == 0 and code2 == 0 and res1.startswith('RESULT OK') and res2.startswith('RESULT OK'):
         mine = me.parent == HOME and me.name.startswith('pf-%s-combo-' % PACKET) and \
             hashlib.sha256(me.read_bytes()).hexdigest().startswith(me.stem.split('-')[-1])
         if mine:
