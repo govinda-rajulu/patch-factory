@@ -10,9 +10,10 @@ Claude for Govindarajulu K (owner). One trip for the handover packet W16q:
   3. every scheduled run of the last 60 (the 27 Oct morning crons started hours late), Nightly and
      Community watch history, and the live status.json from Pages;
   4. a git bundle --all of a fresh clone of main (the next packet's starting point), verified.
-It writes nothing to GitHub and never prints a secret. Everything goes into one zip."""
+It writes nothing to GitHub and never prints a secret. Everything goes into one zip. W16s also
+sanitizes a bounded review of open issues/comments, open PRs, and recent failed/cancelled runs."""
 import json, os, pathlib, re, shutil, subprocess, sys, time
-from datetime import datetime
+from datetime import datetime, timezone
 REPO = 'govinda-rajulu/patch-factory'
 RUNS = {'40444460398': 'mcp-scout', '40444463398': 'council-probe', '40440538008': 'council-pr261',
         '40441656177': 'batch-t1-w16p'}
@@ -20,13 +21,15 @@ HISTORY = {'scheduled': 'repos/%s/actions/runs?event=schedule&per_page=60' % REP
            'nightly-watch': 'repos/%s/actions/workflows/watch.yml/runs?per_page=10' % REPO,
            'community-watch': 'repos/%s/actions/workflows/community-watch.yml/runs?per_page=10' % REPO,
            'council': 'repos/%s/actions/workflows/council.yml/runs?per_page=10' % REPO}
-PAGES = 'https://govinda-rajulu.github.io/patch-factory/status.json'
+# status.yml force-pushes status.json to the `status` branch, not to Pages (curl exit 22 on 27 Oct)
+PAGES = 'https://raw.githubusercontent.com/govinda-rajulu/patch-factory/status/status.json'
 ARTIFACT_MAX = 5 * 1024 * 1024  # W16q round 3: evidence only; a test APK is never pulled into the zip
 SKIP_ARTIFACT = ('test-apk-',)
-# failure markers only (round 3 recheck: a routine line such as "Detected version" would fill the cap)
-CLUES = ('TRANSFER_FAILED', 'STORE_CHAIN', 'DOWNLOAD_FAILURE', 'DOWNLOAD_DIAGNOSTIC', 'ATTEMPTS_FAILED',
-         'PATCH_FAILED', 'stderr was not valid JSON', 'Error when talking to Gemini',
-         'status 429', 'status 503', 'denied by policy')
+# failure markers only. W16q run (wrong call 90): DOWNLOAD_DIAGNOSTIC is printed on every store
+# page, so 12 of them filled the cap and the patcher's own error stayed off the owner's screen.
+CLUES = ('TRANSFER_FAILED', 'STORE_CHAIN', 'DOWNLOAD_FAILURE', 'ATTEMPTS_FAILED', 'PATCH_FAILED',
+         'Patching aborted', 'ERROR: FAILED', 'refusing to release', 'stderr was not valid JSON',
+         'Error when talking to Gemini', 'TerminalQuotaError', 'status 429', 'status 503', 'denied by policy')
 COPY_MAX = 200 * 1024 * 1024  # W16q: a local log folder above this is named, not copied
 STAMP = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
 HOME = pathlib.Path(os.environ.get('PF_HOME', str(pathlib.Path.home())))
@@ -108,6 +111,109 @@ def artifacts(run, name):
         say('OK' if code == 0 else 'FAIL', '%s artifact %s (%d bytes)' % (name, a['name'], a.get('size_in_bytes', 0)))
     if not rows:
         say('NOTE', '%s run %s has no artifacts' % (name, run))
+
+
+MAX_TEXT = 800
+CASE_WINDOW = '2026-10-20T00:00:00Z'
+TOKENISH = re.compile(r'(?i)(ghp_[A-Za-z0-9_\-]+|github_pat_[A-Za-z0-9_\-]+|bearer\s+[A-Za-z0-9._\-]+|(?:token|secret|api[_-]?key)\s*[:=]\s*[^\s,;]+)')
+
+
+def clean_text(value, limit=MAX_TEXT):
+    text = re.sub(r'[\x00-\x1f\x7f\u202a-\u202e\u2066-\u2069]', ' ', str(value or ''))
+    text = TOKENISH.sub('[REDACTED]', text)
+    return text[:limit]
+
+
+def api_json(path, timeout=120):
+    code, out = gh(['api', path, '-H', 'Accept: application/vnd.github+json',
+                    '-H', 'X-GitHub-Api-Version: 2022-11-28'], timeout=timeout)
+    return code, loads(out, None)
+
+
+def person(row):
+    u = row.get('user') or {}
+    return {'login': clean_text(u.get('login'), 120), 'type': clean_text(u.get('type'), 40)}
+
+
+def project_issue(row):
+    return {'number': row.get('number'), 'title': clean_text(row.get('title'), 300),
+            'body': clean_text(row.get('body')), 'state': row.get('state'),
+            'updated_at': row.get('updated_at'), 'created_at': row.get('created_at'),
+            'comments_count': row.get('comments', 0), 'labels': [clean_text(x.get('name'), 100) for x in row.get('labels', [])],
+            'author': person(row), 'html_url': row.get('html_url')}
+
+
+def project_comment(row):
+    return {'id': row.get('id'), 'body': clean_text(row.get('body')), 'created_at': row.get('created_at'),
+            'updated_at': row.get('updated_at'), 'author': person(row), 'html_url': row.get('html_url')}
+
+
+def project_pr(row):
+    base, head = row.get('base') or {}, row.get('head') or {}
+    return {'number': row.get('number'), 'title': clean_text(row.get('title'), 300), 'body': clean_text(row.get('body')),
+            'state': row.get('state'), 'draft': row.get('draft'), 'updated_at': row.get('updated_at'),
+            'base': {'ref': clean_text(base.get('ref'), 100), 'sha': base.get('sha')},
+            'head': {'ref': clean_text(head.get('ref'), 100), 'sha': head.get('sha')},
+            'author': person(row), 'html_url': row.get('html_url')}
+
+
+def project_run(row):
+    return {'id': row.get('id'), 'run_number': row.get('run_number'), 'run_attempt': row.get('run_attempt'),
+            'name': clean_text(row.get('name'), 300), 'path': row.get('path'), 'event': row.get('event'),
+            'status': row.get('status'), 'conclusion': row.get('conclusion'), 'head_branch': clean_text(row.get('head_branch'), 160),
+            'head_sha': row.get('head_sha'), 'created_at': row.get('created_at'), 'updated_at': row.get('updated_at'),
+            'html_url': row.get('html_url')}
+
+
+def case_review():
+    """Bounded, sanitized owner handover: cases, conversations, PRs, and recent bad runs."""
+    result = {'schema': 1, 'generated_at': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'), 'repo': REPO,
+              'coverage': {'errors': [], 'window_from': CASE_WINDOW}, 'issues': [], 'pull_requests': [],
+              'recent_runs': [], 'counts': {}}
+    code, rows = api_json('repos/%s/issues?state=open&sort=updated&direction=desc&per_page=100&page=1' % REPO)
+    if code == 0 and isinstance(rows, list):
+        for row in rows:
+            if 'pull_request' not in row:
+                item = project_issue(row)
+                cc, comments = api_json('repos/%s/issues/%s/comments?per_page=100&page=1' % (REPO, row.get('number')))
+                item['comments'] = [project_comment(x) for x in comments] if cc == 0 and isinstance(comments, list) else []
+                item['comments_complete'] = cc == 0
+                result['issues'].append(item)
+    else:
+        result['coverage']['errors'].append('open issues unreadable')
+    code, rows = api_json('repos/%s/pulls?state=open&sort=updated&direction=desc&per_page=100&page=1' % REPO)
+    if code == 0 and isinstance(rows, list):
+        for row in rows:
+            item = project_pr(row)
+            cc, comments = api_json('repos/%s/issues/%s/comments?per_page=100&page=1' % (REPO, row.get('number')))
+            item['comments'] = [project_comment(x) for x in comments] if cc == 0 and isinstance(comments, list) else []
+            item['comments_complete'] = cc == 0
+            result['pull_requests'].append(item)
+    else:
+        result['coverage']['errors'].append('open PRs unreadable')
+    code, rows = api_json('repos/%s/actions/runs?created=>=%s&per_page=100&page=1' % (REPO, CASE_WINDOW))
+    if code == 0 and isinstance(rows, dict):
+        for row in rows.get('workflow_runs', []):
+            if row.get('conclusion') in ('failure', 'cancelled', 'timed_out', 'action_required'):
+                item = project_run(row)
+                jc, jobs = api_json('repos/%s/actions/runs/%s/attempts/%s/jobs?per_page=100&page=1' % (REPO, row.get('id'), row.get('run_attempt') or 1))
+                if jc == 0 and isinstance(jobs, dict):
+                    item['bad_jobs'] = [{'id': j.get('id'), 'name': clean_text(j.get('name'), 240), 'conclusion': j.get('conclusion'),
+                                         'failed_steps': [clean_text(x.get('name'), 160) for x in j.get('steps', []) if x.get('conclusion') in ('failure', 'cancelled', 'timed_out')]} for j in jobs.get('jobs', []) if j.get('conclusion') in ('failure', 'cancelled', 'timed_out')]
+                result['recent_runs'].append(item)
+    else:
+        result['coverage']['errors'].append('recent runs unreadable')
+    result['counts'] = {'open_issues': len(result['issues']), 'open_prs': len(result['pull_requests']),
+                        'issue_comments': sum(len(x['comments']) for x in result['issues']),
+                        'pr_comments': sum(len(x['comments']) for x in result['pull_requests']),
+                        'recent_bad_runs': len(result['recent_runs'])}
+    dest = OUT / 'case-review.json'
+    dest.write_text(json.dumps(result, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+    if result['coverage']['errors']:
+        say('NOTE', 'case review partial: ' + ', '.join(result['coverage']['errors']))
+    say('OK', 'CASE REVIEW: issues=%d; prs=%d; comments=%d; recent_bad_runs=%d; file=%d bytes' %
+        (result['counts']['open_issues'], result['counts']['open_prs'], result['counts']['issue_comments'] + result['counts']['pr_comments'],
+         result['counts']['recent_bad_runs'], dest.stat().st_size))
 
 
 def git_bundle():
@@ -222,6 +328,7 @@ def reads():
         ok = isinstance(data, dict) and isinstance(data.get('workflow_runs'), list)
         say('OK' if ok else 'FAIL', 'history %s (%d bytes%s)' % (name, len(out), '' if ok else ', unreadable'))
     status_json()
+    case_review()
     return finish()
 
 

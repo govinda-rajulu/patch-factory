@@ -35,6 +35,13 @@ import preflight  # noqa: E402
 
 WINNER = re.compile(r'\[\+\] winner=([A-Za-z0-9_-]+) ')
 REASON = re.compile(r'\[-\] .{1,240}')
+# Only fatal output markers belong in an attempt reason; a recoverable utils warning is [ - ] too.
+RECOVERABLE = "[-] Can't found lastest user-agent"
+# W16r (#262): the attempt's reason is the line that ENDED it. The Amazon Music T1 failure was
+# reported as its first red line (an APKMirror transfer the store chain recovered from); the
+# patcher then failed on the APKPure APK. Morphe's abort line wins, else the last red line.
+PATCH_ABORT = re.compile(r'Patching aborted: (.{1,200})')
+STORE_USED = re.compile(r'STORE_CHAIN used ([A-Za-z0-9_-]+)')
 ANSI = re.compile(r'\x1b\[[0-9;]*m')
 
 
@@ -123,7 +130,7 @@ def cleanup_store_services(root, env):
 
 
 def attempt(root, ident, env, log):
-    winner, reason = None, None
+    winner, reason, abort, store = None, None, None, None
     # restore_signals=False: build.sh keeps SIGPIPE ignored, as in a plain Actions step. Python's
     # default resets it, and `unzip -l | grep -q` under pipefail then dies with 141 (W13 smoke, L052).
     with subprocess.Popen(['bash', 'src/build/build.sh', ident], cwd=root, env=env, stdout=subprocess.PIPE,
@@ -137,8 +144,20 @@ def attempt(root, ident, env, log):
             if m:
                 winner = m[1]
             m = REASON.search(line)
-            if m and reason is None:
+            if m and RECOVERABLE not in m[0]:
                 reason = m[0].strip()
+            m = PATCH_ABORT.search(line)
+            if m:
+                abort = m[1].strip()
+            if 'VERSION_STEP_DOWN ' in line or 'VARIANT_RETRY ' in line:
+                store = None
+            m = STORE_USED.search(line)
+            if m:
+                store = m[1]
+    if abort:
+        reason = 'patcher: ' + abort.rstrip(';')
+    if reason and store:
+        reason = '%s; APK from %s after the first store failed' % (reason, store)
     return p.returncode, winner, reason
 
 

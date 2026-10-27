@@ -67,6 +67,48 @@ class Attempts(unittest.TestCase):
         self.assertFalse((self.r / 'download').exists())
         self.assertEqual(json.loads((self.r / 'src/targets.json').read_text())[0]['max_app_version'], '1.0')
 
+    def log(self):
+        path = self.r.parent / (self.r.name + '.attempt.log')
+        self.addCleanup(lambda: path.exists() and path.unlink())
+        return path
+
+    def test_the_reason_is_the_line_that_ended_the_attempt(self):
+        """W16r (#262): a recovered store error must not stand for a later patcher failure."""
+        (self.r / 'src/build/build.sh').write_text(
+            '#!/bin/bash\necho "[+] winner=a (o/r) app=1"\n'
+            'echo "[-] APKMirror transfer failed; refusing partial or empty output"\n'
+            'echo "STORE_CHAIN apkmirror failed for p latest; trying apkpure"\necho "STORE_CHAIN used apkpure"\n'
+            'echo "ERROR: Patching aborted: Patching failed: Patch \\"Skip ads\\" failed: Could not find class: Lx;"\n'
+            'echo "[-] patcher exited 1 - refusing to release"\nexit 1\n')
+        t = json.loads((self.r / 'src/targets.json').read_text())
+        t[0]['fallback'] = False
+        (self.r / 'src/targets.json').write_text(json.dumps(t, indent=2) + '\n')
+        rc, winner, reason = build_attempts.attempt(self.r, 'x', dict(os.environ), self.log())
+        self.assertEqual(rc, 1)
+        self.assertEqual(reason, 'patcher: Patching failed: Patch "Skip ads" failed: Could not find class: Lx; '
+                                 'APK from apkpure after the first store failed')
+        self.assertNotIn('APKMirror transfer', reason)
+
+    def test_without_a_patcher_line_the_last_red_line_is_the_reason(self):
+        (self.r / 'src/build/build.sh').write_text(
+            '#!/bin/bash\necho "[+] winner=a (o/r) app=1"\necho "[-] first"\necho "[-] last one"\nexit 2\n')
+        rc, winner, reason = build_attempts.attempt(self.r, 'x', dict(os.environ), self.log())
+        self.assertEqual((rc, winner, reason), (2, 'a', '[-] last one'))
+
+    def test_store_marker_is_not_reused_after_a_version_step_down(self):
+        (self.r / 'src/build/build.sh').write_text(
+            '#!/bin/bash\necho "[+] winner=a (o/r) app=1"\necho "STORE_CHAIN used apkpure"\n'
+            'echo "VERSION_STEP_DOWN step=1"\necho "[-] final patch failure"\nexit 1\n')
+        rc, winner, reason = build_attempts.attempt(self.r, 'x', dict(os.environ), self.log())
+        self.assertEqual((rc, winner, reason), (1, 'a', '[-] final patch failure'))
+
+    def test_recoverable_user_agent_warning_is_not_the_reason(self):
+        (self.r / 'src/build/build.sh').write_text(
+            '#!/bin/bash\necho "[+] winner=a (o/r) app=1"\necho "[-] Can\x27t found lastest user-agent"\n'
+            'echo "[-] actual fatal"\nexit 1\n')
+        rc, winner, reason = build_attempts.attempt(self.r, 'x', dict(os.environ), self.log())
+        self.assertEqual(reason, '[-] actual fatal')
+
     def test_every_candidate_fails(self):
         rc, out = self.run_it(FAIL='all')
         self.assertEqual(rc, 3)

@@ -6,7 +6,40 @@ Newest checkpoint first. Each section is a dated snapshot; verify live before ac
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W16q (27 Oct 2026, midday IST): start here
+## W16s (27 Oct 2026, afternoon IST): start here
+
+- **Purpose**: expand the owner combo into a bounded handover collector: sanitized open issues and comments, open PRs, recent failed/cancelled runs with bad jobs, fixed run evidence, workflow histories, status branch, local logs, and a fresh main bundle.
+- **Fresh main read before work**: `af41c3e794396946ea371a2d2da048378f2ba113`, tree `8025371c6d49fc3a31389d16b0ebe780482d1670`; open cases currently include #263, #262, #233, #218, #213, #182, #154 and #27; no open PRs.
+- **W16s changes**: P2 writes sanitized `case-review.json`; combo refuses semantic child success unless both children print `RESULT OK`; tests cover issue/PR separation and redaction. All resources used: fresh live API, official API/CLI docs, repository source, four fresh review agents, focused tests, full suite, and controller rehearsal.
+- **Next**: W16s controller runs the T1 after merge; inspect the case-review JSON first, then fix Amazon Music store-version fallback and review the open cases.
+
+## W16r (27 Oct 2026, afternoon IST): start here
+
+- **Read first**: docs/review/HANDOVER-2026-10-27.md (section 0, the W16r addendum, then the rest)
+  and docs/review/OPEN-WORK.md (current checkpoint).
+- **W16q merged** as #264 (`af41c3e7`, 27 Oct 13:31 IST, tree `8025371c` = packet plus the bot
+  file); Validate on main green (run 40470661473). Its combo ran: probe P2 OK (zip of evidence),
+  Amazon Music keep-going smoke on the branch worked (run 40470259640, APKMirror, 26.36.1).
+  Cleanup preview (2 older releases and tags: facebook 584 older build, tc-combo 26.41.5) not applied.
+- **#262 cause, from the log** (the annotation alone misled): APKMirror transfer failed twice (wget exit 8, server error, 0 bytes); the store chain then took APKPure, whose "latest" was 25.20.0 (APKMirror and our release: 26.36.1); patch "Skip ads" failed on it (class `GetNextEntityInput` missing) and the patcher exited 1. The job's error line named the
+  first red line, not the one that ended the attempt.
+- **W16r** (this packet): `build_attempts.py` names the line that ended the attempt (Morphe's
+  abort line, else the last red line) and the store the APK came from; probe P2 CLUE lines and
+  the status.json address (the `status` branch) fixed; records corrected; T1 on the merge.
+- **MCP scout first attempt**: 503 "high demand", then `TerminalQuotaError` (free tier: 20 requests
+  a day on the flash model); the lite model ran; checker: 10 accepted, 29 already wired, 0 dropped.
+  Whether the two MCP tools were called is not in the log (non-debug retry).
+- **Council**: probe dispatch 40444463398: all 9 seats OK (slowest nemotron 98 s). The 27 Oct
+  03:17 UTC scheduled audit never started (none by 07:51 UTC); next 15:17 UTC.
+- **Wrong calls**: 90 (89: W16q records called Amazon Music "not a patch, before any patching"
+  from the annotation alone. 90: probe CLUE lines let DOWNLOAD_DIAGNOSTIC fill the cap and missed
+  Morphe's abort line; its status.json address was Pages, not the `status` branch).
+- **Open red**: #262 until a green Batch Patch on main (W16r runs T1 on its merge).
+- **Next**: any-version store fallback must not take an older app than the first store resolved
+  (pin that version on the second store or refuse the downgrade; all 17 smokes, L112); APKMirror
+  retry with a fresh link; MCP quota; YOLO fully off; W15g; W17a and W17b; W18.
+
+## W16q (27 Oct 2026, midday IST)
 
 - **Read first**: docs/review/HANDOVER-2026-10-27.md (this chat's map) and the probe zip the W16q
   combo made (`pf-p2-*.zip`: first live MCP scout and Council probe logs, W16p controller and T1
