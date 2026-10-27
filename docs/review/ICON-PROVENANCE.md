@@ -141,3 +141,7 @@ hotstar and mxplayer come from the same URLs as the shipped tiles.
 | `photos` | https://play-lh.googleusercontent.com/kErBTF4VcGwhtKbCr80Bs2R1lNZiYkHbKcf1i3ZF6dg_5LqDAlCI4wU-nzwvo7PAbxeBXM_tv1hc11gr4aIIW-Q |
 
 Conversion (W16v review): JPEG or WebP fetches are converted to PNG and resized before the gate; the original bytes and sha256 stay in `icons/icons.json` for provenance.
+
+## 28 October 2026 (W16v): refresh shipped
+
+Probe P2 fetched 8 of the 9 owner URLs (ES File on Uptodown answered an HTTP error; its tile stays a monogram). Hotstar and MX Player came back byte for byte the shipped tiles. Amazon Music, Edge, LinkedIn, Google Photos and Reddit now ship the 240 px Play icons (PNG, under 64 KB, checked by eye); sizes and sha256 in docs/assets/NOTICE.txt. CCleaner is a disabled target and gets no tile.

@@ -771,6 +771,13 @@
       "call": "drop",
       "id": "W16l-ccleaner-telemetry",
       "date": "2026-10-25"
+    },
+    {
+      "target": "instagram",
+      "name": "Custom font",
+      "call": "drop",
+      "id": "N-421628",
+      "date": "2026-10-28"
     }
   ],
   "watch": [

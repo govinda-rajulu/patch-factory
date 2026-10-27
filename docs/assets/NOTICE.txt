@@ -129,3 +129,26 @@ logos/mxplayer.png
   source: owner-supplied Google Play icon for MX Player, https://play-lh.googleusercontent.com/pL-FlnQwdyKetEhT_Uzre61MnGKhMgLC7wnV12KgC_wrQbU0UbSkYs4T5fQQWL_QLZZ48fl1mBmN-cNbc1wSZA=w240-h480
   licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
   tile: fetched by the packet T1 controller 20261007T065326Z; sha256 a602a7e7c900cba9a32c62c9f3128367459064d53a6cad32962ab7c51a04af11
+
+28 October 2026 refresh (packet W16v): official Google Play icons from the URLs the owner gave on 27 Oct 2026,
+fetched by probe P2 at 240 px (PNG, checked by eye and by the gate). These entries supersede earlier entries for the same files.
+logos/amazonmusic.png
+  source: owner-supplied Google Play icon for Amazon Music (com.amazon.mp3), https://play-lh.googleusercontent.com/9v2z1-7g8pWbxek8IW3Q9gGsAqD-YkTvy_rmyd4Cfb-OkpVR2T6jt-Ev2eKDcvx72njhCQ_4fEd9qg8-T9AaDA=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 32279 bytes; sha256 3dd5eb189763b3d13b1a27d0320c75430068262bad1c9a939ef065a869ef6b15
+logos/edge.png
+  source: owner-supplied Google Play icon for Microsoft Edge (com.microsoft.emmx), https://play-lh.googleusercontent.com/4Z1Nt1I9HUDevt5VJ7BmgpqSTUpsC0Ei1K-IiXSmkH5Dzorz_isDzq4qdpb75RA1SfOV7v6csav-atWBur1wJQM=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 19902 bytes; sha256 b50c3f4285ef6924275b6e2ca1ad355ed514d7ffd4b32e442cd1f26cd62479b3
+logos/linkedin.png
+  source: owner-supplied Google Play icon for LinkedIn (com.linkedin.android), https://play-lh.googleusercontent.com/oij55bxj3e-4JrhGntpki0lnQyE8yQn8X5FPEzZ0t7cLppeiSINynEk7n9COoh7QSaCOZ_yiPO31NVaW4SDbWg=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 5008 bytes; sha256 dffbe865da77a4865b11c7c8686259ac31213d2c7b61a672c23eb5cac5bff4b5
+logos/photos.png
+  source: owner-supplied Google Play icon for Google Photos (com.google.android.apps.photos), https://play-lh.googleusercontent.com/kErBTF4VcGwhtKbCr80Bs2R1lNZiYkHbKcf1i3ZF6dg_5LqDAlCI4wU-nzwvo7PAbxeBXM_tv1hc11gr4aIIW-Q=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 11681 bytes; sha256 b82152bf6b9f33014c54f8f77882680242e520100bdd90acb97a312685c698fd
+logos/reddit.png
+  source: owner-supplied Google Play icon for Reddit (com.reddit.frontpage), https://play-lh.googleusercontent.com/8FVS0kvM60JwqZWRNzBIlwrZZxJa8vpli8IWaaTo8QXRe1PHmCNJ8UpWoXkGPV3jKEaTY2OVAeYoisOnGJXY=w240-h480
+  licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
+  tile: fetched by probe P2 20261027T180743Z, PNG 240x240, 17275 bytes; sha256 e782da14890b60d96f4acadcceb2aeb9df8978e124ac0ac33269f71c31afeb0b
