@@ -235,19 +235,6 @@
         "options": "ftl",
         "owner": "BlazeFTL",
         "repo": "FTL-Patches"
-      },
-      {
-        "name": "rushiranpise-fallback",
-        "host": "github",
-        "channel": "prerelease",
-        "patch_dir": "esfile-rushiranpise-fallback",
-        "options": "rushiranpise-esfile",
-        "owner": "rushiranpise",
-        "repo": "morphe-patches",
-        "fallback": true,
-        "overrides": {
-          "extra_bundles": []
-        }
       }
     ],
     "tag_prefix": "es-file",

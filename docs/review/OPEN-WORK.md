@@ -9,8 +9,9 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 - **Owner:** File the upstream Obtainium issue using the text and steps in [OBTAINIUM-SIGNER-2026-10-27.md](OBTAINIUM-SIGNER-2026-10-27.md); test same-version patch-only notification and installed-setting migration.
 - Move the Instagram pin when piko supports build 385914182 or newer; keep the piko/brosssh held names for a provider update ([W15G-MAP.md](W15G-MAP.md); [instagram onboarding](onboarding/instagram.md)).
 - Restore hoo-dles to prerelease when morphe-desktop stable reads its new bundles ([W17-BRIEF.md](W17-BRIEF.md)).
-- **Owner:** After W16w: uninstall LinkedIn, install the fresh stable-v1.1.1 build, open it once, check Me panel > Michii Patches and the icon long-press ([onboarding/linkedin.md](onboarding/linkedin.md)).
-- Watch the first fallback builds of MX Player (MightyMichs) and ES File (rushiranpise-fallback): they carry other patches than ftl ([onboarding/mxplayer.md](onboarding/mxplayer.md), [onboarding/esfile.md](onboarding/esfile.md)).
+- **Owner:** After W16w: uninstall LinkedIn, install the fresh stable build (v1.2.0 with Material You), open it once, check Me panel > Michii Patches (below Saved posts) and the icon long-press ([onboarding/linkedin.md](onboarding/linkedin.md)).
+- Watch the first fallback build of MX Player (MightyMichs): it carries other patches than ftl ([onboarding/mxplayer.md](onboarding/mxplayer.md)).
+- ES File fallback (rushiranpise built alone, Unlock VIP Lifetime): add it after W16w merges, when main's checker honours overrides.extra_bundles; read the live release first (wrong call 102).
 - Telegram rahul9999xda is on watch until we build 13.1.1 (DECISIONS.json watch, N-55429f).
 - Build the W15g signing split in its own packet: keyless `--unsigned` patch job, isolated apksigner job, sha256 handoff, nonpublishing batch, publishing build and owner phone test ([W15G-MAP.md](W15G-MAP.md); [SIGNING-SPLIT.md](SIGNING-SPLIT.md)).
 - W16w runs the MCP scout without `run-gemini-cli` (YOLO off, default approval, two read tools, lite model apart from the Council seat, QUOTA fail-fast): prove it with one dispatch after the merge ([MCP-PLAN.md](MCP-PLAN.md)).

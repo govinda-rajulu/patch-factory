@@ -1,7 +1,7 @@
 # Instagram (instagram)
 
 Package: com.instagram.android
-Source APK: APKPure, the newest version the provider supports (source "apkpure" in src/targets.json)
+Source APK: APKMirror, pinned build 452.1.0.53.64 version code 385811006, dpi 480-640dpi (source "apkmirror" in src/targets.json; owner, 28 Oct 2026, W16w: the second 452.1.0.53.64 file, 385914182, breaks three piko patches)
 Provider: crimera/piko (primary, channel prerelease) with brosssh/morphe-patches (extra bundle, channel prerelease); recorded here from packet W13 on.
 Provider: SysAdminDoc/HushGram (fallback only; licence: GPL-3.0, checked against the GitHub licence API by the W13 controller before anything is pushed; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Same author as SysAdminDoc/HushFacebook, the Facebook provider.
 

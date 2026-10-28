@@ -127,7 +127,7 @@ that leaves this block stale, so it cannot drift.
 |---|---|---|---|---|---|
 | AdGuard | `adguard` | `adguard` | apkmirror | rushiranpise + hoo-dles | yes |
 | Amazon Music | `amazonmusic` | `amazonmusic` | apkmirror | rookieenough | yes |
-| ES File Explorer | `esfile` | `es-file` | apkmirror | ftl + rushiranpise (fallback: rushiranpise-fallback) | yes |
+| ES File Explorer | `esfile` | `es-file` | apkmirror | ftl + rushiranpise | yes |
 | Facebook | `facebook` | `facebook` | apkmirror | hushfacebook (fallback: derevanced) | yes |
 | Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise + akash | yes |
 | Instagram | `instagram` | `instagram` | apkmirror | piko + brosssh (fallback: hushgram, oxbow) | yes |

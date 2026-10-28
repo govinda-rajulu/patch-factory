@@ -158,7 +158,7 @@ Truecaller row). Every other morning item is carried as written there.
    its failing issue (#249, #248, #250) through Notify. MCP scout
    MODEL_UNAVAILABLE means both named models failed: read the Gemini step stderr (503 busy: run
    again later; 404 or invalid model: rename the models from gemini-cli's models.ts).
-2. W16o build hardening ([AUDIT-2026-10-26.md](AUDIT-2026-10-26.md) rows marked W16o): patcher
+2. W16o build hardening ([AUDIT-2026-10-26.md](../AUDIT-2026-10-26.md) rows marked W16o): patcher
    environment allowlist; predictable /tmp files; host-bound downloads, atomic tool downloads,
    Docker helpers on localhost; digests for store APKs, GitLab bundles and extra .mpp files;
    recorded patcher version; pup replaced by a stdlib helper; FlareSolverr v3.5.2
@@ -167,10 +167,10 @@ Truecaller row). Every other morning item is carried as written there.
    pinned; community_discover and community_all count a doubled repository once; manual
    dispatch builds only from main. Gemini CLI warns that tools.exclude goes away in 1.0 (Policy
    Engine): move mcp-scout.yml before that version is pinned.
-3. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)), its own packet: full
+3. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)), its own packet: full
    nonpublishing batch, one publishing build, owner phone test. Keyless patch job keeps a
    writable JAR folder (L105).
-4. W17a and W17b Add app ([W17-BRIEF.md](W17-BRIEF.md)). Owner answers, 26 Oct: Add target
+4. W17a and W17b Add app ([W17-BRIEF.md](../W17-BRIEF.md)). Owner answers, 26 Oct: Add target
    dispatches both provider-named smokes with no new secret; the owner merges and publishes;
    monogram logo; no safe names gives a disabled target plus a Needs you item; a third provider
    waits until its own smoke passes.
@@ -183,7 +183,7 @@ Truecaller row). Every other morning item is carried as written there.
    proven lost. Late runs are GitHub load (docs/SCHEDULES.md). Re-read the run list once those 4
    are past their grace before calling any of them lost.
 8. Other repositories, each by its own pull request: copy
-   [knowledge/handbook/REVIEW-METHOD.md](../../knowledge/handbook/REVIEW-METHOD.md) into openskip and
+   [knowledge/handbook/REVIEW-METHOD.md](../../../knowledge/handbook/REVIEW-METHOD.md) into openskip and
    brain; the shared handbook's AGENT-PERSONAS.md "fixed shift slots" and FREE-LLM-APIS pointer
    to a "8 Oct section" are still open in both.
 9. Not known: which repository the live index listed twice on 26 Oct (that run kept no raw index;
@@ -194,12 +194,12 @@ Truecaller row). Every other morning item is carried as written there.
 Everything still open from the 23 to 26 Oct chat, in order. Older checkpoints below keep their
 detail; an item listed here wins over its older wording.
 
-1. W17: owner-only Add app from Pages ([W17-BRIEF.md](W17-BRIEF.md)). The owner answers its three
+1. W17: owner-only Add app from Pages ([W17-BRIEF.md](../W17-BRIEF.md)). The owner answers its three
    open questions (smokes on a bot pull request, who merges, logos) before code.
 1a. W18 combo planner (owner idea, W16j). Older records call it "W17 combo planner" (25 Oct) and
    "W15f combo planner" (21 Oct); the label moved on 26 Oct (wrong call 69). Plan and first data:
-   [W17-BRIEF.md](W17-BRIEF.md), section "W18 combo planner".
-2. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)). morphe-desktop is unpinned, so
+   [W17-BRIEF.md](../W17-BRIEF.md), section "W18 combo planner".
+2. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)). morphe-desktop is unpinned, so
    `--unsigned` needs a capability check first; it ends with one publishing build the owner
    installs over the current app.
 3. CCleaner is disabled: MightyMichs v1.12.0 misses both fingerprints on 26.08.0 (provider issue
@@ -230,7 +230,7 @@ detail; an item listed here wins over its older wording.
 9. Owner phone tests: Truecaller with MicroG RE, Telegram, Reddit 2026.41, Instagram piko,
    Facebook 584.
 10. Mirror the generic parts of the assistant sandbox notes
-    ([controllers/README.md](controllers/README.md)) into the openskip handbook, from an openskip
+    ([controllers/README.md](../controllers/README.md)) into the openskip handbook, from an openskip
     chat by its own pull request (house rule 6).
 11. Carried from the 20 to 25 Oct checkpoints below (third check on 26 Oct; status from the repo,
     not re-tested live). Still open:
@@ -244,7 +244,7 @@ detail; an item listed here wins over its older wording.
       apkeep or the APKPure API as an extra source.
     - Speed: a 1-app Check new patch took 6 min against a 5 min target (24 Oct); a tool cache saves
       under 15 s per app.
-    - Retire or regenerate [UNREVIEWED.tsv](UNREVIEWED.tsv) (21 Oct).
+    - Retire or regenerate [UNREVIEWED.tsv](../UNREVIEWED.tsv) (21 Oct).
     - Council: read the desk after a week of v4; split the onboarding agent job so comments come
       from a separate job (safe outputs); triage and digest templates for the Runner seat.
     - Other repos, each by its own pull request: openskip and brain AGENT-PERSONAS.md and
@@ -380,7 +380,7 @@ Kilo and Z.AI council seats. Open, in order:
 
 W16 (one pull request from dev/w16): audit, Reddit on official Morphe v1.48.0 with Adobo fallback,
 shadow jobs only for apps that build, plain release notes and cards, one daily Needs you issue,
-council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](history/SESSION-2026-10-24.md). Open, in order:
+council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](SESSION-2026-10-24.md). Open, in order:
 
 0. Owner: after the merge, one Batch Patch for reddit with publish on. Phone: Morphe Reddit is
    2026.41.0 (42 needs Android 12); if the installed patched Reddit is 42, uninstall it first, then
@@ -393,7 +393,7 @@ council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](history/SESSIO
    combo planner); the shadow source step steps down for Android version like the build.
 3. Weekly agent repo review: shipped in W16c (one issue per verified finding, label review).
    Owner, phone after W16c: Reddit 41 again (now without Disable modern home), Instagram on piko.
-4. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)), needs a phone test.
+4. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)), needs a phone test.
 5. Still open from 23 Oct and 20 Oct: Instagram piko on 452.1 (W16c holds the broken brosssh patch); five apps with one store (W16c:
    second store added for all five);
    Combo planner; zizmor; persona pull requests; openskip mirror of
@@ -413,12 +413,12 @@ Hushfacebook 0.17.0 (owner); Reddit 2026.42.0 retired (owner: delete it; src/etc
 so 2026.41.0 publishes again; council: Kilo and Z.AI, a seat with broken JSON moves to its next
 model, seats re-listed from the probe, the Sunday model watch on the desk; CodeQL: three fixes, the
 onboarding head is fetched as data only; T1 calls fallback builds a finding (L077).
-Record: [SESSION-2026-10-23.md](history/SESSION-2026-10-23.md). Open, in order:
+Record: [SESSION-2026-10-23.md](SESSION-2026-10-23.md). Open, in order:
 
 0. Owner, phone: Facebook 584 installs over the current patched Facebook (same key). Reddit 41 is
    older than the installed 42: uninstall the patched Reddit first, then install 41 (sign in again).
    Re-import the Obtainium JSON if not done since W15h.
-1. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`.
+1. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`.
 2. Done in this packet: docs/review/onboarding/facebook.md now records Facebook 584.0.0.51.56
    with HushFacebook 0.17.0; its older 583 entry remains only as history.
 3. (W16c: held in instagram-brosssh/exclude-patches; see onboarding/instagram.md.) Instagram: piko's "Disable story auto flipping" no longer matches Instagram 452.1 (HushGram
@@ -433,7 +433,7 @@ Record: [SESSION-2026-10-23.md](history/SESSION-2026-10-23.md). Open, in order:
 W15f merged (#210, `db32d516`), published and cleaned up (one release per app). W15h: Obtainium
 certificate pin, tooling watch v2 over 13 upstreams (L074), empty API answers asked again (L075),
 council v4 (seat backups, model discovery, pacing, audit memory; Cloudflare wired).
-Record: [SESSION-2026-10-22.md](history/SESSION-2026-10-22.md), W15h section. Open, in order:
+Record: [SESSION-2026-10-22.md](SESSION-2026-10-22.md), W15h section. Open, in order:
 
 0. Owner, once: re-import the Obtainium JSON from the page (needs Obtainium 1.6.16 or newer) so
    the certificate pin reaches the phone.
@@ -441,7 +441,7 @@ Record: [SESSION-2026-10-22.md](history/SESSION-2026-10-22.md), W15h section. Op
    seat, docs/council/SETUP.md); optional $10 OpenRouter credit (50 to 1000 free calls a day).
    Owner clicks, optional: Settings > Code security > CodeQL "Default"; CodeRabbit app on this
    repository only (free on public repositories).
-2. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`;
+2. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`;
    needs a phone test. Reddit stays on the kept 2026.42.0 (owner, 22 Oct).
 3. Combo planner and ceiling memory (LinkedIn step-downs).
 4. From the Tooling watch issue: FlareSolverr digest bump, pup to htmlq, apkeep / APKPure API as
@@ -455,10 +455,10 @@ Record: [SESSION-2026-10-22.md](history/SESSION-2026-10-22.md), W15h section. Op
 
 W15e merged (#208, `f3d91337`; cleanup applied); Rule merge merged #207 itself (`c1fa3d3d`). T1
 stopped on that merge (L072). W15f: Rule merges count as bot drift in the controller and T1; T1
-reruns on main; council v3 from the outside-repo review ([OUTSIDE-REPOS-2026-10-22.md](OUTSIDE-REPOS-2026-10-22.md)). Open, in order:
+reruns on main; council v3 from the outside-repo review ([OUTSIDE-REPOS-2026-10-22.md](../OUTSIDE-REPOS-2026-10-22.md)). Open, in order:
 
 0. After W15f: check that every app has one release again (the fresh set) and no orphan tag is left.
-1. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)); it ends with one publishing build
+1. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)); it ends with one publishing build
    the owner installs over the current app, so it runs when he can test the phone.
 2. Combo planner and ceiling memory (LinkedIn step-downs).
 3. Facebook: owner installs the kept 0.16.1 build (never 0.16.0).
@@ -471,11 +471,11 @@ reruns on main; council v3 from the outside-repo review ([OUTSIDE-REPOS-2026-10-
 
 W15d merged (#204, `ab8423a8`; T1 0 findings). W15e: readable bot reports, Rule merge fixed
 (#207 then merges itself), personas and solo shifts, one release kept per app, merged branches
-and superseded issues cleaned. Record: [SESSION-2026-10-22.md](history/SESSION-2026-10-22.md). Open, in order:
+and superseded issues cleaned. Record: [SESSION-2026-10-22.md](SESSION-2026-10-22.md). Open, in order:
 
 1. After the merge: Rule merge merges #207 within its 20 min patience or the next cron; read the
    RULE_MERGE line on the next run.
-2. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)).
+2. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)).
 3. Combo planner (MX 2.2.4 + MightyMich, ES File + rushiranpise VIP, Telegram vs HushTelegram)
    and ceiling memory for LinkedIn step-downs.
 4. Facebook: owner installs the newest 0.16.1 build (never 0.16.0).
@@ -485,8 +485,8 @@ and superseded issues cleaned. Record: [SESSION-2026-10-22.md](history/SESSION-2
 
 W15c merged (#199, `73d85522`; T1 0 findings). W15d: exact bundle version on release pages,
 11. Rule merge (owner yes: green rule pull requests merge themselves), reserved names, honest
-adopt records, #202 closed, history audit. Record: [SESSION-2026-10-21.md](history/SESSION-2026-10-21.md),
-[HISTORY-AUDIT-2026-10-21.md](HISTORY-AUDIT-2026-10-21.md). Open, in order:
+adopt records, #202 closed, history audit. Record: [SESSION-2026-10-21.md](SESSION-2026-10-21.md),
+[HISTORY-AUDIT-2026-10-21.md](../HISTORY-AUDIT-2026-10-21.md). Open, in order:
 
 1. Next Selection watch (07:41 IST, or the W15d T1 run): fresh adopt pull request under the
    corrected rule; read the RULE_MERGE line (merge, wait or refuse with its reason) and the
@@ -508,8 +508,8 @@ adopt records, #202 closed, history audit. Record: [SESSION-2026-10-21.md](histo
 ## Current checkpoint: 21 October 2026, morning IST (packet W15c)
 
 W15b merged (#193, `79f619ec`). W15c: publisher pin at preparation, adopt waits on a pending
-branch, longest build first, parallel smoke, audit. Record: [SESSION-2026-10-21.md](history/SESSION-2026-10-21.md),
-[AUDIT-2026-10-21.md](AUDIT-2026-10-21.md). Open, in order:
+branch, longest build first, parallel smoke, audit. Record: [SESSION-2026-10-21.md](SESSION-2026-10-21.md),
+[AUDIT-2026-10-21.md](../AUDIT-2026-10-21.md). Open, in order:
 
 1. Owner: allow Actions to create pull requests; then the pending adopt branch
    `adopt/2026-10-20-39485415276` (about 53 names) gets its pull request; read it and its builds.
@@ -530,7 +530,7 @@ W15b (one pull request): #188 bump applied and Dependabot covers composites; #14
 and reasons; transfer and merge reasons; pinned certificate fails closed; council probe per model;
 Selection watch auto-adopt by name and description (pull request, never merged by the bot);
 owner's 33 decisions; agent review honours the offline-unlock list; L062 to L065. Record:
-[SESSION-2026-10-20.md](history/SESSION-2026-10-20.md). Open, in order:
+[SESSION-2026-10-20.md](SESSION-2026-10-20.md). Open, in order:
 
 1. Read the W15b RESULT, then the first adopt pull request the Selection watch opens (expect
    about 53 older names, 38 for the HushGram fallback) and its test builds; merge or decline.
@@ -563,7 +563,7 @@ W15 merged (#187, main `8148af78`): publish guard (L059), Facebook 583 on Hushfa
 Obtainium tracks the build id, notify identity (L058), Dependabot bump applied and its test fixed,
 Reddit pin, SDK warnings, baseline reasons kept, council fix-lane guard, Nemotron 3.5 Super VL,
 pinned code picks the store row (L060), telegram_dl removed; 7 stale issues closed. H15: this
-record. Records: [SESSION-2026-10-17.md](history/SESSION-2026-10-17.md), [WIP-W15-2026-10-17.md](history/WIP-W15-2026-10-17.md). Open, in order:
+record. Records: [SESSION-2026-10-17.md](SESSION-2026-10-17.md), [WIP-W15-2026-10-17.md](WIP-W15-2026-10-17.md). Open, in order:
 
 1. Done 17 Oct: pf-t1 RESULT OK, 0 findings, 17 of 17 apps built; Facebook 583 published (run
    39055575670). Next: read the Selection watch issue and community issue #189 (new index report).
@@ -601,7 +601,7 @@ W13 merged (#178, main `45ff17ba`); cleanup and the openskip handbook copy (#107
 (universal APKMirror row, store-miss step-down), Nightly false UNKNOWN, Selection watch ranking,
 open-mode names and reminders, publisher pins seeded, agent review drops findings on excluded
 names, status reasons, two new patches decided, one home for repeated release and page text
-(old notes tidied), Obtainium card, automation lists wired, agent spec and fix lane. Record: [SESSION-2026-10-11.md](history/SESSION-2026-10-11.md).
+(old notes tidied), Obtainium card, automation lists wired, agent spec and fix lane. Record: [SESSION-2026-10-11.md](SESSION-2026-10-11.md).
 Open, in order:
 
 1. Owner runs `pf-w14` (smokes Reddit, Facebook, Amazon Music, YouTube, Instagram; merge; cleanup;
@@ -627,7 +627,7 @@ H12 merged (#176, main `e42b06d8`). W13 (one pull request, owner pre-approved): 
 dropped by name, provider fallback with per-provider pins (Facebook De-Vanced 580, Instagram
 HushGram), 10. Selection watch (removals, baselines, waiting patches, release digest incl. Morphe,
 better-provider line), pf-t1 in `controllers/`, Instagram and Amazon Music list fixes, Facebook
-"Share sheet items". Record: [SESSION-2026-10-10.md](history/SESSION-2026-10-10.md). Open, in order:
+"Share sheet items". Record: [SESSION-2026-10-10.md](SESSION-2026-10-10.md). Open, in order:
 
 1. Owner runs `pf-w13c` (fast-forwards packet/w13 with commit 3: brosssh patches kept, any-version
    smoke rule, L053; run 1 stopped on SIGPIPE, L052, run 2 at the Amazon Music smoke), which
@@ -654,8 +654,8 @@ re-seed (now daily, by the Selection watch).
 W12 merged (#175, main `9a50d038`): coverage-first version choice, proven by nonpublishing
 builds (YouTube 77 of 77, Instagram 46 of 46). #102 closed. The W12 cleanup apply stopped on
 a stale token (a Pages deploy landed after the preview); nothing was deleted. H12 records the
-owner's decisions and moves the controller tools into [controllers/README.md](controllers/README.md).
-Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (H12). Open, in order:
+owner's decisions and moves the controller tools into [controllers/README.md](../controllers/README.md).
+Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (H12). Open, in order:
 
 1. Owner runs the H12 controller, then the cleanup apply line it prints (merged packet
  branches, old Pages records).
@@ -683,7 +683,7 @@ Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (H12). Open, in o
 
 W11 merged (#174, main `a7f1f0af`) over the agent review block by owner decision; Facebook 581
 built (82 of 82). Cleanup applied. W12: coverage-first version choice, status page cancel fix,
-CHANGELOG, #102 closed. Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W12). Open, in order:
+CHANGELOG, #102 closed. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W12). Open, in order:
 
 1. Owner runs `pf-w12.py` (push, Validate, two nonpublishing builds on the packet branch that must
  print a COVERAGE line, merge) and uploads its logs. Phone-test Facebook.
@@ -701,7 +701,7 @@ CHANGELOG, #102 closed. Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-
 
 W10 merged (#169, main `7838a4ce`), cleanup applied (one Truecaller). W11: 22 baselines
 re-seeded, Facebook on HushFacebook 581 (82 patches), repository-case hint, review correction.
-Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W11). Open, in order:
+Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W11). Open, in order:
 
 1. Owner runs `pf-w11.py` (merge after Validate and the Onboarding review, then one Facebook
  build) and uploads its logs. Phone-test Facebook: read receipts, typing and anonymous stories
@@ -719,7 +719,7 @@ Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W11). Open, in o
 W9 merged (#167, main `a2c2ab27`). W10 (one pull request): cleanup marks Pages records inactive
 first and removes retired apps' releases (one Truecaller: `tc-combo`), the watch lists universal
 patches (#102), colour codes out of key lines, provider review. Record:
-[SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W10), [PROVIDERS-2026-10-09.md](PROVIDERS-2026-10-09.md). Open, in order:
+[SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W10), [PROVIDERS-2026-10-09.md](../PROVIDERS-2026-10-09.md). Open, in order:
 
 1. Owner runs `pf-w10.py`, uploads its logs zip, then the printed cleanup apply line (it removes
  `truecaller-v26.10.6`, old Pages records and the merged packet branches).
@@ -735,7 +735,7 @@ patches (#102), colour codes out of key lines, provider review. Record:
 W8 merged (#166); Amazon Music 26.36.1 and LinkedIn 4.1.1255.1 built. W9 (one pull request):
 records, routine cleanup (releases, tags, Pages deployments, merged packet branches), old
 retention preview retired, run-log filter, agent docs to history, one home for notices,
-companions folded. Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W9). Open, in order:
+companions folded. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W9). Open, in order:
 
 1. Owner runs `pf-w9.py` and uploads its RESULT file and logs folder. Then the printed cleanup
  apply command, if the preview looks right; copy its receipt into `retention/` in W10.
@@ -752,7 +752,7 @@ companions folded. Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md
 
 W7 merged (#164, main `eebbb279`); LinkedIn stepped down to 4.1.1255.1 by itself and built.
 W8 (one pull request): Amazon Music's any-version backfill reads the APK with the SDK reader;
-one Validate run per packet branch. Record: [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md)
+one Validate run per packet branch. Record: [SESSION-2026-10-09.md](SESSION-2026-10-09.md)
 (W7 results and W8). Open, in order:
 
 1. Owner runs the W8 controller (merge, then Manual Patch `amazonmusic` on the store's newest).
@@ -767,7 +767,7 @@ one Validate run per packet branch. Record: [SESSION-2026-10-09.md](history/SESS
 W7 (one pull request on top of W6 #163): version step-down for apps above the phone cap,
 any-version providers take the store's newest, Amazon Music and LinkedIn unpinned, short MicroG
 card, `docs/status.html` deleted, launcher rule in the STATE opening message. Record:
-[SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) (W7 section). Open, in order:
+[SESSION-2026-10-09.md](SESSION-2026-10-09.md) (W7 section). Open, in order:
 
 1. Owner runs the W7 controller (merges #163 and W7, builds Amazon Music and LinkedIn) and
  uploads its RESULT file. Phone-test both (Amazon on a throwaway account only); if Amazon will
@@ -787,7 +787,7 @@ cleanup applied a second time (22 releases, 22 tags; receipt
 `~/work/run-logs/cleanup-receipt-20261009T091933Z.json` on the owner box). W6 (one pull
 request): Amazon Music's `libInit.so` version marker (`4.6.14`) accepted by the native check,
 build workflows keyed by app on the status data and Pages. Record:
-[SESSION-2026-10-09.md](history/SESSION-2026-10-09.md). Open, in order:
+[SESSION-2026-10-09.md](SESSION-2026-10-09.md). Open, in order:
 
 1. Merge W6. Run `1. Manual Patch` for `amazonmusic`. If it stops at a new check, paste the
  reason line. Phone-test both apps (Amazon on a throwaway account only); if Amazon will not
@@ -825,7 +825,7 @@ keeps only each app's two newest builds, disabling an app passes the suite. Open
 W4 (one pull request): Pages Builds and Watch rebuilt on `status.json`, failures listed until
 fixed, MicroG RE six-file card, Obtainium import with icon choice, Amazon Music and LinkedIn,
 a working two-step app add, cleanup tool, obsolete files removed. Record:
-[SESSION-2026-10-08.md](history/SESSION-2026-10-08.md) (W4 section). Open, in order:
+[SESSION-2026-10-08.md](SESSION-2026-10-08.md) (W4 section). Open, in order:
 
 1. Merge W4 (#160). Its onboarding review blocks Amazon Music's "Unlock Unlimited" and
  "Unlimited track skipping" under rule 1; the owner keeps them for a throwaway-account test
@@ -844,15 +844,15 @@ a working two-step app add, cleanup tool, obsolete files removed. Record:
 W2 (one pull request) makes every app or patch change two steps (`5. Add target`, then merge),
 adds the plain status page, ships MicroG RE with the apps that need it, removes repeated notes,
 fixes four silent failures (shipped in W3), and carries W1's onboarding gate, tooling watch and decided leads
-([LEADS-2026-10-08.md](LEADS-2026-10-08.md)). Record: [SESSION-2026-10-08.md](history/SESSION-2026-10-08.md).
+([LEADS-2026-10-08.md](../LEADS-2026-10-08.md)). Record: [SESSION-2026-10-08.md](SESSION-2026-10-08.md).
 Open, in order:
 
 1. W2 merged (#158, merge commit `5e648da5`), W3 follows. Run `Status page data` once; check the page and one `5. Add target` dry change.
-2. Amazon Music and LinkedIn: provider from the [scout](onboarding/CANDIDATES-2026-10-08.md),
+2. Amazon Music and LinkedIn: provider from the [scout](../onboarding/CANDIDATES-2026-10-08.md),
  then one add run each.
 3. #102 (provider watch with and without `-u`), council `same_site` exact host, free council
  seats from `knowledge/handbook/FREE-LLM-APIS-2026-10-v2.md`, release-notes consolidation
- ([plan](CLUTTER-2026-10-07.md)).
+ ([plan](../CLUTTER-2026-10-07.md)).
 4. Desk leads still unread: `explore.yml` `$PKG`, `nightly_report.py`, portal SRI and cache.
 5. Packet S2: publisher certificate pins, version step-down. Then Edge apkpure refusal,
  F05/F06, PR53, phone tests, ES File icon, agent runner pilot, the unused `TDL_BACKUP` secret.
@@ -860,17 +860,17 @@ Open, in order:
 ## Earlier checkpoint: 7 October 2026, evening (handover)
 
 V2 is on main (PR #156); the council works the pinned desk #154 on a schedule. Everything the
-6-7 Oct chat found is in the [session record](history/SESSION-2026-10-07.md). Open, in order:
+6-7 Oct chat found is in the [session record](SESSION-2026-10-07.md). Open, in order:
 
 1. Desk leads: verify each against the code before any packet. Confirmed but not fixed from the
-   [audit ledger](AUDIT-COUNCIL-2026-10-06.md): ci.yml resolve `continue-on-error`; poll-only
+   [audit ledger](../AUDIT-COUNCIL-2026-10-06.md): ci.yml resolve `continue-on-error`; poll-only
    resolve matrix; manual-patch `shadow_plan_required` default; provider-watch `-x -u` (#102);
    portal script integrity and 30-second read cache; watch job without a timeout; classify RISK
    map; obtainium package overrides. New desk leads: explore.yml `$PKG`; APKPure entries for
    Photos and Prime Video; redirect same-site check in council.py.
-2. Agent runner pilot ([plan](../council/RUNNERS.md)): OpenCode with the GitHub MCP server,
+2. Agent runner pilot ([plan](../../council/RUNNERS.md)): OpenCode with the GitHub MCP server,
    read-only, owner-triggered, artifact output only.
-3. Pages, release-notes and desk consolidation ([plan](CLUTTER-2026-10-07.md)). Blocked history
+3. Pages, release-notes and desk consolidation ([plan](../CLUTTER-2026-10-07.md)). Blocked history
    moves: REPORT-2026-09-07 (named in AGENTS.md), AUDIT-2026-09-26 (read by a test).
 4. Packet S2: publisher certificate pins on every store path, version step-down.
 5. Edge apkpure refusal, #102, F05/F06, PR53, phone tests, ES File icon (monogram), the unused
@@ -881,9 +881,9 @@ V2 is on main (PR #156); the council works the pinned desk #154 on a schedule. E
 V1 is on main (PR #153): council desk #154, triage scored 18 of 19 calls right, 17 stale failure
 issues and #152 closed, 45 old releases deleted with tags kept (receipt PR #155). Packet V2 tunes
 the seats from that score, runs the council on a schedule one job at a time, and moves closed
-checkpoints to [history](history/README.md). Open: verify desk leads, packet S2 (publisher pins,
+checkpoints to [history](README.md). Open: verify desk leads, packet S2 (publisher pins,
 version step-down), Edge, #102, F05/F06, PR53, phone tests, the agent runner pilot
-([plan](../council/RUNNERS.md)), Pages and release-notes consolidation.
+([plan](../../council/RUNNERS.md)), Pages and release-notes consolidation.
 
 ## Earlier checkpoint: 7 October 2026 (packet V1)
 
@@ -892,7 +892,7 @@ turn, quoted findings), adds the council `triage` lane, and replaces per-run fai
 one standing "Failing:" issue per workflow that closes on the next green run. Its controller
 closes the 17 stale per-run failure issues with evidence. Open: verify audit leads, packet S2
 (publisher pins, version step-down), Edge, #102, F05/F06, PR53, phone tests, the agent runner
-pilot ([plan](../council/RUNNERS.md)), Pages and release-notes consolidation (V2).
+pilot ([plan](../../council/RUNNERS.md)), Pages and release-notes consolidation (V2).
 
 ## Earlier checkpoint: 6 October 2026, night
 
@@ -905,16 +905,16 @@ Open: verify the council audit findings, packet S2 (publisher pins, version step
 ## Earlier checkpoint: 6 October 2026, evening
 
 Packet R is on main (PR #148); YouTube Music and Facebook 580 built green, Reddit did not (APKPure
-lagged one version). Packet S1 adds the second-store chain ([record](SOURCE-CHAIN-2026-10-06.md)).
+lagged one version). Packet S1 adds the second-store chain ([record](../SOURCE-CHAIN-2026-10-06.md)).
 Open: Reddit green build (#146), packet S2 (publisher pins, version step-down), Edge, #102,
 F05/F06, PR53, phone tests.
 
 ## Earlier checkpoint: 6 October 2026, packet R
 
-Packet R on main `7b6504e2`: YouTube Music added (see [the decision record](YTMUSIC-2026-10-06.md)),
+Packet R on main `7b6504e2`: YouTube Music added (see [the decision record](../YTMUSIC-2026-10-06.md)),
 Facebook pinned to the exact ARM64 store variant (6 Oct section of the
-[Facebook record](FACEBOOK-580-2026-09-29.md)), DeArrow ships on YouTube, brand tiles per
-[ICON-PROVENANCE.md](ICON-PROVENANCE.md), 5S fixes. Post-merge build results are a comment on the
+[Facebook record](../FACEBOOK-580-2026-09-29.md)), DeArrow ships on YouTube, brand tiles per
+[ICON-PROVENANCE.md](../ICON-PROVENANCE.md), 5S fixes. Post-merge build results are a comment on the
 packet R pull request.
 
 Still open: Reddit Patch apk failures since 5 Oct (#146), a green Facebook 580 build (#105) if the
@@ -926,13 +926,13 @@ and Facebook 580, and the older items below.
 Packet P, on main after PR122 (roadmap docs). Facebook 580 kept failing at Patch apk because
 `De-Vanced Settings` depends on `AMOLED dark theme`, whose `FdsContextColor580Fingerprint`
 does not match the APK. Packet P drops `De-Vanced Settings`; see the 1 October update in the
-[decision record](FACEBOOK-580-2026-09-29.md). Prime Video 3.0.470.357 is built and published
+[decision record](../FACEBOOK-580-2026-09-29.md). Prime Video 3.0.470.357 is built and published
 (not phone-tested), and the Nightly watch is green again (30 Sep).
 
 Still open: the first green Facebook build (then #105), the YouTube failure in #114, the Edge
 apkpure refusal, provider watch #102, F05/F06, owner confirmation of YouTube's two new patch
 names (Playback buffer, Restore original titles) and the older items below. Lanes and parked
-ideas live in [the roadmap](../../knowledge/ROADMAP.md).
+ideas live in [the roadmap](../../../knowledge/ROADMAP.md).
 
 ## Previous checkpoint: 29 September 2026
 
@@ -947,21 +947,21 @@ Packet L, one PR on main `93fc2b98`. What it fixes, with the evidence in the PR 
 - **Prime Video:** `lib/arm64-v8a/libInit.so` is an 11-byte `release=NNN` marker (452, now 470).
   Exactly that whole-member shape, byte-identical to the patcher input, is accepted as data.
 - **Facebook:** moved to 580.0.0.51.74 with four owner-chosen patches; see the
-  [decision record](FACEBOOK-580-2026-09-29.md).
+  [decision record](../FACEBOOK-580-2026-09-29.md).
 - **Nightly Watch:** names are checked against the exact channel-selected bundle of every
   candidate and extra (GitHub and GitLab) with `src/etc/selection_names.py`; the release read
   is authenticated. Version, option and default comparison remain open. The check lists
   universal patches too; the provider watch baselines were recorded with `-x -u`, which omits
   them, so watch deltas (#102) are blind to universal-patch changes.
 - **Council j4:** uncited votes are dropped, busy or unreachable models fall through, and a
-  factual `ask` mode answers from cited fact keys. See [the council README](../council/README.md).
+  factual `ask` mode answers from cited fact keys. See [the council README](../../council/README.md).
 
 - **Shadow source reasons:** Edge's shadow source preparation has failed every run since at
   least 28 Sep while its real builds publish (last 21 Sep, 223.4 MB). The job log holds only a
   fixed warning because `source_inputs.py` swallowed the reason; it now prints its own reason,
   the fetcher's exit code and duration, and the observed manifest facts.
 
-First post-merge run (36534562050, see the [session record](history/SESSION-2026-09-29.md)): Prime
+First post-merge run (36534562050, see the [session record](SESSION-2026-09-29.md)): Prime
 Video built 3.0.470.357 and AdGuard ignored the other provider, as intended. Facebook 580 failed
 at patch time on an AMOLED theme fingerprint pulled in as a dependency; nothing was published.
 
@@ -973,14 +973,14 @@ older items below. Prime Video is built, not phone-tested.
 ## Earlier checkpoint: 27 September 2026
 
 Main after PR89 (`2f3acecd`) plus the 5S hygiene packet. Start with the
-[review desk](README.md), then the [5S audit](AUDIT-5S-2026-09-27.md). Next
+[review desk](README.md), then the [5S audit](../AUDIT-5S-2026-09-27.md). Next
 engineering packet: F05/F06, covering every build input (tools, runtime, patch
 defaults) and a durable record of the last fully successful publication, still
 shadow-only. The 26 September section below is now the previous checkpoint.
 
 ## Latest checkpoint: 26 September 2026
 
-Start with the [26 September handover](history/HANDOVER-2026-09-26.md): current main after
+Start with the [26 September handover](HANDOVER-2026-09-26.md): current main after
 PR86-PR88, the five exact-version source fallbacks (Photos with its exact signer
 rotation pair), workflow schedules in IST, the release and branch cleanup record
 and the next entry point. Dated sections below are history, not current state.
@@ -1003,8 +1003,8 @@ claim about the current branch.
 
 - **Exact-version source fallbacks (26 Sep 2026):** 4 admissions (reddit, telegram, facebook, truecaller-combo) act only after the primary download fails for that exact version. Photos 7.92.0.977185651 is
   admitted separately with an exact v3.0->v3.1 signer rotation pin. See the
-  [admission record](APK-SOURCE-ADMISSIONS-2026-09-26.md) and the
-  [Photos rotation record](APK-SOURCE-ADMISSION-PHOTOS-2026-09-26.md).
+  [admission record](../APK-SOURCE-ADMISSIONS-2026-09-26.md) and the
+  [Photos rotation record](../APK-SOURCE-ADMISSION-PHOTOS-2026-09-26.md).
 - **Reddit later recovered by schedule:** Daily35758471077 published Reddit
   2026.38.0 with the finished-identity, handoff and release stages successful.
   Earlier run35637130545 remains a historical failed attempt; the exact root
@@ -1015,7 +1015,7 @@ claim about the current branch.
   Following the owner's delegated reliability review, they are removed from
   includes and explicitly excluded in their own bundle. This is not approval
   to apply them and does not change historical APKs. See the
-  [resource decision](RESOURCE-DECISION-2026-09-19.md) for rationale and limits.
+  [resource decision](../RESOURCE-DECISION-2026-09-19.md) for rationale and limits.
 - **Campaign authorization and inventory:** explicit targets, publication intent,
   exact source commit and duplicate-run checks before dispatch. The Batch
   workflow can publish successful targets even when another target fails.

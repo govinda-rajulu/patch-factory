@@ -66,6 +66,20 @@ class SameBuild(unittest.TestCase):
         base, head = tree([], [], T, EMPTY), tree([], [], T, files)
         self.assertEqual(oc.manifest(base, head)['same_build_duplicates'], [])
 
+    def test_fallback_built_alone_is_not_a_duplicate_of_the_extra(self):
+        # W16w (#275 review): overrides.extra_bundles [] builds the fallback alone, as build_attempts does.
+        targets = json.loads(json.dumps(T))
+        targets[0]['candidates'][1]['overrides'] = {'extra_bundles': []}
+        files = dict(EMPTY)
+        files['photos-akash/include-patches'] = 'Hide ads\n'
+        files['photos-extra/include-patches'] = 'Hide ads\n'
+        base, head = tree([], [], targets, EMPTY), tree([], [], targets, files)
+        self.assertEqual(oc.manifest(base, head)['same_build_duplicates'], [])
+        targets[0]['candidates'][1].pop('overrides')
+        head = tree([], [], targets, files)
+        self.assertEqual(oc.manifest(base, head)['same_build_duplicates'],
+                         [{'target': 'photos', 'name': 'Hide ads', 'bundles': ['akash', 'extra']}])
+
     def test_candidate_plus_extra_is_a_duplicate(self):
         files = dict(EMPTY)
         files['photos-rushi/include-patches'] = 'Hide ads\n'

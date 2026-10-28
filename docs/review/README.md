@@ -17,7 +17,7 @@ Last indexed **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](
 | [OBTAINIUM-SIGNER-2026-10-27.md](OBTAINIUM-SIGNER-2026-10-27.md) | 27 Oct: why Obtainium shows "Downloaded certificate hash: None" (Android 9 and 10), what W16v ships, upstream issue text. |
 | [W15G-MAP.md](W15G-MAP.md) | 27 Oct: signing split (W15g) implementation map, file by file against main `97abdc7c`; the next packet. |
 | [SIGNING-SPLIT.md](SIGNING-SPLIT.md) | W15g signing isolation design and packet acceptance steps. |
-| [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 100 and the W16w decision sheet. Read first. |
+| [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 102 and the W16w decision sheet. Read first. |
 | [SWITCH-AUDIT-2026-10-28.jsonl](SWITCH-AUDIT-2026-10-28.jsonl) | Every chosen patch (660): in-app switch or always on, default, hides content; sources upstream READMEs and code. |
 | [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) | Current W16w pointer: W16v outcome, T1 findings and causes, what W16w changes, wrong call 97. Read first. |
 | [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) | W16u and W16v records: live main then, repairs, owner runs 1 to 3. |

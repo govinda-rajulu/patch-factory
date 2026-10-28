@@ -131,7 +131,10 @@ def same_build_duplicates(head, targets, changes):
     for t in targets:
         tid, extras = t.get('id'), t.get('extra_bundles') or []
         for cand in t.get('candidates') or []:
-            build = [cand] + extras
+            # W16w: a candidate whose overrides set extra_bundles builds with those extras only
+            # (an empty list builds it alone), as the build does; rule 4 judges that build.
+            ov = cand.get('overrides') if isinstance(cand.get('overrides'), dict) else {}
+            build = [cand] + (list(ov.get('extra_bundles') or []) if 'extra_bundles' in ov else extras)
             seen = {}
             for b in build:
                 for n in names(head, b.get('patch_dir') or '', 'include') if b.get('patch_dir') else []:
