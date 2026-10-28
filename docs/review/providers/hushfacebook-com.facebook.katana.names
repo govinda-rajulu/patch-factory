@@ -1,6 +1,7 @@
 AMOLED black theme
 Accent color
 Allow screenshots
+Badge and logo colors
 Block Instant Games ads
 Block ad telemetry
 Block background ad prefetch
@@ -76,12 +77,14 @@ Open links in external browser
 Open on a chosen tab
 Picture-in-picture
 Pinch to zoom
+Post action buttons
 Restore screens on re-signed builds
 Resume long videos
 Sanitize sharing links
 Send chat photos and videos at original quality
 Share sheet items
 Show View profile on Marketplace sellers
+Show full post text
 Skip silent parts
 Start on x86 devices
 Stop Story auto-advance
