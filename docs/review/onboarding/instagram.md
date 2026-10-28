@@ -8,6 +8,9 @@ Provider: SysAdminDoc/HushGram (fallback only; licence: GPL-3.0, checked against
 Provider: aic0d3r/oxbow (third choice, fallback only, built alone; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/aic0d3r/oxbow; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease). Owner, 25 Oct 2026: the backup, without Clone, Debug bridge, Signature check bypass and Oxbow icon.
 
 ## Patches
+- Start reels with sound: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Tab bar layout: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Thicker story progress bar: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Clean share links: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
 - Comments and endless scroll: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
 - Download media: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
