@@ -250,10 +250,12 @@ class Workflow(unittest.TestCase):
     def test_agents_job_refuses_forks(self):
         self.assertIn("needs.record.outputs.head_repo != github.repository", self.TEXT)
 
-    def test_agents_comment_permission_is_least_privilege(self):
+    def test_agents_can_comment_on_the_pull_request(self):
+        # W16w: with issues: write alone GitHub answered 403 to the review comment on #274 and #275.
         agents = self.TEXT.split('\n  agents:\n', 1)[1].split('\n  wake:\n', 1)[0]
         self.assertIn('issues: write', agents)
-        self.assertNotIn('pull-requests: write', agents)
+        self.assertIn('pull-requests: write', agents)
+        self.assertNotIn('contents: write', agents)
 
 
 

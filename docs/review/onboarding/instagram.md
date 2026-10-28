@@ -8,6 +8,9 @@ Provider: SysAdminDoc/HushGram (fallback only; licence: GPL-3.0, checked against
 Provider: aic0d3r/oxbow (third choice, fallback only, built alone; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/aic0d3r/oxbow; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease). Owner, 25 Oct 2026: the backup, without Clone, Debug bridge, Signature check bypass and Oxbow icon.
 
 ## Patches
+- Start reels with sound: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Tab bar layout: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Thicker story progress bar: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Clean share links: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
 - Comments and endless scroll: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
 - Download media: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
@@ -202,4 +205,5 @@ The owner's take (N-2a0061) stands: put it back when a piko build applies it on 
 - Custom font: dropped 2026-10-28 by the owner (DECISIONS.json N-421628) after Piko 3.11.0-dev.3 stopped matching it on the new APKPure file of 452.1.0.53.64
 
 - Custom font: back in the list 2026-10-28 (owner: never drop patches); Instagram pinned to APKMirror build 385811006, where every chosen piko patch applied on 27 Oct (W16w)
-- Hide feed content (brosssh, taken 2026-10-25 as N-aab6e3) and Hide the home feed (hushgram): dropped 2026-10-28; Home stayed empty on the owner's phone (the brosssh patch has no in-app switch and leaves only Stories)
+- Hide feed content (brosssh, taken 2026-10-25 as N-aab6e3): dropped 2026-10-28; Home stayed empty on the owner's phone (no in-app switch, leaves only Stories). HushGram's Hide the home feed stays: it has an in-app switch, off by default
+- Hide all stories, Hide explore feed, Hide navigation buttons, Hide Reels save button, Hide Instants (brosssh): dropped 2026-10-28 by the owner; always on with no in-app switch (switch audit docs/review/SWITCH-AUDIT-2026-10-28.jsonl); piko's switchable Disable stories, Hide stories tray, Disable explore, Customize navigation bar and Hide save buttons stay. Hide Threads profile button kept (owner: either way)

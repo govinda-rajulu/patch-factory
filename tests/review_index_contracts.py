@@ -51,6 +51,12 @@ class ReviewDesk(unittest.TestCase):
         self.assertEqual(missing, [], 'unlisted in docs/review/README.md')
         self.assertEqual(dead, [], 'dead links in docs/review/README.md')
 
+    def test_open_work_has_one_compact_current_checkpoint(self):
+        text = (DESK / 'OPEN-WORK.md').read_text(encoding='utf-8')
+        headings = re.findall(r'^## Current checkpoint:', text, re.MULTILINE)
+        self.assertEqual(len(headings), 1)
+        self.assertLessEqual(len(text.splitlines()), 150)
+
     def test_coverage_is_not_vacuous(self):
         self.assertGreaterEqual(len(entries(DESK)), 20)
         self.assertGreaterEqual(len(local_targets(INDEX.read_text(encoding='utf-8'))), 20)

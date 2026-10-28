@@ -2,6 +2,8 @@
 
 Newest checkpoint first. Each section is a dated snapshot; verify live before acting.
 
+Start here: [KT-2026-10-28.md](../docs/review/KT-2026-10-28.md), then [OPEN-WORK.md](../docs/review/OPEN-WORK.md).
+
 ## Opening message (copy into every new chat)
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
@@ -9,7 +11,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and
 ## W16w (28 Oct 2026, night IST): start here
 
 - **W16v merged** as #268 (`750f3448`). Read docs/review/KT-2026-10-28.md, then docs/review/HANDOVER-2026-10-28-W16w.md.
-- **Owner, 28 Oct**: Instagram Home empty (Hide feed content and Hide the home feed dropped in W16w); keep releases and tags this week (no cleanup apply); never drop patches to pass a build; non-Hush providers primary.
+- **Owner, 28 Oct**: Instagram Home empty (brosssh always-on hides dropped in W16w; switchable patches stay; switch audit docs/review/SWITCH-AUDIT-2026-10-28.jsonl); keep releases and tags this week (no cleanup apply); never drop patches to pass a build; non-Hush providers primary.
 - **W16w**: Instagram pinned to APKMirror build 385811006 with every chosen piko patch (Custom font back; the six long-standing exclusions stay); hoo-dles on stable for Prime Video; ES File and CCleaner icons; CodeQL test fix. Wrong calls through 97.
 - **Owner devices** unchanged: Android 10 main phone with Signer pin off; Android 11 and 12 devices keep the pin.
 

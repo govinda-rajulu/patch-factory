@@ -161,8 +161,8 @@ if p.startswith(R + 'releases/') and m == 'PATCH':  # W14 release_tidy apply: --
     rid = p[len(R + 'releases/'):]; body = json.loads(pathlib.Path(a[a.index('--input') + 1]).read_text())['body']
     st.setdefault('release_bodies', {})[rid] = body; st.setdefault('release_edits', []).append(rid)
     out({'id': int(rid), 'body': body if not st.get('tidy_mangle') else body + 'x'})
-if p.startswith(R + 'releases'): out([{'id': 1, 'tag_name': 'adguard-v1.0-b20260901', 'published_at': '2026-09-01T00:00:00Z', 'assets': [],
-                                       'body': st.get('release_bodies', {}).get('1', 'Patch provider(s): x')}] if 'page=1' in p else [])
+if p.startswith(R + 'releases'): out(([{'id': 1, 'tag_name': 'adguard-v1.0-b20260901', 'published_at': '2026-09-01T00:00:00Z', 'assets': [],
+                                       'body': st.get('release_bodies', {}).get('1', 'Patch provider(s): x')}] + st.get('releases_extra', [])) if 'page=1' in p else [])  # W16w: releases_extra[] knob
 if p.startswith(R + 'deployments'): out([{'id': 9000 + i, 'environment': 'github-pages', 'created_at': '2026-10-0%dT00:00:00Z' % i, 'sha': 'a' * 40} for i in range(1, 8)] if 'page=1' in p else [])
 if p.startswith(R + 'branches'):
     rows = git('for-each-ref', '--format=%(refname:short) %(objectname)', 'refs/heads').split('\n')

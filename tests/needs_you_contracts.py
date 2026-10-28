@@ -14,6 +14,19 @@ import needs_you as n  # noqa: E402
 import community_model as model  # noqa: E402
 
 
+class EvidenceReasonSkipsDocumentedException(unittest.TestCase):
+    def test_documented_exception_is_not_the_reason(self):
+        import importlib.util, pathlib as P
+        spec = importlib.util.spec_from_file_location('ny', str(P.Path(__file__).resolve().parents[1] / 'src/etc/needs_you.py'))
+        ny = importlib.util.module_from_spec(spec); spec.loader.exec_module(ny)
+        text = ('# Nightly watch: FAILED\n| Banned / confirm scan | 1 documented exceptions |\n'
+                '- gg-photos Change package name: documented exception, missing on purpose\n'
+                '- adguard/adguard-hoo-dles: provider list unreadable - UNVERIFIED (error: LIST_COMMAND_FAILED)\n')
+        r = ny._evidence_reason(text, None)
+        self.assertNotIn('Change package name', r)
+        self.assertIn('LIST_COMMAND_FAILED', r)
+
+
 class Renderer(unittest.TestCase):
     def test_empty_day_is_one_plain_line(self):
         with tempfile.TemporaryDirectory() as d:

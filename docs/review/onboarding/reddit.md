@@ -75,3 +75,4 @@ History, not current: owner brief, 23 Oct 2026. Superseded version part: since W
 (publish batch run 40212870923), so the Morphe build fell back to Adobo. The name moves to
 `src/patches/reddit-alastor/exclude-patches`; Download Reddit gallery originals and the Morphe names build again.
 The owner's take (N-03fcf2) stands: put it back when an Alastor build applies it on the Reddit we build.
+- Owner, 28 Oct 2026 (W16w D6): adobo (fallback) Hide upvote scores, Hide post view counts, Hide share count, Hide related posts, Hide search answers preview and Hide crosspost dropped (always on); its cosmetic hides stay.

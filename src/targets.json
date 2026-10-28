@@ -235,6 +235,19 @@
         "options": "ftl",
         "owner": "BlazeFTL",
         "repo": "FTL-Patches"
+      },
+      {
+        "name": "rushiranpise-fallback",
+        "host": "github",
+        "channel": "prerelease",
+        "patch_dir": "esfile-rushiranpise-fallback",
+        "options": "rushiranpise-esfile",
+        "owner": "rushiranpise",
+        "repo": "morphe-patches",
+        "fallback": true,
+        "overrides": {
+          "extra_bundles": []
+        }
       }
     ],
     "tag_prefix": "es-file",
@@ -499,6 +512,19 @@
         "options": "ftl",
         "owner": "BlazeFTL",
         "repo": "FTL-Patches"
+      },
+      {
+        "name": "mich111discord",
+        "host": "github",
+        "channel": "prerelease",
+        "patch_dir": "mxplayer-mich111discord",
+        "options": "mich111discord",
+        "owner": "mich111discord",
+        "repo": "MightyMichs-Patches",
+        "fallback": true,
+        "overrides": {
+          "extra_bundles": []
+        }
       }
     ],
     "tag_prefix": "mx-player",
@@ -640,7 +666,7 @@
         "host": "github",
         "owner": "heyymichii",
         "repo": "michii-patches",
-        "channel": "prerelease",
+        "channel": "latest",
         "patch_dir": "linkedin-heyymichii",
         "options": "heyymichii"
       }

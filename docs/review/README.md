@@ -16,7 +16,9 @@ Last indexed **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](
 | --- | --- |
 | [OBTAINIUM-SIGNER-2026-10-27.md](OBTAINIUM-SIGNER-2026-10-27.md) | 27 Oct: why Obtainium shows "Downloaded certificate hash: None" (Android 9 and 10), what W16v ships, upstream issue text. |
 | [W15G-MAP.md](W15G-MAP.md) | 27 Oct: signing split (W15g) implementation map, file by file against main `97abdc7c`; the next packet. |
-| [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 98. Read first. |
+| [SIGNING-SPLIT.md](SIGNING-SPLIT.md) | W15g signing isolation design and packet acceptance steps. |
+| [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 100 and the W16w decision sheet. Read first. |
+| [SWITCH-AUDIT-2026-10-28.jsonl](SWITCH-AUDIT-2026-10-28.jsonl) | Every chosen patch (660): in-app switch or always on, default, hides content; sources upstream READMEs and code. |
 | [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) | Current W16w pointer: W16v outcome, T1 findings and causes, what W16w changes, wrong call 97. Read first. |
 | [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) | W16u and W16v records: live main then, repairs, owner runs 1 to 3. |
 | [CORRECTION-2026-10-27-W16t.md](CORRECTION-2026-10-27-W16t.md) | 27 Oct dated correction: current public credits, withdrawn unlicensed icons, W15 vs W15h re-import wording, CI is not a phone test. Dated records stay as written. |
@@ -53,6 +55,7 @@ Last indexed **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](
 | [HANDOVER-2026-09-26.md](history/HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
 | [SESSION-2026-09-29.md](history/SESSION-2026-09-29.md) | Packet L session: findings, what PR107 shipped, the assistant's wrong calls, and what is still open. |
 | [OPEN-WORK.md](OPEN-WORK.md) | Open, partial and deferred work. Newest checkpoint first. |
+| [OPEN-WORK-ARCHIVE-2026-10.md](history/OPEN-WORK-ARCHIVE-2026-10.md) | Verbatim archive of the pre-5S open-work checkpoints (October 2026). |
 | [AUDIT-5S-2026-09-27.md](AUDIT-5S-2026-09-27.md) | Repository hygiene audit: what was sorted, corrected, and left for an owner decision. |
 | [AUDIT-MICRO-2026-09-27.md](AUDIT-MICRO-2026-09-27.md) | Line-level security and logic audit: signing-secret scope, no runtime installs, silent failures; issue #27/#35/#5 decisions. |
 | [PROVIDERS-2026-10-09.md](PROVIDERS-2026-10-09.md) | Every app's providers and alternatives from the community index, new and removed names, the watch's missing universal patches (#102), one Truecaller, owner calls open for W11. Read first for patch work. |

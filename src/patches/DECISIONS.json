@@ -4,9 +4,9 @@
     {
       "target": "truecaller-combo",
       "name": "Hide Blocking tab",
-      "call": "take",
+      "call": "drop",
       "id": "N-c4f7b1",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "truecaller-combo",
@@ -18,9 +18,9 @@
     {
       "target": "truecaller-combo",
       "name": "Hide call log filters",
-      "call": "take",
+      "call": "drop",
       "id": "N-7de88d",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "truecaller-combo",
@@ -123,23 +123,23 @@
     {
       "target": "instagram",
       "name": "Hide Instants",
-      "call": "take",
+      "call": "drop",
       "id": "N-c2ab8e",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "instagram",
       "name": "Hide all stories",
-      "call": "take",
+      "call": "drop",
       "id": "N-ad01d3",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "instagram",
       "name": "Hide explore feed",
-      "call": "take",
+      "call": "drop",
       "id": "N-f4e7c6",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "instagram",
@@ -151,30 +151,30 @@
     {
       "target": "instagram",
       "name": "Hide Reels save button",
-      "call": "take",
+      "call": "drop",
       "id": "N-4568ac",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "instagram",
       "name": "Hide navigation buttons",
-      "call": "take",
+      "call": "drop",
       "id": "N-275a07",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "reddit",
       "name": "Hide related posts",
-      "call": "take",
+      "call": "drop",
       "id": "N-2b1bc7",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "reddit",
       "name": "Hide search answers preview",
-      "call": "take",
+      "call": "drop",
       "id": "N-8c47a1",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "reddit",
@@ -207,16 +207,16 @@
     {
       "target": "reddit",
       "name": "Hide crosspost",
-      "call": "take",
+      "call": "drop",
       "id": "N-8d4ee0",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "reddit",
       "name": "Hide post view counts",
-      "call": "take",
+      "call": "drop",
       "id": "N-25c152",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "reddit",
@@ -228,16 +228,16 @@
     {
       "target": "reddit",
       "name": "Hide share count",
-      "call": "take",
+      "call": "drop",
       "id": "N-64e5f7",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "reddit",
       "name": "Hide upvote scores",
-      "call": "take",
+      "call": "drop",
       "id": "N-057e70",
-      "date": "2026-10-25"
+      "date": "2026-10-28"
     },
     {
       "target": "reddit",
@@ -773,10 +773,17 @@
       "date": "2026-10-25"
     },
     {
-      "target": "instagram",
-      "name": "Hide the home feed",
-      "call": "drop",
-      "id": "N-6fdcf0",
+      "target": "truecaller-combo",
+      "name": "Hide frequently called contacts",
+      "call": "take",
+      "id": "N-205e99",
+      "date": "2026-10-28"
+    },
+    {
+      "target": "truecaller-combo",
+      "name": "Hide important senders",
+      "call": "take",
+      "id": "N-3f60b4",
       "date": "2026-10-28"
     }
   ],
@@ -901,6 +908,14 @@
       "id": "N-25ba59",
       "why": "same job as HushTelegram Use system font; joins if HushTelegram drops it",
       "date": "2026-10-25"
+    },
+    {
+      "target": "telegram",
+      "repo": "rahul9999xda/morphe-patches",
+      "take": [],
+      "id": "N-55429f",
+      "why": "lists Telegram 13.1.1 only, ours 13.1.0",
+      "date": "2026-10-28"
     }
   ],
   "drop_providers": [
@@ -928,6 +943,30 @@
       "id": "W16j",
       "date": "2026-10-25",
       "why": "removed in W16j: never built on 12.10.4"
+    },
+    {
+      "target": "instagram",
+      "repo": "crimera/piko-ig-lite",
+      "id": "N-c53868",
+      "date": "2026-10-28"
+    },
+    {
+      "target": "instagram",
+      "repo": "dawidd612/dudeks-morphe-patches",
+      "id": "N-c33fb6",
+      "date": "2026-10-28"
+    },
+    {
+      "target": "instagram",
+      "repo": "Dreaming-Codes/morphe-patches",
+      "id": "N-f86382",
+      "date": "2026-10-28"
+    },
+    {
+      "target": "instagram",
+      "repo": "giaaaacomo/nifty-patches-selection",
+      "id": "N-3ca866",
+      "date": "2026-10-28"
     }
   ]
 }
