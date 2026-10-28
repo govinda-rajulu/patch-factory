@@ -78,6 +78,7 @@ SMOKE_KEEP_GOING = ()  # (W16j) SMOKE entries built with keep_going: every faili
 CLOSE = ()          # (issue number, closing comment) pairs, done after the merge
 PRECHECKS = ()      # (api path, field, expected value, why) read in gate; a mismatch stops
 CLEANUP_APPLY = False  # apply the cleanup preview at once (PF_CLEANUP=keep skips)
+CLEANUP_APPS = ()   # (W16w) app tag prefixes: preview and apply touch only their releases and build tags
 RUN_T1 = False      # run docs/review/controllers/pf-t1.py on the merge at the end
 PUBLISH_ALL = False  # (W15f) T1's batch publishes every enabled app, and T1 runs before the cleanup
 PUBLISH_APPS = ()   # (W16c) T1 publishes only these apps after its no-publish batch, and runs before the cleanup
@@ -586,8 +587,12 @@ def pages(merge_sha):
         time.sleep(POLL)
 
 
+CLEANUP_APPS = tuple(globals().get('CLEANUP_APPS', ()))  # a CONFIG block from before W16w has none
+APPS_ARG = ['--apps', ','.join(CLEANUP_APPS)] if CLEANUP_APPS else []
+
+
 def preview():
-    code, out, err = run([sys.executable, 'src/etc/cleanup.py', 'preview', '--out', str(LOGS / 'cleanup-preview.json')],
+    code, out, err = run([sys.executable, 'src/etc/cleanup.py', 'preview', '--out', str(LOGS / 'cleanup-preview.json')] + APPS_ARG,
                          cwd=CLONE, timeout=900, out=LOGS / 'cleanup-preview.txt')
     text = out.decode('utf-8', 'replace')
     token = [l.split()[1] for l in text.splitlines() if l.startswith('TOKEN ')]
@@ -596,8 +601,8 @@ def preview():
         return False
     head = text.splitlines()[0] if text else ''
     apply = ('T=$(mktemp -d); if git clone -q --depth 1 https://github.com/%s.git "$T/pf"; then echo "OK clone"; else echo "STOP clone"; fi; '
-             'if [ -f "$T/pf/src/etc/cleanup.py" ]; then python3 "$T/pf/src/etc/cleanup.py" apply --token %s '
-             '--receipt "$HOME/work/run-logs/cleanup-receipt-$(date -u +%%Y%%m%%dT%%H%%M%%SZ).json"; fi' % (REPO, token[0]))
+             'if [ -f "$T/pf/src/etc/cleanup.py" ]; then python3 "$T/pf/src/etc/cleanup.py" apply --token %s%s '
+             '--receipt "$HOME/work/run-logs/cleanup-receipt-$(date -u +%%Y%%m%%dT%%H%%M%%SZ).json"; fi' % (REPO, token[0], (' --apps ' + ','.join(CLEANUP_APPS)) if CLEANUP_APPS else ''))
     (LOGS / 'cleanup-apply-command.txt').write_text(apply + '\n', encoding='utf-8')
     R['cleanup'] = dict(token=token[0], summary=head, apply_command=apply)
     say('preview', 'OK', head + ' TOKEN ' + token[0])
@@ -629,7 +634,7 @@ def cleanup(merge_sha):
         say('cleanup', 'OK', 'not applied here; the apply line is in cleanup-apply-command.txt')
         return True
     receipt = LOGS / ('cleanup-receipt-%s.json' % STAMP)
-    code, out, err = run([sys.executable, 'src/etc/cleanup.py', 'apply', '--token', R['cleanup']['token'], '--receipt', str(receipt)],
+    code, out, err = run([sys.executable, 'src/etc/cleanup.py', 'apply', '--token', R['cleanup']['token'], '--receipt', str(receipt)] + APPS_ARG,
                          cwd=CLONE, timeout=1800, out=LOGS / 'cleanup-apply.txt')
     text = out.decode('utf-8', 'replace').strip().splitlines()
     last = text[-1] if text else (err.decode('utf-8', 'replace')[-300:])

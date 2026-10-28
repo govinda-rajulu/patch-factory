@@ -38,84 +38,97 @@ jobs:
             echo "GEMINI_API_KEY is not configured; the manual MCP scout will not run." | tee -a "$GITHUB_STEP_SUMMARY"
           fi
 
-      # W16p (27 Oct 2026): the action always runs `gemini --yolo` (no input changes it, in
-      # v0.1.22 and on main), and Gemini CLI 0.65.0 refuses to start when --yolo meets
-      # security.disableYoloMode (packages/cli/src/config/config.ts, FatalConfigError), so YOLO
-      # cannot be switched off here. The policy rules outrank YOLO instead
-      # (packages/core/src/policy/config.ts): YOLO's allow-all is priority 1.998 (policies/yolo.toml), tools.core []
-      # adds a deny-all at 4.24 for every mode including YOLO, and tools.allowed allows exactly
-      # the two MCP read tools at 4.3. Only those two can run. Official references:
-      # https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/packages/core/src/policy/config.ts
-      # https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/docs/cli/settings.md
-      # https://raw.githubusercontent.com/google-gemini/gemini-cli/v0.65.0/docs/tools/mcp-server.md
-      # https://raw.githubusercontent.com/github/github-mcp-server/v2.0.3/docs/server-configuration.md
-      # W16n (run 40298683531, 26 Oct 2026): no model was set, so the CLI used its default and got
-      # HTTP 503 "high demand" ten times in 6.5 minutes. The model is now named (GA flash in
-      # gemini-cli v0.65.0 packages/core/src/config/models.ts), turns are capped
-      # (model.maxSessionTurns, docs/cli/settings.md), and one retry runs on GA flash-lite.
+      # W16w (28 Oct 2026): YOLO off. Use the pinned CLI directly (the action always ran in YOLO mode) so headless runs keep the CLI's default
+      # approval mode. The scout's lite models are not in the Council gemini seat's model list.
       - name: Read-only GitHub MCP scout
         id: gemini
         if: steps.key.outputs.present == 'true'
         continue-on-error: true
-        uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0.1.22
-        # W16k: Gemini CLI 0.65 refuses an untrusted folder in headless runs (run 25 Oct said so and
-        # named this switch). Trusting the runner's own fresh checkout; the tools stay read-only above.
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
-        with:
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          # Keep this pin below 1.0 until settings move to the Policy Engine: https://geminicli.com/docs/core/policy-engine/
-          gemini_cli_version: '0.65.0'
-          gemini_model: 'gemini-3.5-flash'
-          settings: |-
-            {"model":{"maxSessionTurns":25},"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"],"allowed":["mcp_github_get_file_contents","mcp_github_search_repositories"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132","stdio","--read-only","--tools=get_file_contents,search_repositories"],"includeTools":["get_file_contents","search_repositories"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
-          prompt: >-
-            You are a read-only discovery scout. Using only the configured GitHub MCP server,
-            read the one file src/targets.json (about 19 KB) in ${{ github.repository }}.
-            Do not open src/community/bundles.json or any other large file. For every app id
-            in targets.json, search GitHub for community Morphe or ReVanced patch repositories
-            relevant to that app. Repositories the target already uses are removed later by a
-            checker, so you do not need to compare. Return ONLY newline-delimited JSON objects
-            with exactly these keys:
-            {"app":"target id","repo":"owner/name","reason":"brief evidence-based reason"}.
-            Use the target app id, not its package name. Do not return Markdown fences,
-            headings, URLs, duplicate prose, or anything except JSON lines. Never modify
-            files, issues, pull requests, or any GitHub content; never use shell or file-write tools.
-      - name: Clear the first attempt's runner-local files
-        if: steps.gemini.outcome == 'failure'
-        run: rm -rf .gemini gemini-artifacts
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -uo pipefail
+          CLI_VERSION='0.65.0'
+          SCOUT_MODEL='gemini-3.1-flash-lite'
+          RETRY_MODEL='gemini-2.5-flash-lite'
+          SCOUT_DIR="$RUNNER_TEMP/mcp-scout-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$SCOUT_DIR"
+          PROMPT=$(cat <<EOF
+          You are a read-only discovery scout. Using only the configured GitHub MCP server,
+          read the one file src/targets.json (about 19 KB) in ${GITHUB_REPOSITORY}.
+          Do not open src/community/bundles.json or any other large file. For every app id
+          in targets.json, search GitHub for community Morphe or ReVanced patch repositories
+          relevant to that app. Repositories the target already uses are removed later by a
+          checker, so you do not need to compare. Return ONLY newline-delimited JSON objects
+          with exactly these keys:
+          {"app":"target id","repo":"owner/name","reason":"brief evidence-based reason"}.
+          Use the target app id, not its package name. Do not return Markdown fences,
+          headings, URLs, duplicate prose, or anything except JSON lines. Never modify
+          files, issues, pull requests, or any GitHub content; never use shell or file-write tools.
+          EOF
+          )
 
-      - name: Retry once on the lighter model
-        id: gemini_lite
-        if: steps.gemini.outcome == 'failure'
-        continue-on-error: true
-        uses: google-github-actions/run-gemini-cli@f77273f4c914e4bf38440cf36a0369cb64a37489 # v0.1.22
-        env:
-          GEMINI_CLI_TRUST_WORKSPACE: 'true'
-        with:
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          # Keep this pin below 1.0 until settings move to the Policy Engine: https://geminicli.com/docs/core/policy-engine/
-          gemini_cli_version: '0.65.0'
-          gemini_model: 'gemini-3.1-flash-lite'
-          settings: |-
-            {"model":{"maxSessionTurns":25},"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"],"allowed":["mcp_github_get_file_contents","mcp_github_search_repositories"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132","stdio","--read-only","--tools=get_file_contents,search_repositories"],"includeTools":["get_file_contents","search_repositories"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
-          prompt: >-
-            You are a read-only discovery scout. Using only the configured GitHub MCP server,
-            read the one file src/targets.json (about 19 KB) in ${{ github.repository }}.
-            Do not open src/community/bundles.json or any other large file. For every app id
-            in targets.json, search GitHub for community Morphe or ReVanced patch repositories
-            relevant to that app. Repositories the target already uses are removed later by a
-            checker, so you do not need to compare. Return ONLY newline-delimited JSON objects
-            with exactly these keys:
-            {"app":"target id","repo":"owner/name","reason":"brief evidence-based reason"}.
-            Use the target app id, not its package name. Do not return Markdown fences,
-            headings, URLs, duplicate prose, or anything except JSON lines. Never modify
-            files, issues, pull requests, or any GitHub content; never use shell or file-write tools.
+          write_settings() {
+            mkdir -p .gemini
+            # The explicit default is documentation of the CLI default, not an approval bypass.
+            cat > .gemini/settings.json <<'JSON'
+          {"general":{"defaultApprovalMode":"default"},"model":{"maxSessionTurns":25},"tools":{"core":[],"exclude":["run_shell_command","write_file","replace"],"allowed":["mcp_github_get_file_contents","mcp_github_search_repositories"]},"mcp":{"allowed":["github"],"autoAllowInHeadless":true},"mcpServers":{"github":{"command":"docker","args":["run","-i","--rm","-e","GITHUB_PERSONAL_ACCESS_TOKEN","ghcr.io/github/github-mcp-server:v2.0.3@sha256:250bc6ce70788207608ef74cef4397230ff2e8481218da74d6093e4bd9101132","stdio","--read-only","--tools=get_file_contents,search_repositories"],"includeTools":["get_file_contents","search_repositories"],"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"${GITHUB_TOKEN}"}}}}
+          JSON
+          }
+
+          run_attempt() {
+            local number="$1" model="$2" stdout="$3" stderr="$4" status get_calls search_calls
+            rm -rf .gemini gemini-artifacts
+            write_settings
+            # npx installs exactly the action's pinned CLI version, then invokes its gemini bin.
+            GEMINI_MODEL="$model" npx --yes --silent --package "@google/gemini-cli@${CLI_VERSION}" \
+              gemini --model "$model" --prompt "$PROMPT" --output-format json >"$stdout" 2>"$stderr"
+            status=$?
+            get_calls=$(grep -Eho 'mcp_github_get_file_contents|github[^[:space:]]*get_file_contents' "$stdout" "$stderr" 2>/dev/null | wc -l | tr -d ' ')
+            search_calls=$(grep -Eho 'mcp_github_search_repositories|github[^[:space:]]*search_repositories' "$stdout" "$stderr" 2>/dev/null | wc -l | tr -d ' ')
+            echo "MCP_TOOL_STATS attempt=${number} model=${model} exit=${status} mcp_github_get_file_contents=${get_calls} mcp_github_search_repositories=${search_calls}" | tee -a "$GITHUB_STEP_SUMMARY"
+            if grep -Eqi 'TerminalQuotaError|quota[ _-]*(exhausted|exceeded)|resource exhausted' "$stdout" "$stderr" 2>/dev/null; then
+              echo "QUOTA: TerminalQuotaError on attempt ${number} (${model}); not retrying." | tee -a "$GITHUB_STEP_SUMMARY"
+              echo 'quota=true' >> "$GITHUB_OUTPUT"
+              return 75
+            fi
+            return "$status"
+          }
+
+          first_out="$SCOUT_DIR/attempt-1.stdout"
+          first_err="$SCOUT_DIR/attempt-1.stderr"
+          second_out="$SCOUT_DIR/attempt-2.stdout"
+          second_err="$SCOUT_DIR/attempt-2.stderr"
+          run_attempt 1 "$SCOUT_MODEL" "$first_out" "$first_err"
+          status=$?
+          chosen_out="$first_out"
+          if [ "$status" -ne 0 ] && [ "$status" -ne 75 ]; then
+            echo "MCP scout: retrying non-quota failure with ${RETRY_MODEL}." | tee -a "$GITHUB_STEP_SUMMARY"
+            run_attempt 2 "$RETRY_MODEL" "$second_out" "$second_err"
+            status=$?
+            chosen_out="$second_out"
+          fi
+
+          if [ "$status" -eq 75 ]; then
+            echo 'attempts=1' >> "$GITHUB_OUTPUT"
+          else
+            if [ "$chosen_out" = "$second_out" ]; then echo 'attempts=2' >> "$GITHUB_OUTPUT"; else echo 'attempts=1' >> "$GITHUB_OUTPUT"; fi
+          fi
+          echo "summary<<MCP_SCOUT_OUTPUT" >> "$GITHUB_OUTPUT"
+          if jq -e . "$chosen_out" >/dev/null 2>&1; then
+            jq -r '.response // empty' "$chosen_out"
+          else
+            cat "$chosen_out"
+          fi >> "$GITHUB_OUTPUT"
+          echo 'MCP_SCOUT_OUTPUT' >> "$GITHUB_OUTPUT"
+          exit "$status"
 
       - name: Validate scout output
         if: always()
         env:
-          MODEL_OUTPUT: ${{ steps.gemini.outputs.summary || steps.gemini_lite.outputs.summary }}
+          MODEL_OUTPUT: ${{ steps.gemini.outputs.summary }}
           SCOUT_DIR: ${{ runner.temp }}/mcp-scout-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           mkdir -p "$SCOUT_DIR"
@@ -125,9 +138,8 @@ jobs:
             --output "$SCOUT_DIR/results.jsonl" \
             --summary "$GITHUB_STEP_SUMMARY"
 
-      # The action creates its temporary .gemini configuration and its gemini-artifacts/ logs
-      # (stdout, stderr, telemetry) in this checkout. Remove exactly those two known runner-local
-      # paths before checking for agent-created changes (W16k: the logs failed the proof).
+      # Remove exactly the runner-local Gemini configuration and logs before checking for
+      # agent-created changes. The scout never writes these paths to the repository.
       - name: Remove runner-local Gemini configuration
         if: always()
         run: rm -rf .gemini gemini-artifacts
@@ -151,22 +163,22 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      # W16n: both attempts failing is a named red result, never a silent green and never a
-      # bare "exit 1". The Gemini step log above holds the API reason (for example 503 busy).
+      # Both attempts failing is a named red result, never a silent green and never a bare exit 1.
       - name: Name the scout result
         if: always()
         env:
           KEY_PRESENT: ${{ steps.key.outputs.present }}
-          FIRST: ${{ steps.gemini.outcome }}
-          RETRY: ${{ steps.gemini_lite.outcome }}
+          STATUS: ${{ steps.gemini.outcome }}
+          QUOTA: ${{ steps.gemini.outputs.quota }}
         run: |
           if [[ "$KEY_PRESENT" != "true" ]]; then
             echo "MCP scout result: SKIPPED (no GEMINI_API_KEY)." | tee -a "$GITHUB_STEP_SUMMARY"
-          elif [[ "$FIRST" == "success" ]]; then
-            echo "MCP scout result: OK on gemini-3.5-flash." | tee -a "$GITHUB_STEP_SUMMARY"
-          elif [[ "$RETRY" == "success" ]]; then
-            echo "MCP scout result: OK on gemini-3.1-flash-lite after the first model failed." | tee -a "$GITHUB_STEP_SUMMARY"
+          elif [[ "$QUOTA" == "true" ]]; then
+            echo "::error::MCP scout: QUOTA (TerminalQuotaError); no retry was attempted. Nothing changed in the repo."
+            exit 1
+          elif [[ "$STATUS" == "success" ]]; then
+            echo "MCP scout result: OK on a lite model distinct from the Council gemini seat." | tee -a "$GITHUB_STEP_SUMMARY"
           else
-            echo "::error::MCP scout: MODEL_UNAVAILABLE, both gemini-3.5-flash and gemini-3.1-flash-lite failed; read the Gemini step logs for the API reason. Nothing changed in the repo."
+            echo "::error::MCP scout: MODEL_UNAVAILABLE; read the Gemini step logs for the API reason. Nothing changed in the repo."
             exit 1
           fi

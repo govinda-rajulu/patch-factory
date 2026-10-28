@@ -130,12 +130,12 @@ that leaves this block stale, so it cannot drift.
 | ES File Explorer | `esfile` | `es-file` | apkmirror | ftl + rushiranpise | yes |
 | Facebook | `facebook` | `facebook` | apkmirror | hushfacebook (fallback: derevanced) | yes |
 | Google Photos | `photos` | `gg-photos` | apkmirror | rushiranpise + akash | yes |
-| Instagram | `instagram` | `instagram` | apkpure | piko + brosssh (fallback: hushgram, oxbow) | yes |
+| Instagram | `instagram` | `instagram` | apkmirror | piko + brosssh (fallback: hushgram, oxbow) | yes |
 | JioHotstar | `hotstar` | `hotstar` | apkmirror | chiggi | yes |
 | Key Mapper | `keymapper` | `key-mapper` | apkpure | legendsciber (fallback: lain) | yes |
 | LinkedIn | `linkedin` | `linkedin` | apkmirror | heyymichii | yes |
 | Microsoft Edge | `edge` | `edge` | apkpure | quantavil | yes |
-| MX Player Pro | `mxplayer` | `mx-player` | apkmirror | ftl + paresh | yes |
+| MX Player Pro | `mxplayer` | `mx-player` | apkmirror | ftl + paresh (fallback: mich111discord) | yes |
 | Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |
 | Reddit | `reddit` | `reddit` | apkpure | morphe + alastor (fallback: adobo) | yes |
 | Telegram | `telegram` | `telegram` | apkmirror | hushtelegram (fallback: rushiranpise) | yes |

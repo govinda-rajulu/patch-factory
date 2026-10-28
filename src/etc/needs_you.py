@@ -60,7 +60,7 @@ COMMAND_RE = re.compile(r"^\s*(take|keep|drop|hold)\s+(N-[0-9a-fA-F]{6}|G[1-8]|a
 YES_ALL_RE = re.compile(r"^\s*yes\s+all\s*$", re.I)
 GROUPS = {
     "G1": ("New providers for apps you build", "take = Explore opens an issue with its live patch list"),
-    "G2": ("Hide patches with no off switch", "each removes something for good; nothing breaks, so pick only what you want"),
+    "G2": ("ALWAYS ON: hide patches with no in-app switch", "once built it stays on and the app has no setting to undo it; take only what you never want to see (owner, 28 Oct 2026: Hide feed content emptied Home)"),
     "G3": ("No description in the index", "the provider wrote nothing, so the bot cannot tell what it does"),
     "G4": ("Generic patches not written for this app", "the index ties them to no app"),
     "G5": ("Risky: spoof, proxy, DRM, signature, certificate", "account or server risk"),
@@ -152,6 +152,10 @@ def _evidence_reason(text: str, data) -> str:
     # Do not turn a bare FAILED/UNKNOWN heading into a made-up explanation.
     for line in (text or "").splitlines():
         stripped = re.sub(r"^[#>*`\-\s]+", "", line).strip()
+        # W16w (28 Oct 2026): a documented exception is not a failure reason (it named gg-photos
+        # Change package name six times while the real cause was an unreadable provider list).
+        if 'documented exception' in stripped.lower():
+            continue
         # A fetched artifact can contain a JSON report beside its Markdown
         # report. Read scalar/list values without treating JSON punctuation as
         # a reason.

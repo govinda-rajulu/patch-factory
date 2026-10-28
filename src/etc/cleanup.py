@@ -205,6 +205,22 @@ def plan(releases, tag_map, deploys=(), branch_rows=(), known=None, retire=()):
                 deployment_rows=drop_dep, kept_deployments=keep_dep, kept_branches=keep_br)
 
 
+def only_apps(p, apps):
+    """W16w (owner, 28 Oct 2026: keep every release this week except LinkedIn): limit a plan to
+    the releases and build tags of these app tag prefixes; no Pages records, no branches. The
+    token is computed over the limited list, so an apply with it deletes nothing else."""
+    want = set(apps)
+    def ok(tag):
+        m = APP_TAG.match(str(tag or ''))
+        return bool(m) and m[1] in want
+    body = {'releases': [r for r in p['releases'] if ok(r['tag'])], 'tags': [t for t in p['tags'] if ok(t)],
+            'deployments': [], 'branches': []}
+    token = hashlib.sha256(json.dumps(dict(body, apps=sorted(want)), sort_keys=True).encode()).hexdigest()[:16]
+    kept = [k for k in p['kept'] if ok(k.get('tag'))]
+    return dict(body, token=token, protected=len(kept), kept=kept, orphan_tags=[t for t in p['orphan_tags'] if ok(t)],
+                deployment_rows=[], kept_deployments=p['kept_deployments'], kept_branches=p['kept_branches'], apps=sorted(want))
+
+
 def receipt(releases, tag_map, chosen, deploys=()):
     by_id = {r['id']: r for r in releases}
     rows = []
@@ -253,6 +269,7 @@ def main(argv=None, run=subprocess.run):
     ap.add_argument('--token')
     ap.add_argument('--out')
     ap.add_argument('--receipt', default='cleanup-receipt.json')
+    ap.add_argument('--apps', default='', help='comma-separated app tag prefixes: only their releases and build tags (W16w)')
     a = ap.parse_args(argv)
     releases = inventory(run)
     tag_map = tags(run)
@@ -263,6 +280,13 @@ def main(argv=None, run=subprocess.run):
         print('STOP: src/targets.json unreadable here; run cleanup.py from a repository checkout. Nothing changed.')
         return 1
     p = plan(releases, tag_map, deploys, branch_rows, known, retired_builds())
+    apps = [x.strip() for x in a.apps.split(',') if x.strip()]
+    if apps:
+        bad = [x for x in apps if x not in known]
+        if bad:
+            print('STOP: --apps names no target tag prefix: %s. Nothing changed.' % ', '.join(bad))
+            return 1
+        p = only_apps(p, apps)
     if a.mode == 'preview':
         show(p)
         if a.out:

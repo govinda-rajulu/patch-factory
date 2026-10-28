@@ -132,6 +132,20 @@ class SourceContracts(unittest.TestCase):
         with self.assertRaises(ValueError):self.prepare()
         self.assertFalse((self.r/'source-inputs').exists())
 
+    def pin(self, code):
+        p=self.r/'src/targets.json';ts=json.loads(p.read_text());next(t for t in ts if t['id']==self.ident)['version_code']=code
+        p.write_text(json.dumps(ts))
+
+    def test_pinned_version_code_other_file_refused(self):
+        # W16w: a store's other file of the same version name is never sealed as the source.
+        self.pin('43')
+        with self.assertRaisesRegex(ValueError,'not the pinned 43'):self.prepare()
+        self.assertFalse((self.r/'source-inputs').exists())
+
+    def test_pinned_version_code_match_prepares(self):
+        self.pin('42')
+        self.assertTrue(self.prepare())
+
     def test_note_only_does_not_drift_source_packet(self):
         doc=self.prepare()
         p=self.r/'src/targets.json';ts=json.loads(p.read_text());next(t for t in ts if t['id']==self.ident)['note']='irrelevant'

@@ -1,13 +1,16 @@
 # Instagram (instagram)
 
 Package: com.instagram.android
-Source APK: APKPure, the newest version the provider supports (source "apkpure" in src/targets.json)
+Source APK: APKMirror, pinned build 452.1.0.53.64 version code 385811006, dpi 480-640dpi (source "apkmirror" in src/targets.json; owner, 28 Oct 2026, W16w: the second 452.1.0.53.64 file, 385914182, breaks three piko patches)
 Provider: crimera/piko (primary, channel prerelease) with brosssh/morphe-patches (extra bundle, channel prerelease); recorded here from packet W13 on.
 Provider: SysAdminDoc/HushGram (fallback only; licence: GPL-3.0, checked against the GitHub licence API by the W13 controller before anything is pushed; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Same author as SysAdminDoc/HushFacebook, the Facebook provider.
 
 Provider: aic0d3r/oxbow (third choice, fallback only, built alone; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/aic0d3r/oxbow; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease). Owner, 25 Oct 2026: the backup, without Clone, Debug bridge, Signature check bypass and Oxbow icon.
 
 ## Patches
+- Start reels with sound: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Tab bar layout: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Thicker story progress bar: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Clean share links: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
 - Comments and endless scroll: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
 - Download media: oxbow, owner took it as the Instagram backup (N-b47b62, 2026-10-25)
@@ -200,3 +203,7 @@ Instruction not found in method implementation" (W16k smoke run 40212332258 and 
 `src/patches/instagram-piko/exclude-patches`; piko's other 62 names (61 since the owner dropped Custom font on 28 Oct) and the brosssh extras build again.
 The owner's take (N-2a0061) stands: put it back when a piko build applies it on the Instagram we build.
 - Custom font: dropped 2026-10-28 by the owner (DECISIONS.json N-421628) after Piko 3.11.0-dev.3 stopped matching it on the new APKPure file of 452.1.0.53.64
+
+- Custom font: back in the list 2026-10-28 (owner: never drop patches); Instagram pinned to APKMirror build 385811006, where every chosen piko patch applied on 27 Oct (W16w)
+- Hide feed content (brosssh, taken 2026-10-25 as N-aab6e3): dropped 2026-10-28; Home stayed empty on the owner's phone (no in-app switch, leaves only Stories). HushGram's Hide the home feed stays: it has an in-app switch, off by default
+- Hide all stories, Hide explore feed, Hide navigation buttons, Hide Reels save button, Hide Instants (brosssh): dropped 2026-10-28 by the owner; always on with no in-app switch (switch audit docs/review/SWITCH-AUDIT-2026-10-28.jsonl); piko's switchable Disable stories, Hide stories tray, Disable explore, Customize navigation bar and Hide save buttons stay. Hide Threads profile button kept (owner: either way)

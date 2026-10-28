@@ -127,8 +127,11 @@ jobs:
     if: always() && needs.record.result != 'cancelled' && needs.record.outputs.ready == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    # W16w (28 Oct 2026): pull-requests: write is needed. W16o removed it as least privilege and every
+    # onboarding review since got 403 on its pull request comment (#274, #275).
     permissions:
       contents: read
+      pull-requests: write
       issues: write
     steps:
       - name: Refuse fork and Dependabot pull requests (no keys there)

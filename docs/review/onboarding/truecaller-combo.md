@@ -73,3 +73,4 @@ Restored names (as built on main until W16g; each is back in its W16f list):
 - Hide Scams tab: paresh extra, restored from the combo built since 9 Oct 2026.
 - Remove Ads: binarymend extra, restored from the combo built since 9 Oct 2026.
 - Disable Telemetry: binarymend extra, restored from the combo built since 9 Oct 2026.
+- Owner, 28 Oct 2026 (W16w D4, D12): heval99 Hide Blocking tab and Hide call log filters dropped (always on; core features); Hide frequently called contacts and Hide important senders taken (N-205e99, N-3f60b4).

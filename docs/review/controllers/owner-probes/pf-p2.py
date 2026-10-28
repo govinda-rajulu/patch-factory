@@ -15,8 +15,11 @@ sanitizes a bounded review of open issues/comments, open PRs, and recent failed/
 import hashlib, json, os, pathlib, re, shutil, struct, subprocess, sys, time
 from datetime import datetime, timezone
 REPO = 'govinda-rajulu/patch-factory'
-RUNS = {'40444460398': 'mcp-scout', '40444463398': 'council-probe', '40440538008': 'council-pr261',
-        '40441656177': 'batch-t1-w16p'}
+# W16w (owner, 28 Oct 2026: the same old CLUE lines on every run read as new failures): the four
+# fixed 26 to 27 Oct runs are already in the repo records, so the probe no longer re-reads them.
+RUNS = {}
+# W16w: all 9 icons are in the repository since W16v; the icon check runs only when asked.
+ICONS = os.environ.get('PF_P2_ICONS') == '1'
 HISTORY = {'scheduled': 'repos/%s/actions/runs?event=schedule&per_page=60' % REPO,
            'nightly-watch': 'repos/%s/actions/workflows/watch.yml/runs?per_page=10' % REPO,
            'community-watch': 'repos/%s/actions/workflows/community-watch.yml/runs?per_page=10' % REPO,
@@ -576,7 +579,7 @@ def reads():
         ok = isinstance(data, dict) and isinstance(data.get('workflow_runs'), list)
         say('OK' if ok else 'FAIL', 'history %s (%d bytes%s)' % (name, len(out), '' if ok else ', unreadable'))
     status_json()
-    got = icons()
+    got = icons() if ICONS else []
     ICON_COUNT[0] = len(got)
     case_review()
     return finish()
@@ -603,7 +606,8 @@ def finish():
             gone = True
         except OSError:
             pass
-    print('RESULT OK. Upload %s (%d bytes). Icons %d of %d.%s' % (z, size, ICON_COUNT[0], len(ICON_SOURCES), ' Script removed.' if gone else ''))
+    icon_note = (' Icons %d of %d.' % (ICON_COUNT[0], len(ICON_SOURCES))) if ICONS else ''
+    print('RESULT OK. Upload %s (%d bytes).%s%s' % (z, size, icon_note, ' Script removed.' if gone else ''))
     return 0
 
 

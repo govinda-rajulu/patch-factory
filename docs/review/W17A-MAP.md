@@ -1,5 +1,5 @@
 # W17a implementation map: owner-only Add app from Pages
-Written 26 Oct 2026 by a read-only research agent (ClickUp Brain) from commit b5a13c4; verify every file:line against the live code before use.
+Written 26 Oct 2026 by a read-only research agent (Anthropic Claude models) from commit b5a13c4; verify every file:line against the live code before use.
 
 **Evidence checkout:** `a read-only clone`, commit `b5a13c48b96a8a72ab6ad3112e5af4dab49bc4f7`, read-only; focused baseline contracts pass (`PYTHONPATH=tests python3 -m unittest app_contracts onboard_contracts needs_you_contracts rule_merge_contracts provider_watch_contracts variant_ceiling_contracts`: 112 tests). This map is a design/research artifact, not a patch.
 

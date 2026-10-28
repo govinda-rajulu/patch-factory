@@ -36,20 +36,18 @@ class McpScoutWorkflow(unittest.TestCase):
     def test_actions_are_full_sha_pinned(self):
         import re
         refs = re.findall(r"uses:\s*([^@\s]+)@([^\s#]+)", self.text)
-        self.assertGreaterEqual(len(refs), 3)
+        self.assertGreaterEqual(len(refs), 2)
         self.assertTrue(all(re.fullmatch(r"[0-9a-f]{40}", sha) for _, sha in refs), refs)
-        self.assertIn("google-github-actions/run-gemini-cli", dict(refs))
+        self.assertNotIn("google-github-actions/run-gemini-cli", self.text)
 
     def _settings_payloads(self):
         payloads = []
         lines = self.text.splitlines()
         for index, line in enumerate(lines):
-            if line.strip() != "settings: |-":
+            if "cat > .gemini/settings.json <<'JSON'" not in line:
                 continue
-            for candidate in lines[index + 1:]:
-                if candidate.strip():
-                    payloads.append(json.loads(candidate.strip()))
-                    break
+            candidate = lines[index + 1]
+            payloads.append(json.loads(candidate.strip()))
         return payloads
 
     def test_server_is_read_only_and_minimal(self):
@@ -59,17 +57,16 @@ class McpScoutWorkflow(unittest.TestCase):
         self.assertIn('"core":[]', self.text)
         self.assertIn('"exclude":["run_shell_command","write_file","replace"]', self.text)
 
-    def test_identical_settings_allow_only_read_mcp_tools_under_yolo(self):
+    def test_default_approval_and_exactly_two_allowed_read_mcp_tools(self):
         payloads = self._settings_payloads()
-        self.assertEqual(len(payloads), 2)
-        self.assertEqual(payloads[0], payloads[1])
+        self.assertEqual(len(payloads), 1)
         settings = payloads[0]
-        # W16p: the action passes --yolo and Gemini CLI 0.65.0 exits at startup when
-        # security.disableYoloMode is set, so it must not be set; the policy rules carry the lockdown.
-        self.assertNotIn("disableYoloMode", json.dumps(settings))
-        self.assertNotIn("secureModeEnabled", json.dumps(settings))
+        self.assertEqual(settings["general"]["defaultApprovalMode"], "default")
+        self.assertNotIn("--yolo", self.text)
+        self.assertNotRegex(self.text, r"--approval-mode(?:[ =]|\\b)")
         self.assertEqual(settings["tools"]["core"], [])
         self.assertEqual(settings["tools"]["allowed"], ["mcp_github_get_file_contents", "mcp_github_search_repositories"])
+        self.assertEqual(len(settings["tools"]["allowed"]), 2)
         self.assertEqual(settings["mcp"], {"allowed": ["github"], "autoAllowInHeadless": True})
         self.assertEqual(set(settings["mcpServers"]), {"github"})
         github = settings["mcpServers"]["github"]
@@ -119,24 +116,29 @@ class McpScoutW16n(unittest.TestCase):
         cls.text = WF.read_text(encoding="utf-8")
 
     def test_models_are_named_and_turns_capped(self):
-        self.assertIn("gemini_model: 'gemini-3.5-flash'", self.text)
-        self.assertIn("gemini_model: 'gemini-3.1-flash-lite'", self.text)
-        self.assertEqual(self.text.count('"model":{"maxSessionTurns":25}'), 2)
+        self.assertIn("SCOUT_MODEL='gemini-3.1-flash-lite'", self.text)
+        self.assertIn("RETRY_MODEL='gemini-2.5-flash-lite'", self.text)
+        self.assertNotIn("gemini-3.5-flash", self.text)
+        self.assertNotIn("gemini-3.6-flash", self.text)
+        self.assertEqual(self.text.count('"model":{"maxSessionTurns":25}'), 1)
 
-    def test_retry_only_after_a_failed_first_attempt_and_named_verdict(self):
-        self.assertEqual(self.text.count("continue-on-error: true"), 2)
-        self.assertEqual(self.text.count("if: steps.gemini.outcome == 'failure'"), 2)
-        self.assertIn("steps.gemini.outputs.summary || steps.gemini_lite.outputs.summary", self.text)
+    def test_retry_is_quota_fail_fast_and_logs_stats(self):
+        self.assertEqual(self.text.count("continue-on-error: true"), 1)
+        self.assertIn("TerminalQuotaError", self.text)
+        self.assertIn("QUOTA: TerminalQuotaError", self.text)
+        self.assertIn("not retrying", self.text)
+        self.assertIn("MCP_TOOL_STATS attempt=", self.text)
+        self.assertIn("mcp_github_get_file_contents=", self.text)
+        self.assertIn("mcp_github_search_repositories=", self.text)
         verdict = self.text.split("- name: Name the scout result", 1)[1]
         self.assertIn("MODEL_UNAVAILABLE", verdict)
+        self.assertIn("QUOTA", verdict)
         self.assertIn("exit 1", verdict)
         self.assertNotIn("${{", verdict.split("run: |", 1)[1])
 
     def test_prompt_does_not_read_the_large_index(self):
-        for prompt in self.text.split("prompt: >-")[1:]:
-            body = prompt.split("- name:", 1)[0]
-            self.assertIn("Do not open src/community/bundles.json", body)
-            self.assertNotIn("files src/targets.json and", body)
+        self.assertIn("Do not open src/community/bundles.json", self.text)
+        self.assertNotIn("files src/targets.json and", self.text)
 
     def test_checker_drops_wired_and_repeated_repos(self):
         with tempfile.TemporaryDirectory() as tmp:

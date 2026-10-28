@@ -99,6 +99,28 @@ class Cleanup(unittest.TestCase):
         self.assertEqual(cl.main(['preview', '--out', str(out)], run=self.fake), 0)
         return json.loads(out.read_text())
 
+    def test_apps_mode_touches_only_that_app(self):
+        # W16w (owner, 28 Oct 2026): every other release stays this week; only LinkedIn is cleared.
+        Path('src/targets.json').write_text(json.dumps([{'id': 'adguard', 'enabled': True, 'tag_prefix': 'adguard'},
+                                                    {'id': 'linkedin', 'enabled': True, 'tag_prefix': 'linkedin'}]))
+        self.fake.releases += [rel(11, 4, 'linkedin'), rel(12, 5, 'linkedin'), rel(13, 6, 'linkedin')]
+        self.fake.tags += [r['tag_name'] for r in self.fake.releases[-3:]]
+        self.fake.deploys = [dep(i, i) for i in range(1, 9)]
+        out = Path('a.json')
+        self.assertEqual(cl.main(['preview', '--apps', 'linkedin', '--out', str(out)], run=self.fake), 0)
+        p = json.loads(out.read_text())
+        self.assertEqual([r['tag'] for r in p['releases']], ['linkedin-v1.11-b20260904'])
+        self.assertTrue(all(t.startswith('linkedin-') for t in p['tags']))
+        self.assertEqual(p['deployments'], [])
+        self.assertEqual(p['branches'], [])
+        full = self.preview()
+        self.assertNotEqual(full['token'], p['token'])
+        self.assertEqual(cl.main(['apply', '--apps', 'linkedin', '--token', full['token']], run=self.fake), 1)
+        self.assertEqual(self.fake.deleted, [])
+        self.assertEqual(cl.main(['apply', '--apps', 'linkedin', '--token', p['token'], '--receipt', 'r.json'], run=self.fake), 0)
+        self.assertEqual(self.fake.deleted, ['repos/%s/releases/11' % cl.REPO, 'repos/%s/git/refs/tags/linkedin-v1.11-b20260904' % cl.REPO])
+        self.assertEqual(cl.main(['preview', '--apps', 'nosuch'], run=self.fake), 1)
+
     def test_keeps_two_newest_and_non_build_tags(self):
         p = self.preview()
         self.assertEqual([r['tag'] for r in p['releases']], ['adguard-v1.1-b20260901'])

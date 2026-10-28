@@ -49,6 +49,7 @@ handed to the owner as one command.
 | LinkedIn | heyymichii | https://github.com/heyymichii/michii-patches |
 | Microsoft Edge | quantavil | https://github.com/quantavil/edge-morphe-patches |
 | MX Player Pro | ftl | https://github.com/BlazeFTL/FTL-Patches |
+| MX Player Pro | mich111discord | https://github.com/mich111discord/MightyMichs-Patches |
 | MX Player Pro | paresh | https://gitlab.com/Paresh-Maheshwari/paresh-patches |
 | Prime Video | hoo-dles | https://github.com/hoo-dles/morphe-patches |
 | Reddit | morphe | https://github.com/MorpheApp/morphe-patches |

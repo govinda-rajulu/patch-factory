@@ -1,6 +1,6 @@
 """W16q (27 Oct 2026): the one-file owner combo (docs/review/controllers/build_combo.py) runs the
 read-only probe first, then the packet controller, streams both, and ends with one RESULT line."""
-import fcntl, hashlib, importlib.util, json, os, pathlib, subprocess, sys, tempfile, unittest
+import fcntl, hashlib, importlib.util, json, os, pathlib, subprocess, sys, tempfile, unittest, urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('build_combo', ROOT / 'docs/review/controllers/build_combo.py')
@@ -313,7 +313,7 @@ else:
                         self.assertTrue((mod.OUT / 'icons' / ('fixture.' + ext)).is_file())
                         self.assertTrue(any(x.startswith('OK icon fixture') for x in mod.lines))
                         args = json.loads((td / 'curl-args').read_text())
-                        self.assertEqual(('=w240-h480' in args[-1]), 'play-lh.googleusercontent.com' in url)
+                        self.assertEqual(('=w240-h480' in args[-1]), urllib.parse.urlsplit(url).hostname == 'play-lh.googleusercontent.com')
                         self.assertIn('--max-filesize', args)
                     else:
                         self.assertEqual(data, [])

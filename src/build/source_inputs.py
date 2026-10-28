@@ -153,6 +153,10 @@ def prepare(root, ident, env, run=None, metadata=None, publisher=None):
         observed = (metadata or identity.metadata)(root, root / relative, clean)
         meta = {k: observed[k] for k in ("package", "version_name", "version_code", "min_sdk")}
         print(observed_line(meta, before), file=sys.stderr)
+        # W16w (28 Oct 2026): a version_code pin is checked here too, so a fallback store's other
+        # file of the same version name (APKPure Instagram 385914182) is never sealed as the source.
+        need(not t.get("version_code") or str(meta["version_code"]) == str(t["version_code"]),
+             "input version code %s is not the pinned %s" % (meta["version_code"], t.get("version_code")))
         validate_metadata(meta, t, allow_over_ceiling=True)
         need(before == apk_record(root, relative), "APK changed during inspection")
         if meta["min_sdk"] <= t["min_sdk_ceiling"]:
