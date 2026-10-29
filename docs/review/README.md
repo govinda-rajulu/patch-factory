@@ -4,12 +4,12 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md)); **27 October 2026** for packet W16v (addendum in [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md)); earlier that day for packets W16p and W16q ([HANDOVER-2026-10-27.md](HANDOVER-2026-10-27.md)) ([SESSION-2026-10-27.md](SESSION-2026-10-27.md)); before that **26 October 2026** for packets W16n and W16o ([SESSION-2026-10-26.md](SESSION-2026-10-26.md)); earlier that day for packet W16m (chat handover; closed W15 and W16 records moved to `history/`); before that **25 October 2026** for packet W16h; before that **20 October 2026** for W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
+Last indexed **29 October 2026** for packet W16x ([HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md)); **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md)); **27 October 2026** for packet W16v (addendum in [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md)); earlier that day for packets W16p and W16q ([HANDOVER-2026-10-27.md](HANDOVER-2026-10-27.md)) ([SESSION-2026-10-27.md](SESSION-2026-10-27.md)); before that **26 October 2026** for packets W16n and W16o ([SESSION-2026-10-26.md](SESSION-2026-10-26.md)); earlier that day for packet W16m (chat handover; closed W15 and W16 records moved to `history/`); before that **25 October 2026** for packet W16h; before that **20 October 2026** for W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
 
-[HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) is the current packet pointer (W16w). [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) holds W16u and W16v. Do not run older combos.
+[HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md) is the current packet pointer (W16x). [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) is the preceding W16w pointer. [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) holds W16u and W16v. Do not run older combos.
 
 
 | Read | Why |
@@ -19,7 +19,9 @@ Last indexed **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](
 | [SIGNING-SPLIT.md](SIGNING-SPLIT.md) | W15g signing isolation design and packet acceptance steps. |
 | [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 102 and the W16w decision sheet. Read first. |
 | [SWITCH-AUDIT-2026-10-28.jsonl](SWITCH-AUDIT-2026-10-28.jsonl) | Every chosen patch (660): in-app switch or always on, default, hides content; sources upstream READMEs and code. |
-| [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) | Current W16w pointer: W16v outcome, T1 findings and causes, what W16w changes, wrong call 97. Read first. |
+| [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) | Preceding W16w pointer: W16v outcome, T1 findings and causes, what W16w changes, wrong call 97. |
+| [HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md) | W16x pointer: W16w result, Amazon Music fail-closed cause, near-version guard, owner follow-ups and current limits. Read first. |
+| [DECISION-REVIEW-2026-10-29.md](DECISION-REVIEW-2026-10-29.md) | W16x read-only review of the standing owner decisions: downsides, safer alternatives and ten owner questions. Changes nothing. |
 | [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) | W16u and W16v records: live main then, repairs, owner runs 1 to 3. |
 | [CORRECTION-2026-10-27-W16t.md](CORRECTION-2026-10-27-W16t.md) | 27 Oct dated correction: current public credits, withdrawn unlicensed icons, W15 vs W15h re-import wording, CI is not a phone test. Dated records stay as written. |
 | [HANDOVER-2026-10-27.md](HANDOVER-2026-10-27.md) | 26 to 27 Oct chat handover (W16n to W16r): how to start the next chat, where things stand, what shipped, owner asks, wrong calls 77 to 90, lessons L108 to L114, afternoon addendum (W16r), open work. Read first. |

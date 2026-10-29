@@ -28,3 +28,5 @@ Owner approved: Unlimited track skipping
 Owner approved: Unlock Unlimited
 
 W16j (25 Oct 2026): the owner put Unlimited track skipping and Unlock Unlimited back ("Keep, let me test somehow"). The 10 Oct throwaway account was banned while they were on, so test only with a throwaway account, never the main one. amazonmusic joins paid_ok_targets in src/patches/ADOPT.json for the same reason.
+
+W16x (29 Oct 2026): T1 after W16w failed twice. De-Vanced declares Amazon Music 2.36.1 (likely meant 26.36.1); APKMirror has no 2.36.1 and its nearest-lower pick was 2.8.1, a 2013 file, which only the signer pin refused. The build now refuses any nearest-lower pick outside the same release line (`STORE_DOWNGRADE_REFUSED ... reason=near_version_gap`), so Amazon Music fails closed at the store step until the provider fixes the version. Do not set max_app_version by hand; re-read the provider's live patches-list first.

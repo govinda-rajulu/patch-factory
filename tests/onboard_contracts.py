@@ -120,6 +120,30 @@ class Checker(unittest.TestCase):
         head['selections'] = {'app-prov': (['Spoof client'], [])}
         self.assertEqual(self.run_pair(base, head)['problems'], [])
 
+    def test_malformed_override_extra_bundles_fails_closed(self):
+        candidate = target('app')['candidates'][0]
+        candidate['overrides'] = {'extra_bundles': {'not': 'a list'}}
+        head = {'targets': [dict(target('app'), candidates=[candidate])],
+                'selections': {'app-prov': ([], [])}}
+        m = self.run_pair({'targets': [target('app')], 'selections': {'app-prov': ([], [])}}, head)
+        self.assertTrue(any("app: candidate 'prov' overrides.extra_bundles must be a list of mappings" in p
+                            for p in m['problems']))
+
+    def test_malformed_bundle_shapes_fail_closed_without_a_traceback(self):
+        # W16x review r4: overrides not a mapping, candidates or extras of the wrong shape.
+        base = {'targets': [target('app')], 'selections': {'app-prov': ([], [])}}
+        cases = (
+            (dict(target('app'), candidates=[dict(target('app')['candidates'][0], overrides=[])]),
+             "app: candidate 'prov' overrides must be a mapping"),
+            (dict(target('app'), candidates=7), 'app: candidates must be a list of mappings'),
+            (dict(target('app'), candidates=[1]), 'app: candidates must be a list of mappings'),
+            (dict(target('app'), extra_bundles='x'), 'app: extra_bundles must be a list of mappings'),
+        )
+        for bad, want in cases:
+            with self.subTest(want=want):
+                m = self.run_pair(base, {'targets': [bad], 'selections': {'app-prov': ([], [])}})
+                self.assertIn(want, m['problems'])
+
     def test_enabling_and_new_extra_provider_count(self):
         base = {'targets': [target('app', enabled=False)], 'selections': {'app-prov': ([], [])}}
         extra = [{'name': 'gl', 'host': 'gitlab', 'project_id': 42, 'patch_dir': 'app-gl'}]

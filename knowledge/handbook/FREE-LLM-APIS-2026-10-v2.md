@@ -1,6 +1,6 @@
 > Owner-supplied field guide, committed 8 Oct 2026 (packet W1) as written. Facts are dated
 > 7 Oct 2026 and free tiers change monthly: re-check the provider's page before wiring anything.
-> How this repository uses it: `docs/council/PROVIDERS.md` (8 Oct section) and
+> How this repository uses it: the dated provider record `docs/council/PROVIDERS.md` and
 > `knowledge/handbook/FREE-LLM-AGENTS.md`.
 
 # Free LLM access for repos: field guide v2 (double-checked 7 Oct 2026)

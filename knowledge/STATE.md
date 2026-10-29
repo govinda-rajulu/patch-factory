@@ -8,7 +8,13 @@ Start here: [KT-2026-10-28.md](../docs/review/KT-2026-10-28.md), then [OPEN-WORK
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W16w (28 Oct 2026, night IST): start here
+## W16x (29 Oct 2026, early IST): start here
+
+- **W16w merged** as #275 (`2db6cde8`, tree `728638b2`). Owner run RESULT FINDINGS (Amazon Music only). LinkedIn v1.2.0 with Material You published; phone test passed (Michii Patches in the Me panel). Read docs/review/HANDOVER-2026-10-29-W16x.md.
+- **W16x**: store near-version picks bounded to the same release line (Amazon Music 2.36.1 to 2.8.1 refused; Prime Video and Hotstar still build); PR #277 folded (7 switchable names); ES File fallback rushiranpise back (Unlock VIP Lifetime alone); onboarding checker fails closed on a malformed extra_bundles; LinkedIn GmsCore support and Remove gaps and dividers recorded as owner drops; schedules doc; Cloud Shell cleanup record. Wrong calls through 108.
+- **Idle on purpose**: Instagram fallbacks (HushGram and oxbow only support 453; a 453 fallback release would lock piko 452.1 out). MX fallback MightyMichs (fingerprint mismatch on 1.93.4). Amazon Music (provider version 2.36.1).
+
+## W16w (28 Oct 2026, night IST)
 
 - **W16v merged** as #268 (`750f3448`). Read docs/review/KT-2026-10-28.md, then docs/review/HANDOVER-2026-10-28-W16w.md.
 - **Owner, 28 Oct**: Instagram Home empty (brosssh always-on hides dropped in W16w; switchable patches stay; switch audit docs/review/SWITCH-AUDIT-2026-10-28.jsonl); keep releases and tags this week (no cleanup apply); never drop patches to pass a build; non-Hush providers primary.

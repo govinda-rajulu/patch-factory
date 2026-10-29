@@ -72,6 +72,9 @@ jobs:
       group: patch-${{ inputs.target }}
       cancel-in-progress: false
     runs-on: ubuntu-24.04
+    # W16x: observed batch max 5.7 min and smoke max 6.5 min per attempt; a build tries up to
+    # three providers, so 60 min stops only a runaway job (the default is 360).
+    timeout-minutes: 60
     env:
       repository: ${{ github.repository }}
       GITHUB_TOKEN: ${{ github.token }}
@@ -227,7 +230,8 @@ jobs:
           name: shadow-inputs-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: shadow-evidence/*.json
           if-no-files-found: warn
-          retention-days: 30
+          # SAFE-NOW: diagnostic comparison only; APK/evidence handoff remains 7 days.
+          retention-days: 7
       - name: Save verified test APK and evidence (not a release)
         if: success() && (!inputs.publish || github.ref != 'refs/heads/main')
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

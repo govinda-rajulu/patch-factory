@@ -122,21 +122,74 @@ def owner_policy(base, head=None):
     return {'paid_unlock_ok_offline_apps': sorted(apps), 'owner_takes': takes, 'source': source}
 
 
+def valid_extra_bundles(candidate):
+    """Return an override's extra bundles, or None when it is not configured.
+
+    The target loader deliberately validates only target ids.  Keep this boundary
+    defensive: a malformed override must become a review problem, not a checker
+    traceback (W16x).
+    """
+    ov = candidate.get('overrides') if isinstance(candidate, dict) else None
+    if not isinstance(ov, dict) or 'extra_bundles' not in ov:
+        return None
+    value = ov.get('extra_bundles')
+    if not isinstance(value, list) or any(not isinstance(bundle, dict) for bundle in value):
+        return []
+    return value
+
+
+def malformed_extra_bundle_problems(targets):
+    """Name malformed bundle data so the gate fails closed (W16x): candidates and
+    extra_bundles must be lists of mappings, overrides a mapping, and
+    overrides.extra_bundles a list of mappings."""
+    out = []
+    for target in targets:
+        tid = target.get('id') if isinstance(target, dict) else None
+        for key in ('candidates', 'extra_bundles'):
+            value = target.get(key)
+            if value is not None and (not isinstance(value, list)
+                                      or any(not isinstance(bundle, dict) for bundle in value)):
+                out.append('%s: %s must be a list of mappings' % (tid, key))
+        cands = target.get('candidates')
+        for candidate in cands if isinstance(cands, list) else []:
+            if not isinstance(candidate, dict):
+                continue
+            if 'overrides' not in candidate:
+                continue
+            ov = candidate.get('overrides')
+            if not isinstance(ov, dict):
+                out.append('%s: candidate %r overrides must be a mapping' % (tid, candidate.get('name')))
+                continue
+            if 'extra_bundles' not in ov:
+                continue
+            value = ov.get('extra_bundles')
+            if not isinstance(value, list) or any(not isinstance(bundle, dict) for bundle in value):
+                out.append('%s: candidate %r overrides.extra_bundles must be a list of mappings'
+                            % (tid, candidate.get('name')))
+    return out
+
+
 def same_build_duplicates(head, targets, changes):
-    """W16k: rule 4 means ONE build. A build is one candidate plus every extra bundle; another
-    candidate is a separate (fallback) build, and an exclude is not a use. Only names this
+    """W16k: rule 4 means ONE build. A build is one candidate plus every extra
+    bundle; another candidate is a separate (fallback) build, and an exclude is not a use. Only names this
     change adds to an include list are judged."""
     added = {(c['target'], n) for c in changes for n in c['added_include']}
     out = []
     for t in targets:
         tid, extras = t.get('id'), t.get('extra_bundles') or []
+        if not isinstance(extras, list) or any(not isinstance(bundle, dict) for bundle in extras):
+            extras = []
         for cand in t.get('candidates') or []:
+            if not isinstance(cand, dict):
+                continue
             # W16w: a candidate whose overrides set extra_bundles builds with those extras only
             # (an empty list builds it alone), as the build does; rule 4 judges that build.
-            ov = cand.get('overrides') if isinstance(cand.get('overrides'), dict) else {}
-            build = [cand] + (list(ov.get('extra_bundles') or []) if 'extra_bundles' in ov else extras)
+            override_extras = valid_extra_bundles(cand)
+            build = [cand] + (override_extras if override_extras is not None else extras)
             seen = {}
             for b in build:
+                if not isinstance(b, dict):
+                    continue
                 for n in names(head, b.get('patch_dir') or '', 'include') if b.get('patch_dir') else []:
                     seen.setdefault(n, []).append(b.get('name'))
             for n, owners in seen.items():
@@ -153,6 +206,13 @@ def manifest(base, head, owner_pr=False):
     out = {'new_targets': [], 'enabled_targets': [], 'removed_targets': sorted(set(old) - set(new)),
            'new_providers': [], 'patch_changes': [], 'records': {}, 'problems': [],
            'owner_policy': owner_policy(base, head if owner_pr else None)}
+    # Malformed overrides are review-visible and fail closed; do not let later
+    # duplicate analysis call .get() on arbitrary JSON values.
+    shape = malformed_extra_bundle_problems(list(new.values()))
+    out['problems'].extend(shape)
+    if any(not p.endswith('overrides.extra_bundles must be a list of mappings') for p in shape):
+        out['same_build_duplicates'] = []
+        return out  # W16x: a bundle list or overrides of the wrong shape stops here, named
     for tid, t in new.items():
         before = old.get(tid)
         if before is None:
@@ -202,7 +262,7 @@ def needs(m):
 def check(base, head, owner_pr=False):
     m = manifest(base, head, owner_pr)
     banned, confirm = rules(head, 'BANNED'), rules(head, 'CONFIRM')
-    problems = []
+    problems = list(m.get('problems', []))
     for tid, mentions in sorted(needs(m).items()):
         root = Path(head).resolve()
         records_root = (root / RECORDS).resolve()

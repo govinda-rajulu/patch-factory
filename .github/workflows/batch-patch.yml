@@ -17,6 +17,8 @@ jobs:
   fan:
     name: Plan
     runs-on: ubuntu-24.04
+    # W16x: planning is a checkout plus local JSON checks, not a build.
+    timeout-minutes: 10
     permissions:
       contents: read
     outputs:
