@@ -34,6 +34,8 @@ class Schedules(unittest.TestCase):
         text = sch.render()
         self.assertIn('| 17:53 | daily | 2. Check new patch (`ci.yml`) | Full daily check', text)
         self.assertEqual(text.count('Quick poll'), 1)  # W16k: one poll-only check (05:53 IST)
+        self.assertIn('called Notify job handles failure issues', text)
+        self.assertIn('Branch smokes do not start Status or Notify', text)
         original = sch.OUT.read_bytes()
         try:
             sch.OUT.write_bytes(original.replace(b'17:53', b'17:54'))

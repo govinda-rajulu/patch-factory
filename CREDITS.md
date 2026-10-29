@@ -34,6 +34,7 @@ handed to the owner as one command.
 | AdGuard | hoo-dles | https://github.com/hoo-dles/morphe-patches |
 | Amazon Music | rookieenough | https://github.com/RookieEnough/De-Vanced |
 | ES File Explorer | ftl | https://github.com/BlazeFTL/FTL-Patches |
+| ES File Explorer | rushiranpise-fallback | https://github.com/rushiranpise/morphe-patches |
 | ES File Explorer | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | Facebook | hushfacebook | https://github.com/SysAdminDoc/HushFacebook |
 | Facebook | derevanced | https://github.com/RookieEnough/De-Vanced |

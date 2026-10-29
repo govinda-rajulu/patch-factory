@@ -8,6 +8,9 @@ Provider: SysAdminDoc/HushGram (fallback only; licence: GPL-3.0, checked against
 Provider: aic0d3r/oxbow (third choice, fallback only, built alone; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/aic0d3r/oxbow; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease). Owner, 25 Oct 2026: the backup, without Clone, Debug bridge, Signature check bypass and Oxbow icon.
 
 ## Patches
+- Keep your place in Home: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Seek bar on stories: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Swipe through a chat's reels: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Start reels with sound: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Tab bar layout: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Thicker story progress bar: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
@@ -207,3 +210,5 @@ The owner's take (N-2a0061) stands: put it back when a piko build applies it on 
 - Custom font: back in the list 2026-10-28 (owner: never drop patches); Instagram pinned to APKMirror build 385811006, where every chosen piko patch applied on 27 Oct (W16w)
 - Hide feed content (brosssh, taken 2026-10-25 as N-aab6e3): dropped 2026-10-28; Home stayed empty on the owner's phone (no in-app switch, leaves only Stories). HushGram's Hide the home feed stays: it has an in-app switch, off by default
 - Hide all stories, Hide explore feed, Hide navigation buttons, Hide Reels save button, Hide Instants (brosssh): dropped 2026-10-28 by the owner; always on with no in-app switch (switch audit docs/review/SWITCH-AUDIT-2026-10-28.jsonl); piko's switchable Disable stories, Hide stories tray, Disable explore, Customize navigation bar and Hide save buttons stay. Hide Threads profile button kept (owner: either way)
+
+W16x (29 Oct 2026): HushGram v0.0.17 and oxbow v453-0-0-55-79 support only Instagram 453.0.0.55.79 (arm64 build 385914283); the HushGram smoke stopped at `nothing <= 452.1.0.53.64`. The fallbacks stay on the target pin (452.1, build 385811006) and are idle: a 453 fallback release would make every later piko 452.1 build refuse to publish (publish_guard: older than the shelf). Owner call; recommended: wait for piko to support 453, then move the whole pin.

@@ -495,6 +495,71 @@ transfer(){
                     self.assertEqual('Successfully downloaded' in result.stdout, expected == 0)
                     self.assertNotIn('FAKE_SIGNED_URL_LEAK', result.stdout+result.stderr)
 
+    def test_near_version_guard_allows_only_the_same_release_line(self):
+        # W16x: Prime Video drops a trailing component and Hotstar keeps its first two numbers
+        # (both build today); Amazon Music's 2.36.1 -> 2.8.1 (a 2013 file) must refuse.
+        command = r"""
+source src/build/store_chain.sh
+for pair in \
+  '3.0.470.1047 3.0.470' \
+  '26.36.1 26.36.01' \
+  '2.36.1 2.8.1' \
+  '26.06.22.3 26.06.08.2' \
+  '26.36.1 25.20.0' \
+  '7 6' \
+  'v1.2.3 v1.2.2' \
+  '2.36.1 2' \
+  '999999999999999.1.0 999999999999998.1.0' \
+  '26.06.22.3 26.6.08.2'; do
+  set -- $pair
+  pf_near_version_safe "$1" "$2"
+  printf '%s/%s=%s\n' "$1" "$2" "$?"
+done
+"""
+        result = self.run_cmd(['bash', '-c', command])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('3.0.470.1047/3.0.470=0', result.stdout)
+        self.assertIn('26.36.1/26.36.01=0', result.stdout)
+        self.assertIn('2.36.1/2.8.1=1', result.stdout)
+        self.assertIn('26.06.22.3/26.06.08.2=0', result.stdout)
+        self.assertIn('26.36.1/25.20.0=1', result.stdout)
+        self.assertIn('7/6=1', result.stdout)
+        self.assertIn('v1.2.3/v1.2.2=1', result.stdout)
+        self.assertIn('2.36.1/2=1', result.stdout)
+        self.assertIn('999999999999999.1.0/999999999999998.1.0=1', result.stdout)
+        self.assertIn('26.06.22.3/26.6.08.2=0', result.stdout)
+        # Without awk every path refuses (review W16x r1: the old helper failed open).
+        noawk = self.run_cmd(['bash', '-c', 'source src/build/store_chain.sh; PATH=/nonexistent; pf_near_version_safe 2.36.1 2.8.1; printf "R=%s\\n" "$?"'])
+        self.assertIn('R=1', noawk.stdout, noawk.stdout + noawk.stderr)
+        # The helper leaves the caller's shell state alone (review W16x r5).
+        st = self.run_cmd(['bash', '-c', 'source src/build/store_chain.sh; x=keep; rest=keep; IFS=","; pf_near_version_safe 26.06.22.3 26.06.08.2; printf "S=%s/%s/[%s]\\n" "$x" "$rest" "$IFS"'])
+        self.assertIn('S=keep/keep/[,]', st.stdout, st.stdout + st.stderr)
+        # The caller decision: refusal line, download removed, status 1; near pick kept.
+        guard = r'''
+source src/build/store_chain.sh
+mkdir -p download; touch download/am.apkm download/am.apk
+pf_near_guard apkmirror 2.8.1 2.36.1 am; printf 'G1=%s\n' "$?"
+[ -e download/am.apkm ] || [ -e download/am.apk ] || echo GONE
+touch download/pv.apkm
+pf_near_guard apkmirror 3.0.470 3.0.470.1047 pv; printf 'G2=%s\n' "$?"
+[ -e download/pv.apkm ] && echo KEPT
+pf_near_guard apkmirror 26.36.01 26.36.1 x; printf 'G3=%s\n' "$?"
+pf_near_guard apkmirror 1.0 '' x; printf 'G4=%s\n' "$?"
+pf_near_guard apkmirror '' 2.0 x; printf 'G5=%s\n' "$?"
+'''
+        g = self.run_cmd(['bash', '-c', guard])
+        out = g.stdout
+        self.assertIn('STORE_DOWNGRADE_REFUSED store=apkmirror got=2.8.1 wanted=2.36.1 reason=near_version_gap', out, out + g.stderr)
+        for line in ('G1=1', 'GONE', 'G2=0', 'KEPT', 'G3=0', 'G4=0', 'G5=1'):
+            self.assertIn(line, out)
+        self.assertIn('STORE_NEAR_VERSION store=apkmirror got=3.0.470 wanted=3.0.470.1047 (same release line)', out)
+        self.assertEqual(out.count('STORE_NEAR_VERSION'), 1)
+        for name in ('build.sh', 'source_download.sh'):
+            text = (ROOT / 'src/build' / name).read_text()
+            call = text.index('pf_near_guard "$')
+            self.assertLess(call, text.index('try_other_store "$PKG"'))
+            self.assertIn('= "apkmirror" ]', text[call - 200:call])
+
     def test_store_chain_accepts_the_same_version_written_differently(self):
         # W16v review (27 Oct 2026): 26.36.01 names the same release as 26.36.1.
         self.put('src/build/helper/apps.json', json.dumps({

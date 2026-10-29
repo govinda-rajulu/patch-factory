@@ -1,6 +1,6 @@
 # patch-factory roadmap
 
-Updated 26 October 2026 (W16m, chat handover). This is a short planning view, not a second source of
+Updated 29 October 2026 (W16x, after the W16w merge). This is a short planning view, not a second source of
 truth. `src/targets.json`, the workflow files, `src/council/seats.json` and the newest
 [STATE.md](STATE.md) checkpoint win over this file. Owner rules and the live queue are in
 [AGENTS.md](../AGENTS.md) and [OPEN-WORK.md](../docs/review/OPEN-WORK.md).
@@ -24,10 +24,10 @@ truth. `src/targets.json`, the workflow files, `src/council/seats.json` and the 
 ## Now: owner work
 
 Follow the newest [OPEN-WORK.md](../docs/review/OPEN-WORK.md) checkpoint. The current first items
-(26 Oct) are W17 owner-only Add app and W18 combo planner
-([W17-BRIEF.md](../docs/review/W17-BRIEF.md)), the W15g signing split, owner decisions in Needs
-you, phone checks and one manual run of the read-only MCP scout (store services already start on
-demand, W16g L087). The MCP plan is [MCP-PLAN.md](../docs/review/MCP-PLAN.md); it adds no schedule and must not
+(29 Oct) are the owner Obtainium setup/issue and provider-blocked Amazon Music, followed by the
+Instagram and MX fallback watches, the W15g signing split, the MCP/Council follow-ups, W17 Add app
+and W18 combo planner ([OPEN-WORK.md](../docs/review/OPEN-WORK.md); [W17-BRIEF.md](../docs/review/W17-BRIEF.md)).
+Store services already start on demand (W16g L087). The MCP plan is [MCP-PLAN.md](../docs/review/MCP-PLAN.md); it adds no schedule and must not
 replace deterministic store scraping or feed model output into a build.
 
 ## Security and maintenance lanes

@@ -6,6 +6,9 @@ Provider: SysAdminDoc/HushFacebook (licence: GPL-3.0, bundle: the one .mpp asset
 Provider: RookieEnough/De-Vanced (fallback only, packet W13; licence: GPL-3.0, the same repository the Amazon Music record cites; bundle: the one .mpp asset of the newest release including pre-releases; channel: prerelease). Built only when a Hushfacebook build fails, on Facebook 580.0.0.51.74 (version code 475019344, 240-640dpi): its own pins, so the 581 pins above stay Hushfacebook's. Patches: src/patches/facebook-derevanced (Disable all ads, Disable analytics and telemetry, Messenger install compatibility; Change package name excluded).
 
 ## Patches
+- Badge and logo colors: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Post action buttons: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
+- Show full post text: added 2026-10-28 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description
 - Clean Home feed: owner took it in the Needs you review file, 2026-10-25 (N-a9b7c0)
 - Disable auto refresh: owner took it in the Needs you review file, 2026-10-25 (N-a58989)
 - Double tap to skip: added 2026-10-25 by the Selection watch adopt rule (src/patches/ADOPT.json): no BANNED, CONFIRM, hold or paid match in its name or index description

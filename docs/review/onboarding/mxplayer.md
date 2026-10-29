@@ -15,3 +15,5 @@ Provider: mich111discord/MightyMichs-Patches (mich111discord, fallback only, bui
 
 ## Decision
 Selection watch adopt rule (src/patches/ADOPT.json) on 2026-10-22; 11. Rule merge merges the pull request only when every check, the Onboarding review and every test build are green.
+
+W16x (29 Oct 2026): the first MightyMichs smoke (v1.12.0, MX Player 1.93.4, its only version) downloaded and verified the APK, then "Unlock MX Player Pro" failed its fingerprint (Lxo;.j1()Z). The fallback cannot build today; ftl stays primary. Recheck on the next MightyMichs release.

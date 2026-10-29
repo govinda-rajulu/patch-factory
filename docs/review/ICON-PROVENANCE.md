@@ -1,6 +1,6 @@
 # App icon provenance record (26 September 2026, reviewed 27 October 2026)
 
-Public policy (current; owner decision 6 Oct 2026, reaffirmed 27 Oct 2026): app cards show the app's **official icon**, from its official store listing (Google Play CDN) or official site, or an open-licensed official mark. Icons are identification aids, not endorsements: bundled locally (the page never hotlinks third-party images), trademark of their owners, removed on request from a mark's owner. Badges are CSS/text labels. The dated sections below are history; the current inventory is in the 27 October 2026 (W16v) section at the end.
+Public policy (current; owner decision 6 Oct 2026, reaffirmed 27 Oct 2026): app cards show the app's **official icon**, from its official store listing (Google Play CDN) or official site, or an open-licensed official mark. Icons are identification aids, not endorsements: bundled locally (the page never hotlinks third-party images), trademark of their owners, removed on request from a mark's owner. Badges are CSS/text labels. The dated sections below are history; the current inventory is in the 28 October 2026 (W16w) section at the end.
 
 Status (6 October 2026): **brand tiles ship for 11 apps**, each with all four gate items below
 recorded; every other card keeps its letter monogram. 26 Oct 2026: 11 app tiles ship
@@ -125,8 +125,8 @@ Explorer keeps its monogram until its fetched icon passes the gate. This section
 The owner supplied these official icon URLs on 27 Oct 2026. Probe P2 (W16v combo) fetches each on the
 owner's Cloud Shell (https, hosts play-lh.googleusercontent.com and img.utdstc.com only, Google Play
 size suffix `=w240-h480`, 2 MB cap, PNG/JPEG/WebP magic, sha256 and size recorded in `icons/icons.json`).
-The next packet ships them after a visual check and the PNG gate (PNG, 16 to 512 px, under 64 KB);
-hotstar and mxplayer come from the same URLs as the shipped tiles.
+W16w records the result after the visual check and PNG gate (PNG, 16 to 512 px, under 64 KB);
+hotstar and mxplayer came from the same URLs as the shipped tiles.
 
 | Target | Official source |
 | --- | --- |

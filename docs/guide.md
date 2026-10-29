@@ -1,6 +1,6 @@
 # Using Patch Factory
 
-Checked 25 October 2026 (W16h). This guide is the one home for what the site, imports and updates mean. The page, README and release notes keep one short line each and link here. Safety boundaries: [SECURITY.md](../SECURITY.md); cleanup and recovery: [RECOVERY.md](../RECOVERY.md).
+Checked 29 October 2026 (W16x). This guide is the one home for what the site, imports and updates mean. The page, README and release notes keep one short line each and link here. Safety boundaries: [SECURITY.md](../SECURITY.md); cleanup and recovery: [RECOVERY.md](../RECOVERY.md).
 
 ## Start with the download
 

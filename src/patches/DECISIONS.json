@@ -785,6 +785,20 @@
       "call": "take",
       "id": "N-3f60b4",
       "date": "2026-10-28"
+    },
+    {
+      "target": "linkedin",
+      "name": "GmsCore support",
+      "call": "drop",
+      "id": "N-90d615",
+      "date": "2026-10-29"
+    },
+    {
+      "target": "linkedin",
+      "name": "Remove gaps and dividers",
+      "call": "drop",
+      "id": "N-661296",
+      "date": "2026-10-29"
     }
   ],
   "watch": [

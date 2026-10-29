@@ -194,6 +194,8 @@ else
 near_version=1
 set +u; get_apk "$PKG" "$APK_NAME" "$APK_TYPE" "$ARCH" "$DPI"; GA=$?; set -u
 fi
+# W16x: an APKMirror nearest-lower pick must stay in the same release line (store_chain.sh).
+if [ "$GA" -eq 0 ] && [ "$USE_SRC" = "apkmirror" ] && [ -z "$FORCE_STORE" ] && [ "$ANYVER" != "true" ]; then pf_near_guard "$USE_SRC" "$version" "$RVER" "$APK_NAME" || exit 1; fi
 if [ "$GA" -eq 0 ] && [ -z "$FORCE_STORE" ]; then pf_apkpure_exact "$USE_SRC" "$version" "$RVER" "$ANYVER" "$APK_NAME" || exit 1; fi
 if [ "$GA" -ne 0 ] && [ -z "$FORCE_STORE" ]; then
   try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$USE_SRC" "${version:-$RVER}" "$ANYVER" "$ARCH" "$DPI"; GA=$?

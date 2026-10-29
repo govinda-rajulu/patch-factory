@@ -8,8 +8,9 @@ From patch-factory W15e (owner, 22 Oct 2026). Mirror into openskip and brain by 
    the reviewed data cannot change. The data reaches the agent only as labelled untrusted blocks.
 3. **Shared council voice.** Evidence first; uncited claims are dropped and counted; dissent
    shown; the owner decides.
-4. **Budget by schedule.** One heavy job at a time; each agent gets fixed shift slots; a seat
-   whose pack is bigger than its budget abstains instead of truncating.
+4. **Budget by schedule.** One heavy job at a time; council audits use the two desk slots; solo
+   shifts run only on request, one seat at a time; a seat whose pack is bigger than its budget
+   abstains instead of truncating.
 5. **Access stays read-only.** An agent writes its own comment and proposed fixes as an artifact.
    A fix enters through the repo's normal gates. Keys and write tokens never share a job.
 6. **Readable output.** Status word, "Needs you" line, summary table, details folded, change-only
