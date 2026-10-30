@@ -11,6 +11,12 @@ APPS = {'apkmirror': {'pkg': {'list_url': 'https://www.apkmirror.com/uploads/?ap
         'apkpure': {'pkg2': {'download_url': 'https://apkpure.com/x/pkg2/download'}}}
 TARGET = {'id': 'fixture', 'enabled': True, 'package': 'pkg', 'source': 'apkmirror',
           'version_code': '123456', 'max_app_version': '1.2.3'}
+RELEASE_OK = '''<html><h1>Pkg 1.2.3</h1><div class="variants-table"><div class="table-row">
+<a class="accent_color" href="/pkg-variant/">BUNDLE arm64-v8a Android 11+ 480dpi versionCode 123456</a>
+</div></div></html>'''
+RELEASE_MISSING = RELEASE_OK.replace('versionCode 123456', 'versionCode 999999')
+CLOUDFLARE = '''<!doctype html><html><head><title>Just a moment...</title><script>var code=123456</script></head>
+<body>Performing security verification</body></html>'''
 
 
 class PinCheck(unittest.TestCase):
@@ -20,6 +26,51 @@ class PinCheck(unittest.TestCase):
     def test_exact_code_and_ceiling_are_ok(self):
         row = self.check('<div>Version 1.2.3 versionCode 123456</div>')
         self.assertEqual((row['status'], pin.line(row)), ('OK', 'PIN_STORE_OK target=fixture store=apkmirror version=1.2.3 code=123456'))
+
+    def test_release_fixture_with_variant_code_is_ok(self):
+        self.assertEqual(self.check(RELEASE_OK)['status'], 'OK')
+
+    def test_release_fixture_without_variant_code_is_missing(self):
+        row = self.check(RELEASE_MISSING)
+        self.assertEqual((row['status'], row['reason']), ('MISSING', 'version_code_not_listed'))
+
+    def test_cloudflare_challenge_is_unknown(self):
+        row = self.check(CLOUDFLARE)
+        self.assertEqual((row['status'], row['reason']), ('UNKNOWN', 'listing_unreadable'))
+
+    def test_pin_fetch_has_no_download_request(self):
+        import subprocess, tempfile
+        script = ROOT / 'src/etc/pin_fetch.sh'
+        text = script.read_text()
+        self.assertNotIn('/download/', text)
+        self.assertNotIn('key=', text)
+        with tempfile.TemporaryDirectory() as d:
+            probe = Path(d) / 'probe.sh'
+            probe.write_text(r'''#!/bin/bash
+set -eu
+export PF_PIN_FETCH_SOURCE_ONLY=1 PF_TMP_DIR="$1" PF_PIN_CHECK_ONLY=1 PF_PIN_CODE=123456 PF_SDK_CEILING=30
+source src/etc/pin_fetch.sh
+urls=()
+_cf_get() {
+  urls+=("$1")
+  if [[ "$1" == *uploads* ]]; then
+    html='<h5 class="appRowTitle"><a class="fontBlack" href="/pkg-1-2-3-release/">Pkg 1.2.3</a></h5>'
+  else
+    html='<div class="variants-table"><div class="table-row"><a class="accent_color" href="/pkg-variant/">BUNDLE arm64-v8a Android 11+ 480dpi versionCode 123456</a></div></div>'
+  fi
+}
+export version=1.2.3 lock_version=0 prefer_version=""
+get_apk com.facebook.katana facebook bundle arm64-v8a 480dpi
+printf '%s\n' "${urls[@]}"
+''')
+            probe.chmod(0o755)
+            got = subprocess.run([str(probe), d], cwd=ROOT, text=True,
+                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                 check=True).stdout
+        urls = [line for line in got.splitlines() if line.startswith('https://')]
+        self.assertTrue(urls)
+        self.assertTrue(all('/download/' not in u and 'key=' not in u and
+                            not u.endswith(('.apk', '.apkm')) for u in urls))
 
     def test_code_and_max_version_missing_are_distinct(self):
         self.assertEqual(self.check('<div>Version 1.2.3 versionCode 9</div>')['reason'], 'version_code_not_listed')
@@ -76,6 +127,22 @@ class PinCheck(unittest.TestCase):
         self.assertIn('contents: read', wf)
         self.assertNotIn('secrets.', wf)
 
+
+    def test_wrapper_exit_code_decides_first(self):
+        # W16y-c review (HIGH): a nonzero wrapper exit never becomes OK, even with matching HTML.
+        import tempfile
+        good = '<div class="table-row">Version 1.2.3 versionCode 123456</div>'
+        with tempfile.TemporaryDirectory() as d:
+            ev = Path(d)
+            ok = pin._check_wrapped_target(TARGET, APPS, good, 0, ev)
+            self.assertEqual(ok['status'], 'OK')
+            for rc in (1, 3, 4, 8):
+                row = pin._check_wrapped_target(TARGET, APPS, good, rc, ev)
+                self.assertEqual((row['status'], row['reason']), ('UNKNOWN', 'wrapper_exit_%d' % rc))
+            self.assertEqual(pin._check_wrapped_target(TARGET, APPS, good, 2, ev)['status'], 'MISSING')
+            self.assertEqual(pin._check_wrapped_target(TARGET, APPS, None, 0, ev)['status'], 'UNKNOWN')
+            bad = '<div class="table-row">Version 1.2.3 versionCode 9</div>'
+            self.assertEqual(pin._check_wrapped_target(TARGET, APPS, bad, 0, ev)['status'], 'UNKNOWN')
 
 if __name__ == '__main__':
     unittest.main()

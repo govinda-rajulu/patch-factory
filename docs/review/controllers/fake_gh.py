@@ -62,6 +62,11 @@ if a[:2] == ['workflow', 'run']:
                        'head_branch': ref, 'head_sha': git('rev-parse', 'refs/heads/' + ref), 'created_at': '2099-01-01T00:00:00Z',
                        'updated_at': '2099-01-01T00:00:01Z', 'status': 'queued', 'conclusion': None, 'polls': 0, 'html_url': 'u'})
     save(); sys.exit(0)
+if a[:2] == ['run', 'download']:  # W16y-c: scan evidence for SMOKE_SCAN entries
+    d = a[a.index('--dir') + 1] if '--dir' in a else '.'
+    os.makedirs(d, exist_ok=True)
+    open(os.path.join(d, 'provider-scan.json'), 'w').write('{"verdict": "PASS"}\n')
+    save(); sys.exit(0)
 if a[:2] == ['run', 'view']:
     r = [x for x in st['runs'] if str(x['id']) == a[2]][0]
     key = r['target'] + ('/' + r['provider'] if r.get('provider') else '')

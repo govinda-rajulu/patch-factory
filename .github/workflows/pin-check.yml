@@ -1,9 +1,6 @@
 name: Weekly pin store check
-# Read-only listing health for targets with an exact build pin (version_code).
-# The checker never downloads an APK or uses credentials.
-# W16y-b (wrong call 115): manual, report-only probe until a live run proves plain reads
-# reach the store (the build uses its browser helper for APKMirror). The weekly schedule
-# comes in a later packet with that evidence.
+# Manual, report-only evidence for exact build pins. The wrapper follows the build's
+# lazy FlareSolverr/CloudflareBypass path only through the release variant row.
 permissions:
   contents: read
 on:
@@ -12,7 +9,7 @@ jobs:
   pin-health:
     name: Check pinned store listings
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
@@ -21,17 +18,25 @@ jobs:
           persist-credentials: false
       - name: Read store listings (no APK transfer)
         id: check
+        env:
+          PF_STORE_LAZY: '1'
         run: |
           set +e
-          python3 src/etc/pin_check.py --json-out pin-check.json
+          python3 src/etc/pin_check.py --json-out pin-check.json --evidence-dir pin-check-evidence
           rc=$?
           echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
-          exit "$rc"
+          # Report-only: preserve output and evidence even when the probe itself errors.
+          exit 0
       - name: Preserve pin-check evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: pin-check-${{ github.run_id }}-${{ github.run_attempt }}
-          path: pin-check.json
+          path: |
+            pin-check.json
+            pin-check-evidence
           if-no-files-found: error
           retention-days: 30
+      - name: Stop store helpers
+        if: ${{ always() }}
+        run: bash src/build/store_services.sh cleanup || true

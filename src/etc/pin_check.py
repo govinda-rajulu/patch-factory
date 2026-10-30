@@ -10,6 +10,7 @@ import html as html_lib
 import json
 import re
 import sys
+import subprocess
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -110,6 +111,76 @@ def http_fetch(url):
     return data.decode('utf-8', 'replace')
 
 
+DEFAULT_HTTP_FETCH = http_fetch
+
+
+def pinned_targets(targets):
+    """Expand exact pins, including candidate-specific override pins."""
+    selected = []
+    for target in targets:
+        if not target.get('enabled') or target.get('version_code') is None:
+            continue
+        selected.append(target)
+        for candidate in target.get('candidates') or []:
+            overrides = candidate.get('overrides') or {}
+            if overrides.get('version_code') is None:
+                continue
+            expanded = dict(target)
+            expanded.update({k: v for k, v in overrides.items() if v is not None})
+            expanded['id'] = '%s:%s' % (target.get('id', ''), candidate.get('name', 'candidate'))
+            selected.append(expanded)
+    return selected
+
+
+def _safe_target_id(value):
+    value = re.sub(r'[^A-Za-z0-9_.-]+', '_', str(value or 'target'))
+    return value[:100] or 'target'
+
+
+def _wrapper_target(target, apps, fetch_script, evidence_root):
+    """Run the build's listing-only path and return its release HTML, if captured."""
+    package = target.get('package', '')
+    source = target.get('source') or 'apkmirror'
+    if source != 'apkmirror':
+        raise ValueError('pin wrapper supports APKMirror only')
+    data = (apps.get(source) or {}).get(package)
+    if not isinstance(data, dict):
+        raise ValueError('store mapping missing')
+    evidence = Path(evidence_root) / _safe_target_id(target.get('id'))
+    evidence.mkdir(parents=True, exist_ok=True)
+    args = [
+        str(fetch_script), package, str(target.get('apk_name') or target.get('id') or 'app'),
+        str(target.get('apk_type') or 'apk'), str(target.get('max_app_version') or ''),
+        str(target.get('version_code')), str(target.get('arch') or ''),
+        str(target.get('dpi') or ''), str(target.get('min_sdk_ceiling') or 29), str(evidence),
+    ]
+    completed = subprocess.run(['bash', *args], cwd=Path(__file__).resolve().parents[2],
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                               text=True, timeout=240, check=False)
+    release = evidence / 'release.html'
+    body = release.read_text(encoding='utf-8', errors='replace') if release.is_file() else None
+    return body, completed.returncode, evidence
+
+
+def _check_wrapped_target(target, apps, body, rc, evidence):
+    """W16y-c review: the wrapper's exit code decides first. OK needs exit 0 AND a captured
+    release page whose visible rows carry the pinned version and code. Exit 2 is the
+    wrapper's own "pinned version code not in a release variant row" (MISSING). Every other
+    nonzero exit (transport, release not found, variant picker 4, ...) is UNKNOWN: the build's
+    lookup cannot tell a removed release from an unreadable page, and this probe never guesses."""
+    base = {'target': target.get('id', ''), 'store': target.get('source') or 'apkmirror'}
+    if rc == 2:
+        return dict(base, status='MISSING', reason='version_code_not_listed')
+    if rc != 0:
+        return dict(base, status='UNKNOWN', reason='wrapper_exit_%d' % rc if isinstance(rc, int) else 'wrapper_failed')
+    if body is None:
+        return dict(base, status='UNKNOWN', reason='release_page_not_captured')
+    result = check_target(target, apps, lambda _url: body)
+    if result['status'] != 'OK':
+        # Exit 0 but the captured page does not show the pin: never upgrade, never guess.
+        return dict(base, status='UNKNOWN', reason='release_page_disagrees')
+    return result
+
 def line(result):
     fields = [MARKERS[result['status']], 'target=' + str(result['target']), 'store=' + str(result['store'])]
     if result.get('version'):
@@ -127,13 +198,31 @@ def main(argv=None):
     parser.add_argument('--apps', default='src/build/helper/apps.json')
     parser.add_argument('--json-out')
     parser.add_argument('--strict', action='store_true', help='exit 1 on MISSING or UNKNOWN (not used yet)')
+    parser.add_argument('--fetch-script', default='src/etc/pin_fetch.sh',
+                        help='listing-only build wrapper (default: src/etc/pin_fetch.sh)')
+    parser.add_argument('--evidence-dir', default='pin-check-evidence',
+                        help='directory for bounded HTML evidence')
     args = parser.parse_args(argv)
     targets = json.loads(Path(args.targets).read_text(encoding='utf-8'))
     apps = json.loads(Path(args.apps).read_text(encoding='utf-8'))
-    # W16y-b review: only exact build pins (version_code). A max_app_version is a ceiling the
-    # resolver may step under, not a pin the patches rely on.
-    selected = [t for t in targets if t.get('enabled') and t.get('version_code') is not None]
-    results = [check_target(t, apps, http_fetch) for t in selected]
+    # W16y-b review: only exact build pins (version_code), plus candidate override pins. A
+    # max_app_version is a ceiling unless a candidate supplies an exact override code.
+    selected = pinned_targets(targets)
+    if http_fetch is not DEFAULT_HTTP_FETCH:
+        # Preserve the pure/offline contract used by fixture tests and callers embedding the
+        # parser. Production uses the shared build wrapper below.
+        results = [check_target(t, apps, http_fetch) for t in selected]
+    else:
+        results = []
+        evidence_root = Path(args.evidence_dir)
+        evidence_root.mkdir(parents=True, exist_ok=True)
+        for target in selected:
+            try:
+                body, rc, evidence = _wrapper_target(target, apps, args.fetch_script, evidence_root)
+                results.append(_check_wrapped_target(target, apps, body, rc, evidence))
+            except Exception:
+                results.append({'target': target.get('id', ''), 'store': target.get('source') or 'apkmirror',
+                                'status': 'UNKNOWN', 'reason': 'listing_unreadable'})
     # Exactly one bounded machine-readable line per selected target.
     for result in results:
         print(line(result))

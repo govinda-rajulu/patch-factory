@@ -320,10 +320,39 @@ def clone():
 
 
 def push():
-    code, out, err = run(['git', 'ls-remote', REMOTE, 'refs/heads/' + BRANCH], timeout=120)
-    if code != 0:
-        stop('push', 'ls-remote failed')
-    have = out.decode().split('\t')[0].strip()
+    def remote_head():
+        code, out, err = run(['git', 'ls-remote', REMOTE, 'refs/heads/' + BRANCH], timeout=120)
+        if code != 0:
+            stop('push', 'ls-remote failed')
+        return out.decode('utf-8', 'replace').split('\t')[0].strip()
+
+    def transient_failure(text):
+        # Refusals and push-protection findings are not transient, even if a wrapper
+        # happens to include a generic transport phrase in the same diagnostic.
+        lower = text.lower()
+        if ('gh013' in lower or 'secret' in lower or 'protected' in lower or
+                'push protection' in lower or 'rejected' in lower or
+                'non-fast-forward' in lower or 'fetch first' in lower):
+            return False
+        # W16y-c review (LOW): an RPC failure with a client error (HTTP 400/401/403/404/413)
+        # is permanent; only server or network failures are retried.
+        if any(code in lower for code in ('http 400', 'http 401', 'http 403', 'http 404', 'http 413',
+                                          'error: 400', 'error: 401', 'error: 403', 'error: 404', 'error: 413')):
+            return False
+        return any(marker in lower for marker in (
+            'internal server error', 'http 500', 'http 502', 'http 503', 'http 504',
+            ' 500', ' 502', ' 503', ' 504', 'remote end hung up', 'connection reset',
+            'could not resolve host', 'timed out', 'rpc failed'))
+
+    def waits():
+        raw = os.environ.get('PF_PUSH_WAITS', '30 90').split()
+        try:
+            values = [max(0, int(x)) for x in raw]
+        except ValueError:
+            values = []
+        return (values + [30, 90])[:2]
+
+    have = remote_head()
     if have == HEAD:
         say('push', 'SKIP', 'branch %s already at the packet head' % BRANCH)
         return
@@ -331,10 +360,30 @@ def push():
     if have and not ff:
         stop('push', 'branch %s exists at %s, not the packet head%s. Nothing pushed.'
              % (BRANCH, have[:12], (' or its parent %s' % PARENT[:12]) if PARENT != BASE else ''))
-    code, out, err = run(['git', 'push', '-q', REMOTE, '%s:refs/heads/%s' % (HEAD, BRANCH)], cwd=CLONE, timeout=300)
-    if code != 0:
-        stop('push', 'git push failed: ' + err.decode('utf-8', 'replace')[:200])
-    say('push', 'OK', 'pushed %s to %s (%s)' % (HEAD[:12], BRANCH, ('fast-forward from %s' % PARENT[:12]) if ff else 'new branch'))
+
+    push_waits = waits()
+    for attempt in range(1, 4):
+        code, out, err = run(['git', 'push', '-q', REMOTE, '%s:refs/heads/%s' % (HEAD, BRANCH)], cwd=CLONE, timeout=300)
+        if code == 0:
+            say('push', 'OK', 'pushed %s to %s (%s)' % (HEAD[:12], BRANCH, ('fast-forward from %s' % PARENT[:12]) if ff else 'new branch'))
+            return
+        failure = ((err or b'') + b'\n' + (out or b'')).decode('utf-8', 'replace')
+        detail = ' '.join(failure.split())[:200] or 'git push failed'
+        if not transient_failure(failure) or attempt == 3:
+            stop('push', 'git push failed: ' + detail)
+        delay = push_waits[attempt - 1]
+        say('push', 'NOTE', 'attempt %d of 3 failed (transient): %s; retrying in %d s' % (attempt, detail, delay))
+        time.sleep(delay)
+        # Check again after the backoff, immediately before the next push: a concurrent
+        # writer may have created the branch while we were waiting.
+        have = remote_head()
+        if have == HEAD:
+            say('push', 'OK', 'branch %s is already at the packet head after attempt %d' % (BRANCH, attempt))
+            return
+        ff = bool(have) and PARENT != BASE and have == PARENT
+        if have and not ff:
+            stop('push', 'branch %s exists at %s, not the packet head%s. Nothing pushed.'
+                 % (BRANCH, have[:12], (' or its parent %s' % PARENT[:12]) if PARENT != BASE else ''))
 
 
 def open_pr():
@@ -515,6 +564,13 @@ def smoke():
             scan = [l.split('Z ', 1)[-1].strip()[:300] for l in text.splitlines()
                     if 'PROVIDER_SCAN ' in l and 'print(' not in l and 'echo' not in l]
             R['smoke'][t]['scan'] = scan[-1:]
+            # W16y-c: keep the scan evidence with the run logs, so no separate collect step is needed.
+            dest = LOGS / ('scan-%s-%s' % (t.replace('/', '-'), r['id']))
+            dcode, _, derr = run([GH, 'run', 'download', str(r['id']), '--repo', REPO, '-n',
+                                  'provider-scan-%s-%s' % (app, r['id']), '--dir', str(dest)], timeout=180)
+            R['smoke'][t]['scan_evidence'] = str(dest.name) if dcode == 0 else None
+            if dcode != 0:
+                say('smoke', 'NOTE', '%s: scan evidence not downloaded (%s)' % (t, (derr or b'').decode('utf-8', 'replace')[:120]))
             say('smoke', 'NOTE', '%s: %s' % (t, scan[-1] if scan else 'no PROVIDER_SCAN line (scan did not run or failed; see the run)'))
         save()
         why = None

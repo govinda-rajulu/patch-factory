@@ -40,6 +40,16 @@ PERMISSION_RE = re.compile(r"(?:android\.)?permission\.([A-Za-z0-9_]+)")
 URL_RE = re.compile(r"https?://(?:[^\s\"'<>\\]|\\.)+", re.I)
 DOMAIN_RE = re.compile(r"(?<![A-Za-z0-9_.-])(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}(?![A-Za-z0-9_.-])", re.I)
 PRINTABLE_RE = re.compile(rb"[ -~]{4,}")
+# W16y-c (wrong call 118): a bare dotted word counts as a host only when its last label is a
+# real, common public top-level domain. Source-file names kept in dex debug info
+# (BooleanSetting.java), Java/Kotlin package names (app.morphe.extension.shared.logger) and
+# obfuscated identifiers (rek.ql) are not hosts. Anything after http:// or https:// always counts.
+CODE_ROOTS = frozenset("r com org net io app android androidx java javax kotlin kotlinx dalvik google".split())
+BARE_HOST_TLDS = frozenset("""
+com net org info biz io co me dev app xyz top site online club pro cloud link live tech store
+ai gg tv cc ws to ly sh fm am in us uk de fr ru cn jp kr br es it nl pl tr ua ir id vn th my sg
+hk tw ph pk bd au ca mx ar za ng eg sa ae il se no fi dk ch at be cz ro hu gr pt ie nz su
+""".split())
 FLAG_PATTERNS = {
     "DexClassLoader": re.compile(r"DexClassLoader"),
     "PathClassLoader": re.compile(r"PathClassLoader"),
@@ -110,7 +120,13 @@ def _zip_printable(path: Path) -> tuple[set[str], set[str], list[str]]:
                         host = _host_from_url(u)
                         if host:
                             hosts.add(host)
-                    hosts.update(x.lower().rstrip(".") for x in DOMAIN_RE.findall(text))
+                    for x in DOMAIN_RE.findall(text):
+                        x = x.lower().rstrip(".")
+                        labels = x.split(".")
+                        # Second review: reversed-domain package names (com.example.app,
+                        # androidx.core.app) and resource references (R.id) are code, not hosts.
+                        if labels[-1] in BARE_HOST_TLDS and labels[0] not in CODE_ROOTS:
+                            hosts.add(x)
             return strings, hosts, errors
     except (OSError, zipfile.BadZipFile) as exc:
         return set(), set(), [str(exc)]

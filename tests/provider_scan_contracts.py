@@ -132,6 +132,24 @@ esac
         result, _ = self.run_scan(self.with_vt(status=404))
         self.assertEqual((result["vt"], result["verdict"]), ("unknown to VT", "PASS"))
 
+    def test_code_names_are_not_hosts(self):
+        # W16y-c (wrong call 118): the 30 Oct Amazon Music scan held on 22 such strings.
+        self.clean_clam()
+        self.apk(self.orig, ["ordinary"])
+        self.apk(self.patch, ["BooleanSetting.java", "SkipAdsPatch.java", "app.morphe.extension.shared.logger",
+                              "rek.ql", "StringRef.java", "com.example.Thing.kt",
+                              "R.id", "com.example.app", "androidx.core.app", "org.telegram.io"])
+        result, _ = self.run_scan(self.with_vt())
+        self.assertEqual((result["new_hosts"], result["verdict"]), ([], "PASS"))
+
+    def test_real_bare_and_url_hosts_still_hold(self):
+        self.clean_clam()
+        self.apk(self.orig, ["ordinary"])
+        self.apk(self.patch, ["api.tracker-example.com", "https://collector.example.org/x"])
+        result, _ = self.run_scan(self.with_vt())
+        self.assertEqual(result["verdict"], "HOLD")
+        self.assertEqual(sorted(result["new_hosts"]), ["api.tracker-example.com", "collector.example.org"])
+
     def test_changed_native_library_holds(self):
         self.clean_clam()
         self.apk(self.orig, libs=["lib/arm64-v8a/libx.so"])

@@ -18,6 +18,12 @@ REPO = 'govinda-rajulu/patch-factory'
 # W16w (owner, 28 Oct 2026: the same old CLUE lines on every run read as new failures): the four
 # fixed 26 to 27 Oct runs are already in the repo records, so the probe no longer re-reads them.
 RUNS = {}
+# W16y-c (owner, 31 Oct: remove the separate collect step): the newest run of each workflow
+# below is read every time: details and evidence artifacts (bounded as above; test APKs never),
+# and the log only where it is small. pin-check = the store pin probe; retention = the weekly
+# cleanup preview with its token; batch-patch = the last publishing or test batch.
+LATEST = {'pin-check.yml': ('pin-check', True), 'retention.yml': ('retention', True),
+          'batch-patch.yml': ('batch-patch', False)}
 # W16w: all 9 icons are in the repository since W16v; the icon check runs only when asked.
 ICONS = os.environ.get('PF_P2_ICONS') == '1'
 HISTORY = {'scheduled': 'repos/%s/actions/runs?event=schedule&per_page=60' % REPO,
@@ -573,6 +579,31 @@ def reads():
         run_details(run, name)
         run_log(run, name)
         artifacts(run, name)
+    for wf, (name, with_log) in LATEST.items():
+        code, out = gh(['run', 'list', '-R', REPO, '-w', wf, '-L', '1', '--json', 'databaseId,status,conclusion'])
+        rows = loads(out, None) if code == 0 else None
+        row = rows[0] if isinstance(rows, list) and rows and isinstance(rows[0], dict) else {}
+        run = str(row.get('databaseId') or '')
+        if not re.fullmatch(r'[0-9]{1,20}', run):
+            say('NOTE', 'latest %s: no run found' % name)
+            continue
+        # Review (MEDIUM): these extra reads are advisory; an unfinished run or a missing log is
+        # a NOTE, never a failed read that would stop the whole probe.
+        say('NOTE', 'latest %s run %s: %s %s' % (name, run, row.get('status') or '?', row.get('conclusion') or ''))
+        code, out = gh(['run', 'view', run, '-R', REPO, '--json',
+                        'name,displayTitle,event,status,conclusion,createdAt,updatedAt,headSha,url,jobs'],
+                       OUT / ('%s-%s.json' % (name, run)))
+        if code != 0:
+            say('NOTE', 'latest %s run %s details unreadable' % (name, run))
+        if with_log and row.get('status') == 'completed':
+            code, out = gh(['run', 'view', run, '-R', REPO, '--log'], OUT / ('%s-%s.log' % (name, run)))
+            if code == 0 and out:
+                say('OK', 'latest %s run %s log (%d bytes)' % (name, run, len(out)))
+                clues(name, out)
+            else:
+                say('NOTE', 'latest %s run %s log unavailable' % (name, run))
+        if row.get('status') == 'completed':
+            artifacts(run, name)
     for name, path in HISTORY.items():
         code, out = gh(['api', path], OUT / ('history-%s.json' % name))
         data = loads(out, None) if code == 0 else None

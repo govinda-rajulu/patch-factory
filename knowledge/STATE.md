@@ -8,7 +8,12 @@ Start here: [KT-2026-10-28.md](../docs/review/KT-2026-10-28.md), then [OPEN-WORK
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W16y-b (30 Oct 2026, evening IST): start here
+## W16y-c (31 Oct 2026, early IST): start here
+
+- **W16y-b merged** as #281 (`27adc7b4`, tree `c761f1c6`), RESULT OK. Owner phone test 31 Oct: the Telegram rahul9999xda build signs in. Read docs/review/HANDOVER-2026-10-31-W16y-c.md.
+- **W16y-c**: publish Telegram from rahul9999xda after the merge; scan host fix (wrong call 118); pin check through the build's store reader, no downloads, still report-only; controller retries a transient push failure. Wrong calls through 119.
+
+## W16y-b (30 Oct 2026, evening IST)
 
 - **W16y-a merged** as #279 (`75fd6dae`, tree `801b1a96`). Owner run RESULT OK; Facebook, Prime Video and Amazon Music (26.36.1, De-Vanced v1.6.2) smokes worked; ES fallback stopped at the coverage floor as designed. Read docs/review/HANDOVER-2026-10-30-W16y-b.md.
 - **W16y-b**: provider safety scan on nonpublishing smokes (permissions, hosts, red flags, ClamAV, VirusTotal hash lookup); monthly watched-provider digest with the three Hush providers as watch sources; pin check as a manual report-only probe (schedule after live evidence); 180-day patch-age warning on portal and status; weekly Council model lines; Telegram switched to rahul9999xda (non-Hush, owner 30 Oct evening; smoke build is the phone test). Wrong calls 112 to 117. Nothing published or deleted.
