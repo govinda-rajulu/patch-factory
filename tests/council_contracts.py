@@ -1054,6 +1054,14 @@ class ProbeEveryModel(unittest.TestCase):
         self.assertIn('| nemotron | nvidia | m1 | SERVED listed=yes |', table)
         self.assertIn('| nemotron | nvidia | m2 | MISSING listed=no |', table)
         self.assertIn('| nemotron | groq | g1 | NO_KEY |', table)
+        # W16y-b review: the weekly model lines sit after the table, never between its rows,
+        # and only for listed models (not the groq alternate).
+        rows = table[table.index('### Every model'):table.index('### Weekly model report')].strip().splitlines()[1:]
+        self.assertTrue(all(r.startswith('|') for r in rows if r.strip()), rows)
+        report = table[table.index('### Weekly model report'):]
+        self.assertIn('MODEL_OK seat=nemotron model=m1', report)
+        self.assertIn('MODEL_MISSING seat=nemotron model=m2', report)
+        self.assertNotIn('model=g1', report)
 
 
 

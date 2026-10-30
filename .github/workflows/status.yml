@@ -11,7 +11,7 @@ permissions:
   contents: read
 on:
   workflow_run:  # zizmor: ignore[dangerous-triggers] main repository metadata only and trusted checkout
-    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "MCP scout", "9. Batch Patch", "Tooling watch", "10. Selection watch", "Needs you", "Keepalive", "11. Rule merge", "Retention preview"]
+    workflows: ["1. Manual Patch", "2. Check new patch", "4. Explore patches", "5. Add target", "6. Provider watch", "7. Nightly watch", "8. Community watch", "MCP scout", "9. Batch Patch", "Tooling watch", "10. Selection watch", "Needs you", "Keepalive", "11. Rule merge", "Retention preview", "Weekly pin store check"]
     types: [completed]
     # W16k (owner, 25 Oct 2026: runs were bloating): only runs on main wake this; a packet
     # smoke used to start Notify, Status and Qualify for nothing (130 of 299 runs that day).

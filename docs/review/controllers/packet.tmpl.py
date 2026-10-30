@@ -75,6 +75,7 @@ ADVISORY = ()       # check names waited for and recorded, never blocking
 SMOKE = ()          # "app" or "app/provider" entries to build without publishing on BRANCH
 SMOKE_ADVISORY = ()  # SMOKE entries whose failure is recorded (NOTE), never blocking
 SMOKE_KEEP_GOING = ()  # (W16j) SMOKE entries built with keep_going: every failing patch is listed (PATCH_FAILED); always advisory
+SMOKE_SCAN = ()     # (W16y-b) SMOKE entries built with scan=true: the provider safety scan's PROVIDER_SCAN line is recorded; always advisory
 CLOSE = ()          # (issue number, closing comment) pairs, done after the merge
 PRECHECKS = ()      # (api path, field, expected value, why) read in gate; a mismatch stops
 CLEANUP_APPLY = False  # apply the cleanup preview at once (PF_CLEANUP=keep skips)
@@ -426,8 +427,9 @@ def tree_check(sha):
 
 def title(entry):
     app, _, provider = entry.partition('/')
-    return 'Manual %s%s / publish=false%s' % (app, (' / ' + provider) if provider else '',
-                                              ' / keep-going' if entry in SMOKE_KEEP_GOING else '')
+    return 'Manual %s%s / publish=false%s%s' % (app, (' / ' + provider) if provider else '',
+                                                ' / keep-going' if entry in SMOKE_KEEP_GOING else '',
+                                                ' / scan' if entry in globals().get('SMOKE_SCAN', ()) else '')
 
 
 def smoke_runs():
@@ -467,6 +469,7 @@ def smoke():
         app, _, provider = t.partition('/')
         cmd = [GH, 'workflow', 'run', 'manual-patch.yml', '--repo', REPO, '--ref', BRANCH, '-f', 'target=' + app, '-f', 'publish=false']
         cmd += ['-f', 'keep_going=true'] if t in SMOKE_KEEP_GOING else []
+        cmd += ['-f', 'scan=true'] if t in globals().get('SMOKE_SCAN', ()) else []
         code, out, err = run(cmd + (['-f', 'provider=' + provider] if provider else []), timeout=120)
         if code != 0:
             stop('smoke', '%s: dispatch failed: %s. Nothing merged.' % (t, (err or out).decode('utf-8', 'replace')[:200]))
@@ -479,7 +482,7 @@ def smoke():
         time.sleep(POLL)
     for t in SMOKE:
         r = runs.get(t)
-        soft = t in SMOKE_ADVISORY or t in SMOKE_KEEP_GOING
+        soft = t in SMOKE_ADVISORY or t in SMOKE_KEEP_GOING or t in globals().get('SMOKE_SCAN', ())
         if not (r and r.get('status') == 'completed'):
             if soft:
                 R['smoke'][t] = dict(run=(r or {}).get('id'), conclusion='unfinished', advisory=True)
@@ -507,6 +510,12 @@ def smoke():
         R['smoke'][t] = dict(run=r['id'], conclusion=r.get('conclusion'), url=r.get('html_url'), coverage=cov[:4],
                              lost=lost[:20], unavailable=doubt[:4], attempts=won[-1:], dropped=dropped[:20], failed=failed[:4],
                              advisory=soft, patch_failed=patch_failed[:80], keep_going=t in SMOKE_KEEP_GOING)
+        if t in globals().get('SMOKE_SCAN', ()):
+            # W16y-b: the provider safety scan prints one PROVIDER_SCAN line (PASS, HOLD or BLOCK).
+            scan = [l.split('Z ', 1)[-1].strip()[:300] for l in text.splitlines()
+                    if 'PROVIDER_SCAN ' in l and 'print(' not in l and 'echo' not in l]
+            R['smoke'][t]['scan'] = scan[-1:]
+            say('smoke', 'NOTE', '%s: %s' % (t, scan[-1] if scan else 'no PROVIDER_SCAN line (scan did not run or failed; see the run)'))
         save()
         why = None
         if r.get('conclusion') != 'success':

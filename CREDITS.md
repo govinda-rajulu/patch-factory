@@ -56,7 +56,7 @@ handed to the owner as one command.
 | Reddit | morphe | https://github.com/MorpheApp/morphe-patches |
 | Reddit | adobo | https://github.com/jkennethcarino/adobo |
 | Reddit | alastor | https://github.com/Alastor-Kaneki/Morphe-Patches |
-| Telegram | hushtelegram | https://github.com/SysAdminDoc/HushTelegram |
+| Telegram | rahul9999xda | https://github.com/rahul9999xda/morphe-patches |
 | Telegram | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | Truecaller | heval99 | https://github.com/heval99/Heval-Morphe-Patches |
 | Truecaller | bufferk | https://github.com/bufferk/morphe-patches |
@@ -83,6 +83,8 @@ it will be removed the same day.
 | [Obtainium](https://github.com/ImranR98/Obtainium) | GPL-3.0 | how the phones track these releases |
 | [tdl](https://github.com/iyear/tdl) | AGPL-3.0 | optional Telegram source helper retained from the upstream workflow; review before enabling |
 | [markdown-badges](https://github.com/Ileriayo/markdown-badges) | MIT | badge style referenced by the upstream README; no badge assets vendored |
+| [ClamAV](https://www.clamav.net) | GPL-2.0 | optional malware scan for provider bundles and patched APKs |
+| [VirusTotal](https://docs.virustotal.com/reference/public-vs-premium-api) | Public API terms | optional hash-only reputation lookup; free tier is non-commercial |
 
 ## Licence
 

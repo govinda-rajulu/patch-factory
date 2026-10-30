@@ -10,6 +10,11 @@ import json
 import re
 import sys as _sys
 from pathlib import Path as _Path
+try:
+    import extra_providers as _extra_providers
+except ImportError:  # direct callers may load this module without src/etc on sys.path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent))
+    import extra_providers as _extra_providers
 _sys.path.insert(0, str(_Path(__file__).resolve().parent))  # W15e: readable.py lives beside this file
 
 PKG = re.compile(r"[A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+")
@@ -243,6 +248,8 @@ def rank_providers(index_data, targets):
     """
     parsed = inventory(index_data)
     providers = parsed["providers"]
+    extra_rows = _extra_providers.load()
+    extra_by_key = {("github:" + r["owner"] + "/" + r["repo"]).lower(): r for r in extra_rows}
     out = []
     for target in targets:
         if not target.get("enabled"):
@@ -296,10 +303,27 @@ def rank_providers(index_data, targets):
             # version. It remains a visible field in the rendered rank.
             rank = (int(official), len(applicable), int(current_supported is True),
                     len(supported), freshness if isinstance(freshness, (int, float)) else 0)
+            extra = extra_by_key.get((str(provider.get("source", "github")) + ":" + repo).lower())
             rows.append(dict(repo=repo, source=provider.get("source"), official=official,
                              patch_count=len(applicable), supported_versions=sorted(supported),
                              current_version=current, supports_current=current_supported,
-                             freshness=freshness, configured=repo.lower() in configured, rank=rank))
+                             freshness=freshness, configured=repo.lower() in configured, rank=rank,
+                             **({"extra_watch": True, "why": extra["why"]} if extra else {})))
+        # The community index intentionally omits the Hush* repositories.  Keep
+        # their existence visible in the ranker as zero-evidence, configured
+        # sources; no patch count or adoption decision is inferred.
+        indexed = {(str(provider.get("source", "github")) + ":" + str(provider.get("repo", "")).lower())
+                   for provider in providers.values()}
+        for source in extra_rows:
+            repo = source["owner"] + "/" + source["repo"]
+            key = "github:" + repo.lower()
+            if package not in source["packages"] or key in indexed:
+                continue
+            rows.append(dict(repo=repo, source="github", official=False,
+                             patch_count=0, supported_versions=[], current_version=current,
+                             supports_current=None, freshness=0,
+                             configured=repo.lower() in configured, rank=(0, 0, 0, 0, 0),
+                             extra_watch=True, why=source["why"]))
         rows.sort(key=lambda row: (row["rank"], row["repo"].lower()), reverse=True)
         configured_rows = [row for row in rows if row["configured"]]
         best_configured = max((row["rank"] for row in configured_rows), default=None)

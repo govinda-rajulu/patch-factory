@@ -1,6 +1,6 @@
 # Open work
 
-## Current checkpoint: 30 October 2026 (packet W16y-a)
+## Current checkpoint: 30 October 2026 (packets W16y-a and W16y-b)
 
 Every still-open item carried forward from the older checkpoints is listed once below. Closed,
 superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-ARCHIVE-2026-10.md).
@@ -12,14 +12,24 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 - The unused `apply_choices.py`, `chooser.py` and `community_diff.py` utilities and the dead chooser branch in `selection_writer.py` were removed; the removal and restore record is [REMOVED-2026-10.md](history/REMOVED-2026-10.md).
 - The closed `CANDIDATES-2026-10-08.md` scout moved from onboarding to [history](history/CANDIDATES-2026-10-08.md), with inbound links repaired.
 
-### W16y-b (next packet)
+### Done in W16y-b (30 October 2026)
 
-- 180-day patch-age warning (all targets; warning only, never blocks a build) on the portal app cards and the status page. Not implemented in W16y-a.
+- Provider safety scan (`src/etc/provider_scan.py`, allowlist `src/etc/provider_scan_allowlist.json`): a nonpublishing Manual Patch with `scan` on compares the original and patched APK (permissions added, new hosts, new code red flags, new native libraries), runs ClamAV on the bundle and the patched APK, and looks up their sha256 on VirusTotal (repo secret `VT_API_KEY`, used only in that step; hashes only, no upload). It prints one `PROVIDER_SCAN ... verdict=PASS|HOLD|BLOCK` line and keeps `provider-scan.json` for 30 days. Publishing builds never run it. ClamAV and VirusTotal are credited in CREDITS.md.
+- Controllers: `SMOKE_SCAN` entries dispatch that scan smoke and record its line (always advisory).
+- Monthly watched-provider digest in Needs you (shown in the issue body on UTC days 1 to 7 of each month, collapsed); HushTelegram, HushGram and HushFacebook added as watch sources (`src/etc/extra-providers.json`). Nothing is adopted automatically.
+- Pin check probe (`pin-check.yml`, manual dispatch only, report-only): reads the store listing for targets with an exact build pin (Facebook and Instagram today), prints `PIN_STORE_OK`, `PIN_STORE_MISSING` or `PIN_STORE_UNKNOWN`, keeps evidence 30 days and never fails. Not scheduled yet (wrong call 115): the build reaches APKMirror through its browser helper, and plain reads were only tested against stubs. The controller dispatches it once after the merge; the weekly schedule follows with that evidence.
+- 180-day patch-age warning on every target (preflight enforces 180), shown on the status page and portal app cards; never blocks a build.
+- Weekly Council model report: the Sunday morning probe prints one `MODEL_OK` or `MODEL_MISSING` line per listed seat model; swaps stay PR-only.
+- Telegram survey: [TELEGRAM-SURVEY-2026-10-30.md](TELEGRAM-SURVEY-2026-10-30.md). Owner, 30 Oct evening: non-Hush. rahul9999xda v1.17.0 is primary on 13.1.1 with 14 names (integrity bypass and a no-op left out); rushiranpise stays the fallback; HushTelegram on watch, its files kept ([onboarding/telegram.md](onboarding/telegram.md)).
+- Amazon Music: De-Vanced v1.6.2 fixed its declared version; the W16y-a smoke built 26.36.1 with 5 of 5 chosen patches. The fail-closed note below is closed.
+- Workflow YAML contract and the Add app patch-age default (wrong calls 113 and 114, both caught before the commit). Review fixes: the scan never says PASS when ClamAV or VirusTotal did not answer, and flags a native library replaced under the same name; the Council model lines sit below the table.
 
-- Add the provider gate and monthly watched-provider digest.
-- Add the weekly pin check only for apps whose patches rely on the pin.
-- Add the weekly Council model report; model swaps remain PR-only.
-- Survey Telegram first; keep Hush API keys interactive-only and never stored.
+### Next (after W16y-b)
+
+- **Owner:** phone test of the Telegram rahul9999xda smoke build (sign-in first). If sign-in fails with `API_ID_PUBLISHED_FLOOD`, the options are the owner patching HushTelegram on the phone with his own API ID, or approving `Bypass integrity check` (CONFIRM rule) in a later packet.
+- Scan and pin-probe limits from the second review (LOW, recorded): the scan reads only the merged APK and loads each dex fully (fine on 16 GB runners); the pin probe's page parsing is heuristic and does not check Facebook's fallback `overrides.version_code`. Revisit with the first live evidence.
+- New-provider ready PR: discovery, then the scan smoke, then a green test build, then a ready pull request the owner merges. W16y-b ships the scan step only; the orchestration is not built.
+- Read the first runs: Council probe (Sunday 1 Nov morning), monthly digest (Needs you, 1 Nov), the post-merge pin check probe, retention preview (Monday 2 Nov). Then schedule the pin check weekly (reading pages the way the build does if plain reads are refused). Retention apply only with the owner's token, from 3 Nov.
 
 ### Done in W16x (29 October 2026)
 
@@ -36,14 +46,14 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 
 - **Owner:** Ten decision questions with recommendations and downsides (pin health check, Amazon Music paid patches, Android 10 Signer pin, idle fallback smokes, near-version rule, patch age, watched providers, release cleanup, Council models, switch-audit gate): [DECISION-REVIEW-2026-10-29.md](DECISION-REVIEW-2026-10-29.md).
 - **Owner:** Phone setup: import Android 10 without the Signer pin and keep it on for Android 11/12 as recorded in [OBTAINIUM-SIGNER-2026-10-27.md](OBTAINIUM-SIGNER-2026-10-27.md).
-- Amazon Music fails closed until De-Vanced fixes its declared version (2.36.1, likely meant 26.36.1). Re-read the provider's live patches-list before any change; do not set max_app_version by hand ([onboarding/amazonmusic.md](onboarding/amazonmusic.md)).
+- Closed in W16y-b: Amazon Music builds 26.36.1 again (De-Vanced v1.6.2 fixed its declared version; [onboarding/amazonmusic.md](onboarding/amazonmusic.md)).
 - **Owner:** Instagram fallbacks are idle: HushGram v0.0.17 and oxbow v453 support only Instagram 453.0.0.55.79 (build 385914283), piko stays on the 452.1 pin. Giving the fallbacks their own 453 pin would let a fallback release lock piko out (publish_guard refuses an older version than the shelf). Options: wait for piko 453 (recommended), or allow a 453 fallback ([onboarding/instagram.md](onboarding/instagram.md)).
 - MX Player fallback MightyMichs v1.12.0: "Unlock MX Player Pro" fails its fingerprint (Lxo;.j1()Z) on 1.93.4, the only version it supports. Record only; ftl stays primary; recheck on the next MightyMichs release ([onboarding/mxplayer.md](onboarding/mxplayer.md)).
 - Status page red can be a nonpublishing smoke (Instagram oxbow run 40783288101, 28 Oct), not the release; the page reports the newest build job ([status.py](../../src/etc/status.py)).
 - **Owner (optional):** File the upstream Obtainium issue using the text and steps in [OBTAINIUM-SIGNER-2026-10-27.md](OBTAINIUM-SIGNER-2026-10-27.md); test same-version patch-only notification and installed-setting migration.
 - Move the Instagram pin when piko supports build 385914182 or newer; keep the piko/brosssh held names for a provider update ([W15G-MAP.md](W15G-MAP.md); [instagram onboarding](onboarding/instagram.md)).
 - Restore hoo-dles to prerelease when morphe-desktop stable reads its new bundles ([W17-BRIEF.md](W17-BRIEF.md)).
-- Telegram rahul9999xda is on watch until we build 13.1.1 (DECISIONS.json watch, N-55429f).
+- Closed in W16y-b: Telegram rahul9999xda became the primary (watch row N-55429f removed).
 - Build the W15g signing split in its own packet: keyless `--unsigned` patch job, isolated apksigner job, sha256 handoff, nonpublishing batch, publishing build and owner phone test ([W15G-MAP.md](W15G-MAP.md); [SIGNING-SPLIT.md](SIGNING-SPLIT.md)).
 - Prove the W16w MCP scout settings with one post-merge dispatch (no `run-gemini-cli`, YOLO off, default approval, two read tools, lite model apart from the Council seat, QUOTA fail-fast) ([MCP-PLAN.md](MCP-PLAN.md)).
 - Make the next scheduled Council audit finish under 50 minutes with one line per part and seat; read the Council desk after the run ([KT-2026-10-28.md](KT-2026-10-28.md)).

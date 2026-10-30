@@ -1,5 +1,5 @@
 name: 1. Manual Patch
-run-name: Manual ${{ inputs.target }}${{ inputs.provider && format(' / {0}', inputs.provider) || '' }} / publish=${{ inputs.publish }}${{ inputs.keep_going && ' / keep-going' || '' }}
+run-name: Manual ${{ inputs.target }}${{ inputs.provider && format(' / {0}', inputs.provider) || '' }} / publish=${{ inputs.publish }}${{ inputs.keep_going && ' / keep-going' || '' }}${{ inputs.scan && ' / scan' || '' }}
 permissions:
   contents: write
 on:
@@ -22,6 +22,11 @@ on:
         type: string
       keep_going:
         description: 'Smoke only: keep patching after a patch fails, to list every failing patch in one run (refused with publish)'
+        required: false
+        default: false
+        type: boolean
+      scan:
+        description: 'Smoke only: scan original, patched APK, and provider bundle for safety signals'
         required: false
         default: false
         type: boolean
@@ -58,6 +63,11 @@ on:
         required: false
         type: boolean
         default: false
+      scan:
+        description: 'Smoke only: scan the original and patched APK before handoff'
+        required: false
+        type: boolean
+        default: false
     secrets:
       KEYSTORE_B64:
         required: true
@@ -65,6 +75,8 @@ on:
         required: true
       KEYSTORE_ALIAS:
         required: true
+      VT_API_KEY:
+        required: false
 jobs:
   patch:
     name: Patch ${{ inputs.target }}
@@ -213,6 +225,43 @@ jobs:
         env:
           TARGET: ${{ inputs.target }}
         run: python3 src/build/release_contract.py "$TARGET"
+      - name: Install ClamAV for provider scan
+        if: success() && inputs.scan && !inputs.publish
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clamav
+          # A fresh database is useful evidence, but a mirror outage is UNKNOWN, not a build failure.
+          if command -v freshclam >/dev/null 2>&1; then
+            freshclam || freshclam || echo '::warning::freshclam failed; ClamAV result may be UNKNOWN'
+          fi
+      - name: Run provider safety scan
+        if: success() && inputs.scan && !inputs.publish
+        env:
+          TARGET: ${{ inputs.target }}
+          PROVIDER: ${{ inputs.provider || '' }}
+          VT_API_KEY: ${{ secrets.VT_API_KEY }}
+          SCAN_JSON: provider-scan.json
+        run: |
+          set -euo pipefail
+          # Paths are discovered after the build because apk_name and bundle filenames are target data.
+          ORIGINAL_APK=$(find ./download -maxdepth 1 -type f -name '*.apk' -print -quit)
+          PATCHED_APK=$(find ./release -maxdepth 1 -type f -name '*.apk' -print -quit)
+          PROVIDER_MPP=$(find . -maxdepth 1 -type f -name '*.mpp' -print | sort | head -1)
+          [ -n "$ORIGINAL_APK" ] && [ -n "$PATCHED_APK" ] && [ -n "$PROVIDER_MPP" ] || {
+            echo '::error::provider scan inputs are missing'; exit 1;
+          }
+          if [ -z "$PROVIDER" ] && [ -f ./release/.provider ]; then
+            PROVIDER=$(tr -d '\r\n' < ./release/.provider)
+          fi
+          python3 src/etc/provider_scan.py "$ORIGINAL_APK" "$PATCHED_APK" "$PROVIDER_MPP" "$TARGET" "$PROVIDER" "$SCAN_JSON"
+      - name: Upload provider scan evidence
+        if: always() && inputs.scan && !inputs.publish
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: provider-scan-${{ inputs.target }}-${{ github.run_id }}
+          path: provider-scan.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Compare consumed inputs in shadow mode
         id: shadow
         continue-on-error: true

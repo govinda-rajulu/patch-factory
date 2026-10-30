@@ -925,11 +925,11 @@
     },
     {
       "target": "telegram",
-      "repo": "rahul9999xda/morphe-patches",
+      "repo": "SysAdminDoc/HushTelegram",
       "take": [],
-      "id": "N-55429f",
-      "why": "lists Telegram 13.1.1 only, ours 13.1.0",
-      "date": "2026-10-28"
+      "id": "N-ed3a5f",
+      "why": "owner 30 Oct: not for Telegram for now (login needs the owner's own API key at patch time); rahul9999xda is primary",
+      "date": "2026-10-30"
     }
   ],
   "drop_providers": [

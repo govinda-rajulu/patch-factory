@@ -3,6 +3,9 @@
 Package: org.telegram.messenger
 Source APK: APKMirror, per the target's `source` (unchanged).
 
+**Current (W16y-b, 30 Oct 2026):** rahul9999xda/morphe-patches is primary with 14 names in `src/patches/telegram-rahul9999xda/include-patches`, Telegram 13.1.1 (the shelf version). Owner, 30 Oct 2026: non-Hush for Telegram, the latest version with the most patches. HushTelegram builds could not sign in (`API_ID_PUBLISHED_FLOOD`); its fix is the owner's own API ID baked in at patch time, which a public build cannot carry, so the owner patches Hush on his phone if he wants it. rushiranpise stays the fallback (12.10.1; it cannot publish below the 13.1.1 shelf until it updates). HushTelegram's selection files stay, unreferenced, for a later return; it is on watch (DECISIONS.json N-ed3a5f).
+Provider: rahul9999xda/morphe-patches (primary since W16y-b; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 30 Oct 2026) at https://github.com/rahul9999xda/morphe-patches; bundle: the one `.mpp` asset of the newest stable release (v1.17.0, 28 Oct 2026, sha256 06a9365e52ba987ff4660f74223b86837f414dc01e82fc3212da4b6ac8ac87d2); channel: latest). Left out: Bypass integrity check (CONFIRM rule, not owner-approved), Disable channel switching (the provider calls it a no-op), Fix Firebase after re-signing and Provide Original app certificate (re-signing helpers; the second is banned). Read from https://raw.githubusercontent.com/rahul9999xda/morphe-patches/v1.17.0/patches-list.json; survey: docs/review/TELEGRAM-SURVEY-2026-10-30.md.
+
 **Current (W16j, 25 Oct 2026):** SysAdminDoc/HushTelegram is primary with 62 names in `src/patches/telegram-hushtelegram/include-patches` (owner: the most patches wins); rushiranpise/morphe-patches (12.10.1, 13 names, Unlock Premium among them) is the backup. newuser7171 is removed: it never built (24 and 25 Oct smokes: its fingerprints miss the APKMirror 12.10.4 build).
 Provider: SysAdminDoc/HushTelegram (primary since W16j; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/SysAdminDoc/HushTelegram; bundle: the one `.mpp` asset of the newest release including pre-releases; channel: prerelease). Same author as HushFacebook and HushGram. Left out: Use registered Maps API key (BANNED), Use registered Telegram API credentials (needs your own API id), Repair Firebase push registration (hands Firebase the original certificate), HushTelegram icon and name (branding), Black and white launch logo (expert only, rebuilds resources).
 Provider: rushiranpise/morphe-patches (primary in W16h, fallback since W16j; licence: GPL-3.0, the LICENSE file (blob f288702d, read through the GitHub API on 25 Oct 2026) at https://github.com/rushiranpise/morphe-patches; bundle: the one `.mpp` asset of the newest prerelease; channel: prerelease).
@@ -13,6 +16,20 @@ Owner approved: Unlock Premium
 
 
 ## Patches
+- Anti-delete messages: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Anti-disappearing media: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Anti-screenshot notification: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Bypass channel restrictions: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Bypass content restrictions: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Disable auto-update: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Disable telemetry and analytics: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Download speed boost: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Hide Stories read status: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Hide typing indicator: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Remove ads: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Unlock Premium: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Use normal paste for Rich HTML clipboard content: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
+- Voice to music: rahul9999xda, owner chose the non-Hush primary (30 Oct 2026, W16y-b)
 - AMOLED black: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
 - Add Repeat to the message menu: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)
 - Allow chat blur on slower phones: HushTelegram, owner took the provider in the Needs you review file (N-9bd13d, 2026-10-25)

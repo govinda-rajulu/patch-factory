@@ -131,6 +131,19 @@ def special_world():
 
 
 class Status(unittest.TestCase):
+    def test_patch_age_is_utc_advisory_data_only(self):
+        self.assertEqual(st.patch_age_days('2026-01-01T00:00:00Z', '2026-06-29T00:00:00Z'), 179)
+        self.assertEqual(st.patch_age_days('2026-01-01T00:00:00Z', '2026-06-30T00:00:00Z'), 180)
+        self.assertEqual(st.patch_age_days('2026-01-01T00:00:00Z', '2026-07-01T00:00:00Z'), 181)
+        self.assertIsNone(st.patch_age_days('not-a-date', '2026-07-01T00:00:00Z'))
+        w = world(); w[R + '/releases?per_page=100&page=1'][0]['published_at'] = '2026-01-01T00:00:00Z'
+        target = dict(TARGETS[0], max_patch_age_days=180)
+        app = st.build(reader(w), [target], now='2026-07-01T00:00:00Z')['apps'][0]
+        self.assertEqual(app['patch_age_days'], 181)
+        self.assertEqual(app['patch_age_warning'], 'patch bundle 181 days old (limit 180)')
+        self.assertTrue(app['release'])
+
+class Status(unittest.TestCase):
     def setUp(self):
         self.r = reader(world())
         self.d = st.build(self.r, TARGETS, now='2026-10-08T07:00:00Z')

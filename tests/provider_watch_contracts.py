@@ -8,6 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 from target_counts import ENABLED, TOTAL, ROWS, CANDIDATES, GITHUB_ROWS  # W4: counts follow src/targets.json
+from target_counts import WATCH_ROWS  # W16y-b: the watch's own report adds extra watch sources
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("provider_watch", ROOT / "src/etc/provider_watch.py")
@@ -29,7 +30,8 @@ class ProviderWatch(unittest.TestCase):
         self.out = self.root / "provider-watch-evidence"
         self.targets = json.loads((ROOT / "src/targets.json").read_text())
         self.write_config(self.targets)
-        self.rows = watch.inventory(self.targets)
+        # W16y-b: the watch's own report includes the extra watch sources; seed their baselines too.
+        self.rows = watch.inventory(self.targets, watch_sources=True)
         for row in self.rows:
             (self.base / row["baseline"]).write_text("Alpha\nOld\n")
         self.before = {p.name: p.read_bytes() for p in self.base.iterdir()}
@@ -47,15 +49,19 @@ class ProviderWatch(unittest.TestCase):
         self.assertEqual({p.name: p.read_bytes() for p in self.base.iterdir()}, self.before)
 
     def test_inventory_includes_candidates_and_gitlab_extras(self):
-        self.assertEqual(len(self.rows), ROWS)
-        self.assertEqual(sum(r["host"] == "github" for r in self.rows), GITHUB_ROWS)
+        configured = watch.inventory(self.targets)
+        self.assertEqual(len(configured), ROWS)
+        self.assertEqual(sum(r["host"] == "github" for r in configured), GITHUB_ROWS)
+        self.assertEqual(len(self.rows), WATCH_ROWS)
+        # Watch-only sources never reach selection checks (wrong call 117).
+        self.assertFalse(any(r["patch_dir"].startswith("extra-") for r in configured))
         self.assertEqual([(r["target"], r["role"]) for r in self.rows if r["host"] == "gitlab"],
                          [("truecaller-combo", "extra"), ("mxplayer", "extra")])  # W16h: the combo is back
 
     def test_good_deltas_and_coverage(self):
         result = self.collect()
         self.assertEqual(result["status"], "CHANGED")
-        self.assertEqual(result["coverage"], dict(expected=ROWS, attempted=ROWS, succeeded=ROWS, failed=0, pending=0))
+        self.assertEqual(result["coverage"], dict(expected=WATCH_ROWS, attempted=WATCH_ROWS, succeeded=WATCH_ROWS, failed=0, pending=0))
         for row in result["sources"]:
             self.assertEqual(row["delta"], dict(state="LEGACY_NAMES", added=["New"], removed=["Old"]))
         self.unchanged_baselines()
@@ -67,7 +73,7 @@ class ProviderWatch(unittest.TestCase):
             return self.observe(row)
         result = self.collect(observe)
         self.assertEqual(result["status"], "PARTIAL")
-        self.assertEqual(result["coverage"]["succeeded"], ROWS - 1)
+        self.assertEqual(result["coverage"]["succeeded"], WATCH_ROWS - 1)
         row = result["sources"][0]
         self.assertEqual(row["status"], "FAILED")
         self.assertIsNone(row["delta"])

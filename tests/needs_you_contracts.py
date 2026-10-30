@@ -430,9 +430,6 @@ class Ranker(unittest.TestCase):
         self.assertFalse(model.rank_providers(index, target)[0]["better_exists"])
 
 
-if __name__ == '__main__':
-    unittest.main()
-
 
 class GroupCommands(unittest.TestCase):
     """W16j (owner, 25 Oct 2026): answer a group, every item or every 'My call' in one line."""
@@ -485,3 +482,53 @@ class IndexShapes(unittest.TestCase):
             {'name': 'Old', 'compatiblePackagesKey': 0}, {'name': 'New', 'compatibilityKey': 0},
             {'name': 'Other', 'compatibilityKey': 1}]}
         self.assertEqual([r[0] for r in n._patch_rows(bundle, 'a.b', comp, set())], ['Old', 'New'])
+
+class WatchedProviderMonthlyDigest(unittest.TestCase):
+    def setUp(self):
+        self.memory = {
+            "watch": [
+                {"target": "example", "repo": "seen/provider", "id": "N-aaaaaa", "date": "2026-10-25"},
+                {"target": "example", "repo": "dropped/provider", "id": "N-bbbbbb", "date": "2026-10-25"},
+            ],
+            "drop_providers": [{"target": "example", "repo": "dropped/provider"}],
+        }
+        self.targets = [{"id": "example", "enabled": True, "package": "com.example.app",
+                         "max_app_version": "2.0", "candidates": [{"owner": "ours", "repo": "provider"}]}]
+        self.bundles = {"compatibilities": [{"com.example.app": ["1.0", "2.0"]}],
+                        "bundles": [{"repo": "seen/provider", "patches": [{"compatiblePackagesKey": 0}]}]}
+
+    def test_first_of_month_has_collapsed_digest_without_commands_or_ids(self):
+        body = n.watched_provider_digest(self.memory, self.bundles, self.targets,
+                                         datetime(2026, 11, 1, tzinfo=timezone.utc))
+        self.assertIn("<summary>Watched providers (monthly)</summary>", body)
+        self.assertIn("seen/provider", body)
+        self.assertIn("lists 2.0; ours 2.0; last seen 2026-10-25", body)
+        self.assertNotIn("N-aaaaaa", body)
+        self.assertNotRegex(body, r"(?i)\b(?:take|drop|keep|hold)\s+N-")
+        self.assertNotIn("dropped/provider", body)
+
+    def test_other_days_omit_digest(self):
+        # W16y-b review: the digest shows on UTC days 1 to 7, then drops out.
+        self.assertIn("Watched providers", n.watched_provider_digest(self.memory, self.bundles, self.targets,
+                                                   datetime(2026, 11, 7, tzinfo=timezone.utc)))
+        self.assertEqual(n.watched_provider_digest(self.memory, self.bundles, self.targets,
+                                                   datetime(2026, 11, 8, tzinfo=timezone.utc)), "")
+
+    def test_render_uses_environment_run_date(self):
+        import os
+        old = os.environ.get("NEEDS_YOU_RUN_DATE")
+        os.environ["NEEDS_YOU_RUN_DATE"] = "2026-11-01"
+        try:
+            body = n.render({name: None for name in n.ISSUES}, targets=self.targets,
+                            bundles=self.bundles)
+        finally:
+            if old is None:
+                os.environ.pop("NEEDS_YOU_RUN_DATE", None)
+            else:
+                os.environ["NEEDS_YOU_RUN_DATE"] = old
+        # No decision file is supplied to render, so an empty collapsed section
+        # still proves the date routing without coupling to the checkout ledger.
+        self.assertIn("Watched providers (monthly)", body)
+
+if __name__ == '__main__':
+    unittest.main()
