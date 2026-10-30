@@ -119,7 +119,7 @@ Generated from `src/targets.json` by `src/etc/readmegen.py`. **3. Validate** fai
 that leaves this block stale, so it cannot drift.
 
 - **17 apps**, all enabled, 17 polled by the scheduled build (`23 12 * * *` UTC = 17:53 IST; plus a poll-only check at 05:53 IST that builds only when a provider has published; GitHub can start scheduled runs late).
-- Patch-age warning: 60, 120 days. Age is advisory; requested/applied checks and build verification decide.
+- Patch-age warning: 180 days. Age is advisory; requested/applied checks and build verification decide.
 - 1 build tool(s) pinned by sha256 in `src/build/TOOLING.sha256`; a byte mismatch aborts the build.
 - 2 patch(es) quarantined in `src/patches/QUARANTINE`, held out of every include list by CI.
 
@@ -138,7 +138,7 @@ that leaves this block stale, so it cannot drift.
 | MX Player Pro | `mxplayer` | `mx-player` | apkmirror | ftl + paresh (fallback: mich111discord) | yes |
 | Prime Video | `primevideo` | `prime-video` | apkmirror | hoo-dles | yes |
 | Reddit | `reddit` | `reddit` | apkpure | morphe + alastor (fallback: adobo) | yes |
-| Telegram | `telegram` | `telegram` | apkmirror | hushtelegram (fallback: rushiranpise) | yes |
+| Telegram | `telegram` | `telegram` | apkmirror | rahul9999xda (fallback: rushiranpise) | yes |
 | Truecaller | `truecaller-combo` | `tc-combo` | apkmirror | heval99 (fallback: bufferk + paresh + binarymend) | yes |
 | YouTube | `youtube` | `youtube-morphe` | apkmirror | morphe | yes |
 | YouTube Music | `ytmusic` | `yt-music` | apkmirror | morphe | yes |

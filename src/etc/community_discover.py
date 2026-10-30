@@ -1,4 +1,5 @@
 import json, os, re, sys, datetime, collections
+from pathlib import Path
 import re
 PKG=re.compile(r'^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$')
 def names(v, out=None):
@@ -17,11 +18,15 @@ def names(v, out=None):
         return out
     return out
 SNAP = "src/community/bundles.json"
+EXTRA = Path(__file__).resolve().with_name("extra-providers.json")
 IDX  = sys.argv[1] if len(sys.argv) > 1 else SNAP
 if not os.path.exists(IDX): print("ABORT: %s not found" % IDX); sys.exit(1)
 d = json.load(open(IDX))
 bundles = d.get("bundles") or []
 compat  = d.get("compatibilities") or []
+sys.path.insert(0, str(EXTRA.parent))
+from extra_providers import load as load_extra
+extra_sources = load_extra(EXTRA)
 
 _PN = {}
 if isinstance(compat, dict):
@@ -92,9 +97,20 @@ def wired_hit(b, pkg):
     return (pkg, b.get("source", "github"),
             str(b.get("repo", "")).lower()) in wired
 
+index_repos = {(str(b.get("source", "github")) + ":" + str(b.get("repo", "")).lower()) for b in bundles}
 print("compatibility rows parsed: %d, packages found: %d" % (len(_PN), len({p for v in _PN.values() for p in v})))
 print("index: %d bundles, %d distinct packages, %d compatibility rows" % (len(bundles), len(allpkgs), len(compat)))
 print("yours: %d enabled targets, %d wired providers\n" % (len(mine), len(wired)))
+
+print("="*76)
+print("EXTRA PROVIDER WATCH SOURCES (outside or alongside the community index)")
+print("="*76)
+for source in extra_sources:
+    repo = source["owner"] + "/" + source["repo"]
+    state = "also in index" if "github:" + repo.lower() in index_repos else "outside index"
+    print("  EXTRA WATCH %-34s packages=%s (%s) -- %s" %
+          (repo, ",".join(source["packages"]), state, source["why"]))
+print()
 
 print("="*76)
 print("A. PROVIDERS YOU ARE MISSING for apps you already build")

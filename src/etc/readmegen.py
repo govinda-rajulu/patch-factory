@@ -44,7 +44,7 @@ def build():
             'yes' if t.get('poll') else 'no'))
     crons=polls(); cron=crons[0]
     q=sh("grep -vc '^#' src/patches/QUARANTINE 2>/dev/null") or '0'
-    caps=sorted({t.get('max_patch_age_days',60) for t in T})
+    caps=sorted({t.get('max_patch_age_days',180) for t in T})
     tools=sh("grep -vc '^#' src/build/TOOLING.sha256 2>/dev/null") or '0'
     b=[OPEN,'',
        '## Current state',

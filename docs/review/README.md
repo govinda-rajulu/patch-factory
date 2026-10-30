@@ -4,12 +4,12 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **30 October 2026** for packet W16y-a ([DECISIONS-2026-10-30.md](DECISIONS-2026-10-30.md); [OPEN-WORK.md](OPEN-WORK.md)); **29 October 2026** for packet W16x ([HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md)); **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md)); **27 October 2026** for packet W16v (addendum in [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md)); earlier that day for packets W16p and W16q ([HANDOVER-2026-10-27.md](HANDOVER-2026-10-27.md)) ([SESSION-2026-10-27.md](SESSION-2026-10-27.md)); before that **26 October 2026** for packets W16n and W16o ([SESSION-2026-10-26.md](SESSION-2026-10-26.md)); earlier that day for packet W16m (chat handover; closed W15 and W16 records moved to `history/`); before that **25 October 2026** for packet W16h; before that **20 October 2026** for W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
+Last indexed **30 October 2026** for packets W16y-a and W16y-b ([HANDOVER-2026-10-30-W16y-b.md](HANDOVER-2026-10-30-W16y-b.md); [DECISIONS-2026-10-30.md](DECISIONS-2026-10-30.md); [OPEN-WORK.md](OPEN-WORK.md)); **29 October 2026** for packet W16x ([HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md)); **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md)); **27 October 2026** for packet W16v (addendum in [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md)); earlier that day for packets W16p and W16q ([HANDOVER-2026-10-27.md](HANDOVER-2026-10-27.md)) ([SESSION-2026-10-27.md](SESSION-2026-10-27.md)); before that **26 October 2026** for packets W16n and W16o ([SESSION-2026-10-26.md](SESSION-2026-10-26.md)); earlier that day for packet W16m (chat handover; closed W15 and W16 records moved to `history/`); before that **25 October 2026** for packet W16h; before that **20 October 2026** for W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
 
-[HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md) is the current packet pointer (W16x). [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) is the preceding W16w pointer. [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) holds W16u and W16v. Do not run older combos.
+[HANDOVER-2026-10-30-W16y-b.md](HANDOVER-2026-10-30-W16y-b.md) is the current packet pointer (W16y-a and W16y-b). [HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md) is the preceding W16x pointer; [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) the W16w one. [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) holds W16u and W16v. Do not run older combos.
 
 
 | Read | Why |
@@ -17,10 +17,12 @@ Last indexed **30 October 2026** for packet W16y-a ([DECISIONS-2026-10-30.md](DE
 | [OBTAINIUM-SIGNER-2026-10-27.md](OBTAINIUM-SIGNER-2026-10-27.md) | 27 Oct: why Obtainium shows "Downloaded certificate hash: None" (Android 9 and 10), what W16v ships, upstream issue text. |
 | [W15G-MAP.md](W15G-MAP.md) | 27 Oct: signing split (W15g) implementation map, file by file against main `97abdc7c`; the next packet. |
 | [SIGNING-SPLIT.md](SIGNING-SPLIT.md) | W15g signing isolation design and packet acceptance steps. |
-| [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 111 and the W16w decision sheet. Read first. |
+| [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 117 and the W16w decision sheet. Read first. |
 | [SWITCH-AUDIT-2026-10-28.jsonl](SWITCH-AUDIT-2026-10-28.jsonl) | Every chosen patch (660): in-app switch or always on, default, hides content; sources upstream READMEs and code. |
 | [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) | Preceding W16w pointer: W16v outcome, T1 findings and causes, what W16w changes, wrong call 97. |
-| [HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md) | W16x pointer: W16w result, Amazon Music fail-closed cause, near-version guard, owner follow-ups and current limits. Read first. |
+| [HANDOVER-2026-10-30-W16y-b.md](HANDOVER-2026-10-30-W16y-b.md) | W16y-a result and W16y-b pointer: provider scan, digest, pin check, patch age, Council lines, Telegram survey, wrong calls 112 to 117, what is not built. Read first. |
+| [TELEGRAM-SURVEY-2026-10-30.md](TELEGRAM-SURVEY-2026-10-30.md) | Read-only Telegram provider survey. Owner, 30 Oct evening: rahul9999xda v1.17.0 primary (non-Hush); see onboarding/telegram.md. |
+| [HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md) | W16x pointer: W16w result, Amazon Music fail-closed cause, near-version guard, owner follow-ups and current limits. |
 | [DECISION-REVIEW-2026-10-29.md](DECISION-REVIEW-2026-10-29.md) | W16x read-only review of the standing owner decisions: downsides, safer alternatives and ten owner questions. Changes nothing. |
 | [DECISIONS-2026-10-30.md](DECISIONS-2026-10-30.md) | Owner decisions for W16y: pin checks, fallbacks, retention, Council, Telegram, provider admission and completed owner actions; split into W16y-a and W16y-b. |
 | [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) | W16u and W16v records: live main then, repairs, owner runs 1 to 3. |

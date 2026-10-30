@@ -6,6 +6,8 @@ report and Telegram survey).
 
 ## Decisions for the operating watches
 
+- Telegram (owner, 30 Oct evening): non-Hush, the latest version with the most patches: rahul9999xda v1.17.0 primary on 13.1.1 (14 names), rushiranpise fallback. Reason: HushTelegram could not sign in (`API_ID_PUBLISHED_FLOOD`); its fix needs the owner's own API ID at patch time, which a public build cannot carry. The packet smoke build is the owner's phone test.
+
 - Run a weekly pin check, but only for apps whose patches rely on the pin.
 - Keep Amazon Music's paid patches and keep the target in `paid_ok_targets`.
 - Turn the Obtainium signer pin off for Android 10, with the first-install note; filing the upstream issue is optional.
@@ -38,4 +40,6 @@ report and Telegram survey).
 Android 9/10 signer guidance, ignore rules and the W16x wrong-call record.
 
 **W16y-b:** provider gate, monthly digest, weekly pin check, weekly Council report and the
-Telegram survey.
+Telegram survey. Shipped in W16y-b except the new-provider ready-PR orchestration (scan step
+only) and the pin check's weekly schedule (a manual report-only probe until a live run,
+wrong call 115); see [OPEN-WORK.md](OPEN-WORK.md).

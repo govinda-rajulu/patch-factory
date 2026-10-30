@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT / "src/etc"))
 import github_bundle
 import github_patcher
 import extra_bundle
+import extra_providers
 
 LIMIT = 2 * 1024 * 1024
 SAFE = r"[A-Za-z0-9_][A-Za-z0-9_.-]*"
@@ -45,7 +46,11 @@ def field(value):
     return value
 
 
-def inventory(targets):
+def inventory(targets, watch_sources=False):
+    """Provider rows of enabled targets. W16y-b review (wrong call 117): the extra watch sources
+    (src/etc/extra-providers.json) join only when watch_sources is true, which only this watch's own
+    collect/validate pass; selection checks and Selection watch read configured rows only, because a
+    watch-only source has no selection files and must never be written to or adopted from."""
     need(isinstance(targets, list) and targets, "EMPTY_CONFIG")
     rows, ids, keys = [], set(), set()
     for target in targets:
@@ -58,7 +63,20 @@ def inventory(targets):
         package = field(target.get("package"))
         candidates, extras = target.get("candidates"), target.get("extra_bundles", [])
         need(isinstance(candidates, list) and candidates and isinstance(extras, list), "INVALID_PROVIDERS")
-        for role, providers in (("candidate", candidates), ("extra", extras)):
+        configured_repos = {(str(p.get("owner", "")) + "/" + str(p.get("repo", ""))).lower()
+                            for p in candidates + extras if isinstance(p, dict)}
+        # Hush* repositories are deliberately outside bundles.json.  Add them to
+        # the read-only name inventory when a target fixture has not wired them;
+        # real targets already wire these rows, so this is a stable dedupe.
+        extra_rows = []
+        for source in (extra_providers.load() if watch_sources else []):
+            repo = source["owner"] + "/" + source["repo"]
+            if package in source["packages"] and repo.lower() not in configured_repos:
+                safe = re.sub(r"[^A-Za-z0-9_-]+", "-", repo).strip("-").lower()
+                extra_rows.append({"name": "extra-" + safe, "host": "github",
+                                   "owner": source["owner"], "repo": source["repo"],
+                                   "channel": "latest", "patch_dir": "extra-" + safe})
+        for role, providers in (("candidate", candidates), ("extra", extras), ("candidate", extra_rows)):
             for provider in providers:
                 need(isinstance(provider, dict), "INVALID_PROVIDER")
                 name = field(provider.get("name"))
@@ -244,7 +262,7 @@ def run_identity(env):
 def collect(root, out, observe, identity):
     report = dict(schema="pf-provider-watch-v1", expected=None, sources=[], limits=LIMITS, **identity)
     try:
-        rows = inventory(json.loads((root / "src/targets.json").read_text()))
+        rows = inventory(json.loads((root / "src/targets.json").read_text()), watch_sources=True)
         report["expected"] = len(rows)
         report["sources"] = [dict(row, status="PENDING") for row in rows]
         save_report(report, out)
@@ -271,7 +289,7 @@ def collect(root, out, observe, identity):
 def validate_report(report, root, identity):
     need(all(report.get(k) == v for k, v in identity.items()), "REPORT_IDENTITY_DRIFT")
     need(report.get("schema") == "pf-provider-watch-v1", "REPORT_SCHEMA_DRIFT")
-    expected = inventory(json.loads((root / "src/targets.json").read_text()))
+    expected = inventory(json.loads((root / "src/targets.json").read_text()), watch_sources=True)
     need(type(report.get("expected")) is int and report["expected"] == len(expected) and
          len(report.get("sources", [])) == len(expected), "INCOMPLETE_REPORT")
     for actual, wanted in zip(report["sources"], expected):

@@ -16,7 +16,7 @@ fi
 RESOLVE_DIR="${PF_RESOLVE_DIR:-morphe-data/resolved}"
 PKG=$(jq -r '.package' <<<"$T")
 MAXVER=$(jq -r '.max_app_version // ""' <<<"$T")
-MAXAGE=$(jq -r '.max_patch_age_days // 60' <<<"$T")
+MAXAGE=$(jq -r '.max_patch_age_days // 180' <<<"$T")
 PIN=$(jq -r '.pin // ""' <<<"$T")
 NOW=$(date +%s)
 echo "=== resolving $ID ($PKG) ==="
@@ -46,7 +46,7 @@ for i in $(seq 0 $((n-1))); do
   # W16h (owner, 25 Oct 2026: "if it works it works, why disturb?"): a plain log line, not a
   # warning annotation. A bundle that applies every chosen patch is fine at any age; a broken
   # one fails the applied-count gate and that failure is the signal.
-  [ "$AGE" -gt "$MAXAGE" ] && echo "   - $NAME: ${AGE}d since its last release (past the ${MAXAGE}d mark; information only, the applied-count gate decides)"
+  [ "$AGE" -gt "$MAXAGE" ] && echo "   - $NAME: ${AGE}d since its last release (past the ${MAXAGE}d mark; WARNING (advisory only), the applied-count gate decides)"
   echo "   - $NAME: channel=$CH exact bundle=$TAG sha256=$HASH"
   OUT=$(java -jar "$JAR" list-versions --patches="$MPP" -x -u -f "$PKG" 2>&1)
   JRC=$?

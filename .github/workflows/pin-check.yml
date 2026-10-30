@@ -1,0 +1,37 @@
+name: Weekly pin store check
+# Read-only listing health for targets with an exact build pin (version_code).
+# The checker never downloads an APK or uses credentials.
+# W16y-b (wrong call 115): manual, report-only probe until a live run proves plain reads
+# reach the store (the build uses its browser helper for APKMirror). The weekly schedule
+# comes in a later packet with that evidence.
+permissions:
+  contents: read
+on:
+  workflow_dispatch:
+jobs:
+  pin-health:
+    name: Check pinned store listings
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Read store listings (no APK transfer)
+        id: check
+        run: |
+          set +e
+          python3 src/etc/pin_check.py --json-out pin-check.json
+          rc=$?
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          exit "$rc"
+      - name: Preserve pin-check evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: pin-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: pin-check.json
+          if-no-files-found: error
+          retention-days: 30

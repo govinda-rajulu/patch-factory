@@ -1,0 +1,20 @@
+[
+  {
+    "owner": "SysAdminDoc",
+    "repo": "HushTelegram",
+    "packages": ["org.telegram.messenger"],
+    "why": "HushTelegram is a watched Telegram source but is not present in the community index."
+  },
+  {
+    "owner": "SysAdminDoc",
+    "repo": "HushGram",
+    "packages": ["com.instagram.android"],
+    "why": "HushGram is a watched Instagram source but is not present in the community index."
+  },
+  {
+    "owner": "SysAdminDoc",
+    "repo": "HushFacebook",
+    "packages": ["com.facebook.katana"],
+    "why": "HushFacebook is a watched Facebook source but is not present in the community index."
+  }
+]

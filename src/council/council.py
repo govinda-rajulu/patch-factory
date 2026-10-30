@@ -2052,7 +2052,7 @@ def mode_probe(env, seats, cfg):
     # listed model, and every candidate backup in cfg probe_alternates, gets its own call, one
     # at a time (L039). Backups are wired in a later packet only for models measured SERVED.
     lines = ['', '### Every model', '', '| seat | provider | model | status |', '|---|---|---|---|']
-    dead, served = [], 0
+    dead, served, markers = [], 0, []
     for seat in seats:
         pairs = [(seat['provider'], m) for m in seat['models']]
         pairs += [(a['provider'], a['model']) for a in cfg.get('probe_alternates', {}).get(seat['id'], [])]
@@ -2061,6 +2061,14 @@ def mode_probe(env, seats, cfg):
             print('PROBE_MODEL seat=%s provider=%s model=%s status=%s' % (seat['id'], provider, model, status))
             lines.append('| %s | %s | %s | %s |' % (seat['id'], provider, clean(model, 80), clean(status, 90)))
             served += status.startswith('SERVED')
+            # One bounded machine-readable catalogue result for every listed seat model.
+            # Alternates remain in the detailed table but are not silently presented as the
+            # seat's configured catalogue; no configuration is changed by this report.
+            if model in seat['models']:
+                marker = 'MODEL_OK' if status.startswith('SERVED') else 'MODEL_MISSING'
+                print('%s seat=%s model=%s' % (marker, seat['id'], clean(model, 80)))
+                # W16y-b review: kept out of the table rows (a plain line ends a markdown table).
+                markers.append('%s seat=%s model=%s' % (marker, seat['id'], clean(model, 80)))
             if status.startswith(('MISSING', 'REFUSED')):
                 dead.append('%s on %s (%s)' % (clean(model, 80), provider, clean(status.split(' listed=')[0], 40)))
     # W15i: catalogue models a seat's discover patterns match but no list names: candidates.
@@ -2074,6 +2082,8 @@ def mode_probe(env, seats, cfg):
             if (seat['provider'], m) not in named:
                 fresh.append('%s on %s (%s)' % (clean(m, 80), seat['provider'], seat['id']))
     ready = sum(r['status'] == 'OK' for r in rows)
+    if markers:
+        lines += ['', '### Weekly model report', '', '```'] + markers + ['```']
     text = '\n'.join(['### Council probe', ''] + seat_table(rows) + lines)
     summary(env, text)
     if env.get('PF_ISSUE'):

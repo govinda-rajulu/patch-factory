@@ -67,6 +67,7 @@ PURPOSE = {
     'selection-watch.yml': 'Selection watch: drops patch names providers stopped offering, lists new ones for you, digests provider releases.',
     'rule-merge.yml': 'Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green.',
     'retention.yml': 'Retention preview: reports shelf cleanup and applies only an owner-confirmed token.',
+    'pin-check.yml': 'Pin store check (manual, report-only until a live run): reads whether exact store build pins are still listed, without downloading an APK.',
 }
 STEP = {
     'Set up job': 'GitHub starting the job',
@@ -96,6 +97,27 @@ BAD = {'failure', 'timed_out', 'startup_failure', 'action_required', 'cancelled'
 # one app's "Patch <id>" job, that app's own row carries the failure until that app builds,
 # and the workflow row is marked per_app instead of counting as a failed automation.
 STALE_DAYS = 14
+
+
+def patch_age_days(published_at, now):
+    """Whole UTC days since a published patch bundle, or None for bad/missing dates."""
+    try:
+        def parse(value):
+            if not isinstance(value, str):
+                return None
+            text = value.strip()
+            if text.endswith('Z'):
+                text = text[:-1] + '+00:00'
+            result = datetime.datetime.fromisoformat(text)
+            if result.tzinfo is None:
+                result = result.replace(tzinfo=datetime.timezone.utc)
+            return result.astimezone(datetime.timezone.utc)
+        start, end = parse(published_at), parse(now)
+        if start is None or end is None or end < start:
+            return None
+        return (end - start).days
+    except (TypeError, ValueError, OverflowError):
+        return None
 
 
 def clean(value, cap=300):
@@ -394,9 +416,14 @@ def build(reader, targets, now=None):
         real = [x for x in jobs if x[0].get('conclusion') != 'skipped']
         release = latest.get(t.get('tag_prefix') or tid)
         on_fallback = bool(release and release.get('fallback'))
+        max_age = t.get('max_patch_age_days', 180)
+        age = patch_age_days(release.get('published_at') if release else None, now)
+        warning = ('patch bundle %d days old (limit %d)' % (age, max_age)
+                   if age is not None and type(max_age) is int and age > max_age else None)
         app = {'id': tid, 'label': clean(t.get('label') or tid, 60), 'needs_microg': bool(t.get('needs_microg')),
                'cpu': 'ARM64', 'android_cap': android(t.get('min_sdk_ceiling')),
                'release': release, 'release_known': complete or bool(release),
+               'max_patch_age_days': max_age, 'patch_age_days': age, 'patch_age_warning': warning,
                'on_fallback': on_fallback, 'fallback_provider': release.get('fallback') if on_fallback else None,
                'tags': ['on fallback'] if on_fallback else [], 'last_build': None, 'last_check': None}
         if jobs:

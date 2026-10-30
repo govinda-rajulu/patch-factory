@@ -165,7 +165,8 @@ async function main(){
    ['tooling-watch.yml','Tooling watch'],
    ['selection-watch.yml','10. Selection watch'],
    ['keepalive.yml','Keepalive'],
-   ['needs-you.yml','Needs you']
+   ['needs-you.yml','Needs you'],
+   ['pin-check.yml','Weekly pin store check']
   ];
   // W16k: Status page data lists the runs that wake Notify (called workflow, one follower run).
   const statusText=fs.readFileSync(path.join(ROOT,'.github/workflows/status.yml'),'utf8');
@@ -176,7 +177,7 @@ async function main(){
   assert.ok(source.includes(`contains(fromJSON('["workflow_dispatch","schedule","push","workflow_call"]'), github.event.workflow_run.event)`));
   assert.ok(hook);
   const names=JSON.parse(hook[1]);
-  assert.equal(names.length,15);assert.equal(new Set(names).size,15);  // W16k: + 11. Rule merge (schedule only now)
+  assert.equal(names.length,16);assert.equal(new Set(names).size,16);  // W16k: + 11. Rule merge (schedule only now)
    // W16g: + MCP scout (manual-only)
   assert.ok(names.includes("MCP scout"));
   for(const [file,name] of watches){

@@ -8,7 +8,13 @@ Start here: [KT-2026-10-28.md](../docs/review/KT-2026-10-28.md), then [OPEN-WORK
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W16y-a (30 Oct 2026): start here
+## W16y-b (30 Oct 2026, evening IST): start here
+
+- **W16y-a merged** as #279 (`75fd6dae`, tree `801b1a96`). Owner run RESULT OK; Facebook, Prime Video and Amazon Music (26.36.1, De-Vanced v1.6.2) smokes worked; ES fallback stopped at the coverage floor as designed. Read docs/review/HANDOVER-2026-10-30-W16y-b.md.
+- **W16y-b**: provider safety scan on nonpublishing smokes (permissions, hosts, red flags, ClamAV, VirusTotal hash lookup); monthly watched-provider digest with the three Hush providers as watch sources; pin check as a manual report-only probe (schedule after live evidence); 180-day patch-age warning on portal and status; weekly Council model lines; Telegram switched to rahul9999xda (non-Hush, owner 30 Oct evening; smoke build is the phone test). Wrong calls 112 to 117. Nothing published or deleted.
+- **Next**: Telegram fallback decision (rahul9999xda on 13.1.1), new-provider ready-PR orchestration, first scheduled runs 1 to 2 Nov, retention apply with the owner's token from 3 Nov, W15g signing split alone.
+
+## W16y-a (30 Oct 2026)
 
 - Removed the unused chooser/community-diff utilities and the dead chooser branch; the full and unreviewed selection-sheet modes remain. The removal record is `docs/review/history/REMOVED-2026-10.md`.
 - Moved the closed candidate scout into review history, added the owner decisions record, repaired signer guidance, and added the W16y-b queue (provider gate, digest, pin check, Council report and Telegram survey).

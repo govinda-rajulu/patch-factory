@@ -518,6 +518,20 @@ function patchText(record){
  if(!patches)return 'Not recorded';
  return patches.length?patches.join(', '):'none';
 }
+function patchAgeField(article,target,statusRow,top){
+ const limit=statusRow&&Number.isInteger(statusRow.max_patch_age_days)?statusRow.max_patch_age_days:
+   (target&&Number.isInteger(target.max_patch_age_days)?target.max_patch_age_days:180);
+ const age=statusRow&&Number.isInteger(statusRow.patch_age_days)?statusRow.patch_age_days:
+   (top&&Number.isFinite(Date.parse(top.rel&&top.rel.published_at))?
+    Math.max(0,Math.floor((Date.now()-Date.parse(top.rel.published_at))/86400000)):null);
+ const p=el('p',undefined,'card-field patch-age-field');p.append(el('strong','Patch age: '));
+ if(age===null){p.append(document.createTextNode('unknown (timestamp or status unavailable)'));article.append(p);return;}
+ p.append(document.createTextNode(age+' days / '+limit+'-day limit'));
+ const warning=statusRow&&typeof statusRow.patch_age_warning==='string'&&statusRow.patch_age_warning?
+   statusRow.patch_age_warning:(age>limit?'patch bundle '+age+' days old (limit '+limit+')':null);
+ if(warning){p.append(document.createTextNode(' — WARNING (advisory; build gates still decide)'));p.className+=' warning';}
+ article.append(p);
+}
 function patchField(article,record){
  const patches=patchList(record),p=el('p',undefined,'card-field patch-field');p.append(el('strong','Patches: '));
  if(!patches){p.append(document.createTextNode('Not recorded'));article.append(p);return;}
@@ -580,6 +594,7 @@ async function appsPanel(root){
  article.dataset.published=top.rel.published_at;
  for(const label of badgeLabels(top,record,statusRow))heading.append(el('span',label,label==='Fallback'||label.startsWith('FALLBACK BUILD:')?'badge fallback':'badge'));
  article.append(el('p',top.tag.version,'app-version'));
+ patchAgeField(article,t,statusRow,top);
  patchField(article,record);
  field(article,'Provider',record?providerNames(record,t).join(' + '):'Not recorded');
  field(article,'Bundle',record?bundleText(record,t):'Not recorded');

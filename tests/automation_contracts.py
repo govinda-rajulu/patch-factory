@@ -42,7 +42,7 @@ class Automations(unittest.TestCase):
             '1. Manual Patch', '2. Check new patch', '4. Explore patches', '5. Add target',
             '6. Provider watch', '7. Nightly watch', '8. Community watch', '9. Batch Patch',
             'Tooling watch', '10. Selection watch', 'MCP scout', 'Needs you',
-            'Keepalive', '11. Rule merge', 'Retention preview',  # W16k: Notify runs inside Status page data, so Status lists its flows too
+            'Keepalive', '11. Rule merge', 'Retention preview', 'Weekly pin store check',  # W16k: Notify runs inside Status page data, so Status lists its flows too
         }
         self.assertEqual(set(listed(own['text'])), wanted)
 

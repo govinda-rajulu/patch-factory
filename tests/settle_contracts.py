@@ -71,7 +71,7 @@ class Quiet(unittest.TestCase):
         line = [l for l in text.splitlines() if '"$AGE" -gt "$MAXAGE"' in l]
         self.assertEqual(len(line), 1)
         self.assertNotIn('::warning::', line[0])
-        self.assertIn('information only, the applied-count gate decides', line[0])
+        self.assertIn('WARNING (advisory only), the applied-count gate decides', line[0])
 
 
 class RemovedStaysOut(unittest.TestCase):

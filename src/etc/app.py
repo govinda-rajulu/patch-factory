@@ -359,7 +359,7 @@ def cmd_add(a):
         raise Refused('store URL must be an https apkmirror.com or apkpure page')
     t = {'id': tid, 'enabled': bool(names), 'package': a.package, 'apk_name': tid,
          'apk_type': 'apk' if source == 'apkmirror-apk' else 'bundle',
-         'max_app_version': None, 'max_patch_age_days': 60, 'min_sdk_ceiling': 29, 'pin': None,
+         'max_app_version': None, 'max_patch_age_days': 180, 'min_sdk_ceiling': 29, 'pin': None,
          'candidates': [{'name': pname, 'host': 'github', 'owner': owner, 'repo': repo,
                          'channel': 'prerelease', 'patch_dir': pdir.name, 'options': pname}],
          'tag_prefix': tid, 'poll': bool(names), 'label': a.label,

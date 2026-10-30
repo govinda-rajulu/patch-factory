@@ -21,6 +21,7 @@ from typing import Iterable
 
 import readable
 import decisions
+import extra_providers
 
 TITLE = "Needs you"
 REPO = "govinda-rajulu/patch-factory"
@@ -828,12 +829,164 @@ def _review_items(path: Path | None) -> list[dict]:
     return out
 
 
+def _run_datetime(value: str | datetime | None = None) -> datetime:
+    """Return the deterministic run timestamp used by monthly rendering.
+
+    CI can pass ``--now``; the environment aliases make an Actions rerun and local
+    contract tests reproducible without changing the renderer's API.
+    """
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    raw = value or os.environ.get("NEEDS_YOU_RUN_DATE") or os.environ.get("NEEDS_YOU_DATE") \
+        or os.environ.get("GITHUB_RUN_STARTED_AT")
+    if raw:
+        try:
+            parsed = datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+            return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+        except ValueError:
+            # A date-only value is deliberately supported for contract tests and
+            # manually replayed runs.
+            try:
+                return datetime.strptime(str(raw), "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            except ValueError:
+                pass
+    return datetime.now(timezone.utc)
+
+
+def _versions_for_repo(index: dict, repo: str, package: str) -> list[str]:
+    """Collect app versions from every patch listed for one provider."""
+    if not isinstance(index, dict) or not isinstance(repo, str) or not package:
+        return []
+    compat = index.get("compatibilities", [])
+    bundles = index.get("bundles", [])
+    if isinstance(compat, dict):
+        def record(ref):
+            return compat.get(str(ref))
+    elif isinstance(compat, list):
+        def record(ref):
+            try:
+                return compat[int(ref)] if 0 <= int(ref) < len(compat) else None
+            except (TypeError, ValueError):
+                return None
+    else:
+        return []
+    found = []
+    for bundle in bundles if isinstance(bundles, list) else []:
+        if not isinstance(bundle, dict) or str(bundle.get("repo", "")).lower() != repo.lower():
+            continue
+        for patch in bundle.get("patches", []) if isinstance(bundle.get("patches", []), list) else []:
+            if not isinstance(patch, dict):
+                continue
+            ref = patch.get("compatiblePackagesKey", patch.get("compatibilityKey"))
+            found.extend(_compat_versions(record(ref), package))
+    return sorted(set(found), key=lambda x: (_version_key(x), x))
+
+
+def _target_version(target: dict, index: dict, package: str) -> str | None:
+    # Explicit target fields are authoritative.  For older rows, derive the
+    # configured app version from the provider(s) we actually use in the index.
+    for key in ("current_version", "current_app_version", "app_version", "version", "max_app_version"):
+        value = target.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    values = []
+    for provider in (target.get("candidates", []) or []) + (target.get("extra_bundles", []) or []):
+        if not isinstance(provider, dict):
+            continue
+        repo = "%s/%s" % (provider.get("owner", ""), provider.get("repo", ""))
+        values += _versions_for_repo(index, repo, package)
+    return max(values, key=lambda x: (_version_key(x), x)) if values else None
+
+
+DIGEST_DAYS = 7  # W16y-b: monthly digest window, UTC days 1 to 7
+
+
+def watched_provider_digest(memory, bundles, targets, now: datetime | None = None) -> str:
+    """Render the non-actionable watched-provider digest during the first 7 UTC days of a month.
+
+    The digest intentionally contains no Needs-you ids or command grammar.  It is
+    informational only; ``DECISIONS.json`` remains the source of watch/drop state.
+    W16y-b review: a 7-day window (not day 1 only) so one failed run on the 1st does not
+    lose the month; the body is edited in place, so it shows once per day, collapsed, then
+    drops out. The production workflow passes no --bundles, so default to the checked-out
+    community index (otherwise every row said "not listed").
+    """
+    run_at = _run_datetime(now).astimezone(timezone.utc)
+    if run_at.day > DIGEST_DAYS:
+        return ""
+    if bundles is None:
+        bundles = Path(__file__).resolve().parents[1] / "community" / "bundles.json"
+    memory = memory if isinstance(memory, dict) else {}
+    index = _load_value(bundles, {})
+    if not isinstance(index, dict):
+        index = {}
+    target_rows = _load_targets(targets)
+    by_target = {str(row.get("id")): row for row in target_rows}
+    # Load and validate this source even when none of the decision rows happen to
+    # reference it.  That keeps monthly rendering coupled to the extra-source
+    # contract and prevents an unvalidated repo from becoming a watch input.
+    extras = extra_providers.load()
+    extra_keys = {(r["owner"] + "/" + r["repo"]).lower() for r in extras}
+    rows = []
+    seen_watch = set()
+    for watch in memory.get("watch", []) if isinstance(memory.get("watch", []), list) else []:
+        if not isinstance(watch, dict):
+            continue
+        target_id, repo = str(watch.get("target", "")), str(watch.get("repo", ""))
+        if not target_id or not repo:
+            continue
+        state, _ = decisions.provider_state(memory, target_id, repo)
+        if state == "drop":
+            continue
+        seen_watch.add((target_id, repo.lower()))
+        target = by_target.get(target_id, {})
+        package = str(target.get("package", ""))
+        listed = _versions_for_repo(index, repo, package)
+        listed_text = max(listed, key=lambda x: (_version_key(x), x)) if listed else "not listed"
+        ours = _target_version(target, index, package) or "unknown"
+        last_seen = watch.get("last_seen") or watch.get("date") or "unknown"
+        # Keep the extra source read meaningful without adding non-decision rows:
+        # a matching watched repo is explicitly identified as an extra source in
+        # the status phrase, while its line still comes from DECISIONS.json.
+        source_note = " (extra source)" if repo.lower() in extra_keys else ""
+        rows.append("- %s — target %s%s: lists %s; ours %s; last seen %s." %
+                    (_one_line(repo), _one_line(target_id), source_note,
+                     _one_line(listed_text), _one_line(ours), _one_line(last_seen)))
+    # Extra sources are watch inputs even when a provider has no DECISIONS row
+    # yet.  Include them as explicitly non-actionable context, without inventing
+    # an owner id or a take/drop command.
+    dropped = {(str(r.get("target", "")), str(r.get("repo", "")).lower())
+               for r in memory.get("drop_providers", []) if isinstance(r, dict)}
+    for source in extras:
+        repo = source["owner"] + "/" + source["repo"]
+        for target_id, target in by_target.items():
+            if str(target.get("package", "")) not in source["packages"]:
+                continue
+            key = (target_id, repo.lower())
+            if key in seen_watch or key in dropped:
+                continue
+            package = str(target.get("package", ""))
+            listed = _versions_for_repo(index, repo, package)
+            listed_text = max(listed, key=lambda x: (_version_key(x), x)) if listed else "not listed"
+            ours = _target_version(target, index, package) or "unknown"
+            rows.append("- %s — target %s (extra source): lists %s; ours %s; last seen not recorded." %
+                        (_one_line(repo), _one_line(target_id), _one_line(listed_text), _one_line(ours)))
+    rows.sort(key=str.casefold)
+    if not rows:
+        rows = ["- none recorded"]
+    return "<details><summary>Watched providers (monthly)</summary>\n\n" + "\n".join(rows) + "\n\n</details>\n"
+
+
 def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = None,
            now: datetime | None = None, targets: Path | None = None,
            review: Path | None = None, bundles: Path | dict | None = None) -> str:
     if isinstance(ledger, Path):
         ledger = load_ledger(ledger)
     ledger = ledger or []
+    run_at = _run_datetime(now)
+    root = _root_of(targets)
+    decision_memory = decisions.load(root)
+    monthly = watched_provider_digest(decision_memory, bundles, targets, run_at)
     buckets = {kind: [] for kind in ORDER}
     for name in ("selection", "tooling", "nightly", "provider", "community"):
         _source(reports.get(name), name, buckets)
@@ -850,9 +1003,9 @@ def render(reports: dict[str, Path | None], ledger: list[dict] | Path | None = N
     taken = [item for item in all_items if decision_state(item, ledger, now) == "taken"]
     actionable = sum(1 for item in visible if item["kind"] in ("decide", "install", "fix", "app", "review"))
     if not actionable and not taken:
-        return "# Needs you: OK\n\n**Needs you:** nothing needs you today.\n"
+        return "# Needs you: OK\n\n**Needs you:** nothing needs you today.\n" + monthly
     fingerprint = hashlib.sha256(json.dumps([(x["id"], x["text"]) for x in visible], sort_keys=True).encode()).hexdigest()[:16]
-    return _grouped(visible, taken, actionable, fingerprint)
+    return _grouped(visible, taken, actionable, fingerprint) + monthly
 
 
 def group_of(item: dict) -> tuple[str, str]:
@@ -1190,6 +1343,7 @@ def main(argv=None):
     r.add_argument("--targets", type=Path)
     r.add_argument("--bundles", type=Path)
     r.add_argument("--review", type=Path)
+    r.add_argument("--now", help="run timestamp/date for deterministic monthly rendering")
     f = sub.add_parser("fetch")
     f.add_argument("--output-dir", type=Path, required=True)
     f.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", REPO))
@@ -1204,7 +1358,7 @@ def main(argv=None):
     q.add_argument("--owner", default=os.environ.get("GITHUB_REPOSITORY_OWNER", ""))
     a = ap.parse_args(argv)
     if a.command == "render":
-        body = render({name: getattr(a, name) for name in ISSUES}, ledger=a.ledger, targets=a.targets, bundles=a.bundles, review=a.review)
+        body = render({name: getattr(a, name) for name in ISSUES}, ledger=a.ledger, targets=a.targets, bundles=a.bundles, review=a.review, now=_run_datetime(a.now))
         if a.output:
             a.output.write_text(body, encoding="utf-8")
         else:

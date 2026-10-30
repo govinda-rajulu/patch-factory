@@ -6,6 +6,18 @@ import re
 import subprocess
 import sys
 
+
+def check_extra_providers(root):
+    """Validate non-index provider sources before any build/watch work."""
+    path = root / 'src/etc/extra-providers.json'
+    if not path.is_file():
+        raise ValueError('missing extra provider source list')
+    import importlib.util
+    spec = importlib.util.spec_from_file_location('pf_extra_providers', root / 'src/etc/extra_providers.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.load(path)
+
 # W13 (10 Oct 2026): a candidate may carry its own pins. build_attempts.py builds a
 # candidate with these keys laid over the target; every other key stays the target's.
 OVERRIDES = ('max_app_version', 'version_code', 'dpi', 'min_sdk_ceiling', 'extra_bundles',
@@ -24,6 +36,7 @@ def effective(t, c):
 
 
 def check(root=pathlib.Path('.'), target_id=None):
+    check_extra_providers(root)
     targets = json.loads((root / 'src/targets.json').read_text())
     if not isinstance(targets, list) or not targets:
         raise ValueError('targets must be a nonempty array')
@@ -34,6 +47,10 @@ def check(root=pathlib.Path('.'), target_id=None):
         raise ValueError('unknown or disabled target: ' + target_id)
     prefixes = []
     for t in targets:
+        # Owner policy applies to disabled catalog rows too, so future re-enablement
+        # cannot silently restore the old age cap.
+        if type(t.get('max_patch_age_days')) is not int or t['max_patch_age_days'] != 180:
+            raise ValueError('max_patch_age_days must be 180: ' + t['id'])
         if not t.get('enabled'):
             continue
         for field in ('id', 'apk_name', 'tag_prefix'):

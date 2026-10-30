@@ -55,6 +55,7 @@ if a[:2] == ['workflow', 'run']:
     prov = ([x.split('=', 1)[1] for x in a if x.startswith('provider=')] + [''])[0]
     targets = ([x.split('=', 1)[1] for x in a if x.startswith('targets=')] + [''])[0]
     kg = ' / keep-going' if 'keep_going=true' in a else ''  # W16j
+    kg += ' / scan' if 'scan=true' in a else ''  # W16y-b
     title = ('Manual %s%s / publish=false%s' % (tgt, ' / ' + prov if prov else '', kg)) if wf == 'manual-patch.yml' else \
         ('Batch %s / publish=%s' % (targets, ([x.split('=', 1)[1] for x in a if x.startswith('publish=')] + ['false'])[0])) if wf == 'batch-patch.yml' else wf
     st['runs'].append({'id': 800000 + len(st['runs']), 'wf': wf, 'target': tgt or targets, 'provider': prov, 'display_title': title,

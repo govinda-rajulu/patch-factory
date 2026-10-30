@@ -1,0 +1,11 @@
+{
+  "*": [
+    "github.com",
+    "raw.githubusercontent.com",
+    "githubusercontent.com",
+    "objects.githubusercontent.com",
+    "githubassets.com",
+    "gitlab.com",
+    "cdn.jsdelivr.net"
+  ]
+}
