@@ -117,35 +117,22 @@ def apply_decisions(root, decisions):
 def main(kind):
     root = pathlib.Path('.')
     decisions = []
-    if kind == 'chooser':
-        files = sorted(pathlib.Path('/tmp/pf/choose').glob('*.txt'))
-        if not files:
-            raise ValueError('no chooser files')
-        for f in files:
-            for row in csv.reader(f.open(), delimiter='\t'):
-                if len(row) < 2 or row[0].startswith('#'):
-                    continue
-                sign = row[0].strip()
-                if sign not in ('+', '-', ''):
-                    raise ValueError('invalid chooser decision')
-                decisions.append((f.stem, row[1].strip(), {'+': 'IN', '-': 'OUT', '': '?'}[sign], False))
-    else:
-        p = root / 'docs/review' / ('PATCHES.tsv' if kind == 'full' else 'UNREVIEWED.tsv')
-        with p.open(newline='') as f:
-            for row in csv.reader(f, delimiter='\t'):
-                if not row or row[0].startswith('#') or row[0] == 'DECISION':
-                    continue
-                if kind == 'full':
-                    if len(row) < 8:
-                        raise ValueError('malformed full sheet')
-                    decisions.append((row[3], row[4], row[0].strip().upper(), row[5] == 'ON'))
-                else:
-                    if len(row) < 4:
-                        raise ValueError('malformed unreviewed sheet')
-                    decision = {'INCLUDE': 'IN', 'EXCLUDE': 'OUT', '?': '?'}.get(row[0].strip().upper())
-                    if decision is None:
-                        raise ValueError('invalid unreviewed decision')
-                    decisions.append((row[2], row[3], decision, False))
+    p = root / 'docs/review' / ('PATCHES.tsv' if kind == 'full' else 'UNREVIEWED.tsv')
+    with p.open(newline='') as f:
+        for row in csv.reader(f, delimiter='\t'):
+            if not row or row[0].startswith('#') or row[0] == 'DECISION':
+                continue
+            if kind == 'full':
+                if len(row) < 8:
+                    raise ValueError('malformed full sheet')
+                decisions.append((row[3], row[4], row[0].strip().upper(), row[5] == 'ON'))
+            else:
+                if len(row) < 4:
+                    raise ValueError('malformed unreviewed sheet')
+                decision = {'INCLUDE': 'IN', 'EXCLUDE': 'OUT', '?': '?'}.get(row[0].strip().upper())
+                if decision is None:
+                    raise ValueError('invalid unreviewed decision')
+                decisions.append((row[2], row[3], decision, False))
     apply_decisions(root, decisions)
 
 

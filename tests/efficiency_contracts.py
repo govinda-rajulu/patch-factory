@@ -12,10 +12,12 @@ class EfficiencyWorkflowContracts(unittest.TestCase):
         batch = (ROOT / ".github/workflows/batch-patch.yml").read_text()
         self.assertIn("    timeout-minutes: 60\n", manual)
         self.assertIn("    timeout-minutes: 10\n", batch)
-        # The publishing path and the existing test APK handoff remain unchanged.
         self.assertIn("inputs.publish && github.ref == 'refs/heads/main'", manual)
-        self.assertIn("retention-days: 7", manual)
-        self.assertIn("name: test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}", manual)
+        apk = manual.split("name: Save verified test APK", 1)[1].split("      - name:", 1)[0]
+        self.assertIn("retention-days: 1", apk)
+        self.assertIn("name: test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}", apk)
+        evidence = manual.split("name: Save test evidence", 1)[1].split("      - name:", 1)[0]
+        self.assertIn("retention-days: 7", evidence)
 
     def test_ci_and_manual_shadow_artifacts_are_short_lived_only(self):
         ci = (ROOT / ".github/workflows/ci.yml").read_text()

@@ -31,3 +31,9 @@ Read from Obtainium source (W16v review): with no `allowedSigningCertHashes` and
 Title: Signing certificate check always reads "None" on Android 9 and 10
 
 > `apkSigningCertHashes()` calls `getPackageArchiveInfo` with only `PMFlag.getSigningCertificates`. On Android 9 and 10, `PackageManager.getPackageArchiveInfo` collects certificates only when `GET_SIGNATURES` is set (android-9.0.0 / android-10.0.0 `PackageManager.java`; Android 11 added `|| GET_SIGNING_CERTIFICATES`). The downloaded hash set is then empty, so every app with `allowedSigningCertHashes` is blocked with "Downloaded certificate hash: None". Fix: request `{PMFlag.getSigningCertificates, PMFlag.getSignatures}` (or fall back to `getSignatures` on API < 30).
+
+## W16y note (30 October 2026)
+
+The source finding is unchanged: `lib/utils/signing_cert_utils.dart` asks the Android package-manager plugin for `PMFlag.getSigningCertificates` only. The AOSP reason is that the API 28/29 (Android 9/10) archive parser fills certificates only when `GET_SIGNATURES` is present; Android 11 accepts `GET_SIGNING_CERTIFICATES` too. The issue text above is ready for the owner to post upstream.
+
+Recommendation: make no change to the generated imports. Keep the normal pinned import for Android 11 and newer, and use the existing no-pin import on Android 9/10; Android still enforces the installed app's signer for updates.

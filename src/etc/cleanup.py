@@ -25,7 +25,9 @@ with `git push origin <sha>:refs/heads/<name>` because the commit is in main). I
 the first failed delete and says how far it got. Needs gh logged in as the repository owner.
 """
 import argparse
+import datetime as dt
 import hashlib
+import importlib.util
 import json
 import pathlib
 import re
@@ -35,8 +37,9 @@ import sys
 REPO = 'govinda-rajulu/patch-factory'
 BUILD_TAG = re.compile(r'^[a-z0-9-]+-v[0-9]+(?:\.[0-9]+)*-b[0-9]{8}(?:[0-9]{26})?$')
 PAGES_ENV = 'github-pages'
-KEEP = 1  # owner, 22 Oct 2026: "delete all others"; the newest build per app stays
-KEEP_DEPLOYMENTS = 5
+KEEP = 3  # owner, 30 Oct 2026: keep the newest three releases per app
+KEEP_DEPLOYMENTS = 3
+MIN_RELEASE_AGE_DAYS = 7
 PACKET = ('packet/', 'dev/')  # W16c: a merged dev branch (dev/w16) goes the same way
 APP_TAG = re.compile(r'^([a-z0-9-]+?)-v[0-9][0-9.]*(?:-b[0-9]+)?$')
 
@@ -111,8 +114,72 @@ def branches(run=subprocess.run):
     return out
 
 
+def release_time(row):
+    """Return publication time, falling back to creation time when needed."""
+    for value in (row.get('published_at'), row.get('created_at')):
+        if not isinstance(value, str) or not value:
+            continue
+        try:
+            parsed = dt.datetime.fromisoformat(value.replace('Z', '+00:00'))
+        except ValueError:
+            continue
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=dt.timezone.utc)
+        return parsed.astimezone(dt.timezone.utc)
+    return None
+
+
 def newest_first(row):
-    return (str(row.get('published_at') or row.get('created_at') or ''), row['id'])
+    parsed = release_time(row)
+    return (parsed.isoformat() if parsed else '', row['id'])
+
+
+# Fallback metadata is optional release-body data. A malformed or unavailable decoder
+# fails closed to PRIMARY: an unreadable marker must never make the shelf lose its only
+# known-good release.
+_RELEASE_NOTES = None
+try:
+    _build_dir = pathlib.Path(__file__).resolve().parents[1] / 'build'
+    _release_path = _build_dir / 'release_notes.py'
+    _spec = importlib.util.spec_from_file_location('pf_release_notes', _release_path)
+    if _spec and _spec.loader:
+        # release_notes.py keeps its normal script import (build_identity) rather
+        # than package imports, so provide that directory for this standalone tool.
+        sys.path.insert(0, str(_build_dir))
+        try:
+            _RELEASE_NOTES = importlib.util.module_from_spec(_spec)
+            _spec.loader.exec_module(_RELEASE_NOTES)
+        finally:
+            sys.path.remove(str(_build_dir))
+except Exception:
+    _RELEASE_NOTES = None
+
+
+def _target_for_app(app):
+    try:
+        rows = json.loads(TARGETS.read_text(encoding='utf-8'))
+        for row in rows:
+            if isinstance(row, dict) and row.get('tag_prefix') == app:
+                return row.get('id') or app
+    except Exception:
+        pass
+    return app
+
+
+def is_primary_release(app, row):
+    """Decode pf-release-v1 defensively; absent/empty fallback means primary."""
+    if _RELEASE_NOTES is None:
+        return True
+    try:
+        doc = _RELEASE_NOTES.decode(row.get('body'), row['tag_name'], _target_for_app(app))
+        return not bool(doc.get('fallback'))
+    except Exception:
+        return True
+
+
+def asset_bytes(row):
+    return sum(a.get('size', 0) for a in row.get('assets') or []
+               if isinstance(a, dict) and type(a.get('size')) is int and a.get('size') >= 0)
 
 
 # The checkout this script lives in, wherever it is run from (the apply line runs it from ~).
@@ -157,8 +224,20 @@ def is_retired(app, r, retire):
     return None
 
 
-def plan(releases, tag_map, deploys=(), branch_rows=(), known=None, retire=()):
+def plan(releases, tag_map, deploys=(), branch_rows=(), known=None, retire=(), now=None):
+    """Build the guarded delete list.
+
+    The newest KEEP rows are always protected. If all three are fallback builds, the
+    newest readable primary is protected too. Older rows require a valid publication
+    (or creation) timestamp at least MIN_RELEASE_AGE_DAYS old; malformed and young
+    rows stay visible in ``kept`` so the preview explains why the shelf is larger.
+    """
+    now = now or dt.datetime.now(dt.timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=dt.timezone.utc)
+    now = now.astimezone(dt.timezone.utc)
     groups, kept, rel = {}, [], []
+    release_bytes = {}
     for r in releases:
         m = APP_TAG.match(str(r.get('tag_name') or ''))
         if not m:
@@ -167,19 +246,31 @@ def plan(releases, tag_map, deploys=(), branch_rows=(), known=None, retire=()):
         groups.setdefault(m[1], []).append(r)
     for app, rows in sorted(groups.items()):
         rows.sort(key=newest_first, reverse=True)
-        retired = known is not None and app not in known
-        gone_builds = [r for r in rows if is_retired(app, r, retire)]
-        for r in gone_builds:
-            x = is_retired(app, r, retire)
-            rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': 'owner retired %s %s: %s' % (app, x['version'], x['why'])})
-        rows = [r for r in rows if r not in gone_builds]
-        for i, r in enumerate(rows):
-            if retired:
-                rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': 'retired app ' + app})
-            elif i < KEEP:
-                kept.append({'tag': r['tag_name'], 'reason': 'newest of ' + app})
+        primary = [r for r in rows if is_primary_release(app, r)]
+        protected = {id(r) for r in rows[:KEEP]}
+        if not any(id(r) in protected for r in primary) and primary:
+            protected.add(id(primary[0]))
+        for r in rows:
+            rid = str(r['id'])
+            release_bytes[rid] = asset_bytes(r)
+            reason = None
+            if id(r) in protected:
+                if r in rows[:KEEP]:
+                    reason = 'newest of ' + app
+                else:
+                    reason = 'newest primary of ' + app
             else:
-                rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': 'older build of ' + app})
+                retired_row = is_retired(app, r, retire)
+                published = release_time(r)
+                if published is None:
+                    reason = 'kept: missing or malformed publication date'
+                elif now - published < dt.timedelta(days=MIN_RELEASE_AGE_DAYS):
+                    reason = 'kept: younger than %d days' % MIN_RELEASE_AGE_DAYS
+                else:
+                    why = ('owner retired %s %s: %s' % (app, retired_row['version'], retired_row['why'])) if retired_row else ('retired app ' + app if known is not None and app not in known else 'older build of ' + app)
+                    rel.append({'id': r['id'], 'tag': r['tag_name'], 'why': why})
+                    continue
+            kept.append({'tag': r['tag_name'], 'reason': reason})
     have = {r['tag_name'] for r in releases}
     gone = sorted(t for t in tag_map if t not in have and BUILD_TAG.match(t))
     drop_tags = sorted({c['tag'] for c in rel if c['tag'] in tag_map} | set(gone))
@@ -202,7 +293,9 @@ def plan(releases, tag_map, deploys=(), branch_rows=(), known=None, retire=()):
     token = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()[:16]
     stay = sorted(kept, key=lambda x: str(x['tag']))
     return dict(body, token=token, protected=len(stay), kept=stay, orphan_tags=gone,
-                deployment_rows=drop_dep, kept_deployments=keep_dep, kept_branches=keep_br)
+                deployment_rows=drop_dep, kept_deployments=keep_dep, kept_branches=keep_br,
+                release_asset_bytes=sum(release_bytes.get(str(r['id']), 0) for r in rel),
+                release_asset_bytes_by_id=release_bytes)
 
 
 def only_apps(p, apps):
@@ -217,8 +310,11 @@ def only_apps(p, apps):
             'deployments': [], 'branches': []}
     token = hashlib.sha256(json.dumps(dict(body, apps=sorted(want)), sort_keys=True).encode()).hexdigest()[:16]
     kept = [k for k in p['kept'] if ok(k.get('tag'))]
+    selected_ids = {str(r['id']) for r in body['releases']}
     return dict(body, token=token, protected=len(kept), kept=kept, orphan_tags=[t for t in p['orphan_tags'] if ok(t)],
-                deployment_rows=[], kept_deployments=p['kept_deployments'], kept_branches=p['kept_branches'], apps=sorted(want))
+                deployment_rows=[], kept_deployments=p['kept_deployments'], kept_branches=p['kept_branches'], apps=sorted(want),
+                release_asset_bytes=sum(p.get('release_asset_bytes_by_id', {}).get(i, 0) for i in selected_ids),
+                release_asset_bytes_by_id={i: p.get('release_asset_bytes_by_id', {}).get(i, 0) for i in selected_ids})
 
 
 def receipt(releases, tag_map, chosen, deploys=()):
@@ -251,9 +347,10 @@ def show(p):
         print('  deploy  %d record(s), created %s to %s' % (len(d), min(x['created_at'] or '' for x in d), max(x['created_at'] or '' for x in d)))
     for b in p['branches']:
         print('  branch  %s  (%s, in main)' % (b['name'], b['sha'][:12]))
-    print('Kept (newest per app):')
+    print('Kept (newest %d per app, plus newest primary when needed; age guard %d days):' % (KEEP, MIN_RELEASE_AGE_DAYS))
     for k in p['kept']:
         print('  keep    %s  (%s)' % (k['tag'], k['reason']))
+    print('Release asset bytes selected: %d' % p.get('release_asset_bytes', 0))
     print('Kept (newest %d Pages deployment records):' % KEEP_DEPLOYMENTS)
     for k in p['kept_deployments']:
         print('  keep    deployment %s  %s  %s' % (k['id'], k['created_at'], (k['sha'] or '')[:8]))

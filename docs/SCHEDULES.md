@@ -17,6 +17,7 @@ Times are IST (UTC + 5:30). GitHub may start a scheduled run late, sometimes by 
 | 20:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
 | 21:37 | daily | 11. Rule merge (`rule-merge.yml`) | Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green. |
 | 08:43 | Mondays | 8. Community watch (`community-watch.yml`) | Community watch: scans the community patch index for apps built here. |
+| 09:01 | Mondays | Retention preview (`retention.yml`) | Retention preview: reports shelf cleanup and applies only an owner-confirmed token. |
 | 12:07 | Mondays | 6. Provider watch (`agent-watch.yml`) | Provider watch: looks for new or changed patch releases. |
 
 Everything else runs on request or after another run: Manual Patch, Batch Patch, Explore, Add target, Validate (every change), Status page data with Notify on failure inside it (a called Notify job handles failure issues), Onboarding review, Qualify published shadow baselines (after build runs on main). Branch smokes do not start Status or Notify (W16k).

@@ -29,7 +29,7 @@ fi
 if [ "$RC" -eq 0 ] && [ "$SRC" = "apkmirror" ] && [ "$ANYVER" != "true" ]; then pf_near_guard "$SRC" "$version" "$RVER" "$APK_NAME" || exit 1; fi
 if [ "$RC" -eq 0 ]; then pf_apkpure_exact "$SRC" "$version" "$RVER" "$ANYVER" "$APK_NAME" || exit 1; fi
 if [ "$RC" -ne 0 ]; then
-  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$SRC" "${version:-$RVER}" "$ANYVER" "$ARCH" "$DPI"; RC=$?
+  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$SRC" "${RVER:-$version}" "$ANYVER" "$ARCH" "$DPI"; RC=$?
 fi
 if [ "$RC" -ne 0 ]; then
   [ "${PF_STORE_DOWNGRADE_REFUSED:-0}" = "1" ] && exit 1

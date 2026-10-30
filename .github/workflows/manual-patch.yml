@@ -230,16 +230,22 @@ jobs:
           name: shadow-inputs-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: shadow-evidence/*.json
           if-no-files-found: warn
-          # SAFE-NOW: diagnostic comparison only; APK/evidence handoff remains 7 days.
+          # SAFE-NOW: diagnostic comparison only; test APK handoff is 1 day and evidence remains 7 days.
           retention-days: 7
-      - name: Save verified test APK and evidence (not a release)
+      - name: Save verified test APK (not a release)
         if: success() && (!inputs.publish || github.ref != 'refs/heads/main')
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            release/*.apk
-            build-evidence/${{ inputs.target }}.json
+          path: release/*.apk
+          if-no-files-found: error
+          retention-days: 1
+      - name: Save test evidence (not a release)
+        if: success() && (!inputs.publish || github.ref != 'refs/heads/main')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: test-evidence-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build-evidence/${{ inputs.target }}.json
           if-no-files-found: error
           retention-days: 7
       - name: Releasing APK files

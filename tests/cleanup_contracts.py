@@ -1,6 +1,7 @@
 """Cleanup: preview and apply build the same list; apply refuses a changed list (W4).
 
-W9: Pages deployment records (newest 5 stay) and merged packet branches are in the same list.
+W9: Pages deployment records and merged packet branches are in the same list.
+W16y: three newest releases per app, newest primary fallback, and a seven-day age guard.
 """
 import importlib.util
 import io
@@ -76,7 +77,7 @@ class Fake:
 
 class Cleanup(unittest.TestCase):
     def setUp(self):
-        self._keep, cl.KEEP = cl.KEEP, 2  # fixtures below were written for two per app (W15e: live rule is one)
+        self._keep, cl.KEEP = cl.KEEP, 3
         self.addCleanup(setattr, cl, "KEEP", self._keep)
         self.old = os.getcwd()
         self.tmp = tempfile.TemporaryDirectory()
@@ -103,8 +104,8 @@ class Cleanup(unittest.TestCase):
         # W16w (owner, 28 Oct 2026): every other release stays this week; only LinkedIn is cleared.
         Path('src/targets.json').write_text(json.dumps([{'id': 'adguard', 'enabled': True, 'tag_prefix': 'adguard'},
                                                     {'id': 'linkedin', 'enabled': True, 'tag_prefix': 'linkedin'}]))
-        self.fake.releases += [rel(11, 4, 'linkedin'), rel(12, 5, 'linkedin'), rel(13, 6, 'linkedin')]
-        self.fake.tags += [r['tag_name'] for r in self.fake.releases[-3:]]
+        self.fake.releases += [rel(11, 4, 'linkedin'), rel(12, 5, 'linkedin'), rel(13, 6, 'linkedin'), rel(14, 7, 'linkedin')]
+        self.fake.tags += [r['tag_name'] for r in self.fake.releases[-4:]]
         self.fake.deploys = [dep(i, i) for i in range(1, 9)]
         out = Path('a.json')
         self.assertEqual(cl.main(['preview', '--apps', 'linkedin', '--out', str(out)], run=self.fake), 0)
@@ -121,14 +122,16 @@ class Cleanup(unittest.TestCase):
         self.assertEqual(self.fake.deleted, ['repos/%s/releases/11' % cl.REPO, 'repos/%s/git/refs/tags/linkedin-v1.11-b20260904' % cl.REPO])
         self.assertEqual(cl.main(['preview', '--apps', 'nosuch'], run=self.fake), 1)
 
-    def test_keeps_two_newest_and_non_build_tags(self):
+    def test_keeps_three_newest_and_non_build_tags(self):
         p = self.preview()
-        self.assertEqual([r['tag'] for r in p['releases']], ['adguard-v1.1-b20260901'])
-        self.assertEqual(p['tags'], ['adguard-v0.9-b20260801', 'adguard-v1.1-b20260901'])
+        self.assertEqual(p['releases'], [])
+        self.assertEqual(p['tags'], ['adguard-v0.9-b20260801'])
         self.assertNotIn('v1.0-manual', p['tags'])
         self.assertEqual(self.fake.deleted, [])
 
     def test_apply_needs_the_preview_token_and_writes_a_receipt_first(self):
+        self.fake.releases.append(rel(4, 4))
+        self.fake.tags.append('adguard-v1.4-b20260904')
         p = self.preview()
         self.assertEqual(cl.main(['apply', '--token', 'wrong'], run=self.fake), 1)
         self.assertEqual(self.fake.deleted, [])
@@ -139,7 +142,7 @@ class Cleanup(unittest.TestCase):
                                              'repos/%s/git/refs/tags/adguard-v0.9-b20260801' % cl.REPO,
                                              'repos/%s/git/refs/tags/adguard-v1.1-b20260901' % cl.REPO])
 
-    def test_only_two_newest_per_app_stay_whatever_layout_author_or_marker(self):
+    def test_three_newest_per_app_stay_whatever_layout_author_or_marker(self):
         odd = rel(5, 5)
         odd['assets'].append({'name': 'microg.apk', 'size': 10, 'id': 9})
         mine = rel(6, 6)
@@ -151,38 +154,57 @@ class Cleanup(unittest.TestCase):
         self.fake.releases[:] = [odd, mine, frozen, rel(8, 8), rel(9, 9), other, odd_tag]
         p = self.preview()
         self.assertEqual([r['tag'] for r in p['releases']],
-                         ['adguard-v1.5-b20260905', 'adguard-v1.6-b20260906', 'adguard-v1.7-b20260907'])
+                         ['adguard-v1.5-b20260905', 'adguard-v1.6-b20260906'])
         kept = {k['tag']: k['reason'] for k in p['kept']}
-        self.assertEqual(kept, {'adguard-v1.8-b20260908': 'newest of adguard',
+        self.assertEqual(kept, {'adguard-v1.7-b20260907': 'newest of adguard',
+                                'adguard-v1.8-b20260908': 'newest of adguard',
                                 'adguard-v1.9-b20260909': 'newest of adguard',
                                 'tc-combo-v1.1-b20260901': 'newest of tc-combo',
                                 'v1.0-manual': 'not an app build tag'})
 
-    def test_owner_rule_keeps_one_per_app(self):
-        self.assertEqual(self._keep, 1)  # owner, 22 Oct 2026
-        cl.KEEP = 1
-        self.fake.releases[:] = [rel(8, 8), rel(9, 9), rel(1, 1, prefix='tc-combo')]
+    def test_owner_rule_keeps_three_per_app(self):
+        self.assertEqual(self._keep, 3)
+        self.fake.releases[:] = [rel(8, 8), rel(9, 9), rel(10, 10), rel(1, 1, prefix='tc-combo')]
         p = self.preview()
-        self.assertEqual([r['tag'] for r in p['releases']], ['adguard-v1.8-b20260908'])
-        self.assertEqual({k['tag'] for k in p['kept']}, {'adguard-v1.9-b20260909', 'tc-combo-v1.1-b20260901'})
+        self.assertEqual(p['releases'], [])
+        self.assertEqual({k['tag'] for k in p['kept']}, {'adguard-v1.8-b20260908', 'adguard-v1.9-b20260909', 'adguard-v1.10-b20260910', 'tc-combo-v1.1-b20260901'})
 
     def test_w15i_owner_retired_build_goes_and_the_next_newest_stays(self):
-        cl.KEEP = 1
+        cl.KEEP = 3
         retire = [{'app': 'adguard', 'version': '1.9', 'published_before': '2026-09-20T00:00:00Z', 'why': 'owner said so'}]
-        rows = [rel(8, 8), rel(9, 9), rel(1, 1, prefix='tc-combo')]
+        rows = [rel(8, 8), rel(9, 9), rel(10, 10), rel(11, 11), rel(12, 12), rel(1, 1, prefix='tc-combo')]
         p = cl.plan(rows, {}, retire=retire)
-        self.assertEqual(sorted(r['tag'] for r in p['releases']), ['adguard-v1.9-b20260909'])
-        self.assertIn('owner retired adguard 1.9: owner said so', p['releases'][0]['why'])
-        self.assertEqual({k['tag'] for k in p['kept']}, {'adguard-v1.8-b20260908', 'tc-combo-v1.1-b20260901'})
+        self.assertEqual(sorted(r['tag'] for r in p['releases']), ['adguard-v1.8-b20260908', 'adguard-v1.9-b20260909'])
+        self.assertTrue(any('owner retired adguard 1.9: owner said so' in x['why'] for x in p['releases']))
+        self.assertEqual({k['tag'] for k in p['kept']}, {'adguard-v1.10-b20260910', 'adguard-v1.11-b20260911', 'adguard-v1.12-b20260912', 'tc-combo-v1.1-b20260901'})
         late = dict(rel(9, 25), tag_name='adguard-v1.9-b20260925')  # a later build of 1.9 stays
         p = cl.plan([rel(8, 8), late], {}, retire=retire)
-        self.assertEqual(p['releases'][0]['tag'], 'adguard-v1.8-b20260908')
+        self.assertEqual(p['releases'], [])
+        self.assertEqual({k['tag'] for k in p['kept']}, {'adguard-v1.8-b20260908', 'adguard-v1.9-b20260925'})
         live = cl.retired_builds()
         self.assertEqual([(r['app'], r['version']) for r in live], [('reddit', '2026.42.0')])
         bad = pathlib.Path(self.tmp.name if hasattr(self, 'tmp') else '/tmp') / 'retired.json'
         bad.write_text('[{"app": "Reddit!", "version": "x"}]')
         with self.assertRaises(SystemExit):
             cl.retired_builds(bad)
+
+    def test_age_guard_keeps_oldest_rows_until_seven_days(self):
+        rows = [rel(i, 20 + i) for i in range(1, 8)]
+        for row, stamp in zip(rows[-3:], ('2026-10-30T00:00:00Z', '2026-10-29T00:00:00Z', '2026-10-28T00:00:00Z')):
+            row['published_at'] = stamp
+        rows[3]['published_at'] = '2026-10-27T00:00:00Z'
+        p = cl.plan(rows, {}, now=__import__('datetime').datetime(2026, 10, 30, tzinfo=__import__('datetime').timezone.utc))
+        self.assertEqual([r['tag'] for r in p['releases']], ['adguard-v1.1-b20260921', 'adguard-v1.2-b20260922', 'adguard-v1.3-b20260923'])
+        self.assertTrue(any('younger than 7 days' in k['reason'] for k in p['kept']))
+
+    def test_newest_primary_is_kept_when_top_three_are_fallback(self):
+        old = cl.is_primary_release
+        self.addCleanup(setattr, cl, 'is_primary_release', old)
+        cl.is_primary_release = lambda app, row: row['id'] == 1
+        rows = [rel(1, 1), rel(2, 2), rel(3, 3), rel(4, 4)]
+        p = cl.plan(rows, {}, now=__import__('datetime').datetime(2026, 10, 30, tzinfo=__import__('datetime').timezone.utc))
+        self.assertEqual(p['releases'], [])
+        self.assertEqual({x['tag'] for x in p['kept']}, {r['tag_name'] for r in rows})
 
     def test_a_new_release_after_preview_changes_the_token(self):
         p = self.preview()
@@ -206,8 +228,8 @@ class Cleanup(unittest.TestCase):
     def test_pages_deployments_keep_the_newest_five(self):
         self.with_more()
         p = self.preview()
-        self.assertEqual(p['deployments'], [9001, 9002])
-        self.assertEqual([k['id'] for k in p['kept_deployments']], [9007, 9006, 9005, 9004, 9003])
+        self.assertEqual(p['deployments'], [9001, 9002, 9003, 9004])
+        self.assertEqual([k['id'] for k in p['kept_deployments']], [9007, 9006, 9005])
         self.assertTrue(all('environment=github-pages' in r for r in self.fake.reads if '/deployments' in r))
 
     def test_only_merged_packet_branches_without_an_open_pull_request_go(self):
@@ -236,18 +258,19 @@ class Cleanup(unittest.TestCase):
         p = self.preview()
         self.assertEqual(cl.main(['apply', '--token', p['token'], '--receipt', 'r.json'], run=self.fake), 0)
         R = 'repos/%s/' % cl.REPO
-        self.assertEqual(self.fake.deleted, [R + 'releases/1', R + 'git/refs/tags/adguard-v0.9-b20260801',
-                                             R + 'git/refs/tags/adguard-v1.1-b20260901',
+        self.assertEqual(self.fake.deleted, [R + 'git/refs/tags/adguard-v0.9-b20260801',
                                              R + 'deployments/9001/statuses', R + 'deployments/9001',
                                              R + 'deployments/9002/statuses', R + 'deployments/9002',
+                                             R + 'deployments/9003/statuses', R + 'deployments/9003',
+                                             R + 'deployments/9004/statuses', R + 'deployments/9004',
                                              R + 'git/refs/heads/packet/w8'])
         posts = [c for c in self.fake.writes if c[3] == 'POST']
-        self.assertEqual([c[-1] for c in posts], ['state=inactive', 'state=inactive'])
+        self.assertEqual([c[-1] for c in posts], ['state=inactive'] * 4)
         rec = json.loads(Path('r.json').read_text())
-        self.assertEqual([d['id'] for d in rec['deployments']], [9001, 9002])
+        self.assertEqual([d['id'] for d in rec['deployments']], [9001, 9002, 9003, 9004])
         self.assertEqual(rec['deployments'][0]['sha'], '%040x' % 0xd01)
         self.assertEqual(rec['branches'][0]['restore'], 'git push origin %s:refs/heads/packet/w8' % IN_MAIN)
-        self.assertEqual(len(rec['kept_deployments']), 5)
+        self.assertEqual(len(rec['kept_deployments']), 3)
 
     def test_a_failed_delete_stops_there_and_says_how_far_it_got(self):
         self.with_more()
@@ -256,7 +279,7 @@ class Cleanup(unittest.TestCase):
         out = io.StringIO()
         with redirect_stdout(out):
             self.assertEqual(cl.main(['apply', '--token', p['token'], '--receipt', 'r.json'], run=self.fake), 1)
-        self.assertIn('STOP: deleted 5 of 8; failed at deployment 9002', out.getvalue())
+        self.assertIn('STOP: deleted 3 of 10; failed at deployment 9002', out.getvalue())
         self.assertNotIn('repos/%s/git/refs/heads/packet/w8' % cl.REPO, self.fake.deleted)
         self.assertTrue(Path('r.json').is_file())
 
@@ -279,13 +302,14 @@ class Cleanup(unittest.TestCase):
 
 
     # W10: one Truecaller (owner, 9 Oct 2026). A release of an app no target builds goes.
-    def test_releases_of_a_retired_app_go_even_when_alone(self):
+    def test_newest_release_of_a_retired_app_is_never_deleted(self):
         frozen = dict(rel(1, 1), tag_name='truecaller-v26.10.6', id=30)
         self.fake.releases[:] = [frozen, rel(2, 2), rel(3, 3), rel(4, 4, prefix='tc-combo')]
         self.fake.tags[:] = ['truecaller-v26.10.6']
         p = self.preview()
-        self.assertEqual(p['releases'], [{'id': 30, 'tag': 'truecaller-v26.10.6', 'why': 'retired app truecaller'}])
-        self.assertEqual(p['tags'], ['truecaller-v26.10.6'])
+        self.assertEqual(p['releases'], [])
+        self.assertEqual({k['tag'] for k in p['kept']}, {'adguard-v1.2-b20260902', 'adguard-v1.3-b20260903', 'tc-combo-v1.4-b20260904', 'truecaller-v26.10.6'})
+        self.assertEqual(p['tags'], [])
         kept = {k['tag'] for k in p['kept']}
         self.assertIn('tc-combo-v1.4-b20260904', kept)
 

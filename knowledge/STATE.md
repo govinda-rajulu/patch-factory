@@ -8,6 +8,12 @@ Start here: [KT-2026-10-28.md](../docs/review/KT-2026-10-28.md), then [OPEN-WORK
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
+## W16y-a (30 Oct 2026): start here
+
+- Removed the unused chooser/community-diff utilities and the dead chooser branch; the full and unreviewed selection-sheet modes remain. The removal record is `docs/review/history/REMOVED-2026-10.md`.
+- Moved the closed candidate scout into review history, added the owner decisions record, repaired signer guidance, and added the W16y-b queue (provider gate, digest, pin check, Council report and Telegram survey).
+- Completed owner actions recorded for this checkpoint: secret scanning and push protection, `TDL_BACKUP` deletion and merged CCleaner branch deletion. Wrong call 110 is fixed on its failure path.
+
 ## W16x (29 Oct 2026, early IST): start here
 
 - **W16w merged** as #275 (`2db6cde8`, tree `728638b2`). Owner run RESULT FINDINGS (Amazon Music only). LinkedIn v1.2.0 with Material You published; phone test passed (Michii Patches in the Me panel). Read docs/review/HANDOVER-2026-10-29-W16x.md.

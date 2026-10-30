@@ -44,6 +44,11 @@ def cache_prefix(key: str) -> str:
     parts = key.split("-")
     for index in range(len(parts) - 1, 0, -1):
         segment = parts[index]
+        # CodeQL keys end with ``<commit>-<numeric run id>-<attempt>``. A
+        # numeric run id is not a semantic version or hash suffix; skipping it
+        # lets the preceding commit hash define the grouping prefix.
+        if segment.isdigit():
+            continue
         if _HEX.fullmatch(segment) or _VERSION.fullmatch(segment):
             return "-".join(parts[:index])
     return key

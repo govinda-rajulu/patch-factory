@@ -4,7 +4,7 @@ Every reviewed finding, decision, audit and handover for this repository lives i
 this folder. Start at the top. Files under **History** record what was true on
 their date; they are not current instructions.
 
-Last indexed **29 October 2026** for packet W16x ([HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md)); **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md)); **27 October 2026** for packet W16v (addendum in [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md)); earlier that day for packets W16p and W16q ([HANDOVER-2026-10-27.md](HANDOVER-2026-10-27.md)) ([SESSION-2026-10-27.md](SESSION-2026-10-27.md)); before that **26 October 2026** for packets W16n and W16o ([SESSION-2026-10-26.md](SESSION-2026-10-26.md)); earlier that day for packet W16m (chat handover; closed W15 and W16 records moved to `history/`); before that **25 October 2026** for packet W16h; before that **20 October 2026** for W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
+Last indexed **30 October 2026** for packet W16y-a ([DECISIONS-2026-10-30.md](DECISIONS-2026-10-30.md); [OPEN-WORK.md](OPEN-WORK.md)); **29 October 2026** for packet W16x ([HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md)); **28 October 2026** for packet W16w ([HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md)); **27 October 2026** for packet W16v (addendum in [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md)); earlier that day for packets W16p and W16q ([HANDOVER-2026-10-27.md](HANDOVER-2026-10-27.md)) ([SESSION-2026-10-27.md](SESSION-2026-10-27.md)); before that **26 October 2026** for packets W16n and W16o ([SESSION-2026-10-26.md](SESSION-2026-10-26.md)); earlier that day for packet W16m (chat handover; closed W15 and W16 records moved to `history/`); before that **25 October 2026** for packet W16h; before that **20 October 2026** for W15b; earlier, **10 October 2026** for packets W9 to W12 and handover H12 (controller toolkit in `controllers/`) and packet W13 (retention receipts indexed in `retention/README.md`; agent docs moved to `history/`). Hygiene record:
 [5S audit](AUDIT-5S-2026-09-27.md).
 
 ## Start here
@@ -17,11 +17,12 @@ Last indexed **29 October 2026** for packet W16x ([HANDOVER-2026-10-29-W16x.md](
 | [OBTAINIUM-SIGNER-2026-10-27.md](OBTAINIUM-SIGNER-2026-10-27.md) | 27 Oct: why Obtainium shows "Downloaded certificate hash: None" (Android 9 and 10), what W16v ships, upstream issue text. |
 | [W15G-MAP.md](W15G-MAP.md) | 27 Oct: signing split (W15g) implementation map, file by file against main `97abdc7c`; the next packet. |
 | [SIGNING-SPLIT.md](SIGNING-SPLIT.md) | W15g signing isolation design and packet acceptance steps. |
-| [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 102 and the W16w decision sheet. Read first. |
+| [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 111 and the W16w decision sheet. Read first. |
 | [SWITCH-AUDIT-2026-10-28.jsonl](SWITCH-AUDIT-2026-10-28.jsonl) | Every chosen patch (660): in-app switch or always on, default, hides content; sources upstream READMEs and code. |
 | [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) | Preceding W16w pointer: W16v outcome, T1 findings and causes, what W16w changes, wrong call 97. |
 | [HANDOVER-2026-10-29-W16x.md](HANDOVER-2026-10-29-W16x.md) | W16x pointer: W16w result, Amazon Music fail-closed cause, near-version guard, owner follow-ups and current limits. Read first. |
 | [DECISION-REVIEW-2026-10-29.md](DECISION-REVIEW-2026-10-29.md) | W16x read-only review of the standing owner decisions: downsides, safer alternatives and ten owner questions. Changes nothing. |
+| [DECISIONS-2026-10-30.md](DECISIONS-2026-10-30.md) | Owner decisions for W16y: pin checks, fallbacks, retention, Council, Telegram, provider admission and completed owner actions; split into W16y-a and W16y-b. |
 | [HANDOVER-2026-10-27-W16u.md](HANDOVER-2026-10-27-W16u.md) | W16u and W16v records: live main then, repairs, owner runs 1 to 3. |
 | [CORRECTION-2026-10-27-W16t.md](CORRECTION-2026-10-27-W16t.md) | 27 Oct dated correction: current public credits, withdrawn unlicensed icons, W15 vs W15h re-import wording, CI is not a phone test. Dated records stay as written. |
 | [HANDOVER-2026-10-27.md](HANDOVER-2026-10-27.md) | 26 to 27 Oct chat handover (W16n to W16r): how to start the next chat, where things stand, what shipped, owner asks, wrong calls 77 to 90, lessons L108 to L114, afternoon addendum (W16r), open work. Read first. |
@@ -53,6 +54,7 @@ Last indexed **29 October 2026** for packet W16x ([HANDOVER-2026-10-29-W16x.md](
 | [SESSION-2026-10-10.md](history/SESSION-2026-10-10.md) | 10 Oct: packet W13 (lost patches dropped by name, provider fallback, Selection watch, pf-t1). |
 | [SESSION-2026-10-09.md](history/SESSION-2026-10-09.md) | 9 to 10 Oct: packets W6 to W12 and handover H12 (W12: coverage-first version choice; H12: owner decisions, phone tests, controller toolkit). Before that, 9 Oct: packets W6 to W9 (W9: routine cleanup, retention preview retired, run-log filter, notices). Earlier: packet W6 (Amazon Music `libInit.so` marker, build status keyed by app, second cleanup). |
 | [SESSION-2026-10-08.md](history/SESSION-2026-10-08.md) | 8 Oct session: packet W2 (two-step app changes, plain status page, MicroG shipped where needed, silent failures, onboarding gate, tooling watch, leads decided). History. |
+| [CANDIDATES-2026-10-08.md](history/CANDIDATES-2026-10-08.md) | Archived community-index candidate scout for Amazon Music and LinkedIn. |
 | [SESSION-2026-10-07.md](history/SESSION-2026-10-07.md) | 6-7 Oct session: packets R to V2, council desk #154, cleanup, findings, wrong calls, coverage limits. History. |
 | [HANDOVER-2026-09-26.md](history/HANDOVER-2026-09-26.md) | 26 September session handover (history; current state is `knowledge/STATE.md`): what shipped, schedules, cleanup, next steps. A 27 September correction is appended. |
 | [SESSION-2026-09-29.md](history/SESSION-2026-09-29.md) | Packet L session: findings, what PR107 shipped, the assistant's wrong calls, and what is still open. |
@@ -101,6 +103,7 @@ Last indexed **29 October 2026** for packet W16x ([HANDOVER-2026-10-29-W16x.md](
 | [providers/](providers/) | Committed provider name baselines read by Provider watch. | Live input |
 | [retention/](retention/) | Cleanup receipts (releases, tags, Pages deployments, branches), indexed in its README. | Record |
 | [history/](history/) | Closed checkpoints moved out of the desk on 7 Oct 2026 (packet V2); its README lists them. | History |
+| [REMOVED-2026-10.md](history/REMOVED-2026-10.md) | W16y-a removal record for the unused chooser and community-diff utilities. | History |
 
 ## History
 

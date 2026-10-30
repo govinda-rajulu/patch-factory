@@ -46,6 +46,6 @@ Provider: <owner/repo> (licence: <SPDX>, bundle: <release asset pattern>, channe
 
 | Record | State |
 | --- | --- |
-| [CANDIDATES-2026-10-08.md](CANDIDATES-2026-10-08.md) | Generated scout of the community index for Amazon Music (`com.amazon.mp3`) and LinkedIn (`com.linkedin.android`). Pick a provider there, then add the app with one "5. Add target" run. |
+| [CANDIDATES-2026-10-08.md](../history/CANDIDATES-2026-10-08.md) | Generated scout of the community index for Amazon Music (`com.amazon.mp3`) and LinkedIn (`com.linkedin.android`); archived because it is a closed scout record. |
 
 A record is written the first time "5. Add target" (or a packet) changes a target, provider or chosen name; not every app has one yet.

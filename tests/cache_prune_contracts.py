@@ -42,6 +42,13 @@ class CachePrune(unittest.TestCase):
         self.assertEqual(cp.cache_prefix('pf-action-smoke-12345-2'), 'pf-action-smoke-12345-2')
         self.assertEqual(cp.cache_prefix('cache-without-suffix'), 'cache-without-suffix')
 
+    def test_numeric_codeql_run_ids_do_not_hide_the_commit_prefix(self):
+        key = ('codeql-overlay-base-database-1-d953d79b74456ce0-python-2.27.3-'
+               'f8cdcf9bdb6972137448a16d8fe52a91634899aa-41027308499-1')
+        self.assertEqual(cp.cache_prefix(key), 'codeql-overlay-base-database-1-d953d79b74456ce0-python-2.27.3')
+        javascript = key.replace('d953d79b74456ce0-python', 'c801913f1ee29663-javascript')
+        self.assertNotEqual(cp.cache_prefix(key), cp.cache_prefix(javascript))
+
     def test_default_is_dry_run_and_emits_json_receipts(self):
         old = '2026-10-20T12:00:00Z'
         rows = [row(10, 'morphe-jar-aaaaaaa', old, old, 42),
