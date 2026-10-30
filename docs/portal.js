@@ -333,7 +333,7 @@ function setImportLinks(apps,pack){
  const suffix=signerPin?'':'-nopin';
  $('downloadImport').href=importBlob;$('downloadImport').download=pack==='selected'?'obtainium-selected'+suffix+'.json':exported.length===1&&exported[0].id==='app.revanced.android.gms'?'obtainium-microg.json':exported.length===1&&exported[0].id==='dev.imranr.obtainium'?'obtainium-self.json':'obtainium'+suffix+'.json';$('downloadImport').hidden=false;
  $('importMessage').textContent='Ready: '+exported.length+' configs. Tap Open, then confirm in Obtainium. Unselected apps already tracked in Obtainium are not removed. If the link cannot open, use the JSON fallback.';
- if(!signerPin)$('importMessage').textContent+=' Signer pin is OFF: only for Android 9 or 10, where Obtainium cannot read any signer. Android still refuses updates signed by another key.';
+ if(!signerPin)$('importMessage').textContent+=' Signer pin is OFF: only for Android 9 or 10, where Obtainium cannot read any signer. Android still refuses updates signed by another key.\nOn Android 9/10 Obtainium cannot read signers; Android itself still refuses any update signed by another key, so the only exposure is the first install — verify that first APK from this page.';
  if(apps.some(app=>app.id==='app.revanced.android.gms'))$('importMessage').textContent+=' Includes MicroG RE ('+(microgIcon==='noicon'?'no icon':'with icon')+', '+({auto:'CPU picked by Obtainium',universal:'universal','arm64-v8a':'ARM64','armeabi-v7a':'ARMv7'})[microgArch]+', '+(microgChannel==='stable'?'stable only':'pre-releases allowed')+'). Existing tracked settings may change; installed signer compatibility is unverified.';
  if(apps.some(app=>app.id==='dev.imranr.obtainium'))$('importMessage').textContent+=' Includes standard Obtainium tracking. F-Droid installs are not replaced or migrated.';
 }
@@ -554,7 +554,11 @@ function bundleText(record,target){
 }
 function badgeLabels(top,record,statusRow){
  const labels=[];
- if(record&&typeof record.fallback==='string'&&record.fallback)labels.push('Fallback provider');
+ if(record&&typeof record.fallback==='string'&&record.fallback){
+  const first=top&&top.rel&&typeof top.rel.body==='string'?top.rel.body.match(/^FALLBACK BUILD: [^\n]+/m):null;
+  labels.push(first?'Fallback':'Fallback provider');
+  if(first)labels.push(first[0]);
+ }
  const build=statusRow&&statusRow.last_build;
  if(build&&BAD_RUN.has(build.result))labels.push(build.words||'Build needs attention');
  const stamp=top&&top.asset&&(top.asset.updated_at||top.rel&&top.rel.published_at)||top&&top.rel&&top.rel.published_at;
@@ -574,7 +578,7 @@ async function appsPanel(root){
  if(!rows.length){article.append(el('p',releaseResult.error?'Release availability unknown.':'No matching published APK in the complete release inventory.','meta'));root.append(article);continue;}
  const top=rows[0],record=releaseRecord(top.rel.body),statusRow=statusApps.find(a=>a&&a.id===t.id);
  article.dataset.published=top.rel.published_at;
- for(const label of badgeLabels(top,record,statusRow))heading.append(el('span',label,'badge'));
+ for(const label of badgeLabels(top,record,statusRow))heading.append(el('span',label,label==='Fallback'||label.startsWith('FALLBACK BUILD:')?'badge fallback':'badge'));
  article.append(el('p',top.tag.version,'app-version'));
  patchField(article,record);
  field(article,'Provider',record?providerNames(record,t).join(' + '):'Not recorded');

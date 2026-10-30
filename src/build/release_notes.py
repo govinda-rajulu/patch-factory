@@ -14,6 +14,8 @@ from build_identity import parse
 REPO = 'govinda-rajulu/patch-factory'
 WEB = 'https://github.com/' + REPO
 MARKER = r'(?m)^\[pf-release-v1\]: # "([A-Za-z0-9+/=]+)"[ \t]*$'
+# Owner decision 30 Oct 2026: a fallback must carry at least half the primary's patches.
+FALLBACK_COVERAGE_FLOOR = 50
 
 
 def checked(doc):
@@ -38,7 +40,10 @@ def checked(doc):
         raise ValueError('invalid dropped patch list')
     if 'fallback' in doc and (not isinstance(doc['fallback'], str) or not doc['fallback'] or len(doc['fallback']) > 1000
                               or any(ord(c) < 32 for c in doc['fallback'])):
-        raise ValueError('invalid fallback note')
+        raise ValueError('invalid fallback provider')
+    if 'coverage' in doc and (type(doc['coverage']) not in (int, float) or isinstance(doc['coverage'], bool)
+                              or not 0 <= doc['coverage'] <= 100 or round(doc['coverage'], 1) != doc['coverage']):
+        raise ValueError('invalid fallback coverage')
     # W16k (owner, 25 Oct 2026: "showing release date and time ... so i know when last built"):
     # optional, the minute the build job started, UTC ('2026-10-25T12:18Z').
     if 'built' in doc and (not isinstance(doc['built'], str) or not re.fullmatch(r'20[0-9]{2}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]Z', doc['built'])):
@@ -63,6 +68,8 @@ def snapshot(fields, report, target):
         extra['dropped'] = fields['dropped'].splitlines()
     if fields.get('fallback'):
         extra['fallback'] = fields['fallback']
+    if fields.get('coverage') is not None:
+        extra['coverage'] = fields['coverage']
     if fields.get('built'):
         extra['built'] = fields['built']
     return checked(dict(extra, schema=1, target=report['target'], label=target.get('label', report['target']),
@@ -171,7 +178,72 @@ def _vkey(version):
     return tuple(int(x) for x in version.split('.'))
 
 
-def publish_guard(current, rows, fallback):
+def _configured_primary_count(target, root='.'):
+    """Count the primary candidate's configured include names for a no-shelf baseline."""
+    candidates = target.get('candidates') if isinstance(target, dict) else None
+    primary = next((c for c in candidates or [] if not c.get('fallback')), None)
+    if not primary or not primary.get('patch_dir'):
+        return 0
+    path = os.path.join(str(root), 'src', 'patches', primary['patch_dir'], 'include-patches')
+    try:
+        with open(path, encoding='utf-8') as stream:
+            return sum(1 for line in stream
+                       if line.strip() and not line.lstrip().startswith('#'))
+    except (OSError, TypeError):
+        return 0
+
+
+def _primary_record(current, rows):
+    """Return the last structured, non-fallback release for this target."""
+    prefix = current['tag'].split('-v' + current['version'] + '-b', 1)[0]
+    records = []
+    for row in rows or []:
+        if not isinstance(row, dict) or row.get('draft') or row.get('prerelease'):
+            continue
+        tag = str(row.get('tag_name', ''))
+        if not re.fullmatch(re.escape(prefix) + r'-v[0-9]+(?:[.][0-9]+)*-b[0-9]+', tag):
+            continue
+        try:
+            doc = decode(row.get('body'), tag, current['target'])
+        except (ValueError, TypeError, KeyError):
+            continue
+        if doc.get('fallback'):
+            continue
+        records.append((str(row.get('published_at') or ''), doc))
+    return max(records, key=lambda x: x[0])[1] if records else None
+
+
+def _pct(chosen, primary):
+    value = 100 * chosen / primary if primary else 0
+    return int(value) if value.is_integer() else round(value, 1)
+
+
+def fallback_coverage(current, rows, target, root='.'):
+    """Measure a fallback against the last primary shelf release or configured include count."""
+    if not current.get('fallback'):
+        return None
+    primary = _primary_record(current, rows)
+    basis = 'shelf' if primary else 'configured'
+    primary_patches = primary.get('patches', []) if primary else []
+    primary_count = len(primary_patches) if primary else _configured_primary_count(target, root)
+    chosen_patches = current.get('patches') or []
+    chosen_count = len(chosen_patches)
+    pct = _pct(chosen_count, primary_count) if primary_count else 0
+    return {'provider': current.get('fallback'), 'patches': chosen_count, 'primary': primary_count,
+            'pct': pct, 'below': (not primary_count or chosen_count * 100 < primary_count * FALLBACK_COVERAGE_FLOOR),
+            'basis': basis, 'primary_patches': primary_patches,
+            'missing': [name for name in primary_patches if name not in chosen_patches]}
+
+
+def coverage_line(current, coverage):
+    basis = ' basis=' + coverage['basis']
+    return ('FALLBACK_%s target=%s provider=%s patches=%d primary=%d pct=%s floor=%d%s' %
+            ('BELOW_FLOOR' if coverage['below'] else 'COVERAGE',
+             current['target'], coverage['provider'], coverage['patches'], coverage['primary'],
+             coverage['pct'], FALLBACK_COVERAGE_FLOOR, basis))
+
+
+def publish_guard(current, rows, fallback, target=None, root='.'):
     """W15 (17 Oct 2026, L059): never publish an app version below the newest published release
     of the same app. Android refuses a lower versionCode over an installed build, and the shelf
     would show it as the newest (De-Vanced Facebook 580 with 3 patches went out four times over
@@ -179,6 +251,19 @@ def publish_guard(current, rows, fallback):
     readable inventory, no fallback release. Returns the refusal reason, or None."""
     if rows is None:
         return 'release inventory unreadable, so a fallback build is not published blind' if fallback else None
+    # A shelf primary is sufficient for the floor even for callers that do not have target config.
+    shelf_primary = _primary_record(current, rows) if fallback else None
+    if fallback and (target is not None or shelf_primary):
+        coverage = fallback_coverage(current, rows, target or {}, root)
+        print(coverage_line(current, coverage))
+        if coverage['basis'] == 'configured':
+            current['_coverage_basis'] = 'No primary release on the shelf; compared with the configured primary include count.'
+        else:
+            current['_coverage_basis'] = 'Compared with the last published primary release on the shelf.'
+        current['_coverage'] = coverage
+        if coverage['below']:
+            return ('fallback coverage is %s%% (%d of %d patches), below the %d%% floor; build is test-only and was not published' %
+                    (coverage['pct'], coverage['patches'], coverage['primary'], FALLBACK_COVERAGE_FLOOR))
     prefix = current['tag'].split('-v' + current['version'] + '-b', 1)[0]
     best = None
     for row in rows:
@@ -224,7 +309,9 @@ def provider_changelog(current):
     """Build short provider notes from the existing release metadata."""
     lines = []
     if current.get('fallback'):
-        lines.append(current['fallback'])
+        lines.append('Fallback provider: ' + current['fallback'])
+    if current.get('_coverage_basis'):
+        lines.append(current['_coverage_basis'])
     if current.get('dropped'):
         lines.append('Provider no longer offers: ' + ', '.join(current['dropped']))
     return lines
@@ -270,6 +357,17 @@ def render(current, previous=None, reason=''):
     checked(current)
     download = WEB + '/releases/download/' + current['tag'] + '/' + current['apk']
     lines = []
+    coverage = current.get('_coverage')
+    if current.get('fallback') and coverage:
+        p = coverage['pct']
+        lines.append('FALLBACK BUILD: %s, %d of %d patches (%s%%). Read before use.' %
+                     (text(current.get('provider') or current['fallback']), coverage['patches'], coverage['primary'], p))
+        if coverage['missing']:
+            lines.append('Primary patches missing from this build:')
+            lines.extend('- ' + text(name) for name in coverage['missing'])
+        if current.get('_coverage_basis'):
+            lines += ['', text(current['_coverage_basis'])]
+        lines.append('')
     if current.get('built'):
         lines += [built_line(current['built']), '']
     lines += ['## Changes', *('- ' + text(x) for x in changes(current, previous))]
@@ -277,7 +375,9 @@ def render(current, previous=None, reason=''):
     if provider_lines:
         lines += ['', '## Provider changelog', *('- ' + text(x) for x in provider_lines)]
     lines += ['', '## Install', '- [Download and install the APK](' + download + ').']
-    lines += ['', '[pf-release-v1]: # "' + base64.b64encode(json.dumps(current, sort_keys=True, separators=(',', ':')).encode()).decode() + '"']
+    # Coverage basis/details are render-time context, not part of the public schema.
+    machine = {key: value for key, value in current.items() if not key.startswith('_')}
+    lines += ['', '[pf-release-v1]: # "' + base64.b64encode(json.dumps(machine, sort_keys=True, separators=(',', ':')).encode()).decode() + '"']
     body = '\n'.join(lines) + '\n'
     if len(body.encode()) > 120000:
         raise ValueError('release notes exceed safe size')

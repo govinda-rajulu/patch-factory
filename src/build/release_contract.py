@@ -77,7 +77,7 @@ def verify(root, ident):
     for name in applied:
         one_line(name, 'applied patch')
     optional = {}
-    for key in ('dropped', 'fallback'):
+    for key in ('dropped', 'fallback', 'fallback-provider'):
         if (root / 'release' / ('.' + key)).exists():
             optional[key] = read_text(root, 'release/.' + key)
     dropped = [line.removeprefix('- ').strip() for line in optional.get('dropped', '').splitlines() if line.strip()]
@@ -89,8 +89,11 @@ def verify(root, ident):
               'patchver': patchver, 'aplist': '\n'.join('- '+name for name in applied)}
     if dropped:
         fields['dropped'] = '\n'.join(dropped)
-    if optional.get('fallback'):
-        fields['fallback'] = one_line(optional['fallback'], 'fallback')
+    if optional.get('fallback-provider'):
+        fields['fallback'] = one_line(optional['fallback-provider'], 'fallback provider')
+    elif optional.get('fallback'):
+        # Older controller markers carried prose only; retain it as a provider-safe legacy value.
+        fields['fallback'] = one_line(provider, 'fallback provider')
     if re.fullmatch(r'20[0-9]{2}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]Z', os.environ.get('PF_BUILT_AT', '')):
         fields['built'] = os.environ['PF_BUILT_AT']  # W16k: set once per job (manual-patch.yml)
     summary = release_notes.snapshot(fields, d, t)
@@ -116,9 +119,30 @@ def main():
         verify_run(fields['suffix'], os.environ)
         summary = json.loads(fields['summary'])
         rows = release_notes.inventory()
-        refusal = release_notes.publish_guard(summary, rows, bool(fields.get('fallback')))
+        release_contract_root = pathlib.Path.cwd()
+        refusal = release_notes.publish_guard(summary, rows, bool(fields.get('fallback')),
+                                              target(release_contract_root, sys.argv[1]),
+                                              release_contract_root)
+        coverage = summary.get('_coverage')
+        if coverage:
+            summary['coverage'] = coverage['pct']
+            fields['summary'] = json.dumps({k: v for k, v in summary.items() if not k.startswith('_')}, sort_keys=True)
         if refusal:
+            summary_line = 'RELEASE_SUMMARY %s: %s' % (summary['target'], refusal)
+            print(summary_line)
+            step_summary = os.environ.get('GITHUB_STEP_SUMMARY')
+            if step_summary:
+                with open(step_summary, 'a', encoding='utf-8') as out:
+                    out.write(summary_line + '\n')
             raise ValueError('PUBLISH_REFUSED ' + summary['target'] + ': ' + refusal + '. Nothing was published.')
+        if coverage:
+            summary_line = ('RELEASE_SUMMARY %s: fallback coverage %s%% (%d of %d patches), publication allowed.' %
+                            (summary['target'], coverage['pct'], coverage['patches'], coverage['primary']))
+            print(summary_line)
+            step_summary = os.environ.get('GITHUB_STEP_SUMMARY')
+            if step_summary:
+                with open(step_summary, 'a', encoding='utf-8') as out:
+                    out.write(summary_line + '\n')
         previous, reason = release_notes.previous_release(summary, rows)
         fields['notes'] = release_notes.render(summary, previous, reason)
         dest = pathlib.Path(os.environ['GITHUB_OUTPUT'])

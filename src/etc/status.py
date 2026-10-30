@@ -66,6 +66,7 @@ PURPOSE = {
     'needs-you.yml': 'Combines the five standing watch reports into one plain-language Needs you issue.',
     'selection-watch.yml': 'Selection watch: drops patch names providers stopped offering, lists new ones for you, digests provider releases.',
     'rule-merge.yml': 'Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green.',
+    'retention.yml': 'Retention preview: reports shelf cleanup and applies only an owner-confirmed token.',
 }
 STEP = {
     'Set up job': 'GitHub starting the job',
@@ -307,7 +308,7 @@ def releases(reader, prefixes):
         if data is None:
             return latest, False
         for r in data:
-            if r.get('draft'):
+            if r.get('draft') or r.get('prerelease'):
                 continue
             m = TAG_RX.match(r.get('tag_name') or '')
             if not m or m[1] not in prefixes:
@@ -317,7 +318,7 @@ def releases(reader, prefixes):
                 continue
             apks = [a for a in r.get('assets') or [] if str(a.get('name', '')).endswith('.apk')]
             row = {'tag': m[0], 'version': m[2], 'published_at': r.get('published_at'), 'url': link(r.get('html_url')),
-                   'apk': None, 'min_android': None, 'native': None}
+                   'apk': None, 'min_android': None, 'native': None, 'fallback': None, 'coverage': None}
             if len(apks) == 1:
                 row['apk'] = {'name': clean(apks[0].get('name'), 120), 'bytes': apks[0].get('size'),
                               'url': link(apks[0].get('browser_download_url'), 'download')}
@@ -327,6 +328,10 @@ def releases(reader, prefixes):
                     doc = json.loads(base64.b64decode(hit[0], validate=True))
                     row['min_android'] = android(doc.get('min_sdk'))
                     row['native'] = clean(doc.get('arch'), 40) or None
+                    if isinstance(doc.get('fallback'), str):
+                        row['fallback'] = clean(doc['fallback'], 120) or None
+                    if type(doc.get('coverage')) in (int, float) and not isinstance(doc.get('coverage'), bool):
+                        row['coverage'] = doc['coverage']
                 except (ValueError, TypeError):
                     pass
             latest[m[1]] = row
@@ -387,10 +392,13 @@ def build(reader, targets, now=None):
         tid = t['id']
         jobs = sorted(build_jobs.get(tid, []), key=lambda x: str(x[0].get('completed_at') or x[0].get('started_at') or ''), reverse=True)
         real = [x for x in jobs if x[0].get('conclusion') != 'skipped']
+        release = latest.get(t.get('tag_prefix') or tid)
+        on_fallback = bool(release and release.get('fallback'))
         app = {'id': tid, 'label': clean(t.get('label') or tid, 60), 'needs_microg': bool(t.get('needs_microg')),
                'cpu': 'ARM64', 'android_cap': android(t.get('min_sdk_ceiling')),
-               'release': latest.get(t.get('tag_prefix') or tid), 'release_known': complete or bool(latest.get(t.get('tag_prefix') or tid)),
-               'last_build': None, 'last_check': None}
+               'release': release, 'release_known': complete or bool(release),
+               'on_fallback': on_fallback, 'fallback_provider': release.get('fallback') if on_fallback else None,
+               'tags': ['on fallback'] if on_fallback else [], 'last_build': None, 'last_check': None}
         if jobs:
             j, r, file = jobs[0]
             app['last_check'] = {'when': j.get('completed_at') or j.get('started_at') or when(r), 'words': result_of(j)[1],

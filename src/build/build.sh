@@ -198,7 +198,7 @@ fi
 if [ "$GA" -eq 0 ] && [ "$USE_SRC" = "apkmirror" ] && [ -z "$FORCE_STORE" ] && [ "$ANYVER" != "true" ]; then pf_near_guard "$USE_SRC" "$version" "$RVER" "$APK_NAME" || exit 1; fi
 if [ "$GA" -eq 0 ] && [ -z "$FORCE_STORE" ]; then pf_apkpure_exact "$USE_SRC" "$version" "$RVER" "$ANYVER" "$APK_NAME" || exit 1; fi
 if [ "$GA" -ne 0 ] && [ -z "$FORCE_STORE" ]; then
-  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$USE_SRC" "${version:-$RVER}" "$ANYVER" "$ARCH" "$DPI"; GA=$?
+  try_other_store "$PKG" "$APK_NAME" "$APK_TYPE" "$USE_SRC" "${RVER:-$version}" "$ANYVER" "$ARCH" "$DPI"; GA=$?
   if [ "$USE_SRC" = "apkpure" ]; then TRIED="$TRIED apkmirror"; else TRIED="$TRIED apkpure"; fi
 fi
 # W16v (27 Oct 2026): VARIANT_RETRY asks the other store for the SAME version; a different one

@@ -40,7 +40,8 @@ jobs:
               [".github/workflows/keepalive.yml", "Keepalive"],
               [".github/workflows/needs-you.yml", "Needs you"],
               // W16k: schedule and manual only now, so its failures need an issue too.
-              [".github/workflows/rule-merge.yml", "11. Rule merge"]
+              [".github/workflows/rule-merge.yml", "11. Rule merge"],
+              [".github/workflows/retention.yml", "Retention preview"]
             ]);
             const failures = new Set(["failure", "timed_out", "startup_failure", "action_required"]);
             const validConclusions = new Set([...failures, "success", "neutral", "cancelled", "skipped", "stale"]);

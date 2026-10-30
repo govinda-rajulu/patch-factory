@@ -251,7 +251,7 @@ class Repair(unittest.TestCase):
     def test_test_apk_upload_follows_successful_handoff_only(self):
         text = (ROOT/'.github/workflows/manual-patch.yml').read_text()
         gate = text.index('      - name: Verify release handoff (no publishing)')
-        upload = text.index('      - name: Save verified test APK and evidence (not a release)')
+        upload = text.index('      - name: Save verified test APK (not a release)')
         publish = text.index('      - name: Releasing APK files')
         self.assertLess(gate, upload)
         self.assertLess(upload, publish)
@@ -260,9 +260,15 @@ class Repair(unittest.TestCase):
         from action_refs import same_reference
         same_reference(block, (ROOT/'.github/workflows/validate.yml').read_text(), 'actions/upload-artifact')
         self.assertIn('test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}', block)
-        self.assertIn('            release/*.apk\n            build-evidence/${{ inputs.target }}.json\n', block)
-        self.assertIn('if-no-files-found: error', block)
-        self.assertIn('retention-days: 7', block)
+        # W16y-a: the APK is kept 1 day, its evidence 7 days, in two steps.
+        evidence = text.index('      - name: Save test evidence (not a release)')
+        self.assertLess(upload, evidence)
+        apk, ev = text[upload:evidence], text[evidence:publish]
+        self.assertIn('release/*.apk', apk)
+        self.assertIn('retention-days: 1', apk)
+        self.assertIn('build-evidence/${{ inputs.target }}.json', ev)
+        self.assertIn('retention-days: 7', ev)
+        self.assertIn('if-no-files-found: error', apk)
         for unsafe in ('src/', '**', 'always()', 'continue-on-error', 'keystore'):
             self.assertNotIn(unsafe, block)
 
@@ -559,6 +565,44 @@ pf_near_guard apkmirror '' 2.0 x; printf 'G5=%s\n' "$?"
             call = text.index('pf_near_guard "$')
             self.assertLess(call, text.index('try_other_store "$PKG"'))
             self.assertIn('= "apkmirror" ]', text[call - 200:call])
+
+    def test_near_pick_transfer_failure_retries_other_store_at_provider_version(self):
+        # W16y / wrong call 110: APKMirror can set version to a nearest-lower pick before
+        # its transfer fails. The alternate store must receive RVER, not that failed pick.
+        for name in ("build.sh", "source_download.sh"):
+            text = (ROOT / "src/build" / name).read_text()
+            self.assertIn('try_other_store "$PKG" "$APK_NAME" "$APK_TYPE"', text)
+            call = text.index('try_other_store "$PKG" "$APK_NAME" "$APK_TYPE"')
+            self.assertIn(' "${RVER:-$version}" "$ANYVER"', text[call:call + 180])
+            self.assertNotIn('${version:-$RVER}', text[call:call + 180])
+
+        self.put('src/build/helper/apps.json', json.dumps({
+            'apkpure': {'com.fixture': {'download_url': 'https://apkpure.com/fixture/com.fixture/download'}},
+            'apkmirror': {}
+        }))
+        command = r'''
+source src/build/store_chain.sh
+mkdir -p download
+RVER=2.36.1
+version=$RVER
+get_apk(){ version=2.33.0; return 1; }
+get_apkpure(){ printf 'APKPURE_VERSION=%s\n' "$version"; touch download/fixture.apk; return 0; }
+near_version=1
+get_apk com.fixture fixture apk
+GA=$?
+if [ "$GA" -ne 0 ]; then
+  try_other_store com.fixture fixture apk apkmirror "$RVER" false '' ''
+  RC=$?
+else
+  RC=0
+fi
+printf 'RESULT=%s FINAL_VERSION=%s\n' "$RC" "$version"
+'''
+        result = self.run_cmd(['bash', '-c', command])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('APKPURE_VERSION=2.36.1', result.stdout)
+        self.assertNotIn('APKPURE_VERSION=2.33.0', result.stdout)
+        self.assertIn('RESULT=0 FINAL_VERSION=2.36.1', result.stdout)
 
     def test_store_chain_accepts_the_same_version_written_differently(self):
         # W16v review (27 Oct 2026): 26.36.01 names the same release as 26.36.1.

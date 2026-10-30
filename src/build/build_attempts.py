@@ -229,13 +229,20 @@ def main(argv, env=None, root=None):
             ensure_store_services(root, e)
         rc, winner, reason = attempt(root, ident, e, logdir / ('attempt-%d.log' % n))
         if rc == 0:
-            if n > 1:
-                text = 'Built with fallback provider %s after %s' % (winner or name, '; '.join(failures))
+            # W16y-a review: a run pinned to a fallback provider (manual provider=<fallback>) is a
+            # fallback build too, so the coverage floor and the blind-publish refusal apply to it.
+            chosen = winner or name
+            is_fb = n > 1 or any(c.get('name') == chosen and c.get('fallback') for c in t.get('candidates') or [])
+            if is_fb:
+                text = 'Built with fallback provider %s after %s' % (winner or name, '; '.join(failures) or 'a run pinned to that fallback')
                 (root / 'release').mkdir(exist_ok=True)
                 (root / 'release/.fallback').write_text(text[:900] + '\n', encoding='utf-8')
+                (root / 'release/.fallback-provider').write_text((winner or name) + '\n', encoding='utf-8')
                 print('::warning::PROVIDER_FALLBACK %s: %s' % (ident, text[:900]))
-            output(env, fallback='true' if n > 1 else 'false', winner=winner or name or '', attempts=n)
-            print('ATTEMPTS_OK %s: attempt %d of %d, winner %s' % (ident, n, len(steps), winner or name), flush=True)
+            output(env, fallback='true' if is_fb else 'false', winner=winner or name or '', attempts=n)
+            summary = 'fallback test build; publication requires the coverage floor' if is_fb else 'primary build'
+            print('ATTEMPTS_OK %s: attempt %d of %d, winner %s (%s)' %
+                  (ident, n, len(steps), winner or name, summary), flush=True)
             return 0
         tried.append(winner or name or '?')
         failures.append('%s failed (%s)' % (winner or name or 'the primary', (reason or 'exit %d' % rc)[:200]))

@@ -9,3 +9,10 @@
 /morphe-data/
 /extra/
 __pycache__/
+
+# Local credentials, environments and logs
+.env
+.env.*
+!.env.example
+.venv/
+*.log

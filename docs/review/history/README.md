@@ -7,6 +7,10 @@ first. Nothing here is current; `knowledge/STATE.md` and `../OPEN-WORK.md` are.
 |---|---|
 | [SESSION-2026-10-07.md](SESSION-2026-10-07.md) | Session record, 7 October 2026 (archived). |
 | [SESSION-2026-10-08.md](SESSION-2026-10-08.md) | Session record, 8 October 2026 (archived). |
+| [CANDIDATES-2026-10-08.md](CANDIDATES-2026-10-08.md) | Generated community-index candidate scout for Amazon Music and LinkedIn (archived). |
+| [REMOVED-2026-10.md](REMOVED-2026-10.md) | Retired chooser and community-diff utilities, their replacements and restore commands. |
+| [CLOUDSHELL-CLEANUP-2026-10-29.md](CLOUDSHELL-CLEANUP-2026-10-29.md) | Owner Cloud Shell cleanup record, 29 October 2026. |
+| [OPEN-WORK-ARCHIVE-2026-10.md](OPEN-WORK-ARCHIVE-2026-10.md) | Verbatim archive of the October open-work checkpoints. |
 | [SESSION-2026-10-09.md](SESSION-2026-10-09.md) | Session record, 9 October 2026 (archived). |
 | [SESSION-2026-10-10.md](SESSION-2026-10-10.md) | Session record, 10 October 2026 (archived). |
 | [SESSION-2026-10-11.md](SESSION-2026-10-11.md) | Session record, 11 October 2026 (archived). |

@@ -1,0 +1,171 @@
+name: Retention preview
+# A weekly, read-first shelf report. Deletion is possible only from an owner manual
+# dispatch carrying the exact token in the current standing issue and confirm=apply.
+on:
+  schedule:
+    - cron: "31 3 * * 1"  # 09:01 IST Mondays
+  workflow_dispatch:
+    inputs:
+      token:
+        description: Current TOKEN from the Retention preview issue (apply only)
+        required: false
+        type: string
+      confirm:
+        description: Type apply to authorize deletion (owner only)
+        required: false
+        type: string
+
+concurrency:
+  group: retention-preview
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    name: Preview retention
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Wait for the main Pages deployment to settle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            dep=$(gh api "repos/$REPO/deployments?environment=github-pages&per_page=20" \
+              --jq 'map(select(.environment == "github-pages")) | max_by(.id) // empty')
+            if [ -n "$dep" ]; then
+              id=$(jq -er '.id' <<<"$dep")
+              state=$(gh api "repos/$REPO/deployments/$id/statuses?per_page=20" \
+                --jq 'map(select(.state != null)) | max_by(.id) | .state // "pending"')
+              case "$state" in
+                success) echo "Pages deployment $id is successful"; break ;;
+                failure|error|inactive) echo "Pages deployment $id is $state" >&2; exit 1 ;;
+              esac
+            fi
+            if [ "$attempt" = 20 ]; then echo "STOP: no settled main Pages deployment" >&2; exit 1; fi
+            sleep 15
+          done
+      - name: Build the guarded preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python3 src/etc/cleanup.py preview --out cleanup-preview.json | tee cleanup-preview.txt
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = json.loads(Path('cleanup-preview.json').read_text())
+          lines = [
+              '<!-- patch-factory-retention-preview -->',
+              '## Retention preview',
+              '',
+              'This is a preview only. Scheduled runs never apply deletes.',
+              '',
+              f"- Releases to delete: **{len(p['releases'])}**",
+              f"- Release asset bytes to delete: **{p.get('release_asset_bytes', 0)}**",
+              f"- Tags to delete: **{len(p['tags'])}**",
+              f"- GitHub Pages deployment records to delete: **{len(p['deployments'])}**",
+              f"- Merged packet/dev branches to delete: **{len(p['branches'])}**",
+              f"- Releases kept/protected: **{p['protected']}**",
+              '',
+              '### Exact preview token',
+              '',
+              f"`TOKEN {p['token']}`",
+              '',
+              '### Delete list',
+              '',
+          ]
+          for r in p['releases']: lines.append(f"- release `{r['tag']}` — {r.get('why', '')}")
+          for t in p['tags']: lines.append(f'- tag `{t}`')
+          for d in p['deployment_rows']: lines.append(f"- Pages deployment `{d['id']}` ({d.get('created_at', '')})")
+          for b in p['branches']: lines.append(f"- branch `{b['name']}` at `{b['sha']}`")
+          lines += ['', 'The owner may dispatch this workflow with the exact token above and `confirm` set to `apply`.']
+          Path('retention-issue.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          print('preview counts: releases=%d release_bytes=%d tags=%d deployments=%d branches=%d token=%s' %
+                (len(p['releases']), p.get('release_asset_bytes', 0), len(p['tags']), len(p['deployments']), len(p['branches']), p['token']))
+          PY
+      - name: Open or update the one standing preview issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          marker='patch-factory-retention-preview'
+          gh api --paginate "repos/$REPO/issues?state=all&per_page=100" \
+            --jq '.[] | select(.pull_request == null and ((.body // "") | contains("patch-factory-retention-preview"))) | .number' > retention-issue-numbers
+          test "$(wc -l < retention-issue-numbers)" -le 1 || { echo 'STOP: more than one Retention preview issue' >&2; exit 1; }
+          if [ -s retention-issue-numbers ]; then
+            issue=$(cat retention-issue-numbers)
+            gh api --method PATCH "repos/$REPO/issues/$issue" -f body="$(cat retention-issue.md)" -f state=open >/dev/null
+            echo "updated Retention preview issue #$issue"
+          else
+            gh api --method POST "repos/$REPO/issues" -f title='Retention preview' -f body="$(cat retention-issue.md)" >/dev/null
+            echo 'opened Retention preview issue'
+          fi
+      - name: Upload the preview JSON
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: retention-preview-${{ github.run_id }}
+          path: |
+            cleanup-preview.json
+            cleanup-preview.txt
+          retention-days: 30
+
+  apply:
+    name: Apply owner-confirmed retention
+    needs: preview
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == github.repository_owner && inputs.confirm == 'apply' && inputs.token != '' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      deployments: write
+      issues: read
+      actions: read
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Verify owner, exact current issue token, and confirmation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ inputs.token }}
+          CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_ACTOR" = "$GITHUB_REPOSITORY_OWNER" || { echo 'STOP: only the repository owner may apply retention' >&2; exit 1; }
+          test "$CONFIRM" = apply || { echo 'STOP: confirm must be exactly apply' >&2; exit 1; }
+          # Owner, 30 Oct 2026: the first apply waits until after Monday 2 Nov 2026.
+          [[ "$(date -u +%F)" > 2026-11-02 ]] || { echo 'STOP: retention apply is allowed only after 2026-11-02' >&2; exit 1; }
+          gh api --paginate "repos/$REPO/issues?state=all&per_page=100" \
+            --jq '.[] | select(.pull_request == null and ((.body // "") | contains("patch-factory-retention-preview"))) | .number' > retention-issue-numbers
+          test "$(wc -l < retention-issue-numbers)" -eq 1 || { echo 'STOP: exactly one current Retention preview issue is required' >&2; exit 1; }
+          issue=$(cat retention-issue-numbers)
+          body=$(gh api "repos/$REPO/issues/$issue" --jq .body)
+          grep -Fq "TOKEN $TOKEN" <<<"$body" || { echo 'STOP: token is not the current issue token' >&2; exit 1; }
+      - name: Apply the exact guarded plan and write its receipt first
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TOKEN: ${{ inputs.token }}
+          REPO: ${{ github.repository }}
+        run: python3 src/etc/cleanup.py apply --token "$TOKEN" --receipt retention-receipt.json
+      - name: Upload the deletion receipt
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: retention-receipt-${{ github.run_id }}
+          path: retention-receipt.json
+          retention-days: 30
