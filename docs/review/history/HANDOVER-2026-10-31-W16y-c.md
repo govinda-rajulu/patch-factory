@@ -1,7 +1,7 @@
 # Handover, 31 October 2026: W16y-b result and packet W16y-c
 
 Start a new chat from the PATCH-FACTORY-BUILDS skill, then `knowledge/STATE.md`, then this file,
-then [OPEN-WORK.md](OPEN-WORK.md).
+then [OPEN-WORK.md](../OPEN-WORK.md).
 
 ## Where things stand
 

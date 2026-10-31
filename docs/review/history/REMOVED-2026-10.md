@@ -39,3 +39,20 @@ git show 36ef8c7cc8ac2678e885746b4e1251896a01003b:docs/review/providers/hushtele
 ```
 
 The HushTelegram selection directory and `src/options/hushtelegram.json` stay on purpose (owner, 30 October: kept unreferenced).
+
+## W17a (31 Oct 2026): five uncalled helpers
+
+Found by the W17a code sweep; `git grep -w <name>` over the whole repository (workflows, tests,
+scripts) found only the definition. Each restores with `git show b1c34e50:<file>`.
+
+| Helper | File | Why it was dead |
+| --- | --- | --- |
+| `patchText` | `docs/portal.js` | Not rendered or exported; the cards use `patchList`. |
+| `works_on` | `src/build/release_notes.py` | Device-requirement lines no release-note path calls. |
+| `total_requested` | `src/build/lost_patches.py` | `prune()` counts the total itself. |
+| `_old_app_items` | `src/etc/needs_you.py` | Pre-retirement copy; `app_items()` returns an empty list on purpose. |
+| `_new_flags` | `src/etc/provider_scan.py` | The scanner does the same comparison inline. |
+
+Kept on purpose: the unused shell functions in `src/build/utils.sh` (`dl_gl`, `npatch`,
+`split_editor`, `apk_editor`), since the file is sourced shell code shared with older scripts,
+and the unused workflow step ids (no effect, not worth a workflow change).

@@ -156,9 +156,11 @@ get_apk com.facebook.katana facebook bundle arm64-v8a 480dpi
         body = '<html><script>var code = 123456; var version="1.2.3"</script><!-- 1.2.3 --></html>'
         self.assertEqual(self.check(body)['status'], 'UNKNOWN')
 
-    def test_workflow_is_manual_and_read_only(self):
+    def test_workflow_is_weekly_and_read_only(self):
         wf = (ROOT / '.github/workflows/pin-check.yml').read_text()
-        self.assertNotIn('schedule:', wf)
+        # W17a: weekly after the first fixed live run read OK (41194578599); still report-only.
+        self.assertEqual(wf.count('- cron:'), 1)
+        self.assertIn('"37 3 * * 3"', wf)
         self.assertIn('workflow_dispatch:', wf)
         self.assertIn('contents: read', wf)
         self.assertNotIn('secrets.', wf)

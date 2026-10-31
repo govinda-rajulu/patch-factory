@@ -670,12 +670,17 @@ class SchemeStrictness(unittest.TestCase):
         with self.assertRaises(ValueError):
             sign_apk.parse_schemes(base + 'Verified using v5 scheme (APK Signature Scheme v5): false\n')
 
-    def test_signature_file_names_case_insensitive(self):
+    def test_signature_file_names_follow_apksig(self):
+        # W17a: V1SchemeSigner.isJarEntryDigestNeededInManifest; prefix is case-sensitive, name is not.
         import artifact_identity as ai
-        for name in ('META-INF/CERT.RSA', 'META-INF/other.rsa', 'META-INF/x.Sf', 'META-INF/SIG-old', 'META-INF/MANIFEST.MF'):
-            self.assertTrue(ai.SIGNATURE_FILE.fullmatch(name), name)
-        for name in ('META-INF/services/x', 'META-INF/a/b.RSA', 'lib/arm64-v8a/x.so'):
-            self.assertFalse(ai.SIGNATURE_FILE.fullmatch(name), name)
+        for name in ('META-INF/CERT.RSA', 'META-INF/other.rsa', 'META-INF/x.Sf', 'META-INF/SIG-old', 'META-INF/MANIFEST.MF',
+                     'META-INF/manifest.mf', 'META-INF/.SF', 'META-INF/.ec', 'META-INF/sig-', 'META-INF/A.B.DSA'):
+            self.assertTrue(ai.is_signature_file(name), name)
+        for name in ('META-INF/services/x', 'META-INF/a/b.RSA', 'lib/arm64-v8a/x.so', 'meta-inf/x.sf', 'Meta-Inf/CERT.RSA',
+                     'META-INF/', 'META-INF/sub.sf/', 'META-INF/MANIFEST.MF.bak', 'META-INF/x.sfx', 'META-INF/xsig-1',
+                     'META-INF/CERT.RSA ', 'META-INF/x.\u017ff', 'X/META-INF/CERT.RSA', 'META-INF/MANIFEST'):
+            self.assertFalse(ai.is_signature_file(name), name)
+        self.assertFalse(hasattr(ai, 'SIGNATURE_FILE'))
 
 
 class PatcherProbe(unittest.TestCase):

@@ -207,5 +207,72 @@ class Attempts(unittest.TestCase):
         self.assertEqual(build_attempts.plan(t, ''), [None, 'p1', 'p2', 'f'])
 
 
+class AttemptSummary(unittest.TestCase):
+    """W17a: a bounded attempt table in the job summary; tests written before the code."""
+    setUp, targets, run_it = Attempts.setUp, Attempts.targets, Attempts.run_it
+
+    def summary(self, **env):
+        path = self.r.parent / (self.r.name + '.summary.md')
+        self.addCleanup(lambda: path.exists() and path.unlink())
+        rc, out = self.run_it(GITHUB_STEP_SUMMARY=str(path), **env)
+        return rc, out, path.read_text() if path.exists() else ''
+
+    def rows(self, text):
+        return [l for l in text.splitlines() if l.startswith('| ') and not l.startswith('| Attempt') and not l.startswith('|---')]
+
+    def test_primary_success_is_one_row(self):
+        rc, out, text = self.summary(FAIL='none')
+        self.assertEqual(rc, 0)
+        self.assertIn('### Build attempts: x', text)
+        self.assertEqual(self.rows(text), ['| 1 | a | built | primary build |'])
+        self.assertIn('Fallback marker: not written', text)
+
+    def test_fallback_success_names_the_failed_primary(self):
+        rc, out, text = self.summary(FAIL='a')
+        self.assertEqual(rc, 0)
+        self.assertEqual(self.rows(text), ['| 1 | a | failed | [-] boom in a |',
+                                           '| 2 | b | built | fallback test build |'])
+        self.assertIn('Fallback marker: written (release/.fallback)', text)
+        self.assertIn('2 of 3 allowed', text)
+
+    def test_all_failed_is_bounded_and_marker_free(self):
+        rc, out, text = self.summary(FAIL='all')
+        self.assertEqual(rc, 3)
+        self.assertEqual(len(self.rows(text)), 2)
+        self.assertTrue(all(' failed ' in r for r in self.rows(text)))
+        self.assertIn('Fallback marker: not written', text)
+        self.assertFalse((self.r / 'release/.fallback').exists())
+
+    def test_never_more_than_three_attempts(self):
+        t = json.loads((self.r / 'src/targets.json').read_text())
+        t[0]['candidates'] += [dict(name='c', patch_dir='c', fallback=True), dict(name='d', patch_dir='d', fallback=True)]
+        (self.r / 'src/targets.json').write_text(json.dumps(t, indent=2) + '\n')
+        rc, out, text = self.summary(FAIL='all')
+        self.assertEqual(out['attempts'], '3')
+        self.assertEqual(len(self.rows(text)), 3)
+        self.assertIn('3 of 3 allowed', text)
+
+    def test_pinned_or_no_fallback_is_one_row(self):
+        t = json.loads((self.r / 'src/targets.json').read_text())
+        t[0]['fallback'] = False
+        (self.r / 'src/targets.json').write_text(json.dumps(t, indent=2) + '\n')
+        rc, out, text = self.summary(FAIL='a')
+        self.assertEqual(len(self.rows(text)), 1)
+        self.assertIn('1 of 1 allowed', text)
+
+    def test_reason_cell_is_safe_and_short(self):
+        cell = build_attempts.cell('[-] a|b\nc `d` ' + 'x' * 400)
+        self.assertNotIn('|', cell); self.assertNotIn('\n', cell); self.assertNotIn('`', cell)
+        self.assertLessEqual(len(cell), 160)
+
+    def test_unwritable_summary_never_changes_the_result(self):
+        rc, out = self.run_it(FAIL='a', GITHUB_STEP_SUMMARY=str(self.r / 'no-such-dir' / 'summary.md'))
+        self.assertEqual((rc, out['winner']), (0, 'b'))
+
+    def test_no_summary_file_is_fine(self):
+        rc, out = self.run_it(FAIL='a', GITHUB_STEP_SUMMARY='')
+        self.assertEqual(rc, 0)
+
+
 if __name__ == '__main__':
     unittest.main()

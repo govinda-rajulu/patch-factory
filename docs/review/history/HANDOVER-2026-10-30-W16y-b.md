@@ -1,7 +1,7 @@
 # Handover, 30 October 2026: W16y-a result and packet W16y-b
 
 Start a new chat from the PATCH-FACTORY-BUILDS skill, then `knowledge/STATE.md`, then this file,
-then [OPEN-WORK.md](OPEN-WORK.md). Owner decisions of the day: [DECISIONS-2026-10-30.md](DECISIONS-2026-10-30.md).
+then [OPEN-WORK.md](../OPEN-WORK.md). Owner decisions of the day: [DECISIONS-2026-10-30.md](../DECISIONS-2026-10-30.md).
 
 ## Where things stand
 
@@ -30,7 +30,7 @@ then [OPEN-WORK.md](OPEN-WORK.md). Owner decisions of the day: [DECISIONS-2026-1
    it). Status page and portal show an advisory warning past 180 days; builds are never blocked.
 5. Council: the Sunday morning probe prints `MODEL_OK` or `MODEL_MISSING` per listed seat model.
    Seat changes remain pull requests.
-6. Telegram survey (read-only): [TELEGRAM-SURVEY-2026-10-30.md](TELEGRAM-SURVEY-2026-10-30.md).
+6. Telegram survey (read-only): [TELEGRAM-SURVEY-2026-10-30.md](../TELEGRAM-SURVEY-2026-10-30.md).
    Owner, 30 Oct evening: non-Hush for Telegram. rahul9999xda v1.17.0 is now primary on 13.1.1
    with 14 names; rushiranpise stays the fallback; HushTelegram goes on watch (its own fix for the
    sign-in error needs the owner's API ID at patch time). The packet's Telegram smoke build is the
@@ -42,7 +42,7 @@ Nothing is published or deleted by this packet.
 
 ## Wrong calls 112 to 117
 
-Recorded in [KT-2026-10-28.md](KT-2026-10-28.md): 112 unescaped `%` in a pull request BODY; 113
+Recorded in [KT-2026-10-28.md](../KT-2026-10-28.md): 112 unescaped `%` in a pull request BODY; 113
 an unparseable `manual-patch.yml` line from a lane, caught by parsing every workflow before the
 commit; 114 Add app still writing a 60-day patch age that the new preflight rule refuses; 115 a
 pin checker accepted on stub tests only, weekly and failing, although the build reaches APKMirror

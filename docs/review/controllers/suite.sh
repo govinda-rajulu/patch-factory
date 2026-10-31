@@ -17,6 +17,9 @@ run python3 src/etc/credits.py --check
 run bash src/etc/orphans.sh
 run python3 src/etc/schedules.py --check
 run python3 src/etc/readmegen.py --check
+run python3 src/etc/doclinks.py --check
+run python3 src/etc/page_weight.py --check
+run python3 src/etc/prose_lint.py
 run python3 src/etc/obtainium.py --check
 run bash src/etc/nointerp.sh
 for f in src/build/*.sh src/etc/*.sh; do bash -n "$f" || { echo "FAIL bash -n $f"; F=1; }; done

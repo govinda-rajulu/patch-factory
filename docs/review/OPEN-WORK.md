@@ -1,6 +1,23 @@
 # Open work
 
-## Current checkpoint: 31 October 2026 evening (packet W16z)
+## Current checkpoint: 31 October 2026 night (packet W17a)
+
+### Done in W17a (31 October 2026)
+
+- W17 phase 0, all twelve owner items: weekly pin check, run attempt in artifact names, apksig signature-file rule, history scan (0 real), bounded fallback attempt table, scored agent trials (49 of 56), 5S moves and link repairs, content fixes, portal contrast and weight (433,819 to 320,021 bytes), prose pass, `knowledge/style/` with three Validate checks, five dead helpers removed ([w17a/README.md](w17a/README.md)).
+
+### Open after W17a
+
+- **Owner:** run **5. Add target** for Remote for Android TV (`remoteatv`), merge its pull request when Validate and Onboarding review are green, then phone-test a Manual Patch build; a logo follows in the next packet.
+- **Owner, on hold:** the car. Photo of the YT Music install error on the head unit, then a ZLink Android Auto test ([w17a/README.md](w17a/README.md), car section).
+- Read the Sunday 1 Nov Council probe and monthly digest, the Monday 2 Nov retention preview and the first weekly pin check (Wednesday 4 Nov); retention apply only with the owner token, from 3 Nov.
+- Council-seat trials (the assistant agents were scored in W17a; seats need a workflow run).
+- W17 phase 1: owner console (#286). Android Auto (#287) waits for the car test.
+- Carried from W16z: **owner**, a heavy Telegram user runs the check guide ([onboarding/telegram.md](onboarding/telegram.md)); Reddit stays held at 2026.41.0 and Check new patch red until Morphe's bundle passes 2026.40.0 (#280; the guard is right); fallback recovery stays a design (owner: keep).
+- **Owner decision, with the car test:** Morphe's YT Music "Android Auto" patch is excluded by an assistant rule of 6 Oct, not by an owner call; keep it out or turn it on.
+- The W15g carry-forward and W16x lists below stay open where they are not marked done.
+
+## Checkpoint: 31 October 2026 evening (packet W16z)
 
 ### Done in W16z (31 October 2026)
 
@@ -21,20 +38,9 @@
 Every still-open item carried forward from the older checkpoints is listed once below. Closed,
 superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-ARCHIVE-2026-10.md).
 
-### Done in W16y-a (30 October 2026)
-
-- Owner actions completed: `TDL_BACKUP` was deleted, secret scanning and push protection were enabled, and the merged CCleaner branch was deleted. The old Cloud Shell username stays in history because rewriting it would break 43 release tags.
-- Wrong call 110 was fixed: the second store now receives `${RVER:-$version}` even when the first download fails.
-- The unused `apply_choices.py`, `chooser.py` and `community_diff.py` utilities and the dead chooser branch in `selection_writer.py` were removed; the removal and restore record is [REMOVED-2026-10.md](history/REMOVED-2026-10.md).
-- The closed `CANDIDATES-2026-10-08.md` scout moved from onboarding to [history](history/CANDIDATES-2026-10-08.md), with inbound links repaired.
-
-### Done in W15g (31 October 2026)
-
-- Signing split built: Patch without key or write token (unsigned APK, `--unsigned` probed first), Sign with the release key and first-party code only (`src/build/sign_apk.py`), Publish with the write token and no key ([HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md)). Closed in W16z: the owner installed the split-signed Telegram over the current one and it works (31 Oct).
-
 ### W15g result and carry-forward (31 Oct 2026, afternoon)
 
-- Merged as #283 (`95be30da`); 17 of 17 smokes signed in the Sign job; Telegram published by the split jobs. Details: [HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md) (Result) and [w15g-close/README.md](w15g-close/README.md).
+- Merged as #283 (`95be30da`); 17 of 17 smokes signed in the Sign job; Telegram published by the split jobs. Details: [HANDOVER-2026-10-31-W15g.md](history/HANDOVER-2026-10-31-W15g.md) (Result) and [w15g-close/README.md](w15g-close/README.md).
 - Done (W16z): the owner installed the published Telegram over the current one, no uninstall; it opens signed in.
 - Pin check run 41158386985 (31 Oct) printed `PIN_STORE_MISSING` (version_code_not_listed) for Facebook, Facebook De-Vanced and Instagram, while the same day's smokes downloaded those exact pins from APKMirror: the probe's page reading is wrong, not the pins. Fix the probe before any weekly schedule.
 - LOW, for W16z: artifact names `build-evidence-<t>` and `provider-scan-<t>-<run>` carry no attempt (pre-existing; GitHub reruns are per attempt); the signature-file pattern differs from apksig on `META-INF/.SF` (empty base name) and lowercase `meta-inf/`; the release tag date comes from build end, not the job stamp (cosmetic; run and attempt are bound). Round 4 detail: [w15g-close/scenarios/SUMMARY.md](w15g-close/scenarios/SUMMARY.md).
@@ -54,34 +60,6 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
   - The 30 Oct historical credential and personal-data scan produced candidate hits only, no verdict: re-run it sanitized and record a disposition (never publish raw hits).
   - W16w handover says 64 broken relative links, its review counted 65 changed destinations: clarify the wording.
 
-### Next: W16z (owner, 31 Oct 2026)
-
-- Portal: one freshness row (patch bundle age plus last built; the 180-day limit only near or over it); one `N patches` fold instead of count plus toggle; CCleaner card with its icon and `Coming soon` (drop the release-history line: no CCleaner release was published); one `Open Needs you` link with the reply words on the Watch tab; no repeated links.
-- Issues and PRs: two issue forms (owner action, verified bug) and a small label set; note on #262 (closed after a green rerun; the root cause was fixed in W16v); track the follow-ups of #75 (PotHelper companion review), #78 (live source-preparation timing proof), #81 (documentation migration destination; likely the cross-repo mirror item) and the W16y-c pin-check read; #280 (Reddit refusal counted as a failure).
-- Housekeeping: delete `src/options/arandomhooman.json`, `src/options/bufferk.json` and the duplicate `docs/review/providers/hushtelegram-org.telegram.messenger.names` (restore points in the survey); retention prose to the code (3 releases, 3 Pages records, 7 days); closed session and handover records into `history/`; CI schedule wording; pin check weekly after an OK read; Council nemotron replacement after the Sunday probe.
-- File feature requests: W17 owner console (Pages builds issue-form links; the owner submits on GitHub; tests run for anyone, only the owner's submission makes a ready PR; merges stay with the owner; note field saved as a dated decision record, optional lesson flag) and Android Auto apps.
-
-### Done in W16y-c (31 October 2026)
-
-- W16y-b merged as #281 (`27adc7b4`, tree `c761f1c6`), RESULT OK. Telegram rahul9999xda built 14 of 14 on 13.1.1; the owner installed the smoke build and **signed in without the API error** (31 Oct). This packet publishes Telegram from rahul9999xda after the merge. The owner has not yet checked every patch on the phone.
-- Provider scan: bare names count as hosts only with a real public top-level domain (wrong call 118); the Amazon Music HOLD of 30 Oct was 22 code names, not hosts.
-- Pin check probe reads APKMirror the way the build does (store helper, lazily started), follows the build's own release-page and uploads-page lookup, and stops at the variant row with the pinned version code; it never asks for a download page or a file. Candidate `overrides.version_code` pins are checked too. Still manual and report-only until a live run shows OK lines.
-- Packet controller: a `git push` that fails with a transient server or network error is retried twice (30 s, 90 s); a rejection is never retried (the 30 Oct HTTP 500 stop).
-- The controller keeps scan evidence with the smoke logs; the owner probe reads the newest Pin store check, Retention preview and Batch Patch runs, so no separate collect command is needed.
-- Wrong calls 118 and 119 recorded. Wrong call 120 (W15g first smoke: signer drops directory and source-stamp entries) in HANDOVER-2026-10-31-W15g.md.
-
-### Done in W16y-b (30 October 2026)
-
-- Provider safety scan (`src/etc/provider_scan.py`, allowlist `src/etc/provider_scan_allowlist.json`): a nonpublishing Manual Patch with `scan` on compares the original and patched APK (permissions added, new hosts, new code red flags, new native libraries), runs ClamAV on the bundle and the patched APK, and looks up their sha256 on VirusTotal (repo secret `VT_API_KEY`, used only in that step; hashes only, no upload). It prints one `PROVIDER_SCAN ... verdict=PASS|HOLD|BLOCK` line and keeps `provider-scan.json` for 30 days. Publishing builds never run it. ClamAV and VirusTotal are credited in CREDITS.md.
-- Controllers: `SMOKE_SCAN` entries dispatch that scan smoke and record its line (always advisory).
-- Monthly watched-provider digest in Needs you (shown in the issue body on UTC days 1 to 7 of each month, collapsed); HushTelegram, HushGram and HushFacebook added as watch sources (`src/etc/extra-providers.json`). Nothing is adopted automatically.
-- Pin check probe (`pin-check.yml`, manual dispatch only, report-only): reads the store listing for targets with an exact build pin (Facebook and Instagram today), prints `PIN_STORE_OK`, `PIN_STORE_MISSING` or `PIN_STORE_UNKNOWN`, keeps evidence 30 days and never fails. Not scheduled yet (wrong call 115): the build reaches APKMirror through its browser helper, and plain reads were only tested against stubs. The controller dispatches it once after the merge; the weekly schedule follows with that evidence.
-- 180-day patch-age warning on every target (preflight enforces 180), shown on the status page and portal app cards; never blocks a build.
-- Weekly Council model report: the Sunday morning probe prints one `MODEL_OK` or `MODEL_MISSING` line per listed seat model; swaps stay PR-only.
-- Telegram survey: [TELEGRAM-SURVEY-2026-10-30.md](TELEGRAM-SURVEY-2026-10-30.md). Owner, 30 Oct evening: non-Hush. rahul9999xda v1.17.0 is primary on 13.1.1 with 14 names (integrity bypass and a no-op left out); rushiranpise stays the fallback; HushTelegram on watch, its files kept ([onboarding/telegram.md](onboarding/telegram.md)).
-- Amazon Music: De-Vanced v1.6.2 fixed its declared version; the W16y-a smoke built 26.36.1 with 5 of 5 chosen patches. The fail-closed note below is closed.
-- Workflow YAML contract and the Add app patch-age default (wrong calls 113 and 114, both caught before the commit). Review fixes: the scan never says PASS when ClamAV or VirusTotal did not answer, and flags a native library replaced under the same name; the Council model lines sit below the table.
-
 ### Next (after W16y-b)
 
 - **Owner:** check the Telegram rahul9999xda patches on the phone (sign-in passed 31 Oct); report any patch that does nothing.
@@ -99,10 +77,10 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 - MX Player fallback MightyMichs v1.12.0: "Unlock MX Player Pro" fails its fingerprint (Lxo;.j1()Z) on 1.93.4, the only version it supports. Record only; ftl stays primary; recheck on the next MightyMichs release ([onboarding/mxplayer.md](onboarding/mxplayer.md)).
 - Status page red can be a nonpublishing smoke (Instagram oxbow run 40783288101, 28 Oct), not the release; the page reports the newest build job ([status.py](../../src/etc/status.py)).
 - **Owner (optional):** File the upstream Obtainium issue using the text and steps in [OBTAINIUM-SIGNER-2026-10-27.md](OBTAINIUM-SIGNER-2026-10-27.md); test same-version patch-only notification and installed-setting migration.
-- Move the Instagram pin when piko supports build 385914182 or newer; keep the piko/brosssh held names for a provider update ([W15G-MAP.md](W15G-MAP.md); [instagram onboarding](onboarding/instagram.md)).
+- Move the Instagram pin when piko supports build 385914182 or newer; keep the piko/brosssh held names for a provider update ([W15G-MAP.md](history/W15G-MAP.md); [instagram onboarding](onboarding/instagram.md)).
 - Restore hoo-dles to prerelease when morphe-desktop stable reads its new bundles ([W17-BRIEF.md](W17-BRIEF.md)).
 - Closed in W16y-b: Telegram rahul9999xda became the primary (watch row N-55429f removed).
-- W15g signing split: built in packet W15g; open until the post-merge Telegram publish and the owner's install-over phone test pass ([HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md); [SIGNING-SPLIT.md](SIGNING-SPLIT.md)).
+- W15g signing split: closed. Telegram was published from the split and installed over the current copy on the phone (W16z, [HANDOVER-2026-10-31-W16z.md](HANDOVER-2026-10-31-W16z.md); design in [history/SIGNING-SPLIT.md](history/SIGNING-SPLIT.md)).
 - Prove the W16w MCP scout settings with one post-merge dispatch (no `run-gemini-cli`, YOLO off, default approval, two read tools, lite model apart from the Council seat, QUOTA fail-fast) ([MCP-PLAN.md](MCP-PLAN.md)).
 - Make the next scheduled Council audit finish under 50 minutes with one line per part and seat; read the Council desk after the run ([KT-2026-10-28.md](KT-2026-10-28.md)).
 - Needs you: every 28 Oct choice is in DECISIONS.json (W16w decision sheet D1 to D18 in [KT-2026-10-28.md](KT-2026-10-28.md)); after the merge the issue should list only new items.

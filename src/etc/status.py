@@ -69,7 +69,7 @@ PURPOSE = {
     'selection-watch.yml': 'Drops patch names providers stopped offering, lists new ones for you, digests provider releases.',
     'rule-merge.yml': 'Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green.',
     'retention.yml': 'Retention preview: reports shelf cleanup and applies only an owner-confirmed token.',
-    'pin-check.yml': 'Pin store check (manual, report-only until a live run): reads whether exact store build pins are still listed, without downloading an APK.',
+    'pin-check.yml': 'Pin store check (weekly, report-only): reads whether exact store build pins are still listed, without downloading an APK.',
 }
 STEP = {
     'Set up job': 'GitHub starting the job',

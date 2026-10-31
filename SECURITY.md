@@ -25,9 +25,8 @@ evidence, not independently signed or owner-immutable attestations.
 ## Signing and permissions
 
 Signing material is supplied to trusted build jobs through Actions secrets and
-decoded on the runner. It is not stored in Git, but saying it "never leaves the
-owner" would be false. Protect the runner, workflow code, dependencies, logs and
-secret configuration accordingly. GitHub secrets are not a retrievable backup.
+decoded on the runner. It is not stored in Git. Protect the runner, workflow code,
+dependencies, logs and secret configuration accordingly. GitHub secrets are not a retrievable backup.
 See [RECOVERY](RECOVERY.md) for a separate, nonpublishing restore process.
 
 Read-only diagnostics must not inherit signing credentials. Since W15g the build's
@@ -46,9 +45,9 @@ baseline, or grant an agent broader permissions to bypass a failed gate.
 
 Store downloads now suppress the observed wget URL logging path. Page probes
 emit bounded counts/booleans rather than raw HTML, cookies or signed URLs.
-These are scoped controls, not a claim that all historic logs or third-party
-tools are sanitized. Treat existing logs as potentially sensitive and avoid
-reposting signed download URLs.
+These controls are scoped. They do not establish that all historic
+logs or third-party tools are sanitized. Treat existing logs as potentially
+sensitive and avoid reposting signed download URLs.
 
 HTTP 200 is not download success. A challenge/unavailable marker is a heuristic,
 not a diagnosis. Do not weaken source/version/signature gates to bypass a

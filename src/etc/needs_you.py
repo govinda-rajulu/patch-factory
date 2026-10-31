@@ -623,11 +623,6 @@ def app_items(targets: Path | None = None) -> list[dict]:
     return []
 
 
-def _old_app_items(targets: Path | None = None) -> list[dict]:
-    return [_items("app", ["Keep building %s?" % row.get("label", row.get("id", "this app"))])[0]
-            for row in _load_targets(targets)]
-
-
 def _parse_time(value: str | None, now: datetime | None = None) -> datetime | None:
     if not value:
         return None
@@ -1262,7 +1257,6 @@ def deliver(body: str, repo: str = REPO, run=subprocess.run) -> str:
     if made.returncode != 0:
         raise OSError("Needs you issue create failed")
     return "CREATED"
-
 
 
 def decide(comment_path: Path, ledger_path: Path, repo: str = REPO, comment_url: str = "",

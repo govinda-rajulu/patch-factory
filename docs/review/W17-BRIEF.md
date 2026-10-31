@@ -90,5 +90,5 @@ LinkedIn red runs).
 
 ## After W17
 
-W18 combo planner (above), then W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)). The owner
+W18 combo planner (above), then W15g signing split ([SIGNING-SPLIT.md](history/SIGNING-SPLIT.md)). The owner
 may reorder.

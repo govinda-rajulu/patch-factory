@@ -1,9 +1,12 @@
 name: Weekly pin store check
-# Manual, report-only evidence for exact build pins. The wrapper follows the build's
+# Report-only evidence for exact build pins. The wrapper follows the build's
 # lazy FlareSolverr/CloudflareBypass path only through the release variant row.
+# W17a: weekly since its first fixed live run read OK (run 41194578599, 31 Oct 2026).
 permissions:
   contents: read
 on:
+  schedule:
+    - cron: "37 3 * * 3"  # 09:07 IST Wednesday; GitHub may start scheduled runs late
   workflow_dispatch:
 jobs:
   pin-health:

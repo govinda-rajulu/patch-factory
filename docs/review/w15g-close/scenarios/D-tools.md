@@ -75,12 +75,12 @@ Confidence: **high** for repository control-flow and parser observations; **medi
 
 ## Sources in this checkout
 
-- [sign_apk.py](src/build/sign_apk.py) — signer flags, scheme parser, ZIP comparison, zipalign checks.
-- [artifact_identity.py](src/build/artifact_identity.py) — signer parsers, aapt2 metadata, SDK tool selection.
-- [build.sh](src/build/build.sh) — unsigned probe and patch entry point.
-- [patch_target.py](src/build/patch_target.py) — unsigned Morphe argv and secret refusal.
-- [build_attempts.py](src/build/build_attempts.py) — fallback/override attempt views.
-- [utils.sh](src/build/utils.sh) — APK/APKM/XAPK normalization and W15g refusal stubs.
-- [targets.json](src/targets.json) — per-app source, type, providers, extras, and overrides.
-- [apksigner-37-keymapper.txt](tests/fixtures/apksigner-37-keymapper.txt), [apksigner-37-facebook-v2-only.txt](tests/fixtures/apksigner-37-facebook-v2-only.txt), [apksigner-37-photos-v31-rotation.txt](tests/fixtures/apksigner-37-photos-v31-rotation.txt) — captured verifier evidence.
+- [sign_apk.py](../../../../src/build/sign_apk.py) — signer flags, scheme parser, ZIP comparison, zipalign checks.
+- [artifact_identity.py](../../../../src/build/artifact_identity.py) — signer parsers, aapt2 metadata, SDK tool selection.
+- [build.sh](../../../../src/build/build.sh) — unsigned probe and patch entry point.
+- [patch_target.py](../../../../src/build/patch_target.py) — unsigned Morphe argv and secret refusal.
+- [build_attempts.py](../../../../src/build/build_attempts.py) — fallback/override attempt views.
+- [utils.sh](../../../../src/build/utils.sh) — APK/APKM/XAPK normalization and W15g refusal stubs.
+- [targets.json](../../../../src/targets.json) — per-app source, type, providers, extras, and overrides.
+- [apksigner-37-keymapper.txt](../../../../tests/fixtures/apksigner-37-keymapper.txt), [apksigner-37-facebook-v2-only.txt](../../../../tests/fixtures/apksigner-37-facebook-v2-only.txt), [apksigner-37-photos-v31-rotation.txt](../../../../tests/fixtures/apksigner-37-photos-v31-rotation.txt) — captured verifier evidence.
 - [scenario_tools_contracts.py](tests/scenario_tools_contracts.py) — executable local checks (`python3 -m unittest discover -s tests -p 'scenario_tools_contracts.py'`).

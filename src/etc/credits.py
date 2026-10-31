@@ -20,7 +20,10 @@ TOOLS=[("morphe-desktop","https://github.com/MorpheApp/morphe-desktop","GPL-3.0"
        ("tdl","https://github.com/iyear/tdl","AGPL-3.0","optional Telegram source helper retained from the upstream workflow; review before enabling"),
        ("markdown-badges","https://github.com/Ileriayo/markdown-badges","MIT","badge style referenced by the upstream README; no badge assets vendored"),
        ("ClamAV","https://www.clamav.net","GPL-2.0","optional malware scan for provider bundles and patched APKs"),
-       ("VirusTotal","https://docs.virustotal.com/reference/public-vs-premium-api","Public API terms","optional hash-only reputation lookup; free tier is non-commercial")]
+       ("VirusTotal","https://docs.virustotal.com/reference/public-vs-premium-api","Public API terms","optional hash-only reputation lookup; free tier is non-commercial"),
+       ("humanizer","https://github.com/blader/humanizer","MIT","writing rules distilled in knowledge/style/WRITING.md; no files copied"),
+       ("UI UX Pro Max","https://github.com/nextlevelbuilder/ui-ux-pro-max-skill","MIT","UI checklist distilled in knowledge/style/UI.md; no files copied"),
+       ("unslop","https://github.com/heydamir/unslop","CC BY 4.0","by Damir Sokolovsky (@heydamir): slop audit and passes distilled in knowledge/style/; no files copied")]
 def build():
     T=json.load(io.open('src/targets.json',encoding='utf-8'))
     rows=[]; seen=set()

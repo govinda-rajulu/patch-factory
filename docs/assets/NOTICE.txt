@@ -162,3 +162,10 @@ logos/ccleaner.png
   source: owner-supplied official icon for CCleaner (com.piriform.ccleaner), https://play-lh.googleusercontent.com/4TzP6UEY4IJCNntREn5fm1eojCC1MeBvR5B2Hl2-IICBAtU8HT5HrM1wcruwtLbVCQbfezTbonVbv-pgf8-UUg=w240-h480
   licence: none; trademark of its owner, shown only to identify the app (docs/review/ICON-PROVENANCE.md)
   tile: Google Play 240 px PNG, unchanged bytes (shows the store's "2026" badge), 240x240, 38037 bytes; sha256 c1334a7427c983b3a910f46ce0293ade5d827f092e7a4e9ce7402e65ed29438a (fetched sha256 c1334a7427c983b3a910f46ce0293ade5d827f092e7a4e9ce7402e65ed29438a)
+
+RECOMPRESSION (W17a, 31 Oct 2026)
+12 logo PNGs and microg.png were recompressed with pngquant 2 (--quality=95-100 --speed 1
+--strip). Pixel difference at the 40 px display size stayed at or above 48 dB PSNR; files that
+fell below 45 dB (adguard, mxplayer, telegram) and files pngquant could not shrink (edge,
+hotstar, instagram) keep their original bytes. Any sha256 above describes the original file;
+the originals are in git history at main b1c34e50. Image content and source are unchanged.

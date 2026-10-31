@@ -15,13 +15,13 @@ modified, signed binary to a real device, and some of these apps can ban an acco
 
 You must never modify:
 
-- `.github/workflows/**` or `.github/actions/**` — these run with secrets and can publish releases
-- `src/patches/BANNED`, `src/patches/CONFIRM`, `src/patches/QUARANTINE` — the safety rules
-- `src/build/TOOLING.sha256` — the supply-chain pins
+- `.github/workflows/**` or `.github/actions/**`: these run with secrets and can publish releases
+- `src/patches/BANNED`, `src/patches/CONFIRM`, `src/patches/QUARANTINE`: the safety rules
+- `src/build/TOOLING.sha256`: the supply-chain pins
 - `LICENSE`, `SECURITY.md`, `CREDITS.md`, `.github/CODEOWNERS`
-- anything under `src/patches/_attic/` — an archive, unreferenced on purpose
+- anything under `src/patches/_attic/`: an archive, unreferenced on purpose
 
-A PR touching any of those should be closed unread. `CODEOWNERS` enforces review; this file
+A PR touching any of those should be closed unread. `CODEOWNERS` requests the owner's review (branch settings decide whether it is required); this file
 tells you not to try.
 
 ## What you may propose
@@ -59,12 +59,12 @@ end of `docs/review/history/REPORT-2026-09-07.md` so you do not repeat them.
 
 Facts you may rely on, because they are generated and gated in CI:
 
-- `README.md` current-state block — targets, providers, stores, the gates
-- `CREDITS.md` — every provider and where its bundle lives
-- `docs/review/PATCHES-*.txt` — the patcher's own output, ground truth for patch names
-- `src/patches/DECISIONS.json` — the owner's take/drop per app and patch name, watched and dropped providers (W16j); read by Selection watch and Needs you; **owner calls only**
-- `docs/review/DECISIONS-*.tsv` — classified patches; **column 1 belongs to the owner**
-- `docs/review/OPEN-WORK.md` — what is actually open
+- `README.md` current-state block: targets, providers, stores, the gates
+- `CREDITS.md`: every provider and where its bundle lives
+- `docs/review/PATCHES-*.txt`: the patcher's own output, ground truth for patch names
+- `src/patches/DECISIONS.json`: the owner's take/drop per app and patch name, watched and dropped providers (W16j); read by Selection watch and Needs you; **owner calls only**
+- `docs/review/DECISIONS-*.tsv`: classified patches; **column 1 belongs to the owner**
+- `docs/review/OPEN-WORK.md`: what is actually open
 
 Facts you may not rely on: anything you remember, and any number typed into prose.
 

@@ -138,27 +138,6 @@ def _host_from_url(value: str) -> str | None:
     return match.group(1).lower().rstrip(".") if match else None
 
 
-def _new_flags(original: Path, patched: Path) -> tuple[list[str], list[str]]:
-    old_strings, _, old_errors = _zip_printable(original)
-    new_strings, _, new_errors = _zip_printable(patched)
-    delta = "\n".join(sorted(new_strings - old_strings))
-    flags: list[str] = []
-    for name, pattern in FLAG_PATTERNS.items():
-        if pattern.search(delta):
-            flags.append(name)
-    try:
-        with zipfile.ZipFile(original) as z:
-            old_so = {i.filename: i.CRC for i in z.infolist() if i.filename.startswith("lib/") and i.filename.endswith(".so")}
-        with zipfile.ZipFile(patched) as z:
-            new_so = {i.filename: i.CRC for i in z.infolist() if i.filename.startswith("lib/") and i.filename.endswith(".so")}
-        flags.extend("new " + n for n in sorted(set(new_so) - set(old_so)))
-        # W16y-b review: a library replaced under the same name is a change too.
-        flags.extend("changed " + n for n in sorted(set(new_so) & set(old_so)) if new_so[n] != old_so[n])
-    except (OSError, zipfile.BadZipFile) as exc:
-        old_errors.append(str(exc))
-    return sorted(set(flags)), old_errors + new_errors
-
-
 def _clamav(paths: list[Path]) -> tuple[str, list[str]]:
     tool = shutil.which("clamscan")
     if not tool:
