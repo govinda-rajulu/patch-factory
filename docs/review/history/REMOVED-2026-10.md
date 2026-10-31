@@ -19,3 +19,23 @@ git show fa10ed4:src/etc/community_diff.py > src/etc/community_diff.py
 
 The dead `chooser` branch in `src/etc/selection_writer.py` was removed with these files.
 The `full` and `unreviewed` selection-sheet modes remain.
+
+# Removed unused files (31 October 2026, packet W16z)
+
+Owner plan of 31 October (W16z housekeeping). Callers were searched on main `572d7d2b` before the removal.
+
+| Path | Last commit | Blob | Why removed |
+| --- | --- | --- | --- |
+| `src/options/arandomhooman.json` | `18211bc29a811bb275746da993c57b4fadd5187e` | `0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc` | Two bytes (`[]`); no target or candidate names `arandomhooman` as its `options`. |
+| `src/options/bufferk.json` | `18211bc29a811bb275746da993c57b4fadd5187e` | `0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc` | Two bytes (`[]`); the Truecaller `bufferk` fallback uses `options: combo`, which stays. |
+| `docs/review/providers/hushtelegram-org.telegram.messenger.names` | `36ef8c7cc8ac2678e885746b4e1251896a01003b` | `632ee4c474dd24f85b02bc3a53987f584673f271` | Not one of the 35 provider-watch baselines (`provider_watch.inventory(targets, watch_sources=True)`); byte-identical to the live `extra-sysadmindoc-hushtelegram-org.telegram.messenger.names`, which stays. |
+
+To restore:
+
+```sh
+git show 18211bc29a811bb275746da993c57b4fadd5187e:src/options/arandomhooman.json > src/options/arandomhooman.json
+git show 18211bc29a811bb275746da993c57b4fadd5187e:src/options/bufferk.json > src/options/bufferk.json
+git show 36ef8c7cc8ac2678e885746b4e1251896a01003b:docs/review/providers/hushtelegram-org.telegram.messenger.names > docs/review/providers/hushtelegram-org.telegram.messenger.names
+```
+
+The HushTelegram selection directory and `src/options/hushtelegram.json` stay on purpose (owner, 30 October: kept unreferenced).

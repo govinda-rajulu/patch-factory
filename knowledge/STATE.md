@@ -8,7 +8,13 @@ Start here: [KT-2026-10-28.md](../docs/review/KT-2026-10-28.md), then [OPEN-WORK
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W15g merged (31 Oct 2026, afternoon IST): start here
+## W16z (31 Oct 2026, evening IST): start here
+
+- **W16z** on main `572d7d2b`: pin probe bare-code fix (wrong call 122), failure issues quote the reason (#280), portal cleanups, issue forms, labels and seed issues through Repo setup, housekeeping, records. Read docs/review/HANDOVER-2026-10-31-W16z.md and docs/review/w16z/README.md.
+- **Owner phone test, 31 Oct:** the split-signed Telegram installed over the current one and works; other patches unconfirmed.
+- **Next**: Sunday 1 Nov Council probe and digest; Monday 2 Nov retention preview; the post-merge pin check run; then W17 in phases (phase 0: agent trials, fallback attempt summaries, carried LOWs).
+
+## W15g merged (31 Oct 2026, afternoon IST)
 
 - **W15g merged** as #283 (`95be30da`, tree `2e483365`) after one fix (wrong call 120: the signer drops directory entries and the source-stamp file). 17 of 17 smokes proved the split; Telegram published through Patch, Sign and Publish. Read the Result section of docs/review/HANDOVER-2026-10-31-W15g.md and docs/review/w15g-close/README.md.
 - **Next**: owner Telegram phone test (install over, no uninstall), then W16z (docs/review/OPEN-WORK.md), then W17 console, Android Auto later.

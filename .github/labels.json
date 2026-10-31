@@ -1,0 +1,11 @@
+{
+  "_note": "W16z (owner, 31 Oct 2026): the small label set. Repo setup creates or updates these on main; it never deletes a label.",
+  "labels": [
+    {"name": "owner-action", "color": "d93f0b", "description": "A step or decision only the owner can take"},
+    {"name": "verified", "color": "0e8a16", "description": "Reproduced with a run, job or file link"},
+    {"name": "phone-test", "color": "5319e7", "description": "Needs a check on the owner's phone"},
+    {"name": "upstream", "color": "c5def5", "description": "Waits on a provider or another project"},
+    {"name": "bot-report", "color": "ededed", "description": "A standing report written by a workflow"},
+    {"name": "feature-request", "color": "a2eeef", "description": "Planned work, not built yet"}
+  ]
+}

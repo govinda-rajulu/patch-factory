@@ -16,3 +16,4 @@ __pycache__/
 !.env.example
 .venv/
 *.log
+.pytest_cache/

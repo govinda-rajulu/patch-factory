@@ -145,7 +145,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT/'tests/portal_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
-        self.assertIn('PORTAL_CONTRACTS_PASS=37', result.stdout)  # W16k: real history fold; W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card; W15h: certificate pin; W15i: comment stripper; W16d: folded patches, meaningful badges, bundle order
+        self.assertIn('PORTAL_CONTRACTS_PASS=41', result.stdout)  # W16z: freshness row, CCleaner Coming soon, Needs you link, #154 link cases; W16k: real history fold; W6: build runs keyed by app; W7: short MicroG card; W14: Obtainium card; W15h: certificate pin; W15i: comment stripper; W16d: folded patches, meaningful badges, bundle order
 
     def test_microg_companion_generator_is_separate_and_check_refuses_drift(self):
         path = self.r/'docs/obtainium-microg.json'
@@ -169,7 +169,7 @@ class Repair(unittest.TestCase):
         result = subprocess.run(['node', str(ROOT / 'tests/notify_contracts.cjs')],
                                 cwd=ROOT, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn('NOTIFY_CONTRACTS_PASS=29', result.stdout)
+        self.assertIn('NOTIFY_CONTRACTS_PASS=31', result.stdout)  # W16z: failure annotations, unreadable annotations
 
     def batch_probe(self, raw, targets=None):
         if targets is not None:

@@ -702,7 +702,9 @@ get_apk() {
 import re, sys
 code = sys.argv[1]
 for row in sys.stdin.read().splitlines():
-    if re.search(r"(?i)(?:version[ _-]?code|versionCode|\bcode\b)[^0-9]{0,40}" + re.escape(code) + r"(?![0-9])", row):
+    # W16z (wrong call 122): APKMirror prints the code as a bare number in the row; the same
+    # whole-word rule as variant_pick.py, so the probe agrees with the build.
+    if re.search(r"\b%s\b" % re.escape(code), row):
         print(row)
         break
 ' "$PF_PIN_CODE")

@@ -93,6 +93,9 @@ Things the assistant relearned in the W16 chat; read before building a controlle
   minutes of that.
 - **One suite at a time.** A suite run while review agents run tests in the same sandbox failed
   once (shared /tmp files) and passed alone (W16o, 26 Oct). Run the final suite after the agents finish.
+- **Job logs (W16z, wrong call 123).** `gh api repos/.../actions/jobs/ID/logs` refuses log text with
+ terminal colour codes and writes an empty file; read a job log with `gh run view RUN --job ID --log`
+ (the read `pf-p2` uses). Failure reasons also show as annotations in the failure issue since W16z.
 - **Killing.** `pkill -f <pattern>` (and `kill $(pgrep -f <pattern>)`) also kills the calling shell
   when the pattern is in its own command line (it happened again on 26 Oct). Kill by process id. An orphaned `unittest` from a killed suite still holds
   `/tmp/pf-suite.lock`; find holders through `/proc/*/fd`.

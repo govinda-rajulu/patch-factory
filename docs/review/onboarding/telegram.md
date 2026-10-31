@@ -122,3 +122,32 @@ The W16g smoke (run 40108956377) failed on 12.10.4: "Bypass channel restrictions
 (`PhotoViewer` fingerprint). rushiranpise (12.10.1, 13 patches including Bypass channel restrictions
 and Unlock Premium) is primary again. newuser7171 is the fallback without Bypass channel restrictions
 (13 names: it adds Bypass translation restrictions).
+
+## W16z (31 Oct 2026): split-signed release on the phone, and a check guide
+
+- Owner phone test, 31 Oct: `telegram-v13.1.1-b2026103100000000041180839861000001` (the first release
+  signed by the W15g Sign job) **installed over the current Telegram without uninstalling and works**:
+  signed in, Premium icons show, the AI feature works. The other patches are **not confirmed**: the
+  owner is a light Telegram user. Open item: a heavy Telegram user runs the guide below.
+- Check guide for the 14 rahul9999xda patches (what a user should see; "no visible effect" means skip):
+
+| Patch | How to check |
+| --- | --- |
+| Anti-delete messages | Ask a contact to delete a message they sent you; it stays, marked deleted. |
+| Anti-disappearing media | Receive a view-once photo; it can be opened again. |
+| Anti-screenshot notification | Screenshot a secret chat; the other side gets no screenshot notice. |
+| Bypass channel restrictions | Open a channel with saving or forwarding disabled; save or forward works. |
+| Bypass content restrictions | Content marked restricted on this device opens. |
+| Disable auto-update | No visible effect; Telegram never offers its own update. |
+| Disable telemetry and analytics | No visible effect; skip. |
+| Download speed boost | Large file downloads are faster than stock (hard to judge; skip unless obvious). |
+| Hide Stories read status | View a contact's story; it does not list you as a viewer. |
+| Hide typing indicator | Type in a chat; the other side sees no "typing...". |
+| Remove ads | Sponsored messages in large channels do not show. |
+| Unlock Premium | Premium-only icons and features show (owner: confirmed for icons). |
+| Use normal paste for Rich HTML clipboard content | Copy formatted text from a browser and paste; it pastes as plain text. |
+| Voice to music | Voice notes play through the media player (background, seek). |
+
+The "how to check" column is inferred from the patch names (W16z), not read from the provider's
+descriptions: confirm a row against the rahul9999xda list-patches text before calling it a defect.
+
