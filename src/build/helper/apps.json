@@ -92,6 +92,12 @@
   },
   "com.piriform.ccleaner": {
    "list_url": "https://www.apkmirror.com/uploads/?appcategory=ccleaner"
+  },
+  "tech.simha.androidtvremote": {
+   "org": "simha-software",
+   "name": "remote-for-android-tv",
+   "list_url": "https://www.apkmirror.com/uploads/?appcategory=remote-for-android-tv",
+   "example_url": "https://www.apkmirror.com/apk/simha-software/remote-for-android-tv/remote-for-android-tv-6-1-0-release/"
   }
  },
  "apkpure": {

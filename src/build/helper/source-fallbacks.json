@@ -18,6 +18,7 @@
     "keymapper": {"package": "io.github.sds100.keymapper", "primary": "apkpure", "blocked_reason": "Located APKMirror FOSS/GitHub variant is not qualified as equivalent to the configured distribution", "admissions": []},
     "amazonmusic": {"package": "com.amazon.mp3", "primary": "apkmirror", "blocked_reason": "No alternate store qualified yet (added 2026-10-08 through 5. Add target)", "admissions": []},
     "linkedin": {"package": "com.linkedin.android", "primary": "apkmirror", "blocked_reason": "No alternate store qualified yet (added 2026-10-08 through 5. Add target)", "admissions": []},
-    "ccleaner": {"package": "com.piriform.ccleaner", "primary": "apkmirror", "blocked_reason": "No alternate store qualified yet (added 2026-10-25 through 5. Add target)", "admissions": []}
+    "ccleaner": {"package": "com.piriform.ccleaner", "primary": "apkmirror", "blocked_reason": "No alternate store qualified yet (added 2026-10-25 through 5. Add target)", "admissions": []},
+    "remoteatv": {"package": "tech.simha.androidtvremote", "primary": "apkmirror", "blocked_reason": "No alternate store qualified yet (added 2026-10-31 through 5. Add target)", "admissions": []}
   }
 }
