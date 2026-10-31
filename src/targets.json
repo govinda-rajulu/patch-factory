@@ -705,5 +705,33 @@
     "source": "apkmirror",
     "note": "Premium unlocked",
     "exclusive": true
+  },
+  {
+    "id": "remoteatv",
+    "enabled": true,
+    "package": "tech.simha.androidtvremote",
+    "apk_name": "remoteatv",
+    "apk_type": "bundle",
+    "max_app_version": null,
+    "max_patch_age_days": 180,
+    "min_sdk_ceiling": 29,
+    "pin": null,
+    "candidates": [
+      {
+        "name": "xbadfellax",
+        "host": "github",
+        "owner": "XBadFellaX",
+        "repo": "BadFella-Patches",
+        "channel": "prerelease",
+        "patch_dir": "remoteatv-xbadfellax",
+        "options": "xbadfellax"
+      }
+    ],
+    "tag_prefix": "remoteatv",
+    "poll": true,
+    "label": "Remote for Android TV",
+    "source": "apkmirror",
+    "note": "Remote ATV ad-free",
+    "exclusive": true
   }
 ]

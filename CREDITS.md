@@ -56,6 +56,7 @@ handed to the owner as one command.
 | Reddit | morphe | https://github.com/MorpheApp/morphe-patches |
 | Reddit | adobo | https://github.com/jkennethcarino/adobo |
 | Reddit | alastor | https://github.com/Alastor-Kaneki/Morphe-Patches |
+| Remote for Android TV | xbadfellax | https://github.com/XBadFellaX/BadFella-Patches |
 | Telegram | rahul9999xda | https://github.com/rahul9999xda/morphe-patches |
 | Telegram | rushiranpise | https://github.com/rushiranpise/morphe-patches |
 | Truecaller | heval99 | https://github.com/heval99/Heval-Morphe-Patches |

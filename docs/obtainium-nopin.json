@@ -144,6 +144,17 @@
    "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^reddit-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Reddit\"}"
   },
   {
+   "id": "tech.simha.androidtvremote",
+   "url": "https://github.com/govinda-rajulu/patch-factory",
+   "author": "govinda-rajulu",
+   "name": "Remote for Android TV",
+   "categories": [
+    "patch-factory"
+   ],
+   "preferredApkIndex": 0,
+   "additionalSettings": "{\"includePrereleases\": false, \"fallbackToOlderReleases\": true, \"filterReleaseTitlesByRegEx\": \"^remoteatv-v[0-9.]+-b[0-9]+$\", \"apkFilterRegEx\": \"arm64-v8a[.]apk$\", \"versionExtractionRegEx\": \"-v([0-9.]+-b[0-9]+)$\", \"matchGroupToUse\": \"1\", \"versionDetection\": false, \"trackOnly\": false, \"appName\": \"Remote for Android TV\"}"
+  },
+  {
    "id": "com.truecaller",
    "url": "https://github.com/govinda-rajulu/patch-factory",
    "author": "govinda-rajulu",
