@@ -20,7 +20,8 @@ Last indexed **31 October 2026** for packet W15g ([HANDOVER-2026-10-31-W15g.md](
 | [KT-2026-10-28.md](KT-2026-10-28.md) | Knowledge transfer of the 26 to 28 Oct chat: owner rules, devices, packet flow, history, open owner calls, wrong calls 91 to 119 and the W16w decision sheet. Read first. |
 | [SWITCH-AUDIT-2026-10-28.jsonl](SWITCH-AUDIT-2026-10-28.jsonl) | Every chosen patch (660): in-app switch or always on, default, hides content; sources upstream READMEs and code. |
 | [HANDOVER-2026-10-28-W16w.md](HANDOVER-2026-10-28-W16w.md) | Preceding W16w pointer: W16v outcome, T1 findings and causes, what W16w changes, wrong call 97. |
-| [HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md) | W16y-c result and W15g pointer: signing split (Patch without key, Sign with apksigner, Publish without key), gates and owner phone test, W16z list. Read first. |
+| [HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md) | W16y-c result and W15g pointer: signing split (Patch without key, Sign with apksigner, Publish without key), gates and owner phone test, W16z list; Result section: merged as #283, 17 of 17 smokes, first split Telegram publish. Read first. |
+| [w15g-close/README.md](w15g-close/README.md) | 31 Oct: W15g close-out folder: planning reports (W16z inputs, W17 console design), the 282-record issue and PR audit, review rounds R1 to R8, round-4 scenario reports, smoke probe. |
 | [HANDOVER-2026-10-31-W16y-c.md](HANDOVER-2026-10-31-W16y-c.md) | W16y-b result and W16y-c pointer: Telegram phone test and publish, scan host fix, pin check through the store reader, push retry, wrong calls 118 and 119. |
 | [HANDOVER-2026-10-30-W16y-b.md](HANDOVER-2026-10-30-W16y-b.md) | W16y-a result and W16y-b pointer: provider scan, digest, pin check, patch age, Council lines, Telegram survey, wrong calls 112 to 117, what is not built. |
 | [TELEGRAM-SURVEY-2026-10-30.md](TELEGRAM-SURVEY-2026-10-30.md) | Read-only Telegram provider survey. Owner, 30 Oct evening: rahul9999xda v1.17.0 primary (non-Hush); see onboarding/telegram.md. |
@@ -106,6 +107,7 @@ Last indexed **31 October 2026** for packet W15g ([HANDOVER-2026-10-31-W15g.md](
 | [UNREVIEWED.tsv](UNREVIEWED.tsv) | Patch names not yet reviewed; legacy input: still read by `src/etc/selection_writer.py` via `review_apply.py`; owner decisions now live in `src/patches/DECISIONS.json`; regenerate only from a live provider listing. | Working list |
 | [providers/](providers/) | Committed provider name baselines read by Provider watch. | Live input |
 | [retention/](retention/) | Cleanup receipts (releases, tags, Pages deployments, branches), indexed in its README. | Record |
+| [w15g-close/](w15g-close/) | W15g close-out records (31 Oct): planning reports, issue and PR audit, review rounds, round-4 scenarios; index in its README. | Record |
 | [history/](history/) | Closed checkpoints moved out of the desk on 7 Oct 2026 (packet V2); its README lists them. | History |
 | [REMOVED-2026-10.md](history/REMOVED-2026-10.md) | W16y-a removal record for the unused chooser and community-diff utilities. | History |
 

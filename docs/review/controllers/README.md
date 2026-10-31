@@ -13,6 +13,8 @@ tools. Added 10 Oct 2026 (packet H12) from the W9 to W12 controllers, which all 
 | `render.cjs` | Headless render of `docs/index.html` (Playwright; set `PLAYWRIGHT_BROWSERS_PATH` if the browser lives elsewhere). |
 | `build_ctl.py` | W15i: fills the template from a CONFIG file, the packet branch, BASE, BASE_TREE and PREREQ (usage in its first lines). |
 | `owner-probes/pf-keys.py` | W15i: the owner's Cloud Shell probe: tests free AI keys live and saves only working ones as secrets, reads CodeQL alerts, runs morphe-desktop's list-versions to list the files it creates, dispatches a council probe and zips the logs. Rehearse new probes against fake APIs first. |
+| `owner-probes/pf-sp.py` | W15g (31 Oct): read-only smoke probe: waits for the packet branch's Manual Patch runs, reads each Sign job result, and for a byte-compare refusal downloads the unsigned hand-off and lists directory, source-stamp and top-level META-INF entries. Found wrong call 120. |
+| `owner-probes/pf-ip.py` | W15g (31 Oct): read-only issue and pull request collector: every issue, pull request, comment, review comment and label as JSONL, zipped (the 282-record audit input). |
 
 ## Building one
 

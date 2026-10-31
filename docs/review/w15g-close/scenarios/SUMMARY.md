@@ -1,0 +1,8 @@
+# W15g scenario round 4 (31 Oct 2026) - for the W16z records
+Tree 642a9ab8 unchanged; combo 071f39d4 (485806 bytes) still valid.
+- Suite: SUITE OK (18 PASS). Rehearsals 17/17 (13 old + cancel, combofail, esnosign, twofail). Chain 9/9.
+- Lane A zip (24): 22 PASS. B10 (payload in META-INF/X.SF) and J01 (MANIFEST.MF changed) re-rated LOW: the patch job already owns the unsigned bytes; the compare guards apksigner, and v1 legitimately rewrites MANIFEST.MF. Tightening for v2-only needs real apksigner evidence first.
+- Lane B workflow (20): 19 PASS. build-evidence-<t> / provider-scan-<t>-<run> names lack the attempt: pre-existing, unchanged; GitHub reruns are scoped per attempt (upload-artifact #478/#480 reports: rerun clears it). LOW, W16z.
+- Lane C attacks (9): binding, symlink, traversal, signer, v4, keystore cleanup all refuse. Agent fix "tag date = PF_BUILT_AT" REJECTED: suffix date is taken at build end (build_identity.create), stamp at job start; a build across 00:00 UTC would STOP a legit publish. Tag date stays cosmetic (run+attempt bound). 512 MiB cap and filename charset: LOW, not taken (heredoc outputs already safe).
+- Lane D tools (10 PASS): no app uses the refusal stubs; all 17 go through patch_target --unsigned. Keystore type: live keytool (default type) read it on every main run, so JKS/PKCS12, apksigner reads it. sdk_tools picks newest build-tools (35+ has -P 16). v3.1 rotation refusal is by design.
+- Not provable here: real apksigner/zipalign/aapt2/Morphe --unsigned (17 branch smokes prove it before merge), and the Publish job (main only; first real run = Telegram).

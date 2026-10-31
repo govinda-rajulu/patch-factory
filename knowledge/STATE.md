@@ -8,7 +8,12 @@ Start here: [KT-2026-10-28.md](../docs/review/KT-2026-10-28.md), then [OPEN-WORK
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W15g (31 Oct 2026, morning IST): start here
+## W15g merged (31 Oct 2026, afternoon IST): start here
+
+- **W15g merged** as #283 (`95be30da`, tree `2e483365`) after one fix (wrong call 120: the signer drops directory entries and the source-stamp file). 17 of 17 smokes proved the split; Telegram published through Patch, Sign and Publish. Read the Result section of docs/review/HANDOVER-2026-10-31-W15g.md and docs/review/w15g-close/README.md.
+- **Next**: owner Telegram phone test (install over, no uninstall), then W16z (docs/review/OPEN-WORK.md), then W17 console, Android Auto later.
+
+## W15g (31 Oct 2026, morning IST)
 
 - **W16y-c merged** as #282 (`901f3051`, tree `f690788d`), RESULT OK; Telegram published from rahul9999xda. Read docs/review/HANDOVER-2026-10-31-W15g.md.
 - **W15g signing split**: Patch (provider code, no key, read-only, unsigned APK), Sign (first-party `sign_apk.py`, keystore pin check, apksigner with the patcher's scheme rule, byte-identical payload proof), Publish (write token, no key). Gate: all 17 apps on the branch, then one Telegram publish and the owner's install-over phone test.
