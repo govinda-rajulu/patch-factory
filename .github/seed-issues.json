@@ -1,0 +1,9 @@
+{
+  "_note": "W16z (owner, 31 Oct 2026): feature requests filed once by Repo setup. The marker makes it idempotent; an issue that already carries it, open or closed, is never filed again.",
+  "issues": [
+    {"id": "w17-owner-console", "title": "Feature request: W17 owner console (Add app and patch decisions from Pages)", "labels": ["feature-request", "owner-action"],
+     "body": "Planned as W17, in phases. Design: docs/review/w15g-close/plan/CONSOLE-W17.md.\n\n- Pages builds GitHub issue-form links; the owner submits on GitHub (Pages never writes and holds no token).\n- Tests run for anyone; only the owner's submission makes a ready pull request; merges stay with the owner.\n- The note field is saved as a dated decision record, with an optional lesson flag.\n\nFiled by Repo setup from .github/seed-issues.json (packet W16z)."},
+    {"id": "android-auto", "title": "Feature request: Android Auto apps", "labels": ["feature-request", "upstream"],
+     "body": "Not started. No Android Auto package (com.google.android.projection.gearhead) is a target, and no provider is proven for it. Before any build: an exact target and store variant, live provider evidence for that package, a signature and privilege risk review (Android Auto may refuse re-signed apps), and a phone plus head-unit test plan. Notes: docs/review/w15g-close/plan/CONSOLE-W17.md, section Android Auto.\n\nFiled by Repo setup from .github/seed-issues.json (packet W16z)."}
+  ]
+}

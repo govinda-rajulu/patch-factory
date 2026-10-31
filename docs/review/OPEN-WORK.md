@@ -1,6 +1,22 @@
 # Open work
 
-## Current checkpoint: 31 October 2026 afternoon (W15g merged as #283; records packet W15g-close)
+## Current checkpoint: 31 October 2026 evening (packet W16z)
+
+### Done in W16z (31 October 2026)
+
+- Recorded: the owner's install-over phone test of the split-signed Telegram (works; other patches unconfirmed), L115 and L116 in the ledger, the owner's answers of 31 Oct ([HANDOVER-2026-10-31-W16z.md](HANDOVER-2026-10-31-W16z.md)).
+- Pin probe fix (wrong call 122), failure-issue reasons (#280), portal freshness row, patch fold, CCleaner Coming soon, Needs you link, UI pass, issue forms, labels and feature requests through Repo setup, three removals, retention prose, CI wording, closed records to history/, #154 triage ([w16z/README.md](w16z/README.md)).
+
+### Open after W16z
+
+- **Owner:** a heavy Telegram user runs the check guide in [onboarding/telegram.md](onboarding/telegram.md).
+- Read the post-merge pin check run; schedule it weekly only on OK lines. Read the Sunday Council probe (nemotron swap, PR-only) and monthly digest, and the Monday retention preview; retention apply only with the owner token, from 3 Nov.
+- Reddit: held at 2026.41.0 while Morphe's bundle targets 2026.40.0; Check new patch stays red until Morphe catches up (the guard is right). If the next failure issue still says "No failing step", probe the jobs API timing.
+- W17 phase 0: run the scored agent trials ([w16z/AGENT-TRIALS.md](w16z/AGENT-TRIALS.md)); fallback attempt summaries (tests first); attempt in `build-evidence-<t>` and `provider-scan-<t>-<run>` (update the controller's scan download with it); signature-file pattern (`META-INF/.SF`, lowercase `meta-inf/`); historical credential scan disposition; W16w 64/65 wording.
+- Fallback recovery (owner: keep) stays a design until its own packet ([w15g-close/earlier/TELEGRAM-FALLBACKS-2026-10-30.md](w15g-close/earlier/TELEGRAM-FALLBACKS-2026-10-30.md)).
+- Wrong calls 122 to 124 are in [w16z/FINDINGS.md](w16z/FINDINGS.md).
+
+## Checkpoint: 31 October 2026 afternoon (W15g merged as #283; records packet W15g-close)
 
 Every still-open item carried forward from the older checkpoints is listed once below. Closed,
 superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-ARCHIVE-2026-10.md).
@@ -14,17 +30,17 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 
 ### Done in W15g (31 October 2026)
 
-- Signing split built: Patch without key or write token (unsigned APK, `--unsigned` probed first), Sign with the release key and first-party code only (`src/build/sign_apk.py`), Publish with the write token and no key ([HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md)). Open until the owner's phone test: install the post-merge Telegram over the current one.
+- Signing split built: Patch without key or write token (unsigned APK, `--unsigned` probed first), Sign with the release key and first-party code only (`src/build/sign_apk.py`), Publish with the write token and no key ([HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md)). Closed in W16z: the owner installed the split-signed Telegram over the current one and it works (31 Oct).
 
 ### W15g result and carry-forward (31 Oct 2026, afternoon)
 
 - Merged as #283 (`95be30da`); 17 of 17 smokes signed in the Sign job; Telegram published by the split jobs. Details: [HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md) (Result) and [w15g-close/README.md](w15g-close/README.md).
-- **Owner:** install the published Telegram over the current one (no uninstall) and confirm it opens signed in.
+- Done (W16z): the owner installed the published Telegram over the current one, no uninstall; it opens signed in.
 - Pin check run 41158386985 (31 Oct) printed `PIN_STORE_MISSING` (version_code_not_listed) for Facebook, Facebook De-Vanced and Instagram, while the same day's smokes downloaded those exact pins from APKMirror: the probe's page reading is wrong, not the pins. Fix the probe before any weekly schedule.
 - LOW, for W16z: artifact names `build-evidence-<t>` and `provider-scan-<t>-<run>` carry no attempt (pre-existing; GitHub reruns are per attempt); the signature-file pattern differs from apksig on `META-INF/.SF` (empty base name) and lowercase `meta-inf/`; the release tag date comes from build end, not the job stamp (cosmetic; run and attempt are bound). Round 4 detail: [w15g-close/scenarios/SUMMARY.md](w15g-close/scenarios/SUMMARY.md).
 - Test lesson (wrong call 120): fake tools copy the real tool's output policy from its source; fixtures carry what store APKs carry (source stamp, directory entries).
 - Signature schemes: the split signs minimum SDK 23 apps with v1+v2+v3 (Telegram, MX Player, plus Hotstar and ES File); same certificate, so install-over is unaffected. The owner phone test on Telegram confirms it.
-- **Owner approval:** lesson proposals L115 (fakes copy the real tool's output policy) and L116 (probe an agent's fix on the real data path) in [w15g-close/LESSON-PROPOSALS.md](w15g-close/LESSON-PROPOSALS.md); append to docs/council/LESSONS.md on yes.
+- Done (W16z): L115 and L116 approved by the owner (31 Oct) and appended to docs/council/LESSONS.md.
 - **Owner ask (31 Oct), not yet scheduled:** give some W16z housekeeping and triage work to the Council and other free agents as scored trial tasks (ask, audit, triage) to see how they perform; record scores in the session note.
 - Owner Cloud Shell after this records packet merges: the old `~/pf-w15g-combo-071f39d4.py`, `~/pf-sp.py` and the W15g launcher texts can go (both scripts are now in the repo); keep `~/work/run-logs`.
 - Wrong call 121 (close-out): the first close-out swept only the 31 Oct work; the owner's "check again" found the 28 to 30 Oct notes, the rehearsal tools, the scenario tests, the issue collector and two owner asks missing. All are in this packet now; a close-out sweeps every day of the chat.
@@ -74,18 +90,7 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 - New-provider ready PR: discovery, then the scan smoke, then a green test build, then a ready pull request the owner merges. W16y-b ships the scan step only; the orchestration is not built.
 - Read the first runs: Council probe (Sunday 1 Nov morning), monthly digest (Needs you, 1 Nov), the post-merge pin check probe, retention preview (Monday 2 Nov). Then schedule the pin check weekly (reading pages the way the build does if plain reads are refused). Retention apply only with the owner's token, from 3 Nov.
 
-### Done in W16x (29 October 2026)
-
-- W16q and W16s cleanup previews were never applied; both are **superseded/expired**. Reason: a cleanup preview token goes stale after a Pages deploy. No deletion is authorized by this note.
-- The controller cleanup path already prints an explicit `OK` result when cleanup is preview-only; owner-facing controller launcher text has no `a && b || c` compound fallback. Internal rehearsal/suite short-circuit commands are unchanged because they are not owner launchers.
-- Workflow comments and handbook references were corrected; the generated Truecaller row in `README.md` shows `heval99 (fallback: bufferk + paresh + binarymend)`. `readmegen.py --check` covers the generated row.
-- W16w ran and merged (#275, `2db6cde8`, 28 Oct). LinkedIn v1.2.0 with Material You published; the owner's phone test passed (Michii Patches shows in the Me panel). The 25 Oct and 28 Oct 18:29Z LinkedIn releases were deleted by the planned cleanup.
-- Store near-version picks are refused outside the same release line (`STORE_DOWNGRADE_REFUSED ... reason=near_version_gap`); Prime Video (3.0.470.1047 to 3.0.470) and Hotstar (26.06.22.3 to 26.06.08.2) still build and print `STORE_NEAR_VERSION`. Amazon Music asked for 2.36.1 and got APKMirror's 2.8.1 (a 2013 file); only the signer pin stopped it. It now stops at the store step.
-- PR #277 (7 switchable names: 3 Hushfacebook, 3 HushGram, oxbow Hide Meta AI) folded in; #277 closed by the packet.
-- ES File fallback rushiranpise (Unlock VIP Lifetime only, built alone) back (D15).
-- Onboarding checker: a malformed `overrides.extra_bundles` gives a named problem instead of a crash (test added).
-- Truecaller "shadow receipt not verified" (#186): absent from the W16w T1 logs; closed.
-- Cloud Shell cleanup (owner, 29 Oct): [record](history/CLOUDSHELL-CLEANUP-2026-10-29.md).
+### Carried open list (from W16x, 29 October 2026)
 
 - **Owner:** Ten decision questions with recommendations and downsides (pin health check, Amazon Music paid patches, Android 10 Signer pin, idle fallback smokes, near-version rule, patch age, watched providers, release cleanup, Council models, switch-audit gate): [DECISION-REVIEW-2026-10-29.md](DECISION-REVIEW-2026-10-29.md).
 - **Owner:** Phone setup: import Android 10 without the Signer pin and keep it on for Android 11/12 as recorded in [OBTAINIUM-SIGNER-2026-10-27.md](OBTAINIUM-SIGNER-2026-10-27.md).

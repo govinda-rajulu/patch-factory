@@ -33,6 +33,9 @@ function fixture(change={}){
    if(change.repeat&&a.page===2)rows=[jobs[0]];
    return {total_count:change.changedTotal&&a.page>1?jobs.length+1:jobs.length,jobs:rows};
   })
+ },checks:{
+  // W16z (#280): failure annotations per job (check run id = job id).
+  listAnnotations:a=>api('annotations',a,()=>{if(change.annotationsFail)throw Error('fixture annotations failure');return change.annotations?(change.annotations[a.check_run_id]||[]):[];})
  },issues:{
   listForRepo:a=>api('issues',a,()=>{assert.equal(a.state,'all');assert.equal(a.sort,'created');return issues.slice((a.page-1)*100,a.page*100);}),
   create:a=>api('create',a,()=>{state.created.push(a);return {number:77};}),
@@ -57,6 +60,23 @@ async function main(){
   for(let i=0;i<5;i++)assert.ok(x.body.includes('Job '+(1000+i)+':'));
   assert.ok(x.body.includes('/attempts/2'));assert.ok(x.body.includes(head));
   assert.ok(!f.state.calls.some(c=>/logs|artifact|download|comment|update/.test(c.name)));
+ });
+ await test('W16z: failure annotations name the reason, bounded and sanitised',async()=>{
+  const reason='release contract: PUBLISH_REFUSED reddit: app 2026.40.0 is older than the published 2026.41.0; a phone cannot update to it and the shelf would show it as newest. Nothing was published.';
+  const f=fixture({setup:({jobs})=>{jobs[1].check_run_url='https://api.github.com/repos/'+repo+'/check-runs/1001';},annotations:{1000:[{annotation_level:'failure',message:reason+'\nsecond line'},{annotation_level:'failure',message:'see https://evil.example/x and www.evil.example now'},{annotation_level:'failure',message:'Process completed with exit code 1.'},{annotation_level:'warning',message:'just a warning'}],
+   1001:Array.from({length:5},(_,i)=>({annotation_level:'failure',message:'@someone ghp_'+'x'.repeat(20)+' reason '+i}))}});
+  await f.run();const body=f.state.created[0].body;
+  assert.ok(body.includes('- Reason: release contract: PUBLISH\\_REFUSED reddit: app 2026.40.0 is older'));
+  assert.ok(!body.includes('second line')&&!body.includes('exit code 1')&&!body.includes('just a warning'));
+  assert.equal(body.split('- Reason: ＠someone \\[redacted\\] reason ').length-1,3);
+  assert.ok(!body.includes('ghp_'));
+  assert.ok(body.includes('see \\[url removed\\] and \\[url removed\\] now')&&!body.includes('evil.example'));
+  const ids=f.state.calls.filter(c=>c.name==='annotations').map(c=>c.args.check_run_id);assert.deepEqual(ids,[1000,1001,1002,1003,1004]);
+  assert.ok(!f.state.calls.some(c=>/logs|artifact|download/.test(c.name)));
+ });
+ await test('W16z: unreadable annotations still file the report with one line',async()=>{
+  const f=fixture({annotationsFail:true});await f.run();assert.equal(f.state.created.length,1);
+  assert.equal(f.state.created[0].body.split('- Reason unavailable (annotations unreadable).').length-1,5);
  });
  await test('205 jobs across three pages retain every failure',async()=>{
   const f=fixture({jobs:Array.from({length:205},(_,i)=>job(i,i%3?'success':'failure'))});

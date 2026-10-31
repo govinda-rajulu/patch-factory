@@ -1111,3 +1111,18 @@ Generated target data belongs in README's state block, not another hand-maintain
 inventory. Never publish private backup details, signing information or chat
 exports to make a handover look complete. Preparation, approval, local tests,
 CI, publication and phone tests are separate states.
+
+## Moved from OPEN-WORK by W16z (31 Oct 2026)
+
+### Done in W16x (29 October 2026)
+
+- W16q and W16s cleanup previews were never applied; both are **superseded/expired**. Reason: a cleanup preview token goes stale after a Pages deploy. No deletion is authorized by this note.
+- The controller cleanup path already prints an explicit `OK` result when cleanup is preview-only; owner-facing controller launcher text has no `a && b || c` compound fallback. Internal rehearsal/suite short-circuit commands are unchanged because they are not owner launchers.
+- Workflow comments and handbook references were corrected; the generated Truecaller row in `README.md` shows `heval99 (fallback: bufferk + paresh + binarymend)`. `readmegen.py --check` covers the generated row.
+- W16w ran and merged (#275, `2db6cde8`, 28 Oct). LinkedIn v1.2.0 with Material You published; the owner's phone test passed (Michii Patches shows in the Me panel). The 25 Oct and 28 Oct 18:29Z LinkedIn releases were deleted by the planned cleanup.
+- Store near-version picks are refused outside the same release line (`STORE_DOWNGRADE_REFUSED ... reason=near_version_gap`); Prime Video (3.0.470.1047 to 3.0.470) and Hotstar (26.06.22.3 to 26.06.08.2) still build and print `STORE_NEAR_VERSION`. Amazon Music asked for 2.36.1 and got APKMirror's 2.8.1 (a 2013 file); only the signer pin stopped it. It now stops at the store step.
+- PR #277 (7 switchable names: 3 Hushfacebook, 3 HushGram, oxbow Hide Meta AI) folded in; #277 closed by the packet.
+- ES File fallback rushiranpise (Unlock VIP Lifetime only, built alone) back (D15).
+- Onboarding checker: a malformed `overrides.extra_bundles` gives a named problem instead of a crash (test added).
+- Truecaller "shadow receipt not verified" (#186): absent from the W16w T1 logs; closed.
+- Cloud Shell cleanup (owner, 29 Oct): [record](CLOUDSHELL-CLEANUP-2026-10-29.md).

@@ -87,6 +87,7 @@ jobs:
     permissions:
       issues: write
       actions: read
+      checks: read
     uses: ./.github/workflows/notify-failure.yml
   cache-prune:
     name: Prune stale Actions caches

@@ -6,6 +6,8 @@ on:
 permissions:
   issues: write
   actions: read
+  # W16z (#280): failure annotations (the ::error:: lines) are read through the checks API.
+  checks: read
 jobs:
   open-issue:
     # Failures report into one standing issue per workflow; a success closes it.
@@ -184,6 +186,23 @@ jobs:
               });
               if (steps.length) for (const s of steps) lines.push(`- Step ${s.number}: ${label(s.name)} (${s.conclusion})`);
               else lines.push("- No failing step recorded; inspect startup/cancellation details.");
+              // W16z (#280: the issue said "No failing step" while the job record named step 27, and the
+              // reason, PUBLISH_REFUSED for an older app, stayed in the log): name up to three failure
+              // annotations. Advisory: an unreadable list is one line, never a missing report.
+              try {
+                // Review round 1: the check run id comes from the job's check_run_url (it equals job.id today).
+                const cr = typeof job.check_run_url === "string" ? /\/repos\/[^/]+\/[^/]+\/check-runs\/([0-9]+)$/.exec(job.check_run_url) : null;
+                const checkRun = cr ? Number(cr[1]) : job.id;
+                need(id(checkRun), "Invalid check run id");
+                const notes = (await github.rest.checks.listAnnotations({ owner: O, repo: R, check_run_id: checkRun, per_page: 50 })).data;
+                need(Array.isArray(notes), "Invalid annotations");
+                const reasons = notes.filter(a => a && a.annotation_level === "failure" && typeof a.message === "string" &&
+                  !/^Process completed with exit code [0-9]+\.?$/.test(a.message.trim())).slice(0, 3);
+                // GitHub turns bare URLs into links; a reason never carries one.
+                for (const a of reasons) lines.push(`- Reason: ${label(a.message.trim().split("\n")[0].replace(/\b(?:https?:\/\/|www\.)\S+/gi, "[url removed]"))}`);
+              } catch (e) {
+                lines.push("- Reason unavailable (annotations unreadable).");
+              }
               lines.push("");
             }
             lines.push("Logs stay in the linked run; none are copied here. A rerun is a different attempt.");

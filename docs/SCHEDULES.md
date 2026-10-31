@@ -6,8 +6,8 @@ Times are IST (UTC + 5:30). GitHub may start a scheduled run late, sometimes by 
 | IST | When | Automation | What it does |
 | --- | --- | --- | --- |
 | 05:53 | daily | 2. Check new patch (`ci.yml`) | Quick poll: builds only the apps whose providers changed. |
-| 07:11 | daily | 7. Nightly watch (`watch.yml`) | Nightly watch: one report on the repository and every provider. |
-| 07:41 | daily | 10. Selection watch (`selection-watch.yml`) | Selection watch: drops patch names providers stopped offering, lists new ones for you, digests provider releases. |
+| 07:11 | daily | 7. Nightly watch (`watch.yml`) | One report on the repository and every provider. |
+| 07:41 | daily | 10. Selection watch (`selection-watch.yml`) | Drops patch names providers stopped offering, lists new ones for you, digests provider releases. |
 | 08:23 | daily | Status page data (`status.yml`) | Writes status.json for the Pages Builds and Watch tabs. |
 | 08:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
 | 09:37 | daily | 11. Rule merge (`rule-merge.yml`) | Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green. |
@@ -16,8 +16,8 @@ Times are IST (UTC + 5:30). GitHub may start a scheduled run late, sometimes by 
 | 17:53 | daily | 2. Check new patch (`ci.yml`) | Full daily check: every provider, then builds the apps that changed. |
 | 20:47 | daily | Council (`council.yml`) | Agent council: one audit shard on the desk issue (Monday morning run: triage). |
 | 21:37 | daily | 11. Rule merge (`rule-merge.yml`) | Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green. |
-| 08:43 | Mondays | 8. Community watch (`community-watch.yml`) | Community watch: scans the community patch index for apps built here. |
+| 08:43 | Mondays | 8. Community watch (`community-watch.yml`) | Scans the community patch index for apps built here. |
 | 09:01 | Mondays | Retention preview (`retention.yml`) | Retention preview: reports shelf cleanup and applies only an owner-confirmed token. |
-| 12:07 | Mondays | 6. Provider watch (`agent-watch.yml`) | Provider watch: looks for new or changed patch releases. |
+| 12:07 | Mondays | 6. Provider watch (`agent-watch.yml`) | Looks for new or changed patch releases. |
 
 Everything else runs on request or after another run: Manual Patch, Batch Patch, Explore, Add target, Validate (every change), Status page data with Notify on failure inside it (a called Notify job handles failure issues), Onboarding review, Qualify published shadow baselines (after build runs on main). Branch smokes do not start Status or Notify (W16k).

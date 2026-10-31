@@ -107,9 +107,9 @@ This is the one home for the cleanup policy (owner rules, 9 Oct 2026). One tool 
 
 | Scope | Kept | Deleted |
 | --- | --- | --- |
-| Releases | Each app's two newest builds; any release whose tag is not an app build tag | Older builds of the same app |
+| Releases | Each app's three newest builds (plus its newest primary when all three are fallback builds); anything younger than 7 days; any release whose tag is not an app build tag | Older builds of the same app, once 7 days old |
 | Tags | Every tag that is not a build tag | Tags of deleted releases; build tags whose release is gone |
-| Pages deployment records | The newest 5 (the live site's record is the newest) | Older records: an id, a date and a commit, nothing the site needs |
+| Pages deployment records | The newest 3 (the live site's record is the newest) | Older records: an id, a date and a commit, nothing the site needs |
 | Branches | `main`, `status`, anything not under `packet/`, a packet branch with an open pull request or with commits not in main | A `packet/` branch whose head is already in main |
 
 Apply re-reads GitHub and refuses unless the token still matches, so nothing that appeared

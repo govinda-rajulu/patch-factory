@@ -3,7 +3,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),path=req
 const root=path.resolve(__dirname,'..'),source=fs.readFileSync(path.join(root,'docs/portal.js'),'utf8'),html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const marker='// Expose pure contracts only for tests';assert.equal(source.split(marker).length,2);
 const context={window:{},document:{getElementById:()=>null},URL,Map,Set,Date,JSON,console,setTimeout,clearTimeout,AbortController};
-vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,obtainiumRelease,obtainiumName,ago,isOld,headline,workflowKind,unresolved,reportIdentity,reportBinding,checkCompleteness,patchList,providerNames,bundleText,badgeLabels};})();',context);
+vm.runInNewContext(source.slice(0,source.indexOf(marker))+'window.contracts={freshnessText,parseTag,validateImport,validateMicroG,validateObtainium,microgConfig,microgRelease,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,microgLatest,microgName,obtainiumRelease,obtainiumName,ago,isOld,headline,workflowKind,unresolved,reportIdentity,reportBinding,checkCompleteness,patchList,providerNames,bundleText,badgeLabels};})();',context);
 const c=context.window.contracts,targets=JSON.parse(fs.readFileSync(path.join(root,'src/targets.json'))),pack=JSON.parse(fs.readFileSync(path.join(root,'docs/obtainium.json')));
 const ENABLED=targets.filter(t=>t.enabled===true).length; // W4: counts follow src/targets.json
 let count=0;function check(name,fn){fn();count++;console.log('PASS '+name)}
@@ -106,9 +106,9 @@ check('unified selection permits upstream without changing fourteen build target
 });
 check('release summaries keep same-version rebuild and unknown history distinct',()=>{
  const top={tag:{version:'1.0'},rel:{body:'Legacy notes'}};
- assert.match(c.changeSummary(top,{tag:{version:'1.0'}})[0],/App version: 1.0 -> 1.0/);
+ assert.match(c.changeSummary(top,{tag:{version:'1.0'}})[0],/App version: 1\.0 \(same version, rebuilt\)\./);
  assert.match(c.changeSummary(top,{tag:{version:'0.9'}})[0],/App version: 0.9 -> 1.0/);
- assert.match(c.changeSummary(top,null)[0],/App version: unknown -> 1.0/);
+ assert.match(c.changeSummary(top,null)[0],/App version: 1\.0 \(first release on this shelf\)\./);
  top.rel.body='## Changes\n- App version: 1.0 -> 1.0.\n- Patches added: A.\n\n## This download\nnot a change\n<!-- PF_RELEASE_V1 AAAA -->';
  assert.equal(c.changeSummary(top,null).length,2);
  assert.equal(c.changeSummary(top,null)[1],'Patches added: A.');
@@ -215,8 +215,10 @@ check('watch panel reports cannot silently truncate at producer capacity',()=>{
 });
 check('brand tiles are local, provenance-recorded target logos and the monogram stays the fallback',()=>{
  const m=source.match(/const LOGOS=new Set\((\[[^\]]*\])\);/);assert.ok(m,'LOGOS set');const ids=JSON.parse(m[1].replace(/'/g,'"'));assert.ok(ids.length>0);
- const known=new Set(targets.filter(t=>t.enabled).map(t=>t.id)),notice=fs.readFileSync(path.join(root,'docs/assets/NOTICE.txt'),'utf8'),prov=fs.readFileSync(path.join(root,'docs/review/ICON-PROVENANCE.md'),'utf8');
- const off=new Set(targets.filter(t=>!t.enabled).map(t=>t.id+'.png')),files=fs.readdirSync(path.join(root,'docs/assets/logos')).filter(f=>!off.has(f)).sort();assert.deepEqual(files,ids.map(i=>i+'.png').sort());// W5: a disabled app keeps its logo file, off the page
+ // W16z (owner, 31 Oct 2026): a disabled app's card is "Coming soon" and shows its tile too, so every
+ // target with a logo file is in LOGOS (W5 kept disabled tiles off the page).
+ const known=new Set(targets.map(t=>t.id)),notice=fs.readFileSync(path.join(root,'docs/assets/NOTICE.txt'),'utf8'),prov=fs.readFileSync(path.join(root,'docs/review/ICON-PROVENANCE.md'),'utf8');
+ const files=fs.readdirSync(path.join(root,'docs/assets/logos')).sort();assert.deepEqual(files,ids.map(i=>i+'.png').sort());
  for(const id of ids){assert.ok(known.has(id),id);const b=fs.readFileSync(path.join(root,'docs/assets/logos',id+'.png'));assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a');assert.ok(b.length<65536,id);assert.ok(notice.includes('logos/'+id+'.png'),id);assert.ok(prov.includes('`'+id+'`'),id);}
  assert.ok(source.includes(":'assets/logos/'+id+'.png'"));assert.ok(source.includes("monogram.classList.remove('has-logo')"));assert.ok(!/logo\.src=['"]https?:/.test(source));assert.ok(!/<img[^>]+src="https?:/i.test(html));
 });
@@ -251,8 +253,43 @@ check('app cards disclose a short patch preview and a native full list',()=>{
  assert.deepEqual(c.patchList(record),names);
  assert.equal(c.patchList({}),null);assert.equal(c.patchList(null),null);
  assert.ok(html.includes('<details')&&html.includes('patch-details'));
- assert.ok(source.includes("summary=el('summary','Show the '+patches.length+' patch names')"));
- assert.ok(!source.includes("patches.slice(0,6)")&&source.includes("p.append(document.createTextNode(String(patches.length)))"));
+ // W16z (owner, 31 Oct 2026): one fold labelled "N patches", no separate count line.
+ assert.ok(source.includes("const count=patches.length+' '+(patches.length===1?'patch':'patches');")&&source.includes("all.append(el('summary',count),list)"));
+ assert.ok(!source.includes("patches.slice(0,6)")&&!source.includes('patch names')&&!source.includes('String(patches.length)'));
+});
+check('W16z: one freshness row; the advisory limit only near or over it',()=>{
+ const b='Oct 30, 12:06 AM (32 h ago)';
+ assert.equal(c.freshnessText(1,180,b,'').text,'bundle 1 day old · last built '+b);
+ assert.equal(c.freshnessText(0,180,b,'').text,'bundle 0 days old · last built '+b);
+ for(const a of [1,165])assert.equal(c.freshnessText(a,180,b,'').warn,null);
+ for(const a of [166,180])assert.ok(c.freshnessText(a,180,b,'').warn.includes('within 14 days of the 180-day'));
+ assert.ok(c.freshnessText(181,180,b,'').warn.includes('over the 180-day advisory limit'));
+ assert.ok(c.freshnessText(3,180,b,'patch bundle 200 days old (limit 180)').warn.includes('over the'));
+ for(const a of [null,-1,1.5,'7'])assert.equal(c.freshnessText(a,180,b,'').text,'patch age unavailable · last built '+b);
+ assert.equal(c.freshnessText(2,180,'','').text,'bundle 2 days old · last built time unknown');
+ assert.ok(!source.includes("'Patch age: '")&&!source.includes("field(article,'Last built'")&&!source.includes("days / '+limit"));
+ const fr=source.slice(source.indexOf('function freshnessText('),source.indexOf('function patchField('));assert.ok(fr.length>100&&!fr.includes('\u2014'));
+});
+check('W16z: CCleaner has its icon and a Coming soon card without a release line',()=>{
+ assert.ok(/const LOGOS=new Set\(\[[^\]]*'ccleaner'/.test(source));
+ assert.ok(fs.existsSync(path.join(root,'docs/assets/logos/ccleaner.png')));
+ assert.ok(source.includes("heading.append(el('span','Coming soon','badge'));article.append(el('p','Not eligible for new builds yet.','meta'))"));
+ assert.ok(!source.includes("el('span','Disabled','badge')")&&!source.includes('Existing release history is available on GitHub.'));
+ const cc=targets.find(t=>t.id==='ccleaner');assert.ok(cc&&cc.enabled===false&&cc.poll===false);
+});
+check('W16z (#154 triage): upstream links are exact and run links are anchored',()=>{
+ for(const u of ['https://github.com/MorpheApp/MicroG-RE/releases/tag/v1','https://github.com/MorpheApp/MicroG-RE/releases/../../other','https://github.com/ImranR98/Obtainium/releases?x=1','https://github.com/ImranR98/Obtainium'])assert.equal(c.safeLink(u,'upstream'),null,u);
+ const run='https://github.com/govinda-rajulu/patch-factory/actions/runs/';
+ assert.equal(c.safeLink(run+'123','run'),run+'123');assert.equal(c.safeLink(run+'123/job/456','run'),run+'123/job/456');
+ for(const u of [run+'123/x',run+'123/job/456/x',run+'12a',run,'https://github.com/govinda-rajulu/patch-factory-evil/actions/runs/1','https://github.com/other/patch-factory/actions/runs/1'])assert.equal(c.safeLink(u,'run'),null,u);
+ for(const u of ['https://github.com/other/repo/releases/download/x/y.apk','https://github.com/govinda-rajulu/patch-factory/releases/tag/x'])assert.equal(c.safeLink(u,'download'),null,u);
+});
+check('W16z: one Open Needs you link on the Watch tab, with the reply words, read-only',()=>{
+ assert.ok(source.includes("const NEEDS_YOU=WEB+'/issues/233';"));
+ assert.equal(source.split("link('Open Needs you',NEEDS_YOU)").length-1,1);
+ assert.equal(c.safeLink('https://github.com/govinda-rajulu/patch-factory/issues/233'),'https://github.com/govinda-rajulu/patch-factory/issues/233');
+ for(const w of ['yes all','take G2','take N-xxxxxx','drop N-xxxxxx','hold N-xxxxxx'])assert.ok(source.includes(w),w);
+ for(const bad of ['?body=','/dispatches','localStorage','innerHTML'])assert.ok(!source.includes(bad),bad);
 });
 check('multi-bundle cards put the configured primary first and do not invent extra versions',()=>{
  const target={candidates:[{name:'piko'},{name:'hushgram',fallback:true}],extra_bundles:[{name:'brosssh'}]};

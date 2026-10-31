@@ -1,0 +1,31 @@
+name: Repo setup
+# W16z (owner, 31 Oct 2026): labels and one-time feature requests live in the repository and reach
+# GitHub on their own. Runs only when one of the two files changes on main. Creates or updates;
+# never deletes a label or edits an issue it did not file.
+permissions: {}
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/labels.json
+      - .github/seed-issues.json
+jobs:
+  setup:
+    name: Labels and filed requests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    concurrency:
+      group: repo-setup
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Apply labels and file requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: python3 src/etc/repo_setup.py

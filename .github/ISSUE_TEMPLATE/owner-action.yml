@@ -1,0 +1,29 @@
+name: Owner action
+description: A step or decision only the owner can take (not a watcher choice; those go to Needs you).
+title: "Owner action: "
+labels: ["owner-action"]
+body:
+  - type: textarea
+    id: action
+    attributes:
+      label: What to do
+      description: One sentence, then the exact steps.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it is needed
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: The evidence that closes this (a run, a release, a phone check).
+    validations:
+      required: true
+  - type: input
+    id: links
+    attributes:
+      label: Related issue, pull request or run

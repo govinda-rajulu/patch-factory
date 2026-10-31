@@ -72,6 +72,42 @@ printf '%s\n' "${urls[@]}"
         self.assertTrue(all('/download/' not in u and 'key=' not in u and
                             not u.endswith(('.apk', '.apkm')) for u in urls))
 
+    def pin_only(self, code, release_html):
+        """Run the build's get_apk pin-only branch on a captured release page (no network)."""
+        import subprocess, tempfile
+        with tempfile.TemporaryDirectory() as d:
+            page = Path(d) / 'release.html'
+            page.write_text(release_html)
+            probe = Path(d) / 'probe.sh'
+            probe.write_text(r'''#!/bin/bash
+set -u
+export PF_PIN_FETCH_SOURCE_ONLY=1 PF_TMP_DIR="$1" PF_PIN_CHECK_ONLY=1 PF_PIN_CODE="$2" PF_SDK_CEILING=30
+PAGE="$3"
+source src/etc/pin_fetch.sh
+_cf_get() {
+  if [[ "$1" == *uploads* ]]; then
+    html='<h5 class="appRowTitle"><a class="fontBlack" href="/apk/facebook-2/facebook/facebook-584-0-0-51-56-release/">Facebook 584.0.0.51.56</a></h5>'
+  else
+    html=$(cat "$PAGE")
+  fi
+}
+export version=584.0.0.51.56 lock_version=0 prefer_version=""
+get_apk com.facebook.katana facebook bundle arm64-v8a 480dpi
+''')
+            probe.chmod(0o755)
+            return subprocess.run([str(probe), d, code, str(page)], cwd=ROOT, text=True,
+                                  stdout=subprocess.PIPE, stderr=subprocess.STDOUT).returncode
+
+    def test_real_apkmirror_rows_carry_a_bare_code(self):
+        # W16z (wrong call 122): run 41158386985 printed PIN_STORE_MISSING for Facebook, Facebook
+        # De-Vanced and Instagram while the captured pages listed all three pins. APKMirror prints
+        # the code as a bare number; the old fixtures had a "versionCode" label real pages lack.
+        real = (ROOT / 'tests/fixtures/apkmirror-facebook-584-rows.html').read_text()
+        self.assertNotRegex(real.split('-->', 1)[1], r'(?i)version[ _-]?code')
+        self.assertEqual(self.pin_only('475817393', real), 0)
+        self.assertEqual(self.pin_only('475817392', real), 2)
+        self.assertEqual(self.pin_only('47581739', real), 2)
+
     def test_code_and_max_version_missing_are_distinct(self):
         self.assertEqual(self.check('<div>Version 1.2.3 versionCode 9</div>')['reason'], 'version_code_not_listed')
         t = dict(TARGET, version_code=None)

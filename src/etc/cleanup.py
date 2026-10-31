@@ -5,13 +5,16 @@
     python3 src/etc/cleanup.py apply --token TOKEN [--receipt FILE]
 
 What goes (owner rules, 9 Oct 2026):
-  * releases: grouped by app (the tag before "-v<version>"); per app the newest by
-    publication time stays (owner, 22 Oct 2026: one per app; it was two) and every older one goes, whatever its layout, author or marker.
+  * releases: grouped by app (the tag before "-v<version>"); per app the newest KEEP (3) by
+    publication time stay (owner, 30 Oct 2026; it was one from 22 Oct, two before), plus the newest
+    readable primary when all kept ones are fallback builds. An older one goes only when it is at least
+    MIN_RELEASE_AGE_DAYS (7) days old, whatever its layout, author or marker (W16z: prose matched to the code).
     A release whose app prefix is no target's tag_prefix in src/targets.json belongs to a
-    retired app and goes too (owner, 9 Oct 2026: one Truecaller, the tc-combo build);
+    retired app: its older eligible releases go too, past the same three kept and the age guard
+    (owner, 9 Oct 2026: one Truecaller, the tc-combo build);
   * the tags of those releases, and any build tag (PREFIX-vVERSION-bDIGITS) whose release
     is already gone. Any other tag stays;
-  * Pages deployment records (environment github-pages): the newest 5 stay, older ones go.
+  * Pages deployment records (environment github-pages): the newest KEEP_DEPLOYMENTS (3) stay, older ones go.
     They hold only an id, a date and a commit; the site itself is rebuilt from the branch.
     GitHub deletes only inactive records, so apply first posts an `inactive` status
     (W10: the W9 apply stopped on HTTP 422 without it);

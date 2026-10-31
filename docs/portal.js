@@ -3,6 +3,7 @@
 'use strict';
 const REPO='govinda-rajulu/patch-factory';
 const WEB='https://github.com/'+REPO;
+const NEEDS_YOU=WEB+'/issues/233';  // W16z: the standing Needs you issue (owner replies there)
 const API='https://api.github.com/repos/'+REPO+'/';
 const RAW='https://raw.githubusercontent.com/'+REPO+'/main/';
 const MICROG_WEB='https://github.com/MorpheApp/MicroG-RE';
@@ -19,7 +20,7 @@ let appQuery='',appCategory='all',appType='all',appAge='all',appSort='name';
 let microgChannel='stable',microgArch='universal',microgIcon='icon';
 // Local identification tiles are optional; provenance links live in docs/review/ICON-PROVENANCE.md.
 // A missing or withdrawn mark falls back to the monogram. No runtime third-party hotlinks.
-const LOGOS=new Set(['adguard','amazonmusic','edge','esfile','facebook','hotstar','instagram','keymapper','linkedin','mxplayer','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
+const LOGOS=new Set(['adguard','amazonmusic','ccleaner','edge','esfile','facebook','hotstar','instagram','keymapper','linkedin','mxplayer','photos','primevideo','reddit','telegram','truecaller-combo','youtube','ytmusic']);
 const GROUPS=[
  ['media','Watch & listen',['youtube','ytmusic','primevideo','hotstar','mxplayer','amazonmusic']],
  ['social','Social & communities',['instagram','facebook','reddit','telegram','linkedin']],
@@ -27,7 +28,7 @@ const GROUPS=[
 ];
 // W16k (owner, 25 Oct 2026: "so it doesn't look like a treasure hunt"): the two upstream companions
 // open the shelf in their own group, Obtainium then MicroG RE, before the app categories.
-const START=['start','Start here: Obtainium, then MicroG RE',['obtainium','microg']];
+const START=['start','Start here: Obtainium + MicroG RE',['obtainium','microg']];
 function appGroup(id){
  if(id==='microg'||id==='obtainium')return START;
  return GROUPS.find(g=>g[2].includes(id))||['other','More apps',[]];
@@ -497,8 +498,9 @@ function markdown(body,budget){
 function changeSummary(top,previous){
  const body=noteText(top.rel.body),section=/^## Changes[ \t]*\n([\s\S]*?)(?=^## |$(?![\s\S]))/m.exec(body);
  if(section){const rows=section[1].split('\n').filter(x=>x.startsWith('- ')).slice(0,4);if(rows.length)return rows.map(x=>readable(x.slice(2)));}
- if(previous)return [previous.tag.version===top.tag.version?'App version: '+top.tag.version+' -> '+top.tag.version+'.':'App version: '+previous.tag.version+' -> '+top.tag.version+'.'];
- return ['App version: unknown -> '+top.tag.version+'.'];
+ // W16z UI pass: a rebuild of the same version says so instead of "1.0 -> 1.0".
+ if(previous)return [previous.tag.version===top.tag.version?'App version: '+top.tag.version+' (same version, rebuilt).':'App version: '+previous.tag.version+' -> '+top.tag.version+'.'];
+ return ['App version: '+top.tag.version+' (first release on this shelf).'];
 }
 // W16k (owner, 25 Oct): the fold must hold something real: what changed, the notes, older APKs.
 function olderFold(article,rows){
@@ -518,28 +520,37 @@ function patchText(record){
  if(!patches)return 'Not recorded';
  return patches.length?patches.join(', '):'none';
 }
-function patchAgeField(article,target,statusRow,top){
+// W16z (owner, 31 Oct 2026): one freshness row instead of "Patch age" plus "Last built"; the
+// advisory limit shows only near or over it (within 14 days, or past it). Build gates still decide.
+function freshnessText(age,limit,built,warning){
+ const when=typeof built==='string'&&built?built:'time unknown';
+ if(!Number.isInteger(age)||age<0)return {text:'patch age unavailable · last built '+when,warn:null,bundle:'patch age unavailable',built:'last built '+when};
+ const bundle='bundle '+age+' '+(age===1?'day':'days')+' old',text=bundle+' · last built '+when;
+ const over=age>limit||(typeof warning==='string'&&warning!=='');
+ if(over)return {text,bundle,built:'last built '+when,warn:'WARNING: over the '+limit+'-day advisory limit. Build gates still decide.'};
+ if(age>=Math.max(1,limit-14))return {text,bundle,built:'last built '+when,warn:'WARNING: within 14 days of the '+limit+'-day advisory limit.'};
+ return {text,bundle,built:'last built '+when,warn:null};
+}
+function freshnessField(article,target,statusRow,top,built){
  const limit=statusRow&&Number.isInteger(statusRow.max_patch_age_days)?statusRow.max_patch_age_days:
    (target&&Number.isInteger(target.max_patch_age_days)?target.max_patch_age_days:180);
  const age=statusRow&&Number.isInteger(statusRow.patch_age_days)?statusRow.patch_age_days:
    (top&&Number.isFinite(Date.parse(top.rel&&top.rel.published_at))?
     Math.max(0,Math.floor((Date.now()-Date.parse(top.rel.published_at))/86400000)):null);
- const p=el('p',undefined,'card-field patch-age-field');p.append(el('strong','Patch age: '));
- if(age===null){p.append(document.createTextNode('unknown (timestamp or status unavailable)'));article.append(p);return;}
- p.append(document.createTextNode(age+' days / '+limit+'-day limit'));
- const warning=statusRow&&typeof statusRow.patch_age_warning==='string'&&statusRow.patch_age_warning?
-   statusRow.patch_age_warning:(age>limit?'patch bundle '+age+' days old (limit '+limit+')':null);
- if(warning){p.append(document.createTextNode(' — WARNING (advisory; build gates still decide)'));p.className+=' warning';}
+ const f=freshnessText(age,limit,built,statusRow&&typeof statusRow.patch_age_warning==='string'?statusRow.patch_age_warning:'');
+ // W16z UI pass: the row breaks at the separator, never inside "last built ...".
+ const p=el('p',undefined,'card-field freshness-field');p.append(el('strong','Freshness: '));p.append(el('span',f.bundle+' ·','keep-line'),document.createTextNode(' '),el('span',f.built,'keep-line'));
+ if(f.warn){p.append(el('span',f.warn,'freshness-warning'));p.className+=' warning';}
  article.append(p);
 }
 function patchField(article,record){
- const patches=patchList(record),p=el('p',undefined,'card-field patch-field');p.append(el('strong','Patches: '));
- if(!patches){p.append(document.createTextNode('Not recorded'));article.append(p);return;}
- // W16f (owner, 24 Oct): the total only; the names live in the dropdown below.
- p.append(document.createTextNode(String(patches.length)));article.append(p);
- if(!patches.length)return;
- const all=el('details',undefined,'patch-details'),summary=el('summary','Show the '+patches.length+' patch names'),list=el('ul');
- for(const name of patches)list.append(el('li',name));all.append(summary,list);article.append(all);
+ const patches=patchList(record);
+ if(!patches){field(article,'Patches','Not recorded');return;}
+ // W16z (owner, 31 Oct 2026): one fold, "21 patches"; opening it lists the names.
+ const count=patches.length+' '+(patches.length===1?'patch':'patches');
+ if(!patches.length){article.append(el('p',count,'card-field patch-field'));return;}
+ const all=el('details',undefined,'patch-details'),list=el('ul');
+ for(const name of patches)list.append(el('li',name));all.append(el('summary',count),list);article.append(all);
 }
 function configuredProviders(target){
  const primary=(target&&Array.isArray(target.candidates)?target.candidates:[]).find(x=>x&&x.fallback!==true)
@@ -587,18 +598,19 @@ async function appsPanel(root){
  if(releaseResult.error)root.append(el('p','Patched releases unavailable: '+releaseResult.error.message+' Catalog and upstream companion remain usable.','notice'));
  if(rejected)root.append(el('p',rejected+' ambiguous or incomplete APK releases withheld; inspect All releases.','notice'));
  for(const t of ts){const article=el('article');article.dataset.target=t.id;article.dataset.type='patched';const heading=el('div',undefined,'app-title');heading.append(el('h3',t.label||t.id));article.append(heading);
- if(!t.enabled){heading.append(el('span','Disabled','badge'));article.append(el('p','Not eligible for new builds. Existing release history is available on GitHub.','meta'));root.append(article);continue;}
+ // W16z (owner, 31 Oct 2026): a disabled app is "Coming soon"; no release-history line (CCleaner never published one).
+ if(!t.enabled){heading.append(el('span','Coming soon','badge'));article.append(el('p','Not eligible for new builds yet.','meta'));root.append(article);continue;}
  const rows=map.get(t.tag_prefix||t.id)||[];
  if(!rows.length){article.append(el('p',releaseResult.error?'Release availability unknown.':'No matching published APK in the complete release inventory.','meta'));root.append(article);continue;}
  const top=rows[0],record=releaseRecord(top.rel.body),statusRow=statusApps.find(a=>a&&a.id===t.id);
  article.dataset.published=top.rel.published_at;
  for(const label of badgeLabels(top,record,statusRow))heading.append(el('span',label,label==='Fallback'||label.startsWith('FALLBACK BUILD:')?'badge fallback':'badge'));
  article.append(el('p',top.tag.version,'app-version'));
- patchAgeField(article,t,statusRow,top);
+ const built=record&&typeof record.built==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\dZ$/.test(record.built)?stamp(record.built):buildMeta(top).replace('Last built ','');
+ freshnessField(article,t,statusRow,top,built);
  patchField(article,record);
  field(article,'Provider',record?providerNames(record,t).join(' + '):'Not recorded');
  field(article,'Bundle',record?bundleText(record,t):'Not recorded');
- field(article,'Last built',record&&typeof record.built==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\dZ$/.test(record.built)?stamp(record.built):buildMeta(top).replace('Last built ',''));
  const actions=el('div',undefined,'actions');actions.append(link('Install APK',top.asset.browser_download_url,'download'));article.append(actions);
  olderFold(article,rows);
  root.append(article);
@@ -775,6 +787,10 @@ async function watchPanel(root){
   capped(box,rows,w=>{const r=statusRow(w.name,w.purpose,w.last,w.url);const hit=WATCH.find(x=>x[1]===w.name);if(hit)savedReport(r,hit[0],hit[2]);return r;},label==='Watchers'?8:6,'more automations',w=>unresolved(w.last));
   root.append(box);
  }
+ // W16z (owner, 31 Oct 2026): one link to the standing Needs you issue with the reply words. The
+ // decision itself is the owner's comment on GitHub; this page never writes.
+ {const box=el('section',undefined,'status-group needs-you');box.append(el('h3','Needs you'));const p=el('p');p.append(link('Open Needs you',NEEDS_YOU));box.append(p);
+  const words=el('p','Reply on GitHub with a comment: ','meta');['yes all','take G2','take N-xxxxxx','drop N-xxxxxx','hold N-xxxxxx'].forEach((w,i)=>{if(i)words.append(document.createTextNode(i===4?' or ':', '));words.append(el('code',w));});box.append(words);root.append(box);}
  if(Array.isArray(d.issues)&&d.issues.length){const box=el('section',undefined,'status-group');box.append(el('h3','Open failure issues'));for(const i of d.issues.slice(0,8)){const p=el('p');p.append(runLink(i.title,i.url));box.append(p);}root.append(box);}
  return 'Watch: '+d.workflows.length+' automations.';
 }
@@ -854,7 +870,7 @@ function filterApps(){
  $('appCount').textContent=shown+' app'+(shown===1?'':'s');
 }
 // Expose pure contracts only for tests; no credentials, write endpoints or remote-script execution.
-window.PFPortal={parseTag,validateImport,validateMicroG,validateObtainium,obtainiumRelease,obtainiumName,microgConfig,microgRelease,microgLatest,microgName,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,reportIdentity,reportBinding,checkCompleteness,patchList,providerNames,bundleText,badgeLabels};
+window.PFPortal={freshnessText,parseTag,validateImport,validateMicroG,validateObtainium,obtainiumRelease,obtainiumName,microgConfig,microgRelease,microgLatest,microgName,validateTargets,releaseRows,safeLink,selectApps,appGroup,plain,noteText,changeSummary,reportIdentity,reportBinding,checkCompleteness,patchList,providerNames,bundleText,badgeLabels};
 const tools=el('div',undefined,'catalog-tools');tools.id='appTools';
 const search=el('input');search.id='appSearch';search.type='search';search.placeholder='Find an app';search.setAttribute('aria-label','Search apps');
 search.addEventListener('input',()=>{appQuery=search.value.trim().toLowerCase();filterApps();});
