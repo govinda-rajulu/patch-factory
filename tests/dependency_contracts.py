@@ -376,6 +376,10 @@ class DependencyContracts(unittest.TestCase):
             fixtures.identity.capture_inputs(sf.r,"keymapper","lain",env)
         sf.f.env.update(env);sf.env=env;sf.captured=json.loads((sf.r/".build-inputs.json").read_text())
         sf.f.verify_fixture()
+        # W15g: the rebuilt fixture is signed again, so the published asset carries the new bytes.
+        report=json.loads((sf.r/"build-evidence/keymapper.json").read_text())
+        api.rows[0].update(name=Path(report["output"]["path"]).name,size=report["output"]["bytes"],
+                           digest="sha256:"+report["output"]["sha256"])
         receipt=sf.publish(api)
         def upload(path,tag):
             api.upload(path,tag);api.rows[-1]["id"]=1001

@@ -1,5 +1,7 @@
 # W15g: signing split implementation map (patch-factory)
 
+> **Superseded, 31 Oct 2026:** W15g implemented the split; this map is the pre-build plan and its line anchors and some instructions (for example the all-v1/v2/v3 signing recipe and keeping `capture_signer`) are out of date. Current design and what was built: [HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md) and [SIGNING-SPLIT.md](SIGNING-SPLIT.md).
+
 **Checkout:** main `97abdc7c` (W16u merge #267, 27 Oct 2026), read-only. This is an implementation map, not a patch. Line numbers below are current checkout anchors; they will move when the split is implemented.
 
 ## Decision and upstream gate

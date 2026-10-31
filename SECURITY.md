@@ -30,8 +30,10 @@ owner" would be false. Protect the runner, workflow code, dependencies, logs and
 secret configuration accordingly. GitHub secrets are not a retrievable backup.
 See [RECOVERY](RECOVERY.md) for a separate, nonpublishing restore process.
 
-Read-only diagnostics must not inherit signing credentials. APK build jobs have
-signing access, and publication/qualification jobs require write permissions.
+Read-only diagnostics must not inherit signing credentials. Since W15g the build's
+Patch job (third-party patch code) has no signing secret and read-only permissions; only
+the Sign job's decode and sign steps hold the release key, and only the Publish job holds
+write permission. Publication/qualification jobs require write permissions.
 Review permissions and consumers per workflow; a top-level declaration alone
 does not prove least privilege or complete isolation. Required-check and bypass
 settings must be inspected separately from repository source.

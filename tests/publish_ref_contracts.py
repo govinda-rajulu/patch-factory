@@ -11,9 +11,14 @@ class PublishRef(unittest.TestCase):
         guard = text[text.index('- name: Refuse publishing from a non-main ref'):]
         self.assertIn("if: inputs.publish && github.ref != 'refs/heads/main'", guard)
         self.assertIn('use publish=false for a branch smoke', guard)
-        self.assertLess(text.index('Refuse publishing from a non-main ref'), text.index('Decode keystore'))
-        self.assertIn("inputs.publish && github.ref == 'refs/heads/main'", text)
-        self.assertIn("if: steps.check-gh.outputs.internet_error == '0' && inputs.publish && github.ref == 'refs/heads/main'", text)
+        guard_at = text.index('Refuse publishing from a non-main ref')
+        self.assertLess(guard_at, text.index('Decode keystore'))
+        self.assertLess(guard_at, text.index('- name: Releasing APK files'))
+        publish = text.split('\n  publish:\n', 1)[1]
+        self.assertIn("if: inputs.publish && github.ref == 'refs/heads/main'", publish)
+        self.assertLess(publish.index("if: inputs.publish && github.ref == 'refs/heads/main'"),
+                        publish.index('- name: Releasing APK files'))
+        self.assertIn("if: inputs.publish && github.ref == 'refs/heads/main' && needs.patch.outputs.internet_error == '0'", publish)
 
     def test_batch_refuses_publish_before_reusable_build(self):
         text = (ROOT / '.github/workflows/batch-patch.yml').read_text()

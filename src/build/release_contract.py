@@ -11,7 +11,7 @@ import pathlib
 import re
 import sys
 import uuid
-from artifact_identity import SCHEMA, command, expected_package, record, require, target
+from artifact_identity import SCHEMA, command, expected_package, pinned_certificate, record, require, run_binding, target
 from build_identity import parse as parse_build_suffix, verify_run
 import input_recipe
 import release_notes
@@ -43,10 +43,23 @@ def verify(root, ident):
     require(captured['source_commit'] == head and captured['target'] == ident,
             'release evidence is from a different source commit/target')
     input_recipe.verify(root, ident, captured['winner'], captured['local_input_recipe'])
+    # W15g: only an APK the Sign job signed and checked against the unsigned patch output.
+    require(d.get('signing_split') is True and isinstance(d.get('signing'), dict) and isinstance(d.get('unsigned_output'), dict),
+            'legacy or unsigned identity report; only a Sign job report can be released')
+    signing = d['signing']
+    require(signing.get('binding') == run_binding(os.environ) == d['unsigned']['binding'],
+            'signing evidence is from another workflow run or attempt')
+    require(type(signing.get('entries_compared')) is int and signing['entries_compared'] > 0
+            and isinstance(signing.get('schemes'), dict) and signing['schemes'].get('v2') is True
+            and signing['schemes'].get('v4') is False, 'incomplete signing evidence')
+    unsigned = d['unsigned_output']
+    require(re.fullmatch('[0-9a-f]{64}', unsigned.get('sha256', '')) and unsigned['sha256'] != d['output']['sha256'],
+            'unsigned/signed hand-off evidence missing')
     sig = d['signature']
     cert = sig['certificate_sha256']
     require(re.fullmatch('[0-9a-f]{64}', cert) and sig['cryptographic_verification'] == 'passed'
-            and cert == captured['expected_certificate_sha256'], 'release signer evidence mismatch')
+            and cert == captured['expected_certificate_sha256'] == signing.get('pin') == pinned_certificate(root),
+            'release signer evidence mismatch')
     require(d['manifest']['package'] == captured['expected_package'] == expected_package(root, t),
             'release package evidence mismatch')
     require(0 < d['manifest']['min_sdk'] <= t['min_sdk_ceiling'], 'release SDK evidence mismatch')

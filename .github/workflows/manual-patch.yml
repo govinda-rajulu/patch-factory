@@ -1,7 +1,10 @@
 name: 1. Manual Patch
 run-name: Manual ${{ inputs.target }}${{ inputs.provider && format(' / {0}', inputs.provider) || '' }} / publish=${{ inputs.publish }}${{ inputs.keep_going && ' / keep-going' || '' }}${{ inputs.scan && ' / scan' || '' }}
+# W15g (signing split): three jobs. Patch runs provider code with no key and no write token;
+# Sign alone holds the release key and runs only this repository's code; Publish holds the
+# write token and no key. Each job states its own permissions.
 permissions:
-  contents: write
+  contents: read
 on:
   workflow_dispatch:
     inputs:
@@ -84,6 +87,13 @@ jobs:
       group: patch-${{ inputs.target }}
       cancel-in-progress: false
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      built_at: ${{ steps.stamp.outputs.built_at }}
+      internet_error: ${{ steps.check-gh.outputs.internet_error }}
+      resolved_ready: ${{ steps.resolved_verify.outcome == 'success' && steps.patch.outputs.fallback != 'true' }}
+      source_ready: ${{ steps.source_verify.outcome == 'success' && steps.patch.outputs.fallback != 'true' }}
     # W16x: observed batch max 5.7 min and smoke max 6.5 min per attempt; a build tries up to
     # three providers, so 60 min stops only a runaway job (the default is 360).
     timeout-minutes: 60
@@ -103,8 +113,12 @@ jobs:
         with:
           persist-credentials: false
       - name: Record the build time
-        # W16k: one stamp per job, so every step (release notes, status) names the same minute.
-        run: echo "PF_BUILT_AT=$(date -u +%Y-%m-%dT%H:%MZ)" >> "$GITHUB_ENV"
+        id: stamp
+        # W16k: one stamp per build; W15g hands it to Sign and Publish, so every step names the same minute.
+        run: |
+          STAMP=$(date -u +%Y-%m-%dT%H:%MZ)
+          echo "PF_BUILT_AT=$STAMP" >> "$GITHUB_ENV"
+          echo "built_at=$STAMP" >> "$GITHUB_OUTPUT"
       - name: Refuse publishing from a non-main ref
         if: inputs.publish && github.ref != 'refs/heads/main'
         run: |
@@ -135,6 +149,7 @@ jobs:
         with:
           name: resolved-inputs-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: resolved-inputs/
+          digest-mismatch: error
       - name: Verify dependency packet before signing secrets
         id: resolved_verify
         if: inputs.resolved_requested && steps.resolved_download.outcome == 'success'
@@ -165,14 +180,6 @@ jobs:
       - name: Report missing prepared APK explicitly
         if: inputs.resolved_requested && steps.source_verify.outcome != 'success'
         run: echo "::warning::Prepared APK unavailable or invalid. Legacy store fetch remains active; full shadow comparison is UNKNOWN."
-      - name: Decode keystore
-        env:
-          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
-        run: |
-          printf '%s' "$KEYSTORE_B64" | base64 -d > src/ks.keystore
-          SZ=$(wc -c < src/ks.keystore)
-          echo "keystore bytes: $SZ"
-          [ "$SZ" -gt 3000 ] || { echo "::error::keystore truncated - KEYSTORE_B64 secret is incomplete"; exit 1; }
       - name: Cache the patcher jar
         if: steps.resolved_verify.outcome != 'success'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -202,18 +209,14 @@ jobs:
           PF_SOURCE_READY: ${{ steps.source_verify.outcome == 'success' }}
           # W16g: only this build step starts the store helpers, on demand (build_attempts.py, utils.sh).
           PF_STORE_LAZY: '1'
-          # Signing credentials only where the keystore is read (build.sh signs,
-          # artifact_identity.py exports the public certificate). Not job-wide.
-          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
-          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+          # W15g: the patcher writes an unsigned APK; this job has no key (the Sign job signs).
+          PF_UNSIGNED: 'true'
         # W13: build.sh once; after a failure, the next provider with its own pins (build_attempts.py).
         run: python3 src/build/build_attempts.py "$TARGET"
-      - name: Verify finished APK identity
+      - name: Verify unsigned APK identity
         env:
           TARGET: ${{ inputs.target }}
-          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
-          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
-        run: python3 src/build/artifact_identity.py verify "$TARGET"
+        run: python3 src/build/artifact_identity.py verify-unsigned "$TARGET"
       - name: Save build evidence (JSON only)
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
@@ -221,10 +224,6 @@ jobs:
           path: build-evidence/*.json
           if-no-files-found: error
           retention-days: 7
-      - name: Verify release handoff (no publishing)
-        env:
-          TARGET: ${{ inputs.target }}
-        run: python3 src/build/release_contract.py "$TARGET"
       - name: Install ClamAV for provider scan
         if: success() && inputs.scan && !inputs.publish
         run: |
@@ -271,6 +270,15 @@ jobs:
           PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' && steps.patch.outputs.fallback != 'true' }}
           PF_SOURCE_READY: ${{ steps.source_verify.outcome == 'success' && steps.patch.outputs.fallback != 'true' }}
         run: python3 src/build/shadow_inputs.py observe "$TARGET"
+      - name: Seal the publication receipt draft (shadow only)
+        # W15g: Publish has no patcher jar, bundles or input APK; this job seals their evidence.
+        continue-on-error: true
+        timeout-minutes: 3
+        env:
+          TARGET: ${{ inputs.target }}
+          PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' && steps.patch.outputs.fallback != 'true' }}
+          PF_SOURCE_READY: ${{ steps.source_verify.outcome == 'success' && steps.patch.outputs.fallback != 'true' }}
+        run: python3 src/build/shadow_inputs.py draft "$TARGET"
       - name: Preserve shadow consumed-input comparison
         if: always()
         continue-on-error: true
@@ -281,6 +289,96 @@ jobs:
           if-no-files-found: warn
           # SAFE-NOW: diagnostic comparison only; test APK handoff is 1 day and evidence remains 7 days.
           retention-days: 7
+      - name: Hand the unsigned APK to the Sign job
+        # Run-scoped: the Sign job downloads exactly this run and attempt's patch output.
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: patch-output-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            release/
+            build-evidence/
+            shadow-evidence/
+            src/targets.json
+          include-hidden-files: true
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
+  sign:
+    name: Sign ${{ inputs.target }}
+    needs: patch
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      PF_BUILT_AT: ${{ needs.patch.outputs.built_at }}
+      # Same expression as the Patch job: the captured input recipe records whether it was set.
+      COE: ${{ (inputs.keep_going && !inputs.publish) && 'true' || vars.COE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up jdk
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      - name: Download the unsigned hand-off
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: patch-output-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: handoff/
+          digest-mismatch: error
+      - name: Place the hand-off
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/build/sign_apk.py place "$TARGET"
+      - name: Check the hand-off (no secret)
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/build/sign_apk.py handoff "$TARGET"
+      - name: Decode keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          umask 077
+          printf '%s' "$KEYSTORE_B64" | base64 -d > src/ks.keystore
+          SZ=$(wc -c < src/ks.keystore)
+          echo "keystore bytes: $SZ"
+          [ "$SZ" -gt 3000 ] || { echo "::error::keystore truncated - KEYSTORE_B64 secret is incomplete"; exit 1; }
+      - name: Sign APK
+        # The only step with the passwords. First-party code only: keytool, then apksigner.
+        env:
+          TARGET: ${{ inputs.target }}
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+          KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+        run: python3 src/build/sign_apk.py sign "$TARGET"
+      - name: Remove keystore
+        if: always()
+        run: rm -f src/ks.keystore
+      - name: Verify signed APK
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/build/sign_apk.py verify "$TARGET"
+      - name: Verify release handoff (no publishing)
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/build/release_contract.py "$TARGET"
+      - name: Hand the signed APK to the Publish job
+        if: inputs.publish && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: signed-output-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            release/
+            build-evidence/
+            shadow-evidence/
+            src/targets.json
+          include-hidden-files: true
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 1
       - name: Save verified test APK (not a release)
         if: success() && (!inputs.publish || github.ref != 'refs/heads/main')
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -297,16 +395,51 @@ jobs:
           path: build-evidence/${{ inputs.target }}.json
           if-no-files-found: error
           retention-days: 7
+      - name: Nonpublishing smoke result
+        if: success() && (!inputs.publish || github.ref != 'refs/heads/main')
+        run: |
+          echo "SMOKE PASSED: APK built unsigned, signed in the Sign job and checked; release and prune were skipped."
+          echo "No APK was installed on a phone."
+  publish:
+    name: Publish ${{ inputs.target }}
+    needs: [patch, sign]
+    if: inputs.publish && github.ref == 'refs/heads/main' && needs.patch.outputs.internet_error == '0'
+    concurrency:
+      group: publish-${{ inputs.target }}
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    # contents: write only, as the single build job had: a reusable caller (Batch Patch) grants
+    # no more, and a called job asking for more fails at startup.
+    permissions:
+      contents: write
+    env:
+      repository: ${{ github.repository }}
+      GITHUB_TOKEN: ${{ github.token }}
+      PF_BUILT_AT: ${{ needs.patch.outputs.built_at }}
+      COE: ${{ (inputs.keep_going && !inputs.publish) && 'true' || vars.COE }}
+      # The receipt refuses a draft that did not record prepared inputs this run asked for.
+      PF_RESOLVED_REQUESTED: ${{ inputs.resolved_requested || false }}
+      PF_SOURCE_REQUESTED: ${{ inputs.resolved_requested || false }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Download the signed hand-off
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: signed-output-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: handoff/
+          digest-mismatch: error
+      - name: Place the hand-off
+        env:
+          TARGET: ${{ inputs.target }}
+        run: python3 src/build/sign_apk.py place "$TARGET"
       - name: Releasing APK files
-        if: steps.check-gh.outputs.internet_error == '0' && inputs.publish && github.ref == 'refs/heads/main'
         uses: ./.github/actions/release
         env:
-          PF_RESOLVED_READY: ${{ steps.resolved_verify.outcome == 'success' && steps.patch.outputs.fallback != 'true' }}
-          PF_SOURCE_READY: ${{ steps.source_verify.outcome == 'success' && steps.patch.outputs.fallback != 'true' }}
+          PF_RESOLVED_READY: ${{ needs.patch.outputs.resolved_ready }}
+          PF_SOURCE_READY: ${{ needs.patch.outputs.source_ready }}
         with:
           target: ${{ inputs.target }}
-      - name: Nonpublishing smoke result
-        if: steps.check-gh.outputs.internet_error == '0' && (!inputs.publish || github.ref != 'refs/heads/main')
-        run: |
-          echo "SMOKE PASSED: APK built and locally checked; release and prune were skipped."
-          echo "No APK was installed on a phone."

@@ -10,6 +10,7 @@ import unittest
 from unittest.mock import patch
 import test_identity as fixtures
 from test_identity import ROOT, identity, input_recipe, release_contract
+from shadow_contracts import capture_inputs_fixture, verify_unsigned_fixture, seal_signed_fixture
 from target_counts import ENABLED, TOTAL, ROWS, CANDIDATES, GITHUB_ROWS  # W4: counts follow src/targets.json
 
 class InputRecipeTests(unittest.TestCase):
@@ -302,10 +303,16 @@ class InputRecipeFlow(unittest.TestCase):
         self.fixture.setUp()
         self.addCleanup(self.fixture.tearDown)
         self.r=self.fixture.r
+        self.run_env={"GITHUB_RUN_ID":"12345","GITHUB_RUN_ATTEMPT":"2"}
+        self.fixture.env.update(self.run_env)
+        env_patch=patch.dict(os.environ,self.run_env)
+        env_patch.start()
+        self.addCleanup(env_patch.stop)
 
     def setup_verified(self):
-        captured=self.fixture.capture_fixture()
-        report=self.fixture.verify_fixture()
+        captured=capture_inputs_fixture(self.fixture,self.fixture.env)
+        unsigned=verify_unsigned_fixture(self.fixture,self.fixture.env)
+        report=seal_signed_fixture(self.r,unsigned,self.fixture.env)
         for name,value in {'.tagprefix':'key-mapper','.tagsuffix':'-b20260910',
                            '.provider':'lain','.patchver':'1.0'}.items():
             self.fixture.put('release/'+name,value+'\n')
@@ -317,15 +324,15 @@ class InputRecipeFlow(unittest.TestCase):
         self.assertEqual(release_contract.verify(self.r,'keymapper')['prefix'],'key-mapper')
 
     def test_mode_change_before_final_refused(self):
-        self.fixture.capture_fixture()
+        capture_inputs_fixture(self.fixture,self.fixture.env)
         p=self.r/'src/build/build.sh';p.chmod((p.stat().st_mode&0o777)^0o100)
         with self.assertRaisesRegex(ValueError,'input recipe'):
-            self.fixture.verify_fixture()
+            verify_unsigned_fixture(self.fixture,self.fixture.env)
 
     def test_untracked_option_change_before_final_refused(self):
-        self.fixture.capture_fixture()
+        capture_inputs_fixture(self.fixture,self.fixture.env)
         self.fixture.put('src/options/lain.json','[{"fixture":true}]')
-        with self.assertRaisesRegex(ValueError,'input recipe'):self.fixture.verify_fixture()
+        with self.assertRaisesRegex(ValueError,'input recipe'):verify_unsigned_fixture(self.fixture,self.fixture.env)
 
     def test_recipe_change_after_final_before_release_refused(self):
         self.setup_verified()
@@ -335,9 +342,9 @@ class InputRecipeFlow(unittest.TestCase):
 
     def test_runtime_switch_changed_before_final_refused(self):
         self.fixture.env['COE']=''
-        self.fixture.capture_fixture()
+        capture_inputs_fixture(self.fixture,self.fixture.env)
         self.fixture.env['COE']='1'
-        with self.assertRaisesRegex(ValueError,'input recipe'):self.fixture.verify_fixture()
+        with self.assertRaisesRegex(ValueError,'input recipe'):verify_unsigned_fixture(self.fixture,self.fixture.env)
 
     def test_runtime_switch_changed_before_release_refused(self):
         self.fixture.env['COE']=''
@@ -353,9 +360,9 @@ class InputRecipeFlow(unittest.TestCase):
             release_contract.verify(self.r,'keymapper')
 
     def test_missing_manifest_before_final_refused(self):
-        self.fixture.capture_fixture()
+        capture_inputs_fixture(self.fixture,self.fixture.env)
         p=self.r/'.build-inputs.json';d=json.loads(p.read_text());del d['local_input_recipe'];p.write_text(json.dumps(d))
-        with self.assertRaises((KeyError,ValueError)):self.fixture.verify_fixture()
+        with self.assertRaises((KeyError,ValueError)):verify_unsigned_fixture(self.fixture,self.fixture.env)
 
     def test_old_report_without_manifest_cannot_publish(self):
         self.setup_verified()
@@ -386,13 +393,13 @@ class InputRecipeFlow(unittest.TestCase):
         self.assertEqual(dest.read_text(), 'existing=value\n')
 
     def test_mutation_removing_final_gate_is_caught(self):
-        self.fixture.capture_fixture()
+        capture_inputs_fixture(self.fixture,self.fixture.env)
         self.fixture.put('src/options/lain.json','[{"fixture":true}]')
         # Positive mutation control: disabling ONLY the new gate lets the deliberately
         # untracked fixture input through. The real negative test above must kill it.
         with patch.object(input_recipe,'verify',return_value=None):
-            report=self.fixture.verify_fixture()
-        self.assertEqual(report['status'],'verified')
+            report=verify_unsigned_fixture(self.fixture,self.fixture.env)
+        self.assertEqual(report['status'],'unsigned')
 
     def test_mutation_removing_release_gate_is_caught(self):
         self.setup_verified();self.fixture.put('src/options/lain.json','[{"fixture":true}]')

@@ -16,6 +16,55 @@ import build_identity
 from target_counts import ENABLED, TOTAL, ROWS, CANDIDATES, GITHUB_ROWS  # W4: counts follow src/targets.json
 
 ROOT = fixtures.ROOT
+identity = fixtures.identity
+
+
+def capture_inputs_fixture(fixture, env=None):
+    """Use the current keyless capture contract through the older shared fixture helper."""
+    if env:
+        fixture.env.update(env)
+    # capture_signer was intentionally removed: capture_inputs records the committed pin and must
+    # never read a keystore; a reintroduced call fails here instead of being silently stubbed.
+    assert not hasattr(identity, "capture_signer")
+    with patch.object(identity, "cert_from_keystore", side_effect=AssertionError("capture must not read a keystore")):
+        return fixture.capture_fixture()
+
+
+def verify_unsigned_fixture(fixture, env=None):
+    """Exercise the W15g unsigned verifier with deterministic Android metadata readers."""
+    env = env or fixture.env
+    with patch.object(identity, "metadata", return_value=fixture.meta), \
+         patch.object(identity, "native_architecture", return_value={"classification": "no-native-libraries"}), \
+         contextlib.redirect_stdout(io.StringIO()):
+        return identity.verify_unsigned(fixture.r, "keymapper", env)
+
+
+def seal_signed_fixture(root, report, env):
+    """Model a Sign-job report bound to the unsigned report and current workflow run."""
+    report = copy.deepcopy(report)
+    unsigned_output = copy.deepcopy(report["output"])
+    apk = Path(root) / unsigned_output["path"]
+    with apk.open("ab") as stream:
+        stream.write(b"signed-fixture")
+    report["output"] = identity.record(root, unsigned_output["path"])
+    report.update({
+        "status": "verified",
+        "unsigned_output": unsigned_output,
+        "signature": {
+            "certificate_sha256": report["inputs"]["expected_certificate_sha256"],
+            "cryptographic_verification": "passed",
+        },
+        "signing": {
+            "binding": identity.run_binding(env),
+            "entries_compared": 1,
+            "schemes": {"v1": False, "v2": True, "v3": False, "v4": False},
+            "pin": report["inputs"]["expected_certificate_sha256"],
+        },
+    })
+    report["signing_split"] = True
+    (Path(root) / "build-evidence/keymapper.json").write_text(json.dumps(report))
+    return report
+
 
 class FakeAPI:
     repo = "fixture/repo"
@@ -29,16 +78,45 @@ class FakeAPI:
         self.run_status = "completed"
         self.run_conclusion = "success"
         self.publish_step = "success"
+        self.job_layout = "legacy"
+        self.job_mutation = None
+
+    def _job_rows(self):
+        if self.job_layout == "legacy":
+            return [{"id":88,"run_id":12345,"run_attempt":2,
+                     "head_sha":self.commit,"name":"build (keymapper) / Patch keymapper",
+                     "status":"completed","conclusion":"success","steps":[
+                         {"name":name,"status":"completed","conclusion":self.publish_step if name=="Releasing APK files" else "success"}
+                         for name in shadow.LEGACY_STEPS]}]
+        rows = []
+        for index, (role, steps) in enumerate(shadow.SPLIT_JOBS, 1):
+            rows.append({"id":87 + index,"run_id":12345,"run_attempt":2,
+                         "head_sha":self.commit,"name":"build (keymapper) / " + role + " keymapper",
+                         "status":"completed","conclusion":"success","steps":[
+                             {"name":name,"status":"completed","conclusion":
+                              self.publish_step if name == "Releasing APK files" else "success"}
+                             for name in steps]})
+        mutation = self.job_mutation
+        if mutation == "missing-sign":
+            rows = [row for row in rows if not row["name"].endswith("Sign keymapper")]
+        elif mutation == "missing-publish":
+            rows = [row for row in rows if not row["name"].endswith("Publish keymapper")]
+        elif mutation == "duplicate-publish":
+            duplicate = copy.deepcopy(next(row for row in rows if row["name"].endswith("Publish keymapper")))
+            duplicate["id"] += 100
+            rows.append(duplicate)
+        elif mutation == "failed-sign-step":
+            row = next(row for row in rows if row["name"].endswith("Sign keymapper"))
+            row["steps"][0]["conclusion"] = "failure"
+        return rows
+
     def get(self, path, limit=None):
         self.calls.append(path)
         if self.fail and self.fail in path:
             raise OSError("fixture API unavailable")
         if "/actions/runs/" in path and "/jobs?" in path:
-            return {"total_count":1,"jobs":[{"id":88,"run_id":12345,"run_attempt":2,
-                    "head_sha":self.commit,"name":"build (keymapper) / Patch keymapper",
-                    "status":"completed","conclusion":"success","steps":[
-                        {"name":name,"status":"completed","conclusion":self.publish_step if name=="Releasing APK files" else "success"}
-                        for name in ["Verify finished APK identity","Verify release handoff (no publishing)","Releasing APK files"]]}]}
+            rows = self._job_rows()
+            return {"total_count":len(rows),"jobs":rows}
         if "/actions/runs/" in path:
             return {"id":12345,"run_attempt":2,"head_sha":self.commit,"head_branch":"main",
                     "repository":{"full_name":self.repo},"status":self.run_status,"conclusion":self.run_conclusion}
@@ -78,6 +156,7 @@ class ShadowContracts(unittest.TestCase):
             t["id"] for t in json.loads((self.r / "src/targets.json").read_text())
             if t.get("enabled") is True and t.get("poll", False) is True
         ]}, separators=(",", ":"))
+        self.f.env.update(self.env)
 
     def declare(self, ident="keymapper"):
         return shadow.declaration(self.r, ident)
@@ -88,12 +167,15 @@ class ShadowContracts(unittest.TestCase):
         p.write_text(json.dumps(ts))
 
     def capture(self):
-        self.captured=self.f.capture_fixture()
+        self.captured=capture_inputs_fixture(self.f, self.env)
         return self.captured
 
     def verified(self):
         self.capture()
-        report=self.f.verify_fixture()
+        unsigned = verify_unsigned_fixture(self.f, self.env)
+        # Seal patch-only consumed-input evidence before the Sign job replaces the APK.
+        shadow.receipt_draft(self.r, "keymapper", self.env)
+        report = seal_signed_fixture(self.r, unsigned, self.env)
         suffix=build_identity.create(self.env,datetime.datetime(2026,9,18,tzinfo=datetime.timezone.utc))
         for key,value in {".tagprefix":"key-mapper",".tagsuffix":suffix,
                           ".provider":"lain",".patchver":"1.0"}.items():
@@ -254,7 +336,8 @@ class ShadowContracts(unittest.TestCase):
         self.assertEqual(shadow.compare(doc,None,"NO_PUBLISHED_BASELINE")["state"],"UNKNOWN")
 
     def test_required_daily_plan_missing_is_unknown_and_cannot_publish_receipt(self):
-        api=self.verified();self.env["PF_SHADOW_PLAN_REQUIRED"]="true"
+        self.env["PF_SHADOW_PLAN_REQUIRED"]="true"
+        api=self.verified()
         result=shadow.observe(self.r,"keymapper",self.env,api)
         self.assertEqual(result["decision"]["reason"],"REQUIRED_PLAN_UNAVAILABLE")
         self.assertEqual(result["consumed"]["binding"],"MISSING_REQUIRED_PLAN")
@@ -418,10 +501,82 @@ class ShadowContracts(unittest.TestCase):
         self.assertNotEqual(shadow.declaration(self.r,"adguard"),declared)
         self.assertEqual(shadow.semantics(self.r,"adguard",winner),before)
 
-    def test_no_receipt_from_consumed_input_drift(self):
-        api=self.verified();self.f.put("09-lain.mpp","changed")
-        with self.assertRaisesRegex(ValueError,"input changed"):self.publish(api)
+    def test_receipt_draft_refuses_non_unsigned_report(self):
+        self.capture()
+        report=verify_unsigned_fixture(self.f,self.env)
+        report["status"]="verified"
+        (self.r/"build-evidence/keymapper.json").write_text(json.dumps(report))
+        with self.assertRaisesRegex(ValueError,"unsigned report"):
+            shadow.receipt_draft(self.r,"keymapper",self.env)
+
+    def test_receipt_draft_refuses_capture_different_from_manifest(self):
+        self.capture()
+        verify_unsigned_fixture(self.f,self.env)
+        manifest=json.loads((self.r/".build-inputs.json").read_text())
+        manifest["winner"]="wrong"
+        (self.r/".build-inputs.json").write_text(json.dumps(manifest))
+        with self.assertRaisesRegex(ValueError,"capture differs"):
+            shadow.receipt_draft(self.r,"keymapper",self.env)
+
+    def test_receipt_draft_refuses_consumed_input_drift(self):
+        self.capture()
+        verify_unsigned_fixture(self.f,self.env)
+        self.f.put("09-lain.mpp","changed")
+        with self.assertRaisesRegex(ValueError,"input changed"):
+            shadow.receipt_draft(self.r,"keymapper",self.env)
+
+    def test_split_publication_uses_sealed_draft_without_patch_job_inputs(self):
+        api=self.verified()
+        report=json.loads((self.r/"build-evidence/keymapper.json").read_text())
+        for row in report["inputs"]["tools"]+report["inputs"]["bundles"]+[report["inputs"]["patcher_input_apk"]]:
+            (self.r/row["path"]).unlink()
+        receipt=self.publish(api)
+        self.assertEqual(receipt["unsigned_apk_sha256"],report["unsigned_output"]["sha256"])
+        self.assertEqual(len(api.rows),2)
+
+    def test_split_publication_rejects_mismatched_or_broken_draft(self):
+        api=self.verified()
+        path=self.r/"shadow-evidence/keymapper-receipt-draft.json"
+        original=json.loads(path.read_text())
+        cases=(
+            ("inputs_sha256", "0"*64, True),
+            ("unsigned_sha256", "1"*64, True),
+            ("sha256", "2"*64, False),
+        )
+        for key,value,reseal in cases:
+            doc=copy.deepcopy(original)
+            doc[key]=value
+            if reseal:
+                doc=shadow.seal({k:v for k,v in doc.items() if k!="sha256"})
+            path.write_text(json.dumps(doc))
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                self.publish(api)
+            path.write_text(json.dumps(original))
         self.assertEqual(len(api.rows),1)
+
+    def test_legacy_receipt_without_split_only_field_still_verifies(self):
+        api=self.verified()
+        receipt=self.publish(api)
+        old_body=shadow.unseal(receipt,shadow.RECEIPT_DOMAIN)
+        old_body.pop("unsigned_apk_sha256",None)
+        old_receipt=shadow.seal(old_body)
+        shadow.verify_receipt(api,api.releases[0],old_receipt,"keymapper")
+
+    def test_split_jobs_pass_and_invalid_job_inventories_fail_closed(self):
+        api=self.verified()
+        receipt=self.publish(api)
+        api.job_layout="split"
+        proof={}
+        shadow.verify_receipt(api,api.releases[0],receipt,"keymapper",proof)
+        self.assertEqual([job["name"].rsplit(" / ",1)[-1].split()[0] for job in proof["jobs"]],
+                         ["Patch","Sign","Publish"])
+        self.assertEqual([job["steps"] for job in proof["jobs"]],[
+            [{"name":step,"status":"completed","conclusion":"success"} for step in steps]
+            for _,steps in shadow.SPLIT_JOBS])
+        for mutation in ("missing-sign","missing-publish","failed-sign-step","duplicate-publish"):
+            api.job_mutation=mutation
+            with self.subTest(mutation=mutation), self.assertRaises(ValueError):
+                shadow.verify_receipt(api,api.releases[0],receipt,"keymapper")
 
     def test_write_refuses_symlink_and_schema_corruption(self):
         (self.r/"shadow-evidence").mkdir()

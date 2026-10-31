@@ -19,8 +19,8 @@ LIMITS = ["observed runtime subset only; shared-library/container/network closur
 
 
 def public_command(root, ident, winner, env):
-    # Actual producer, dummy credentials. No real signing values read/hashed.
-    clean = {"KEYSTORE_PASS": "OMITTED", "KEYSTORE_ALIAS": "OMITTED"}
+    # Actual producer. W15g: unsigned mode, so no signing value exists to read or hash.
+    clean = {"PF_UNSIGNED": "true"}
     if env.get("COE"):
         clean["COE"] = "true"
     root = Path(root).resolve()
@@ -28,6 +28,8 @@ def public_command(root, ident, winner, env):
     forbidden = ("--keystore=", "--keystore-password=", "--keystore-entry-alias=",
                  "--keystore-entry-password=", "--out=")
     result = []
+    if "--unsigned" not in args:
+        raise ValueError("execution inputs: patch command is not unsigned")
     for arg in args:
         if arg.startswith(forbidden):
             continue

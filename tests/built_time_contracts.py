@@ -35,7 +35,11 @@ class Built(unittest.TestCase):
     def test_workflow_stamps_once_and_contract_reads_it(self):
         wf = (ROOT / '.github/workflows/manual-patch.yml').read_text()
         self.assertEqual(wf.count('PF_BUILT_AT='), 1)
-        self.assertIn('echo "PF_BUILT_AT=$(date -u +%Y-%m-%dT%H:%MZ)" >> "$GITHUB_ENV"', wf)
+        self.assertIn('id: stamp', wf)
+        self.assertIn('STAMP=$(date -u +%Y-%m-%dT%H:%MZ)', wf)
+        self.assertIn('echo "PF_BUILT_AT=$STAMP" >> "$GITHUB_ENV"', wf)
+        self.assertIn('echo "built_at=$STAMP" >> "$GITHUB_OUTPUT"', wf)
+        self.assertEqual(wf.count('PF_BUILT_AT: ${{ needs.patch.outputs.built_at }}'), 2)
         self.assertIn("fields['built'] = os.environ['PF_BUILT_AT']", (ROOT / 'src/build/release_contract.py').read_text())
 
     def test_pages_cards_prefer_it(self):

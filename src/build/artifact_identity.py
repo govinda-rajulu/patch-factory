@@ -76,7 +76,7 @@ def patcher_pin(env):
 
 def sdk_tools(name, env):
     sdk = pathlib.Path(env.get('ANDROID_HOME') or env.get('ANDROID_SDK_ROOT') or '/usr/local/lib/android/sdk')
-    if name == 'aapt2' or name == 'apksigner':
+    if name in ('aapt2', 'apksigner', 'zipalign'):
         found = list(sdk.glob('build-tools/*/' + name))
     else:
         found = list(sdk.glob('cmdline-tools/*/bin/' + name)) + list(sdk.glob('tools/bin/' + name))
@@ -103,19 +103,22 @@ def cert_from_keystore(root, env):
     return hashlib.sha256(cert).hexdigest()
 
 
-def capture_signer(root, env, pin=None):
-    path = root / '.signer-before-build.json'
-    require(not path.exists(), 'signer capture already exists; use a fresh checkout')
+def pinned_certificate(root):
+    """W15h/W15g: the committed public pin (src/build/ci-signer.json) is the one expected signer."""
+    value = json.loads((root / 'src/build/ci-signer.json').read_text())['certificate_sha256']
+    require(isinstance(value, str) and re.fullmatch('[0-9a-f]{64}', value), 'invalid committed signer pin')
+    return value
+
+
+def check_keystore_pin(root, env):
+    """Sign job only, before apksigner: the decoded keystore must hold the pinned certificate.
+    An APK signed by any other key is refused on every phone (Android same-signer updates and
+    the Obtainium pin), so a different keystore stops here."""
     fingerprint = cert_from_keystore(root, env)
-    # W15h: the Obtainium import pins this certificate (src/build/ci-signer.json); an APK signed
-    # by any other key is refused on every phone, so a different keystore stops here, before patching.
-    # The build passes the pin (command line below); unit fixtures with fake keystores pass none.
-    if pin is not None:
-        require(fingerprint == json.loads(pin.read_text())['certificate_sha256'],
-                'CI keystore certificate differs from src/build/ci-signer.json (Obtainium pin); see RECOVERY.md before any key change')
-    atomic_json(path, {'schema': SCHEMA, 'certificate_sha256': fingerprint,
-                       'trust': 'current CI keystore; historical device continuity not established'})
-    print('SIGNER CAPTURED: public certificate fingerprint only; no key/password written')
+    require(fingerprint == pinned_certificate(root),
+            'CI keystore certificate differs from src/build/ci-signer.json (Obtainium pin); see RECOVERY.md before any key change')
+    print('SIGNER CHECKED: keystore certificate equals the committed pin; no key/password written')
+    return fingerprint
 
 
 def target(root, ident):
@@ -138,8 +141,8 @@ def capture_inputs(root, ident, winner, env):
     t = target(root, ident)
     candidates = [x for x in t['candidates'] if x['name'] == winner]
     require(len(candidates) == 1, 'winner not in target')
-    signer = json.loads((root / '.signer-before-build.json').read_text())
-    require(re.fullmatch('[0-9a-f]{64}', signer['certificate_sha256']), 'invalid captured signer')
+    # W15g: the patch job has no keystore; the expected signer is the committed public pin.
+    expected_signer = pinned_certificate(root)
     files = command(['git', 'ls-files', '-z'], root).decode().split('\0')
     files = sorted(x for x in files if x)
     require(files and 'src/targets.json' in files, 'no tracked source inventory')
@@ -184,7 +187,7 @@ def capture_inputs(root, ident, winner, env):
     data = {'schema': SCHEMA, 'target': ident, 'winner': winner, 'source_commit': source,
             'local_input_recipe': input_recipe.create(root, ident, winner, env),
             'expected_package': expected_package(root, t), 'sdk_ceiling': t['min_sdk_ceiling'],
-            'expected_certificate_sha256': signer['certificate_sha256'], 'repository_files': repo_files,
+            'expected_certificate_sha256': expected_signer, 'repository_files': repo_files,
             'repository_bytes_fingerprint': config_fingerprint, 'tools': tools,
             'patcher_provenance': patcher_meta, 'bundles': bundle_records,
             'patcher_input_apk': patcher_input, 'requested_ledger': requested,
@@ -371,12 +374,16 @@ def check_input_variant(t, meta):
     require(meta['version_code'] == str(want), 'input version code ' + meta['version_code'] + ' is not the pinned ' + str(want))
     return 'MATCH ' + str(want)
 
-def validate_identity(meta, architecture, signer, captured, version):
+def validate_identity(meta, architecture, captured, version):
     require(meta['package'] == captured['expected_package'], 'finished APK package differs from committed installation identity')
     require(meta['version_name'] == version, 'finished APK version differs from release metadata')
     require(0 < meta['min_sdk'] <= int(captured['sdk_ceiling']), 'finished APK exceeds SDK ceiling')
     require(architecture['classification'] in ('arm64-v8a', 'no-native-libraries'), 'wrong output architecture')
-    require(signer['certificate_sha256'] == captured['expected_certificate_sha256'], 'finished APK signer differs from the pre-build CI certificate')
+
+
+def validate_signer(root, signer, captured):
+    require(signer['certificate_sha256'] == captured['expected_certificate_sha256'] == pinned_certificate(root),
+            'finished APK signer differs from the committed CI certificate pin')
 
 
 def verify_records(root, records):
@@ -384,7 +391,20 @@ def verify_records(root, records):
         require(record(root, item['path']) == item, 'input changed during patching: ' + item['path'])
 
 
-def verify_final(root, ident, env):
+def run_binding(env):
+    """W15g: the unsigned hand-off is bound to this exact workflow run and attempt."""
+    run_id, attempt = env.get('GITHUB_RUN_ID', ''), env.get('GITHUB_RUN_ATTEMPT', '')
+    require(re.fullmatch('[1-9][0-9]{0,19}', run_id) is not None and re.fullmatch('[1-9][0-9]{0,4}', attempt) is not None,
+            'workflow run identity unavailable')
+    return {'run_id': run_id, 'run_attempt': attempt}
+
+
+# apksig treats these names as JAR-signature files case-insensitively and strips them when signing.
+SIGNATURE_FILE = re.compile(r'META-INF/(?:MANIFEST[.]MF|[^/]+[.](?:SF|RSA|DSA|EC)|SIG-[^/]*)', re.IGNORECASE)
+
+
+def verify_unsigned(root, ident, env):
+    """Patch job (no key): every identity check except the signature, on the unsigned APK."""
     verify_structure(root)
     captured = json.loads((root / '.build-inputs.json').read_text())
     require(captured['schema'] == SCHEMA and captured['target'] == ident, 'input capture target/schema mismatch')
@@ -399,28 +419,32 @@ def verify_final(root, ident, env):
         import resolved_inputs
         require(resolved_inputs.verify_consumed(root, ident, captured, env) == captured['resolution'],
                 'resolved dependency binding changed after input capture')
-    require(cert_from_keystore(root, env) == captured['expected_certificate_sha256'], 'CI keystore certificate changed during build')
+    require(captured['expected_certificate_sha256'] == pinned_certificate(root), 'signer pin changed during build')
     t = target(root, ident)
     require(expected_package(root, t) == captured['expected_package'] and t['min_sdk_ceiling'] == captured['sdk_ceiling'], 'identity contract changed')
-    apk = next((root / 'release').glob('*.apk')).resolve()
+    apks = list((root / 'release').glob('*.apk'))
+    require(len(apks) == 1, 'release needs exactly one APK')
+    apk = apks[0].resolve()
     meta = metadata(root, apk, env)
     arch = native_architecture(apk, root / captured['patcher_input_apk']['path'])
-    signer = apk_signer(root, apk, env)
     version = (root / 'release/.version').read_text().strip()
-    validate_identity(meta, arch, signer, captured, version)
+    validate_identity(meta, arch, captured, version)
     applied = [x.removeprefix('- ').strip() for x in (root / 'release/.applied').read_text().splitlines() if x.strip()]
     require(applied, 'no applied-patch evidence')
-    report = {'schema': SCHEMA, 'status': 'verified', 'target': ident, 'inputs': captured,
+    with zipfile.ZipFile(apk) as z:
+        leftovers = sorted(n for n in z.namelist() if SIGNATURE_FILE.fullmatch(n))
+    report = {'schema': SCHEMA, 'status': 'unsigned', 'signing_split': True, 'target': ident, 'inputs': captured,
               'output': record(root, str(apk.relative_to(root.resolve()))), 'manifest': meta,
-              'architecture': arch, 'signature': signer, 'applied_patch_names': applied,
+              'architecture': arch, 'applied_patch_names': applied,
+              'unsigned': {'signature_files_present': leftovers[:50], 'binding': run_binding(env)},
               'historical_signer_continuity': 'not checked against an installed app or retained trusted release',
               'device_test': 'not performed', 'attestation': 'same-run evidence, not a signed independent attestation'}
     dest = root / 'build-evidence' / (ident + '.json')
     dest.parent.mkdir(parents=True, exist_ok=True)
     atomic_json(dest, report)
-    print('IDENTITY VERIFIED: ' + json.dumps({'target': ident, 'package': meta['package'], 'min_sdk': meta['min_sdk'],
-                                           'architecture': arch['classification'], 'signer_sha256': signer['certificate_sha256'],
-                                           'apk_sha256': report['output']['sha256']}, sort_keys=True))
+    print('UNSIGNED IDENTITY VERIFIED: ' + json.dumps({'target': ident, 'package': meta['package'], 'min_sdk': meta['min_sdk'],
+                                                    'architecture': arch['classification'],
+                                                    'unsigned_sha256': report['output']['sha256']}, sort_keys=True))
     return report
 
 
@@ -428,12 +452,10 @@ if __name__ == '__main__':
     try:
         root = pathlib.Path('.').resolve()
         mode = sys.argv[1]
-        if mode == 'capture-signer':
-            capture_signer(root, os.environ, pin=root / 'src/build/ci-signer.json')
-        elif mode == 'capture-inputs':
+        if mode == 'capture-inputs':
             capture_inputs(root, sys.argv[2], sys.argv[3], os.environ)
-        elif mode == 'verify':
-            verify_final(root, sys.argv[2], os.environ)
+        elif mode == 'verify-unsigned':
+            verify_unsigned(root, sys.argv[2], os.environ)
         elif mode == 'input-variant':
             t = target(root, sys.argv[2])
             meta = metadata(root, (root / 'download' / (t['apk_name'] + '.apk')).resolve(), os.environ)

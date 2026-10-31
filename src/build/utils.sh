@@ -993,40 +993,18 @@ get_apkpure() {
 #################################################
 
 # Patching apps with CLI:
+# W15g: this legacy helper signed inside the patch job. Patching runs only through
+# src/build/patch_target.py (unsigned); the release key exists only in the Sign job.
 patch() {
-	green_log "[+] Patching $1:"
-	if [ -f "./download/$1.apk" ]; then
-		echo "Patching with Morphe"
-		unset CI GITHUB_ACTION GITHUB_ACTIONS GITHUB_ACTOR GITHUB_ENV GITHUB_EVENT_NAME GITHUB_EVENT_PATH GITHUB_HEAD_REF GITHUB_JOB GITHUB_REF GITHUB_REPOSITORY GITHUB_RUN_ID GITHUB_RUN_NUMBER GITHUB_SHA GITHUB_WORKFLOW GITHUB_WORKSPACE RUN_ID RUN_NUMBER
-		eval java -jar morphe-desktop-*.jar patch -p *.mpp --options-file ./src/options/$2.json --out=./release/$1-$2.apk$excludePatches$includePatches --keystore=./src/ks.keystore --keystore-password="${KEYSTORE_PASS}" --keystore-entry-alias="${KEYSTORE_ALIAS}" --keystore-entry-password="${KEYSTORE_PASS}" --force --continue-on-error ./download/$1.apk
-		unset version
-		unset lock_version
-		unset excludePatches
-		unset includePatches
-	else
-		red_log "[-] Not found $1.apk"
-		exit 1
-	fi
+	red_log "[-] legacy patch helper removed (W15g): use src/build/patch_target.py"
+	return 1
 }
 
+# W15g: this legacy helper signed inside the patch job. Patching runs only through
+# src/build/patch_target.py (unsigned); the release key exists only in the Sign job.
 patch_multi() {
-	green_log "[+] Patching $1:"
-	if [ -f "./download/$1.apk" ]; then
-		echo "Patching with Morphe"
-		local mpp_args=""
-		for mpp_file in *.mpp; do
-			[ -f "$mpp_file" ] || continue
-			mpp_args="$mpp_args -p \"$mpp_file\"$excludePatches$includePatches"
-		done
-		eval java -jar morphe-desktop-*.jar patch $mpp_args --options-file ./src/options/$2.json --out=./release/$1-$2.apk --keystore=./src/ks.keystore --keystore-password="${KEYSTORE_PASS}" --keystore-entry-alias="${KEYSTORE_ALIAS}" --keystore-entry-password="${KEYSTORE_PASS}" --force --continue-on-error ./download/$1.apk
-  		unset version
-		unset lock_version
-		unset excludePatches
-		unset includePatches
-	else
-		red_log "[-] Not found $1.apk"
-		exit 1
-	fi
+	red_log "[-] legacy patch_multi helper removed (W15g): use src/build/patch_target.py"
+	return 1
 }
 
 npatch() {
@@ -1099,19 +1077,11 @@ apk_editor() {
 }
 
 # Split architectures using Morphe cli
+# W15g: this legacy helper signed inside the patch job. Patching runs only through
+# src/build/patch_target.py (unsigned); the release key exists only in the Sign job.
 split_arch() {
-	green_log "[+] Splitting $1 to ${archs[i]}:"
-	if [ -f "./download/$1.apk" ]; then
-		eval java -jar morphe-desktop-*.jar patch \
-		-p *.mpp $excludePatches$includePatches --options-file ./src/options/$2.json \
-		--striplibs ${archs[i]} \
-		--keystore=./src/ks.keystore --keystore-password="${KEYSTORE_PASS}" --keystore-entry-alias="${KEYSTORE_ALIAS}" --keystore-entry-password="${KEYSTORE_PASS}" --force \
-		--out=./release/$1-${archs[i]}.apk \
-		./download/$1.apk
-	else
-		red_log "[-] Not found $1.apk"
-		exit 1
-	fi
+	red_log "[-] legacy split_arch helper removed (W15g): use src/build/patch_target.py"
+	return 1
 }
 
 #################################################

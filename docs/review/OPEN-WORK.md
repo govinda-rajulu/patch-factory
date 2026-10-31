@@ -1,6 +1,6 @@
 # Open work
 
-## Current checkpoint: 31 October 2026 (packet W16y-c; W16y-a and W16y-b merged 30 Oct)
+## Current checkpoint: 31 October 2026 (packet W15g; W16y-c merged 31 Oct)
 
 Every still-open item carried forward from the older checkpoints is listed once below. Closed,
 superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-ARCHIVE-2026-10.md).
@@ -11,6 +11,17 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 - Wrong call 110 was fixed: the second store now receives `${RVER:-$version}` even when the first download fails.
 - The unused `apply_choices.py`, `chooser.py` and `community_diff.py` utilities and the dead chooser branch in `selection_writer.py` were removed; the removal and restore record is [REMOVED-2026-10.md](history/REMOVED-2026-10.md).
 - The closed `CANDIDATES-2026-10-08.md` scout moved from onboarding to [history](history/CANDIDATES-2026-10-08.md), with inbound links repaired.
+
+### Done in W15g (31 October 2026)
+
+- Signing split built: Patch without key or write token (unsigned APK, `--unsigned` probed first), Sign with the release key and first-party code only (`src/build/sign_apk.py`), Publish with the write token and no key ([HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md)). Open until the owner's phone test: install the post-merge Telegram over the current one.
+
+### Next: W16z (owner, 31 Oct 2026)
+
+- Portal: one freshness row (patch bundle age plus last built; the 180-day limit only near or over it); one `N patches` fold instead of count plus toggle; CCleaner card with its icon and `Coming soon` (drop the release-history line: no CCleaner release was published); one `Open Needs you` link with the reply words on the Watch tab; no repeated links.
+- Issues and PRs: two issue forms (owner action, verified bug) and a small label set; note on #262 (closed after a green rerun; the root cause was fixed in W16v); track the follow-ups of #75 (PotHelper companion review), #78 (live source-preparation timing proof), #81 (documentation migration destination; likely the cross-repo mirror item) and the W16y-c pin-check read; #280 (Reddit refusal counted as a failure).
+- Housekeeping: delete `src/options/arandomhooman.json`, `src/options/bufferk.json` and the duplicate `docs/review/providers/hushtelegram-org.telegram.messenger.names` (restore points in the survey); retention prose to the code (3 releases, 3 Pages records, 7 days); closed session and handover records into `history/`; CI schedule wording; pin check weekly after an OK read; Council nemotron replacement after the Sunday probe.
+- File feature requests: W17 owner console (Pages builds issue-form links; the owner submits on GitHub; tests run for anyone, only the owner's submission makes a ready PR; merges stay with the owner; note field saved as a dated decision record, optional lesson flag) and Android Auto apps.
 
 ### Done in W16y-c (31 October 2026)
 
@@ -64,7 +75,7 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 - Move the Instagram pin when piko supports build 385914182 or newer; keep the piko/brosssh held names for a provider update ([W15G-MAP.md](W15G-MAP.md); [instagram onboarding](onboarding/instagram.md)).
 - Restore hoo-dles to prerelease when morphe-desktop stable reads its new bundles ([W17-BRIEF.md](W17-BRIEF.md)).
 - Closed in W16y-b: Telegram rahul9999xda became the primary (watch row N-55429f removed).
-- Build the W15g signing split in its own packet: keyless `--unsigned` patch job, isolated apksigner job, sha256 handoff, nonpublishing batch, publishing build and owner phone test ([W15G-MAP.md](W15G-MAP.md); [SIGNING-SPLIT.md](SIGNING-SPLIT.md)).
+- W15g signing split: built in packet W15g; open until the post-merge Telegram publish and the owner's install-over phone test pass ([HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md); [SIGNING-SPLIT.md](SIGNING-SPLIT.md)).
 - Prove the W16w MCP scout settings with one post-merge dispatch (no `run-gemini-cli`, YOLO off, default approval, two read tools, lite model apart from the Council seat, QUOTA fail-fast) ([MCP-PLAN.md](MCP-PLAN.md)).
 - Make the next scheduled Council audit finish under 50 minutes with one line per part and seat; read the Council desk after the run ([KT-2026-10-28.md](KT-2026-10-28.md)).
 - Needs you: every 28 Oct choice is in DECISIONS.json (W16w decision sheet D1 to D18 in [KT-2026-10-28.md](KT-2026-10-28.md)); after the merge the issue should list only new items.

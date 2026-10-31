@@ -18,7 +18,7 @@ import shadow_inputs as shadow
 DOMAIN = "patch-factory/qualified-publication/v1"
 WORKFLOWS = {".github/workflows/ci.yml", ".github/workflows/manual-patch.yml",
              ".github/workflows/batch-patch.yml"}
-STEPS = ("Verify finished APK identity", "Verify release handoff (no publishing)", "Releasing APK files")
+STEPS = shadow.LEGACY_STEPS
 
 
 def need(ok, why):
@@ -35,21 +35,32 @@ def verify_proof(proof, receipt, repo):
     need(isinstance(proof, dict) and proof.get("coverage") == "complete" and
          type(proof.get("jobs_checked")) is int and proof["jobs_checked"] > 0 and
          proof.get("repository") == repo, "incomplete qualification proof")
-    run, job = proof["run"], proof["job"]
+    run, job = proof["run"], proof.get("job")
     need(type(run.get("id")) is int and str(run["id"]) == receipt["run_id"] and
          type(run.get("run_attempt")) is int and str(run["run_attempt"]) == receipt["attempt"] and
          run.get("head_sha") == receipt["source_commit"] and run.get("head_branch") == "main" and
          run.get("status") == "completed" and run.get("conclusion") == "success", "source run not qualified")
-    need(type(job.get("id")) is int and job["id"] > 0 and
-         type(job.get("run_id")) is int and job["run_id"] == run["id"] and
-         type(job.get("run_attempt")) is int and job["run_attempt"] == run["run_attempt"] and
-         job.get("head_sha") == run["head_sha"] and job.get("status") == "completed" and
-         job.get("conclusion") == "success", "target job not qualified")
-    wanted = "Patch " + receipt["target"]
-    need(job.get("name") == wanted or isinstance(job.get("name"), str) and
-         job["name"].endswith(" / " + wanted), "wrong target job")
-    need(proof.get("steps") == [{"name": s, "status": "completed", "conclusion": "success"} for s in STEPS],
-         "missing or unsuccessful mandatory step")
+    # W15g: a split publication proves its Patch, Sign and Publish jobs; older proofs one Patch job.
+    if proof.get("layout") == "split":
+        jobs = proof.get("jobs")
+        need(isinstance(jobs, list) and len(jobs) == len(shadow.SPLIT_JOBS) and "job" not in proof
+             and "steps" not in proof and all(isinstance(j, dict) for j in jobs), "incomplete split qualification proof")
+        expected = [(role, steps, dict(item)) for (role, steps), item in zip(shadow.SPLIT_JOBS, jobs)]
+    else:
+        need("layout" not in proof, "unknown qualification layout")
+        need(isinstance(job, dict), "incomplete qualification proof")
+        expected = [("Patch", STEPS, dict(job, steps=proof.get("steps")))]
+    for role, steps, item in expected:
+        need(type(item.get("id")) is int and item["id"] > 0 and
+             type(item.get("run_id")) is int and item["run_id"] == run["id"] and
+             type(item.get("run_attempt")) is int and item["run_attempt"] == run["run_attempt"] and
+             item.get("head_sha") == run["head_sha"] and item.get("status") == "completed" and
+             item.get("conclusion") == "success", "target job not qualified")
+        wanted = role + " " + receipt["target"]
+        need(item.get("name") == wanted or isinstance(item.get("name"), str) and
+             item["name"].endswith(" / " + wanted), "wrong target job")
+        need(item.get("steps") == [{"name": s, "status": "completed", "conclusion": "success"} for s in steps],
+             "missing or unsuccessful mandatory step")
 
 
 def verify(api, release, asset, ident):

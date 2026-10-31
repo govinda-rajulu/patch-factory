@@ -1,4 +1,4 @@
 {
  "certificate_sha256": "08480f6649a2be33ff3cccacce07454761d5fb9abe65f1e2caeeb782e382d050",
- "why": "W15h (22 Oct 2026): the one home of the CI signing certificate SHA-256 (DER, lower-case hex). The build stops before patching when the keystore certificate differs (src/build/artifact_identity.py capture-signer), and docs/obtainium.json pins it as allowedSigningCertHashes, so Obtainium 1.6.16 or newer refuses an APK signed by any other key. Changing this value is a key rotation: every phone must re-import from the page (RECOVERY.md)."
+ "why": "W15h (22 Oct 2026): the one home of the CI signing certificate SHA-256 (DER, lower-case hex). Since W15g (31 Oct 2026) the Sign job stops before apksigner when the keystore certificate differs (src/build/sign_apk.py, artifact_identity.check_keystore_pin) and again when the signed APK's signer differs, and docs/obtainium.json pins it as allowedSigningCertHashes, so Obtainium 1.6.16 or newer refuses an APK signed by any other key. Changing this value is a key rotation: every phone must re-import from the page (RECOVERY.md)."
 }

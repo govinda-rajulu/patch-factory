@@ -20,6 +20,14 @@ import input_recipe as recipe
 
 DOMAIN = "patch-factory/shadow-inputs/v1"
 RECEIPT_DOMAIN = "patch-factory/published-inputs/v1"
+# W15g: the patch job seals what only it can read (patcher jar, bundles, input APK, ledger);
+# the Publish job finishes the receipt from that draft, bound to the unsigned APK.
+DRAFT_DOMAIN = "patch-factory/receipt-draft/v1"
+# Job and step names a publication must have passed, per workflow layout.
+LEGACY_STEPS = ("Verify finished APK identity", "Verify release handoff (no publishing)", "Releasing APK files")
+SPLIT_JOBS = (("Patch", ("Verify unsigned APK identity",)),
+              ("Sign", ("Sign APK", "Verify signed APK", "Verify release handoff (no publishing)")),
+              ("Publish", ("Releasing APK files",)))
 MAX_JSON = 4 * 1024 * 1024
 LIMIT = 1 * 1024 * 1024
 REPO_PATTERN = r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+"
@@ -363,7 +371,8 @@ def verify_receipt(api, release, doc, ident, proof_out=None):
          run.get("repository", {}).get("full_name") == api.repo and
          run.get("status") == "completed" and run.get("conclusion") == "success",
          "publication run not completed successfully")
-    found, count, total, seen = [], 0, None, set()
+    roles = {"Patch": [], "Sign": [], "Publish": []}
+    count, total, seen = 0, None, set()
     for page in range(1, 21):
         data = api.get(f"/repos/{api.repo}/actions/runs/{body['run_id']}/attempts/{body['attempt']}/jobs?per_page=100&page={page}")
         need(isinstance(data.get("jobs"), list) and type(data.get("total_count")) is int,
@@ -378,33 +387,46 @@ def verify_receipt(api, release, doc, ident, proof_out=None):
                  str(job.get("run_attempt")) == body["attempt"] and job.get("head_sha") == body["source_commit"],
                  "publication job identity mismatch")
             seen.add(job["id"]); count += 1
-            if job.get("name") == "Patch " + ident or str(job.get("name","")).endswith(" / Patch " + ident):
-                found.append(job)
+            for role in roles:
+                if job.get("name") == role + " " + ident or str(job.get("name","")).endswith(" / " + role + " " + ident):
+                    roles[role].append(job)
         need(count <= total, "excess publication jobs")
         if count == total:
             break
         need(len(data["jobs"]) == 100, "publication job coverage incomplete")
-    need(count == total and len(found) == 1, "publication target job absent/ambiguous")
-    job = found[0]
-    need(job.get("status") == "completed" and job.get("conclusion") == "success", "target job failed")
-    for step in ("Verify finished APK identity", "Verify release handoff (no publishing)", "Releasing APK files"):
-        matching = [s for s in job.get("steps", []) if s.get("name") == step]
-        need(len(matching) == 1 and matching[0].get("status") == "completed" and
-             matching[0].get("conclusion") == "success", "publication step not successful")
+    need(count == total, "publication job coverage incomplete")
+    # W15g: a split publication has one Patch, one Sign and one Publish job; older receipts one Patch job.
+    layout = "split" if roles["Publish"] or roles["Sign"] else "legacy"
+    wanted = SPLIT_JOBS if layout == "split" else (("Patch", LEGACY_STEPS),)
+    checked = []
+    for role, steps in wanted:
+        need(len(roles[role]) == 1, "publication target job absent/ambiguous")
+        job = roles[role][0]
+        need(job.get("status") == "completed" and job.get("conclusion") == "success", "target job failed")
+        for step in steps:
+            matching = [s for s in job.get("steps", []) if s.get("name") == step]
+            need(len(matching) == 1 and matching[0].get("status") == "completed" and
+                 matching[0].get("conclusion") == "success", "publication step not successful")
+        checked.append((job, steps))
     if proof_out is not None:
         # Store only public verification fields, not arbitrary job logs/env/URLs.
+        fields = ("id", "run_id", "run_attempt", "head_sha", "name", "status", "conclusion")
         proof_out.update({
             "run": {k: run[k] for k in ("id", "run_attempt", "head_sha", "head_branch",
                                        "status", "conclusion")},
             "repository": api.repo,
-            "job": {k: job[k] for k in ("id", "run_id", "run_attempt", "head_sha", "name",
-                                       "status", "conclusion")},
-            "steps": [{"name": step, "status": "completed", "conclusion": "success"}
-                      for step in ("Verify finished APK identity",
-                                   "Verify release handoff (no publishing)", "Releasing APK files")],
             "jobs_checked": count,
             "coverage": "complete"
         })
+        if layout == "legacy":
+            job, steps = checked[0]
+            proof_out["job"] = {k: job[k] for k in fields}
+            proof_out["steps"] = [{"name": step, "status": "completed", "conclusion": "success"} for step in steps]
+        else:
+            proof_out["layout"] = "split"
+            proof_out["jobs"] = [dict({k: job[k] for k in fields},
+                                      steps=[{"name": step, "status": "completed", "conclusion": "success"} for step in steps])
+                                 for job, steps in checked]
     return body
 
 def latest_baseline(api, ident, prefix):
@@ -541,6 +563,30 @@ def observe(root, ident, env, api=None):
     write(root, "shadow-evidence/" + ident + ".json", result)
     return result
 
+def receipt_draft(root, ident, env):
+    """W15g, patch job after observe: seal the consumed-input evidence only this job can read,
+    bound to the capture and the unsigned APK. Shadow only; a failure never blocks a build."""
+    report = read(root, "build-evidence/" + ident + ".json")
+    need(report.get("status") == "unsigned" and report.get("signing_split") is True and
+         report.get("target") == ident, "draft needs this target's unsigned report")
+    captured = report["inputs"]
+    need(read(root, ".build-inputs.json") == captured, "capture differs from the unsigned report")
+    from artifact_identity import verify_records
+    verify_records(Path(root), captured["tools"] + captured["bundles"] +
+                   [captured["patcher_input_apk"], captured["requested_ledger"]])
+    doc = realized(root, captured, env)
+    body = {"domain": DRAFT_DOMAIN, "schema": 1, "target": ident, "inputs_sha256": sha(captured),
+            "unsigned_sha256": report["output"]["sha256"], "consumed": doc}
+    if doc.get("resolution", {}).get("status") == "MATCH":
+        import dependency_observation
+        body["prepared_dependencies"] = dependency_observation.snapshot(root, ident, env, captured)
+    if doc.get("source_resolution", {}).get("status") == "MATCH":
+        import source_inputs
+        body["prepared_source"] = source_inputs.snapshot(root, ident, env)
+    draft = seal(body)
+    write(root, "shadow-evidence/" + ident + "-receipt-draft.json", draft)
+    return draft
+
 def publish_receipt(root, ident, env, api=None, upload=None):
     """Runs only after Release succeeded. Never uploads APKs, overwrites or prunes."""
     import release_contract
@@ -550,17 +596,37 @@ def publish_receipt(root, ident, env, api=None, upload=None):
     verify_run(fields["suffix"], env)
     report = read(root, "build-evidence/" + ident + ".json")
     captured = report["inputs"]
-    doc = realized(root, captured, env)
+    draft = None
+    if report.get("signing_split") is True:
+        # W15g: this job has no patcher jar, bundles or input APK; the patch job sealed them.
+        draft = unseal(read(root, "shadow-evidence/" + ident + "-receipt-draft.json"), DRAFT_DOMAIN)
+        need(draft.get("target") == ident and draft.get("inputs_sha256") == sha(captured) and
+             draft.get("unsigned_sha256") == report["unsigned_output"]["sha256"],
+             "receipt draft belongs to another build")
+        doc = draft["consumed"]
+        unseal(doc, DOMAIN)
+        need(doc.get("kind") == "consumed" and doc.get("target") == ident and
+             doc["effective_sha256"] == sha(doc["material"]), "receipt draft consumed evidence invalid")
+        # This run asked for prepared inputs: a draft that never recorded them cannot advance a baseline.
+        need(not (env.get("PF_RESOLVED_REQUESTED", "false").lower() == "true" and
+                  doc.get("resolution", {}).get("status", "NOT_REQUESTED") == "NOT_REQUESTED"),
+             "receipt draft did not record the requested dependency packet")
+        need(not (env.get("PF_SOURCE_REQUESTED", "false").lower() == "true" and
+                  doc.get("source_resolution", {}).get("status", "NOT_REQUESTED") == "NOT_REQUESTED"),
+             "receipt draft did not record the requested source APK")
+    else:
+        doc = realized(root, captured, env)
     need(doc["binding"] in ("MATCH", "NO_PLAN"), "missing or drifting plan cannot advance baseline")
     need(doc.get("resolution", {}).get("status") != "UNAVAILABLE",
          "unavailable prepared inputs cannot advance baseline")
     need(doc.get("source_resolution", {}).get("status") != "UNAVAILABLE" and
          doc["material"].get("execution") != {"status": "UNKNOWN"},
          "unavailable source/runtime evidence cannot advance baseline")
-    # Recheck the actual consumed files, not just the identity report assertions.
-    from artifact_identity import verify_records
-    verify_records(Path(root), captured["tools"] + captured["bundles"] +
-                   [captured["patcher_input_apk"], captured["requested_ledger"]])
+    if draft is None:
+        # Recheck the actual consumed files, not just the identity report assertions.
+        from artifact_identity import verify_records
+        verify_records(Path(root), captured["tools"] + captured["bundles"] +
+                       [captured["patcher_input_apk"], captured["requested_ledger"]])
     api = api or API(env.get("GITHUB_REPOSITORY"), env)
     r = api.get("/repos/" + api.repo + "/releases/tags/" + fields["tag"])
     need(tag_commit(api, fields["tag"]) == captured["source_commit"], "published tag not build commit")
@@ -578,12 +644,20 @@ def publish_receipt(root, ident, env, api=None, upload=None):
             "eligibility": "REQUIRES_COMPLETED_SUCCESSFUL_RUN_AND_TARGET_JOB",
             "limits": ["same-run recorded evidence, not an independent signature or trust anchor",
                        "runtime/OS/container transitive dependencies incomplete"]}
+    if draft is not None:
+        body["unsigned_apk_sha256"] = draft["unsigned_sha256"]
     if doc.get("resolution", {}).get("status") == "MATCH":
         import dependency_observation
-        body["prepared_dependencies"] = dependency_observation.snapshot(root, ident, env, captured)
+        body["prepared_dependencies"] = (draft["prepared_dependencies"] if draft is not None else
+                                         dependency_observation.snapshot(root, ident, env, captured))
+        if draft is not None:
+            dependency_observation.receipt_snapshot(body)
     if doc.get("source_resolution", {}).get("status") == "MATCH":
         import source_inputs
-        body["prepared_source"] = source_inputs.snapshot(root, ident, env)
+        body["prepared_source"] = (draft["prepared_source"] if draft is not None else
+                                   source_inputs.snapshot(root, ident, env))
+        if draft is not None:
+            source_inputs.receipt_snapshot(body)
     confirmed_apk(api, r, body)
     receipt = seal(body)
     name = receipt_name(ident)
@@ -627,6 +701,9 @@ def main():
         elif mode == "observe":
             result = observe(root, sys.argv[2], env)
             print("SHADOW_STATE=" + result["decision"]["state"])
+        elif mode == "draft":
+            receipt_draft(root, sys.argv[2], env)
+            print("RECEIPT_DRAFT_SEALED")
         elif mode == "receipt":
             publish_receipt(root, sys.argv[2], env)
             print("PUBLICATION_RECEIPT_STORED_PENDING_SUCCESSFUL_RUN")
@@ -640,7 +717,7 @@ def main():
             ident = sys.argv[2] if len(sys.argv) > 2 else None
             if mode == "plan":
                 dest = "shadow-evidence/plan.json"
-            elif mode in ("observe", "receipt") and isinstance(ident, str) and re.fullmatch(r"[a-z0-9-]+", ident):
+            elif mode in ("observe", "draft", "receipt") and isinstance(ident, str) and re.fullmatch(r"[a-z0-9-]+", ident):
                 dest = "shadow-evidence/" + ident + "-" + mode + "-unknown.json"
             else:
                 dest = None

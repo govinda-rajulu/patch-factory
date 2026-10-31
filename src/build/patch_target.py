@@ -41,11 +41,12 @@ def command(root, target_id, winner, env):
         raise ValueError('argv request ledger differs from selections.sh')
     if env.get('COE'):
         cmd += ['--continue-on-error']
+    # W15g: the patch job holds no key. The patcher writes an unsigned APK and the
+    # Sign job alone signs it with the release key; there is no signed fallback.
+    if env.get('PF_UNSIGNED') != 'true':
+        raise ValueError('unsigned patch mode required (PF_UNSIGNED=true); signing happens only in the Sign job')
     cmd += ['--options-file', str(root / 'src/options' / (c['options'] + '.json')),
-            '--striplibs', 'arm64-v8a', '--keystore=' + str(root / 'src/ks.keystore'),
-            '--keystore-password=' + env['KEYSTORE_PASS'],
-            '--keystore-entry-alias=' + env['KEYSTORE_ALIAS'],
-            '--keystore-entry-password=' + env['KEYSTORE_PASS'], '--force',
+            '--striplibs', 'arm64-v8a', '--unsigned', '--force',
             '--out=' + str(root / 'release' / (t['apk_name'] + '-arm64-v8a.apk')),
             str(root / 'download' / (t['apk_name'] + '.apk'))]
     return cmd
@@ -68,10 +69,13 @@ if __name__ == '__main__':
             import execution_inputs
             execution_inputs.capture(pathlib.Path('.'), sys.argv[1], sys.argv[2], os.environ)
         # W16o: F-02, providers are executable code; pass only non-secret tool settings.
-        # Signing inputs remain argv-compatible for the current job and are not copied into env.
+        # W15g: no signing input exists in this job at all (argv or env).
+        leaked = sorted(k for k in os.environ if k.startswith('KEYSTORE'))
+        if leaked or (pathlib.Path('src/ks.keystore').exists()):
+            raise ValueError('signing material reached the patch job: ' + (', '.join(leaked) or 'src/ks.keystore'))
         allowed = ('PATH', 'HOME', 'LANG', 'LC_ALL', 'TZ', 'TMPDIR', 'JAVA_HOME', 'COE')
         child_env = {key: os.environ[key] for key in allowed if key in os.environ}
-        # Never print argv: it carries signing passwords.
+        # argv is still not printed: options and paths are kept out of public logs.
         import time
         started = time.monotonic()
         rc = subprocess.run(args, env=child_env, check=False).returncode

@@ -18,6 +18,8 @@ from target_counts import ENABLED  # W4: counts follow src/targets.json
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src/build'))
 import artifact_identity as identity
+import sign_apk
+import shadow_inputs
 import native_payloads
 import release_contract
 import input_recipe
@@ -33,13 +35,50 @@ class Identity(unittest.TestCase):
         (self.r / 'release').mkdir()
         (self.r / 'download').mkdir()
         (self.r / 'extra').mkdir()
-        self.env = {**os.environ, 'ANDROID_HOME': str(self.r / 'sdk'), 'KEYSTORE_PASS': 'fixture password', 'KEYSTORE_ALIAS': 'fixture'}
+        self.pin = json.loads((ROOT / 'src/build/ci-signer.json').read_text())['certificate_sha256']
+        self._old_run_identity = {key: os.environ.get(key) for key in ('GITHUB_RUN_ID', 'GITHUB_RUN_ATTEMPT')}
+        os.environ.update({'GITHUB_RUN_ID': '12345', 'GITHUB_RUN_ATTEMPT': '2'})
+        self.env = {**os.environ, 'ANDROID_HOME': str(self.r / 'sdk'),
+                    'KEYSTORE_PASS': 'fixture password', 'KEYSTORE_ALIAS': 'fixture'}
         self.cert = b'0' + b'certificate-fixture' * 20
         self.fingerprint = hashlib.sha256(self.cert).hexdigest()
         self.meta = {'package': 'io.github.sds100.keymapper', 'version_code': '42', 'version_name': '4.2.1', 'min_sdk': 29, 'reader': 'fixture'}
+        self.tool('aapt2', "printf '%s\\n' \"package: name='io.github.sds100.keymapper' versionCode='42' versionName='4.2.1' platformBuildVersionName='35'\" \"minSdkVersion:'29'\"")
+        apksigner = '''#!/usr/bin/env python3
+import pathlib, sys, zipfile
+args = sys.argv[1:]
+if args[0] == 'sign':
+    out = pathlib.Path(args[args.index('--out') + 1])
+    source = pathlib.Path(args[-1])
+    with zipfile.ZipFile(source) as before, zipfile.ZipFile(out, 'w') as after:
+        for info in before.infolist():
+            after.writestr(info, before.read(info.filename))
+        info = zipfile.ZipInfo('META-INF/CERT.RSA')
+        info.compress_type = zipfile.ZIP_STORED
+        padding = (-(after.fp.tell() + 30 + len(info.filename.encode()) + 4)) % 4
+        info.extra = (0xd935).to_bytes(2, 'little') + padding.to_bytes(2, 'little') + b'\\0' * padding
+        after.writestr(info, b'fixture-signature')
+elif args[0] == 'verify':
+    print('Verifies')
+    print('Number of signers: 1')
+    print('Signer #1 certificate SHA-256 digest: __PIN__')
+    print('Verified using v1 scheme (APK Signature Scheme v1): false')
+    print('Verified using v2 scheme (APK Signature Scheme v2): true')
+    print('Verified using v3 scheme (APK Signature Scheme v3): false')
+    print('Verified using v4 scheme (APK Signature Scheme v4): false')
+else:
+    raise SystemExit(2)
+'''.replace('__PIN__', self.pin)
+        self.tool('apksigner', apksigner)
+        self.tool('zipalign', 'exit 0')
 
     def tearDown(self):
         self.temp.cleanup()
+        for key, value in self._old_run_identity.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
     def put(self, name, b):
         p = self.r / name;p.parent.mkdir(parents=True, exist_ok=True)
@@ -47,23 +86,33 @@ class Identity(unittest.TestCase):
         return p
 
     def tool(self, name, text):
-        p = self.put('sdk/build-tools/35.0.0/' + name, '#!/bin/bash\n' + text + '\n')
+        script = text if text.startswith('#!') else '#!/bin/bash\n' + text + '\n'
+        p = self.put('sdk/build-tools/35.0.0/' + name, script)
         p.chmod(0o755)
         return str(p)
 
     def apk(self, entries=None):
         p = self.r / 'release/key-mapper-v4.2.1-arm64-v8a.apk'
         with zipfile.ZipFile(p, 'w') as z:
-            z.writestr('AndroidManifest.xml', b'fixture')
-            z.writestr('classes.dex', b'd' * 1000100)
-            for name, value in (entries or {}).items():z.writestr(name, value)
+            members = [('AndroidManifest.xml', b'fixture'), ('classes.dex', b'd' * 1000100)]
+            members.extend((entries or {}).items())
+            for name, value in members:
+                info = zipfile.ZipInfo(name)
+                info.compress_type = zipfile.ZIP_STORED
+                padding = (-(z.fp.tell() + 30 + len(name.encode()) + 4)) % 4
+                extra_payload = b'\0' * padding
+                info.extra = (0xd935).to_bytes(2, 'little') + len(extra_payload).to_bytes(2, 'little') + extra_payload
+                z.writestr(info, value)
         return p
 
     def elf(self, machine=183, kind=2):
         h = bytearray(64);h[:4] = b'\x7fELF';h[4] = kind;h[5] = 1;h[18:20] = machine.to_bytes(2, 'little');return bytes(h)
 
+    def patch_environment(self):
+        return {key: value for key, value in self.env.items() if not key.startswith('KEYSTORE')}
+
     def capture_fixture(self, provenance=False):
-        for name in ('morphe-desktop-fixture.jar', 'APKEditor.jar', '09-lain.mpp', 'download/key-mapper.apk', 'src/ks.keystore'):
+        for name in ('morphe-desktop-fixture.jar', 'APKEditor.jar', '09-lain.mpp', 'download/key-mapper.apk'):
             self.put(name, 'fixture')
         if provenance:
             self.put('morphe-desktop-fixture.jar.json', json.dumps({
@@ -73,19 +122,67 @@ class Identity(unittest.TestCase):
         for args in (['git','init','-q'], ['git','config','user.name','Fixture'], ['git','config','user.email','fixture@example.invalid'],
                      ['git','add','src/targets.json','src/build/artifact_identity.py','docs/obtainium.json'], ['git','commit','-qm','fixture']):
             subprocess.run(args, cwd=self.r, check=True, capture_output=True)
-        with patch.object(identity, 'cert_from_keystore', return_value=self.fingerprint), contextlib.redirect_stdout(io.StringIO()):
-            identity.capture_signer(self.r, self.env)
-            identity.capture_inputs(self.r, 'keymapper', 'lain', self.env)
+        with contextlib.redirect_stdout(io.StringIO()):
+            identity.capture_inputs(self.r, 'keymapper', 'lain', self.patch_environment())
         self.put('release/.version', '4.2.1\n');self.put('release/.applied', '- Unlock Premium\n')
+        self.put('release/.tagprefix', 'key-mapper\n');self.put('release/.tagsuffix', '-b20260910\n')
+        self.put('release/.provider', 'lain\n');self.put('release/.patchver', '1.0\n')
         self.apk()
         return json.loads((self.r / '.build-inputs.json').read_text())
 
-    def verify_fixture(self):
-        with patch.object(identity, 'cert_from_keystore', return_value=self.fingerprint), \
-             patch.object(identity, 'metadata', return_value=self.meta), \
-             patch.object(identity, 'apk_signer', return_value={'certificate_sha256':self.fingerprint, 'verifier':'fixture','cryptographic_verification':'passed'}), \
+    def verify_unsigned_fixture(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            return identity.verify_unsigned(self.r, 'keymapper', self.patch_environment())
+
+    def verify_fixture(self, draft_env=None):
+        # A repeated fixture build represents a fresh Patch/Sign checkout and unsigned APK.
+        shutil.rmtree(self.r / 'signing', ignore_errors=True)
+        (self.r / 'build-evidence/keymapper.json').unlink(missing_ok=True)
+        (self.r / 'shadow-evidence/keymapper-receipt-draft.json').unlink(missing_ok=True)
+        self.apk()
+        report = self.verify_unsigned_fixture()
+        with contextlib.redirect_stdout(io.StringIO()):
+            shadow_inputs.receipt_draft(self.r, 'keymapper', draft_env or self.patch_environment())
+        self.put('src/ks.keystore', 'fixture keystore')
+        with patch.object(identity, 'check_keystore_pin', return_value=self.pin), \
              contextlib.redirect_stdout(io.StringIO()):
-            return identity.verify_final(self.r, 'keymapper', self.env)
+            sign_apk.sign(self.r, 'keymapper', self.env)
+        with contextlib.redirect_stdout(io.StringIO()):
+            return sign_apk.verify(self.r, 'keymapper', self.patch_environment())
+
+    def test_unsigned_gate_rejects_changed_bundle_before_sealing(self):
+        self.capture_fixture()
+        self.put('09-lain.mpp', 'changed after capture')
+        with self.assertRaisesRegex(ValueError, 'input changed'):
+            self.verify_unsigned_fixture()
+        self.assertFalse((self.r / 'shadow-evidence/keymapper-receipt-draft.json').exists())
+
+    def test_required_shadow_plan_is_sealed_as_unavailable_and_cannot_publish(self):
+        self.capture_fixture()
+        patch_env = dict(self.patch_environment(), PF_SHADOW_PLAN_REQUIRED='true')
+        report = self.verify_fixture(draft_env=patch_env)
+        draft = json.loads((self.r / 'shadow-evidence/keymapper-receipt-draft.json').read_text())
+        self.assertEqual(draft['consumed']['binding'], 'MISSING_REQUIRED_PLAN')
+        self._assert_draft_blocks_publish(patch_env, 'missing or drifting plan')
+
+    def test_unavailable_resolution_is_sealed_and_cannot_publish(self):
+        self.capture_fixture()
+        capture = json.loads((self.r / '.build-inputs.json').read_text())
+        capture['resolution'] = {'status': 'UNAVAILABLE', 'reason': 'fixture unavailable'}
+        (self.r / '.build-inputs.json').write_text(json.dumps(capture))
+        report = self.verify_fixture()
+        draft = json.loads((self.r / 'shadow-evidence/keymapper-receipt-draft.json').read_text())
+        self.assertEqual(draft['consumed']['resolution']['status'], 'UNAVAILABLE')
+        self._assert_draft_blocks_publish(self.patch_environment(), 'unavailable prepared inputs')
+
+    def _assert_draft_blocks_publish(self, env, message):
+        import build_identity
+        env = dict(env, GITHUB_REF='refs/heads/main', GITHUB_RUN_ID='12345', GITHUB_RUN_ATTEMPT='2')
+        with patch.object(release_contract, 'verify', return_value={'suffix': '-b20260910', 'tag': 'fixture-tag'}), \
+             patch.object(build_identity, 'verify_run', return_value=None), \
+             patch.dict(os.environ, env, clear=True), \
+             self.assertRaisesRegex(ValueError, message):
+            shadow_inputs.publish_receipt(self.r, 'keymapper', env, object(), lambda *_: None)
 
     def test_atomic_json_does_not_use_predictable_candidate(self):
         destination = self.r / 'report.json'
@@ -143,11 +240,12 @@ class Identity(unittest.TestCase):
     def test_complete_fixture_capture_and_verify(self):
         captured = self.capture_fixture();report = self.verify_fixture()
         self.assertEqual(report['status'], 'verified')
-        self.assertEqual(report['signature']['certificate_sha256'], self.fingerprint)
+        self.assertEqual(report['signature']['certificate_sha256'], self.pin)
         self.assertEqual(report['architecture']['classification'], 'no-native-libraries')
         self.assertTrue((self.r / 'build-evidence/keymapper.json').exists())
         self.assertNotIn('fixture password', json.dumps(report))
         self.assertNotIn('src/ks.keystore', [x['path'] for x in captured['repository_files']])
+        self.assertFalse((self.r / '.signer-before-build.json').exists())
 
     def test_same_runner_limit_is_explicit(self):
         self.capture_fixture();report = self.verify_fixture()
@@ -178,9 +276,13 @@ class Identity(unittest.TestCase):
         self.capture_fixture();p=self.r/'.build-inputs.json';d=json.loads(p.read_text());d['target']='photos';p.write_text(json.dumps(d))
         with self.assertRaisesRegex(ValueError, 'target/schema'):self.verify_fixture()
 
-    def test_signer_capture_reuse_rejected(self):
-        self.put('.signer-before-build.json','{}')
-        with self.assertRaises(ValueError):identity.capture_signer(self.r,self.env)
+    def test_unsigned_identity_report_defers_signature_to_sign_job(self):
+        self.capture_fixture()
+        report = self.verify_unsigned_fixture()
+        self.assertEqual(report['status'], 'unsigned')
+        self.assertTrue(report['signing_split'])
+        self.assertIn('binding', report['unsigned'])
+        self.assertNotIn('signature', report)
 
     def test_two_signers_rejected(self):
         with self.assertRaises(ValueError):identity.parse_signers('Signer #1 certificate SHA-256 digest: '+self.fingerprint+'\nSigner #2 certificate SHA-256 digest: '+self.fingerprint)
@@ -343,8 +445,8 @@ class Identity(unittest.TestCase):
         with self.assertRaises(ValueError):identity.expected_package(self.r,identity.target(self.r,'youtube'))
 
     def identity_args(self):
-        return [dict(self.meta),{'classification':'arm64-v8a'}, {'certificate_sha256':self.fingerprint},
-                {'expected_package':self.meta['package'],'expected_certificate_sha256':self.fingerprint,'sdk_ceiling':29}, '4.2.1']
+        return [dict(self.meta), {'classification':'arm64-v8a'},
+                {'expected_package':self.meta['package'], 'expected_certificate_sha256':self.pin, 'sdk_ceiling':29}, '4.2.1']
 
     def test_identity_correct(self):identity.validate_identity(*self.identity_args())
 
@@ -353,8 +455,9 @@ class Identity(unittest.TestCase):
         with self.assertRaises(ValueError):identity.validate_identity(*args)
 
     def test_identity_wrong_signer(self):
-        args=self.identity_args();args[2]['certificate_sha256']='a'*64
-        with self.assertRaises(ValueError):identity.validate_identity(*args)
+        args=self.identity_args()
+        with self.assertRaisesRegex(ValueError, 'signer'):
+            identity.validate_signer(self.r, {'certificate_sha256':'a'*64}, args[2])
 
     def test_identity_wrong_version(self):
         args=self.identity_args();args[0]['version_name']='99'
@@ -384,14 +487,17 @@ class Identity(unittest.TestCase):
 
     def test_workflow_verifies_before_release(self):
         s=(ROOT/'.github/workflows/manual-patch.yml').read_text()
-        self.assertLess(s.index('Verify finished APK identity'),s.index('Releasing APK files'))
-        self.assertLess(s.index('Save build evidence (JSON only)'),s.index('Releasing APK files'))
+        self.assertLess(s.index('Verify unsigned APK identity'), s.index('Hand the unsigned APK to the Sign job'))
+        self.assertLess(s.index('Verify signed APK'), s.index('Verify release handoff (no publishing)'))
+        self.assertLess(s.index('Verify release handoff (no publishing)'), s.index('Releasing APK files'))
+        self.assertLess(s.index('Save build evidence (JSON only)'), s.index('Releasing APK files'))
         self.assertIn('path: build-evidence/*.json',s)
         self.assertIn('if-no-files-found: error',s)
 
-    def test_capture_precedes_patcher(self):
+    def test_unsigned_support_probe_precedes_patching(self):
         s=(ROOT/'src/build/build.sh').read_text()
-        self.assertLess(s.index('capture-signer'),s.index('source ./src/build/utils.sh'))
+        self.assertLess(s.index('UNSIGNED_UNSUPPORTED'), s.index('python3 src/build/patch_target.py'))
+        self.assertIn('java -jar "$PJAR" patch --help', s)
         self.assertLess(s.index('capture-inputs'),s.index('python3 src/build/patch_target.py'))
 
     def observed_output(self):
@@ -865,12 +971,23 @@ class ReleaseContractTests(unittest.TestCase):
         self.name = 'release/fixture-v4.2.1-arm64-v8a.apk'
         (self.root / self.name).write_bytes(b'x' * 1000001)
         self.target = {'tag_prefix': 'fixture', 'min_sdk_ceiling': 29}
-        self.report = {'schema': 1, 'status': 'verified', 'target': 'fixture',
+        self.pin = json.loads((ROOT / 'src/build/ci-signer.json').read_text())['certificate_sha256']
+        (self.root / 'src/build').mkdir(parents=True)
+        (self.root / 'src/build/ci-signer.json').write_text(json.dumps({'certificate_sha256': self.pin}))
+        self.run_env = {'GITHUB_RUN_ID': '12345', 'GITHUB_RUN_ATTEMPT': '2'}
+        patch.dict(os.environ, self.run_env).start()
+        self.report = {'schema': 1, 'status': 'verified', 'signing_split': True, 'target': 'fixture',
                        'inputs': {'source_commit': 'a'*40, 'target': 'fixture', 'winner': 'fixture',
                                   'local_input_recipe': {'fixture_only': True},
-                                  'expected_package': 'org.fixture', 'expected_certificate_sha256': 'b'*64},
+                                  'expected_package': 'org.fixture', 'expected_certificate_sha256': self.pin},
                        'manifest': {'package': 'org.fixture', 'min_sdk': 29, 'version_name': '4.2.1'},
-                       'signature': {'certificate_sha256': 'b'*64, 'cryptographic_verification': 'passed'},
+                       'unsigned': {'binding': {'run_id': '12345', 'run_attempt': '2'}},
+                       'unsigned_output': {'sha256': 'c'*64, 'bytes': 1000001},
+                       'signing': {'binding': {'run_id': '12345', 'run_attempt': '2'},
+                                   'entries_compared': 1,
+                                   'schemes': {'v1': False, 'v2': True, 'v3': False, 'v3.1': False, 'v4': False},
+                                   'pin': self.pin},
+                       'signature': {'certificate_sha256': self.pin, 'cryptographic_verification': 'passed'},
                        'architecture': {'classification': 'arm64-v8a'},
                        'output': identity.record(self.root, self.name),
                        'applied_patch_names': ['Remove ads', 'PEOF']}
@@ -1120,8 +1237,8 @@ class ReleaseContractTests(unittest.TestCase):
 
     def test_workflow_exercises_release_helper_in_smoke(self):
         s = (ROOT / '.github/workflows/manual-patch.yml').read_text()
-        self.assertLess(s.index('Verify finished APK identity'), s.index('Verify release handoff'))
-        self.assertLess(s.index('Verify release handoff'), s.index('Releasing APK files'))
+        self.assertLess(s.index('Verify signed APK'), s.index('Verify release handoff (no publishing)'))
+        self.assertLess(s.index('Verify release handoff (no publishing)'), s.index('Releasing APK files'))
         self.assertIn('run: python3 src/build/release_contract.py "$TARGET"', s)
 
     def test_action_consumes_one_verified_path(self):
@@ -1156,10 +1273,22 @@ def load_tests(loader, tests, pattern):
     import dependency_contracts
     tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeTests))
     tests.addTests(loader.loadTestsFromTestCase(input_recipe_contracts.InputRecipeFlow))
-    tests.addTests(loader.loadTestsFromTestCase(shadow_contracts.ShadowContracts))
-    tests.addTests(loader.loadTestsFromTestCase(resolved_contracts.ResolvedContracts))
-    tests.addTests(loader.loadTestsFromTestCase(qualified_contracts.QualifiedContracts))
-    tests.addTests(loader.loadTestsFromTestCase(dependency_contracts.DependencyContracts))
+    replacements = {
+        'test_no_receipt_from_consumed_input_drift',
+        'test_required_daily_plan_missing_is_unknown_and_cannot_publish_receipt',
+        'test_receipt_publication_missing_resolution_does_not_grow_new_baseline',
+    }
+
+    def add_current_contracts(case):
+        suite = loader.loadTestsFromTestCase(case)
+        for test in suite:
+            if getattr(test, '_testMethodName', None) not in replacements:
+                tests.addTest(test)
+
+    add_current_contracts(shadow_contracts.ShadowContracts)
+    add_current_contracts(resolved_contracts.ResolvedContracts)
+    add_current_contracts(qualified_contracts.QualifiedContracts)
+    add_current_contracts(dependency_contracts.DependencyContracts)
     return tests
 
 
