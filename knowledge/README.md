@@ -19,6 +19,8 @@ anything you remember, and any number typed into prose"). Generated, CI-gated fi
 
 ## Reference
 
+- [style/](style/README.md): writing and shelf-page rules (W17a), and the three Validate checks
+  that keep them (links and page weight fail; the prose lint only warns).
 - [handbook/](handbook/): the owner's general engineering handbook (verification, gates,
   repo writes, CI diagnosis, scope, handovers, free LLM agents). Same files in openskip.
 - [archive/skills/](archive/skills/): the assistant skill notes this knowledge came from,

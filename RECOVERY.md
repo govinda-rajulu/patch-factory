@@ -37,8 +37,8 @@ The configured CI certificate SHA-256 is
 This identifies the expected CI signer, not an original publisher or the signer
 of an app already installed on a phone.
 
-Since W15h (22 Oct 2026) this value lives in `src/build/ci-signer.json`. The build stops
-before patching when the keystore certificate differs, and the Obtainium import pins it
+Since W15h (22 Oct 2026) this value lives in `src/build/ci-signer.json`. The Sign job stops
+(after the keyless Patch job) when the keystore certificate differs, and the Obtainium import pins it
 (`allowedSigningCertHashes`), so Obtainium 1.6.16 or newer refuses any APK signed by
 another key. A deliberate key change means: new value in that file, regenerate
 `docs/obtainium.json` (`python3 src/etc/obtainium.py`), and every phone re-imports.
@@ -80,8 +80,8 @@ from repository CI and publication.
 2. Inventory active runs and existing releases. Do not duplicate a running
    target. Preserve rollback assets and obtain a restorable copy before cleanup.
 3. Dispatch the approved workflow once with explicit targets and publication
-   intent. Manual and Batch default to publishing; `publish=false` is still a
-   real signed build, not a harmless read.
+   intent. Manual and Batch default to publishing. `publish=false` still runs a
+   real signed build; it is not read-only.
 4. Bind the new run to workflow, commit, inputs and attempt. A failed dispatch
    must not lead to watching an older run. An uncertain acknowledgement is a
    stop-and-inspect condition, not an automatic second dispatch.
@@ -102,7 +102,7 @@ disables them nor authorizes changing their schedule.
 
 ## Cleanup boundaries
 
-This is the one home for the cleanup policy (owner rules, 9 Oct 2026). One tool does it:
+This document records the cleanup policy (owner rules, 9 Oct 2026). Use this tool:
 `src/etc/cleanup.py preview`, then `apply --token` with the token the preview printed.
 
 | Scope | Kept | Deleted |
@@ -110,12 +110,12 @@ This is the one home for the cleanup policy (owner rules, 9 Oct 2026). One tool 
 | Releases | Each app's three newest builds (plus its newest primary when all three are fallback builds); anything younger than 7 days; any release whose tag is not an app build tag | Older builds of the same app, once 7 days old |
 | Tags | Every tag that is not a build tag | Tags of deleted releases; build tags whose release is gone |
 | Pages deployment records | The newest 3 (the live site's record is the newest) | Older records: an id, a date and a commit, nothing the site needs |
-| Branches | `main`, `status`, anything not under `packet/`, a packet branch with an open pull request or with commits not in main | A `packet/` branch whose head is already in main |
+| Branches | `main`, `status`, anything not under `packet/` or `dev/`, such a branch with an open pull request or with commits not in main | A `packet/` or `dev/` branch whose head is already in main |
 
 Apply re-reads GitHub and refuses unless the token still matches, so nothing that appeared
 after the preview is touched. It writes a receipt first (release assets with sizes and
 sha256, tag and branch commits, deployment ids) and stops at the first failed delete.
-Receipts are copied into `docs/review/retention/`. A deleted branch comes back with the
+The workflow uploads each receipt as a 30-day artifact; the owner copies it into `docs/review/retention/`. A deleted branch comes back with the
 `git push` line in its receipt row, because its commit is in main.
 
 Release deletion removes its downloadable assets for good: keep a copy of anything you may

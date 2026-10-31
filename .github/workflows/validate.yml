@@ -168,6 +168,13 @@ jobs:
         run: python3 src/etc/schedules.py --check
       - name: README state block matches targets.json
         run: python3 src/etc/readmegen.py --check
+      # W17a Sustain checks (knowledge/style/): links and page weight fail; the prose lint only warns.
+      - name: Relative Markdown links resolve
+        run: python3 src/etc/doclinks.py --check
+      - name: Page weight within budget
+        run: python3 src/etc/page_weight.py --check
+      - name: Advisory prose lint (never fails)
+        run: python3 src/etc/prose_lint.py
       - name: Exact source and execution input contracts
         # W16g (L087): test fixtures write tables to the step summary; keep them out of the run page.
         run: GITHUB_STEP_SUMMARY="$RUNNER_TEMP/test-summary.md" python3 -m unittest discover -s tests -p 'test_source_inputs.py' -v

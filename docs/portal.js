@@ -515,11 +515,6 @@ function field(article,label,value){
  const p=el('p',undefined,'card-field');p.append(el('strong',label+': '));p.append(document.createTextNode(value));article.append(p);
 }
 function patchList(record){return record&&Array.isArray(record.patches)?record.patches:null;}
-function patchText(record){
- const patches=patchList(record);
- if(!patches)return 'Not recorded';
- return patches.length?patches.join(', '):'none';
-}
 // W16z (owner, 31 Oct 2026): one freshness row instead of "Patch age" plus "Last built"; the
 // advisory limit shows only near or over it (within 14 days, or past it). Build gates still decide.
 function freshnessText(age,limit,built,warning){

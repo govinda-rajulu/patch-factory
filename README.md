@@ -15,8 +15,8 @@ Built and maintained on GitHub by **Govindarajulu K** (owner and architect), wit
 [who did what](CREDITS.md#who-built-it).
 
 The generated table below is the configured patched-app inventory. Morphe MicroG
-RE is an optional upstream companion, not another patched target; import choices
-and what they do are in the [guide](docs/guide.md#obtainium).
+RE is an optional upstream companion. It is not a patched target. The [guide](docs/guide.md#obtainium)
+explains its import choices and behavior.
 
 ## Builds and releases
 

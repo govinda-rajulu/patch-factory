@@ -171,4 +171,4 @@ after the artifact/client gates above. Helper's exact-request source audit is a
 separate candidate, not a fallback already wired into CI. Keep the existing
 [open engineering work](review/OPEN-WORK.md), including full input fingerprints,
 same-version delivery, exact Reddit input validation and separately approved
-cleanup, visible rather than treating this guide as completion of those items.
+cleanup, visible. This guide does not complete those items.

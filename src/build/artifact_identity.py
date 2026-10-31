@@ -399,8 +399,21 @@ def run_binding(env):
     return {'run_id': run_id, 'run_attempt': attempt}
 
 
-# apksig treats these names as JAR-signature files case-insensitively and strips them when signing.
-SIGNATURE_FILE = re.compile(r'META-INF/(?:MANIFEST[.]MF|[^/]+[.](?:SF|RSA|DSA|EC)|SIG-[^/]*)', re.IGNORECASE)
+# W17a: the exact apksig rule (V1SchemeSigner.isJarEntryDigestNeededInManifest, read 31 Oct 2026):
+# a direct child of the case-sensitive 'META-INF/' prefix whose lowercased name is manifest.mf,
+# ends with .sf/.rsa/.dsa/.ec (an empty base such as META-INF/.SF counts) or starts with sig-.
+# apksig strips these when signing; 'meta-inf/x.sf' and 'META-INF/a/b.rsa' are ordinary entries.
+SIGNATURE_SUFFIXES = ('.sf', '.rsa', '.dsa', '.ec')
+
+
+def is_signature_file(name):
+    if not name.startswith('META-INF/') or name.endswith('/'):
+        return False
+    base = name[len('META-INF/'):]
+    if '/' in base:
+        return False
+    low = base.lower()
+    return low == 'manifest.mf' or low.endswith(SIGNATURE_SUFFIXES) or low.startswith('sig-')
 
 
 def verify_unsigned(root, ident, env):
@@ -432,7 +445,7 @@ def verify_unsigned(root, ident, env):
     applied = [x.removeprefix('- ').strip() for x in (root / 'release/.applied').read_text().splitlines() if x.strip()]
     require(applied, 'no applied-patch evidence')
     with zipfile.ZipFile(apk) as z:
-        leftovers = sorted(n for n in z.namelist() if SIGNATURE_FILE.fullmatch(n))
+        leftovers = sorted(n for n in z.namelist() if is_signature_file(n))
     report = {'schema': SCHEMA, 'status': 'unsigned', 'signing_split': True, 'target': ident, 'inputs': captured,
               'output': record(root, str(apk.relative_to(root.resolve()))), 'manifest': meta,
               'architecture': arch, 'applied_patch_names': applied,

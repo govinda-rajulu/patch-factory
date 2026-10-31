@@ -8,7 +8,13 @@ Start here: [KT-2026-10-28.md](../docs/review/KT-2026-10-28.md), then [OPEN-WORK
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W16z (31 Oct 2026, evening IST): start here
+## W17a (31 Oct 2026, night IST): start here
+
+- **W17a** (W17 phase 0) on main `b1c34e50`: weekly pin check, run attempt in artifact names, apksig signature-file rule, history scan (0 real), fallback attempt table, agent trials (49 of 56), 5S moves and link repairs, content and prose passes, portal contrast and weight, `knowledge/style/` with three Validate checks. Read docs/review/HANDOVER-2026-10-31-W17a.md and docs/review/w17a/README.md.
+- **Owner:** Add target for Remote for Android TV (`remoteatv`); the car test is on hold.
+- **Next**: Sunday 1 Nov Council probe and digest; Monday 2 Nov retention preview; first weekly pin check Wednesday 4 Nov; then W17 phase 1 (owner console, #286).
+
+## W16z (31 Oct 2026, evening IST)
 
 - **W16z** on main `572d7d2b`: pin probe bare-code fix (wrong call 122), failure issues quote the reason (#280), portal cleanups, issue forms, labels and seed issues through Repo setup, housekeeping, records. Read docs/review/HANDOVER-2026-10-31-W16z.md and docs/review/w16z/README.md.
 - **Owner phone test, 31 Oct:** the split-signed Telegram installed over the current one and works; other patches unconfirmed.
@@ -16,23 +22,23 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and
 
 ## W15g merged (31 Oct 2026, afternoon IST)
 
-- **W15g merged** as #283 (`95be30da`, tree `2e483365`) after one fix (wrong call 120: the signer drops directory entries and the source-stamp file). 17 of 17 smokes proved the split; Telegram published through Patch, Sign and Publish. Read the Result section of docs/review/HANDOVER-2026-10-31-W15g.md and docs/review/w15g-close/README.md.
+- **W15g merged** as #283 (`95be30da`, tree `2e483365`) after one fix (wrong call 120: the signer drops directory entries and the source-stamp file). 17 of 17 smokes proved the split; Telegram published through Patch, Sign and Publish. Read the Result section of docs/review/history/HANDOVER-2026-10-31-W15g.md and docs/review/w15g-close/README.md.
 - **Next**: owner Telegram phone test (install over, no uninstall), then W16z (docs/review/OPEN-WORK.md), then W17 console, Android Auto later.
 
 ## W15g (31 Oct 2026, morning IST)
 
-- **W16y-c merged** as #282 (`901f3051`, tree `f690788d`), RESULT OK; Telegram published from rahul9999xda. Read docs/review/HANDOVER-2026-10-31-W15g.md.
+- **W16y-c merged** as #282 (`901f3051`, tree `f690788d`), RESULT OK; Telegram published from rahul9999xda. Read docs/review/history/HANDOVER-2026-10-31-W15g.md.
 - **W15g signing split**: Patch (provider code, no key, read-only, unsigned APK), Sign (first-party `sign_apk.py`, keystore pin check, apksigner with the patcher's scheme rule, byte-identical payload proof), Publish (write token, no key). Gate: all 17 apps on the branch, then one Telegram publish and the owner's install-over phone test.
 - **Next**: W16z (shelves, portal freshness row, one patches fold, CCleaner Coming soon, Needs you link, issue templates, audit follow-ups), then the W17 owner console (Pages builds GitHub issue-form links; owner submits; only owner submissions make ready PRs; merges are the owner's). Android Auto is a feature request.
 
 ## W16y-c (31 Oct 2026, early IST)
 
-- **W16y-b merged** as #281 (`27adc7b4`, tree `c761f1c6`), RESULT OK. Owner phone test 31 Oct: the Telegram rahul9999xda build signs in. Read docs/review/HANDOVER-2026-10-31-W16y-c.md.
+- **W16y-b merged** as #281 (`27adc7b4`, tree `c761f1c6`), RESULT OK. Owner phone test 31 Oct: the Telegram rahul9999xda build signs in. Read docs/review/history/HANDOVER-2026-10-31-W16y-c.md.
 - **W16y-c**: publish Telegram from rahul9999xda after the merge; scan host fix (wrong call 118); pin check through the build's store reader, no downloads, still report-only; controller retries a transient push failure. Wrong calls through 119.
 
 ## W16y-b (30 Oct 2026, evening IST)
 
-- **W16y-a merged** as #279 (`75fd6dae`, tree `801b1a96`). Owner run RESULT OK; Facebook, Prime Video and Amazon Music (26.36.1, De-Vanced v1.6.2) smokes worked; ES fallback stopped at the coverage floor as designed. Read docs/review/HANDOVER-2026-10-30-W16y-b.md.
+- **W16y-a merged** as #279 (`75fd6dae`, tree `801b1a96`). Owner run RESULT OK; Facebook, Prime Video and Amazon Music (26.36.1, De-Vanced v1.6.2) smokes worked; ES fallback stopped at the coverage floor as designed. Read docs/review/history/HANDOVER-2026-10-30-W16y-b.md.
 - **W16y-b**: provider safety scan on nonpublishing smokes (permissions, hosts, red flags, ClamAV, VirusTotal hash lookup); monthly watched-provider digest with the three Hush providers as watch sources; pin check as a manual report-only probe (schedule after live evidence); 180-day patch-age warning on portal and status; weekly Council model lines; Telegram switched to rahul9999xda (non-Hush, owner 30 Oct evening; smoke build is the phone test). Wrong calls 112 to 117. Nothing published or deleted.
 - **Next**: Telegram fallback decision (rahul9999xda on 13.1.1), new-provider ready-PR orchestration, first scheduled runs 1 to 2 Nov, retention apply with the owner's token from 3 Nov, W15g signing split alone.
 
@@ -44,13 +50,13 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and
 
 ## W16x (29 Oct 2026, early IST): start here
 
-- **W16w merged** as #275 (`2db6cde8`, tree `728638b2`). Owner run RESULT FINDINGS (Amazon Music only). LinkedIn v1.2.0 with Material You published; phone test passed (Michii Patches in the Me panel). Read docs/review/HANDOVER-2026-10-29-W16x.md.
+- **W16w merged** as #275 (`2db6cde8`, tree `728638b2`). Owner run RESULT FINDINGS (Amazon Music only). LinkedIn v1.2.0 with Material You published; phone test passed (Michii Patches in the Me panel). Read docs/review/history/HANDOVER-2026-10-29-W16x.md.
 - **W16x**: store near-version picks bounded to the same release line (Amazon Music 2.36.1 to 2.8.1 refused; Prime Video and Hotstar still build); PR #277 folded (7 switchable names); ES File fallback rushiranpise back (Unlock VIP Lifetime alone); onboarding checker fails closed on a malformed extra_bundles; LinkedIn GmsCore support and Remove gaps and dividers recorded as owner drops; schedules doc; Cloud Shell cleanup record. Wrong calls through 108.
 - **Idle on purpose**: Instagram fallbacks (HushGram and oxbow only support 453; a 453 fallback release would lock piko 452.1 out). MX fallback MightyMichs (fingerprint mismatch on 1.93.4). Amazon Music (provider version 2.36.1).
 
 ## W16w (28 Oct 2026, night IST)
 
-- **W16v merged** as #268 (`750f3448`). Read docs/review/KT-2026-10-28.md, then docs/review/HANDOVER-2026-10-28-W16w.md.
+- **W16v merged** as #268 (`750f3448`). Read docs/review/KT-2026-10-28.md, then docs/review/history/HANDOVER-2026-10-28-W16w.md.
 - **Owner, 28 Oct**: Instagram Home empty (brosssh always-on hides dropped in W16w; switchable patches stay; switch audit docs/review/SWITCH-AUDIT-2026-10-28.jsonl); keep releases and tags this week (no cleanup apply); never drop patches to pass a build; non-Hush providers primary.
 - **W16w**: Instagram pinned to APKMirror build 385811006 with every chosen piko patch (Custom font back; the six long-standing exclusions stay); hoo-dles on stable for Prime Video; ES File and CCleaner icons; CodeQL test fix. Wrong calls through 97.
 - **Owner devices** unchanged: Android 10 main phone with Signer pin off; Android 11 and 12 devices keep the pin.
@@ -66,7 +72,7 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and
 - **Run 1 and the fix**: Owner run 1 (27 Oct, 23:37 IST): probe OK (icons 8 of 9), PR #268 opened, 16 of 17 smokes worked, Amazon Music included (#262 fix shown on a real build). Instagram piko failed: the same day APKPure swapped its 452.1.0.53.64 file (base 143.2 MB plus mdpi split became 145.4 MB plus xxhdpi; APKMirror lists a new arm64 build 385914182 uploaded 27 Oct 04:16 UTC beside 385811006), and Piko 3.11.0-dev.3 "Custom font" no longer finds its code (ReactNativeFontRegistrationFingerprint). W16v store code does not choose the APKPure file. Owner call 28 Oct: drop Custom font (instagram-piko exclude-patches, DECISIONS.json N-421628). The fix commit fast-forwards packet/w16v; it smokes Instagram only, applies the cleanup and runs T1. Five official 240 px tiles shipped (Amazon Music, Edge, LinkedIn, Google Photos, Reddit).
 - **Owner devices**: Android 10 main phone (most apps): import with Signer pin unticked. Android 11 and 12 devices (MX Player Pro, YouTube, Facebook): keep the pin. Steps in OBTAINIUM-SIGNER-2026-10-27.md.
 - **Results**: RESULT FINDINGS = merged, T1 listed failures (never OK). Cloud Shell cuts and the upload order: docs/review/controllers/README.md. Wrong calls 1 to 96: ledger pointer in HANDOVER-2026-10-27-W16u.md.
-- **Next**: W15g signing split, mapped in docs/review/W15G-MAP.md (keystore password still reaches the third-party patcher as an argument: HIGH).
+- **Next**: W15g signing split, mapped in docs/review/history/W15G-MAP.md (keystore password still reaches the third-party patcher as an argument: HIGH).
 
 ## W16u (27 Oct 2026, final repair pass)
 
@@ -233,54 +239,8 @@ patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and
   planner; W15g signing split; CCleaner after a provider fix; phone tests. Whole list: OPEN-WORK
   26 Oct checkpoint.
 
-## 25 Oct 2026, late night IST (packet W16l)
-
-- **Main** `19a9b969` (W16k #251 `cb11a66e`, CCleaner #254) plus W16l once merged.
-- **W16l**: Status page data no longer red (Notify skips events it never reports); Validate's
-  selection-watch test repo has no auto gc (a detached gc raced the temp cleanup). CCleaner: the
-  owner keeps Unlock Premium (paid_ok_targets, DECISIONS take, record licence GPL-3.0; Disable
-  Telemetry failed on 26.08.0 and the owner removed it), card line "Premium unlocked". CCleaner is disabled until MightyMichs fixes
-  its issue #18: both patches miss their fingerprints on 26.08.0 (bundle v1.12.0). "5. Add
-  target" now writes the patch names as the card line. Instagram piko holds Hide feed posts and
-  Reddit Alastor holds "Reddit native post-menu originals (2026.41.0)": each failed on the app
-  version we build, so both apps had shipped from their fallback (W16k smoke and publish batch
-  40212870923). W16k publish batch: 17 of 17 apps built and published. Record
-  docs/review/SESSION-2026-10-25.md (W16l part). Wrong calls: 68.
-- **Next**: W17 one-form Add app (owner-only by GitHub write access; find providers, smoke,
-  merge only when green, paid names wait in Needs you); W15g signing split; owner phone tests.
-
-## 25 Oct 2026, night IST (packet W16k)
-
-- **Main** `9ad6af15` (W16j #247) plus bot commits, plus W16k once merged.
-- **W16k**: APK picker judges chip, Android and screen together (src/build/variant_pick.py) and
-  never keeps a build that does not fit; an APK that needs a newer Android tries the SAME version
-  from the other store before any lower one (Key Mapper: APKPure's one 12L file, APKMirror's
-  arm64 Android 10+ build). Workflow diet: followers wake only for runs on main, Notify runs
-  inside Status page data, Rule merge on its two crons only, Check new patch 2 crons, Council 2
-  crons (solo shifts on request); 25 Oct replayed: 299 runs to about 173, a quiet day about 37 to
-  21. Agents: an owner-written PR reads the owner's head policy, rule 4 is one build, one line per
-  finding, seat plumbing folded, an unchanged review is not re-posted. Failures: Qualify
-  NO_RECEIPT is a warning; MCP scout trusts its fresh checkout; Community and Nightly name why.
-  Pages: built cards fold real history (what changed, notes, 4 older APKs), Obtainium and MicroG
-  cards with one download, date and time everywhere; release notes open with "Built ...".
-  Facebook Unlock app icons kept (owner); Photos AMOLED kept from Akash. Controller: at most 2
-  smokes per app, publish dispatched after the merge, not waited for. Record
-  docs/review/SESSION-2026-10-25.md (W16k part). Wrong calls: 65.
-- **Next**: W15g signing split; owner phone tests; W17 combo planner.
-
-## 25 Oct 2026, evening IST (packet W16j)
-
-- **Main** `829ec099` (W16i #244) plus W16j once merged.
-- **W16j**: owner decision memory (src/patches/DECISIONS.json), Needs you v2 (groups, tables,
-  `yes all`, group and except commands, quiet comments), Telegram HushTelegram, Key Mapper
-  legendsciber, Truecaller heval99 primary, Reddit Alastor, Instagram oxbow, Photos Akash (no
-  licence declared), Amazon Music paid names (owner approved), Qualify plan per candidate,
-  keep_going smokes, three-line report heads. Record docs/review/SESSION-2026-10-25.md. Wrong
-  calls: 60 (L089 to L092 are lessons, not wrong calls).
-- **Next**: owner answers Needs you with the new commands; phone tests (Truecaller with MicroG RE
-  first, Telegram HushTelegram, Reddit 41, Instagram piko, Facebook 584); W15g signing split; W17
-  combo planner.
-
 ## Older snapshots
+
+25 October 2026 (W16j to W16l): [archive/STATE-2026-10-25.md](archive/STATE-2026-10-25.md) (verbatim, historical).
 
 29 Sep to 24 Oct 2026: [archive/STATE-2026-09-to-2026-10-24.md](archive/STATE-2026-09-to-2026-10-24.md) (verbatim, historical).

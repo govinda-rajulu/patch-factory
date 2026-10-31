@@ -14,3 +14,5 @@ The shared engineering handbook lives in [../handbook/](../handbook/), not here.
 
 `STATE-2026-09-to-2026-10-24.md` holds the dated STATE.md sections from 29 Sep to 24 Oct 2026,
 moved verbatim on 26 Oct 2026 (packet W16m). Historical, like the skills.
+
+`STATE-2026-10-25.md` (added in W17a, 31 Oct 2026): the 25 Oct STATE sections, W16j to W16l, moved verbatim.

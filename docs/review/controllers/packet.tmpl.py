@@ -576,8 +576,9 @@ def smoke():
             R['smoke'][t]['scan'] = scan[-1:]
             # W16y-c: keep the scan evidence with the run logs, so no separate collect step is needed.
             dest = LOGS / ('scan-%s-%s' % (t.replace('/', '-'), r['id']))
-            dcode, _, derr = run([GH, 'run', 'download', str(r['id']), '--repo', REPO, '-n',
-                                  'provider-scan-%s-%s' % (app, r['id']), '--dir', str(dest)], timeout=180)
+            # W17a: the artifact name carries the attempt too; match any attempt of this run.
+            dcode, _, derr = run([GH, 'run', 'download', str(r['id']), '--repo', REPO, '-p',
+                                  'provider-scan-%s-%s-*' % (app, r['id']), '--dir', str(dest)], timeout=180)
             R['smoke'][t]['scan_evidence'] = str(dest.name) if dcode == 0 else None
             if dcode != 0:
                 say('smoke', 'NOTE', '%s: scan evidence not downloaded (%s)' % (t, (derr or b'').decode('utf-8', 'replace')[:120]))

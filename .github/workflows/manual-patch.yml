@@ -220,7 +220,8 @@ jobs:
       - name: Save build evidence (JSON only)
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: build-evidence-${{ inputs.target }}
+          # W17a: run and attempt in the name (a rerun is a new attempt with its own evidence).
+          name: build-evidence-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: build-evidence/*.json
           if-no-files-found: error
           retention-days: 7
@@ -257,7 +258,7 @@ jobs:
         if: always() && inputs.scan && !inputs.publish
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
-          name: provider-scan-${{ inputs.target }}-${{ github.run_id }}
+          name: provider-scan-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: provider-scan.json
           if-no-files-found: warn
           retention-days: 30

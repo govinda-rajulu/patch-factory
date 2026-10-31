@@ -17,7 +17,8 @@ candidate with its overrides too (pinned, no prepared inputs), so a primary can 
 target's extra bundles while the fallback keeps them.
 
 Writes release/.fallback after a successful later attempt, and fallback=, winner= and
-attempts= to GITHUB_OUTPUT. Exit status is the last attempt's.
+attempts= to GITHUB_OUTPUT. W17a: a bounded attempt table (candidate, result, reason) goes to the
+job summary on success and on failure. Exit status is the last attempt's.
 Usage: build_attempts.py TARGET_ID
 """
 import json
@@ -174,6 +175,29 @@ def attempt(root, ident, env, log):
     return p.returncode, winner, reason
 
 
+def cell(text, size=160):
+    """W17a: one safe Markdown table cell (no pipes, line breaks or code ticks), bounded."""
+    text = ' '.join(str(text).replace('|', '/').replace('`', "'").split())
+    return text if len(text) <= size else text[:size - 3] + '...'
+
+
+def write_summary(env, ident, rows, allowed, marker):
+    """W17a: bounded attempt table for the job summary (at most 1 + PF_MAX_FALLBACKS rows)."""
+    path = env.get('GITHUB_STEP_SUMMARY')
+    if not path:
+        return
+    lines = ['### Build attempts: %s' % cell(ident, 80), '',
+             '%d of %d allowed. Fallback marker: %s.' % (len(rows), allowed,
+                                                     'written (release/.fallback)' if marker else 'not written'),
+             '', '| Attempt | Candidate | Result | Reason or kind |', '|---|---|---|---|']
+    lines += ['| %d | %s | %s | %s |' % (n, cell(name, 60), result, cell(note)) for n, name, result, note in rows]
+    try:
+        with open(path, 'a', encoding='utf-8') as f:
+            f.write('\n'.join(lines) + '\n\n')
+    except OSError as exc:  # W17a review: the summary is best-effort; it never changes the result
+        print('::warning::could not write the attempt summary: %s' % str(exc)[:200])
+
+
 def output(env, **fields):
     path = env.get('GITHUB_OUTPUT')
     if path:
@@ -213,6 +237,7 @@ def main(argv, env=None, root=None):
     if env.get('PF_STORE_LAZY') == '1':
         atexit.register(cleanup_store_services, root, env)
     tried, failures, rc, n = [], [], 1, 0
+    rows, allowed = [], min(limit, len(steps))
     first = primary_view(t)
     for name in steps:
         if name is None and first:
@@ -253,6 +278,8 @@ def main(argv, env=None, root=None):
                 (root / 'release/.fallback-provider').write_text((winner or name) + '\n', encoding='utf-8')
                 print('::warning::PROVIDER_FALLBACK %s: %s' % (ident, text[:900]))
             output(env, fallback='true' if is_fb else 'false', winner=winner or name or '', attempts=n)
+            rows.append((n, winner or name or 'primary', 'built', 'fallback test build' if is_fb else 'primary build'))
+            write_summary(env, ident, rows, allowed, is_fb)
             summary = 'fallback test build; publication requires the coverage floor' if is_fb else 'primary build'
             print('ATTEMPTS_OK %s: attempt %d of %d, winner %s (%s)' %
                   (ident, n, len(steps), winner or name, summary), flush=True)
@@ -260,7 +287,9 @@ def main(argv, env=None, root=None):
         tried.append(winner or name or '?')
         failures.append('%s failed (%s)' % (winner or name or 'the primary', (reason or 'exit %d' % rc)[:200]))
         print('ATTEMPT_FAILED %d %s: %s' % (n, ident, failures[-1]), flush=True)
+        rows.append((n, winner or name or 'primary', 'failed', reason or 'exit %d' % rc))
     output(env, fallback='false', winner='', attempts=n)
+    write_summary(env, ident, rows, allowed, False)
     print('::error::ATTEMPTS_FAILED %s: %s' % (ident, '; '.join(failures)[:1500]))
     return rc or 1
 

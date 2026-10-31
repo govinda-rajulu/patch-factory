@@ -167,7 +167,7 @@ Truecaller row). Every other morning item is carried as written there.
    pinned; community_discover and community_all count a doubled repository once; manual
    dispatch builds only from main. Gemini CLI warns that tools.exclude goes away in 1.0 (Policy
    Engine): move mcp-scout.yml before that version is pinned.
-3. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)), its own packet: full
+3. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)), its own packet: full
    nonpublishing batch, one publishing build, owner phone test. Keyless patch job keeps a
    writable JAR folder (L105).
 4. W17a and W17b Add app ([W17-BRIEF.md](../W17-BRIEF.md)). Owner answers, 26 Oct: Add target
@@ -199,7 +199,7 @@ detail; an item listed here wins over its older wording.
 1a. W18 combo planner (owner idea, W16j). Older records call it "W17 combo planner" (25 Oct) and
    "W15f combo planner" (21 Oct); the label moved on 26 Oct (wrong call 69). Plan and first data:
    [W17-BRIEF.md](../W17-BRIEF.md), section "W18 combo planner".
-2. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)). morphe-desktop is unpinned, so
+2. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)). morphe-desktop is unpinned, so
    `--unsigned` needs a capability check first; it ends with one publishing build the owner
    installs over the current app.
 3. CCleaner is disabled: MightyMichs v1.12.0 misses both fingerprints on 26.08.0 (provider issue
@@ -393,7 +393,7 @@ council caps removed, fewer runs. Record: [SESSION-2026-10-24.md](SESSION-2026-1
    combo planner); the shadow source step steps down for Android version like the build.
 3. Weekly agent repo review: shipped in W16c (one issue per verified finding, label review).
    Owner, phone after W16c: Reddit 41 again (now without Disable modern home), Instagram on piko.
-4. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)), needs a phone test.
+4. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)), needs a phone test.
 5. Still open from 23 Oct and 20 Oct: Instagram piko on 452.1 (W16c holds the broken brosssh patch); five apps with one store (W16c:
    second store added for all five);
    Combo planner; zizmor; persona pull requests; openskip mirror of
@@ -418,7 +418,7 @@ Record: [SESSION-2026-10-23.md](SESSION-2026-10-23.md). Open, in order:
 0. Owner, phone: Facebook 584 installs over the current patched Facebook (same key). Reddit 41 is
    older than the installed 42: uninstall the patched Reddit first, then install 41 (sign in again).
    Re-import the Obtainium JSON if not done since W15h.
-1. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`.
+1. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`.
 2. Done in this packet: docs/review/onboarding/facebook.md now records Facebook 584.0.0.51.56
    with HushFacebook 0.17.0; its older 583 entry remains only as history.
 3. (W16c: held in instagram-brosssh/exclude-patches; see onboarding/instagram.md.) Instagram: piko's "Disable story auto flipping" no longer matches Instagram 452.1 (HushGram
@@ -441,7 +441,7 @@ Record: [SESSION-2026-10-22.md](SESSION-2026-10-22.md), W15h section. Open, in o
    seat, docs/council/SETUP.md); optional $10 OpenRouter credit (50 to 1000 free calls a day).
    Owner clicks, optional: Settings > Code security > CodeQL "Default"; CodeRabbit app on this
    repository only (free on public repositories).
-2. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`;
+2. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)) with morphe-desktop `--unsigned`;
    needs a phone test. Reddit stays on the kept 2026.42.0 (owner, 22 Oct).
 3. Combo planner and ceiling memory (LinkedIn step-downs).
 4. From the Tooling watch issue: FlareSolverr digest bump, pup to htmlq, apkeep / APKPure API as
@@ -458,7 +458,7 @@ stopped on that merge (L072). W15f: Rule merges count as bot drift in the contro
 reruns on main; council v3 from the outside-repo review ([OUTSIDE-REPOS-2026-10-22.md](../OUTSIDE-REPOS-2026-10-22.md)). Open, in order:
 
 0. After W15f: check that every app has one release again (the fresh set) and no orphan tag is left.
-1. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)); it ends with one publishing build
+1. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)); it ends with one publishing build
    the owner installs over the current app, so it runs when he can test the phone.
 2. Combo planner and ceiling memory (LinkedIn step-downs).
 3. Facebook: owner installs the kept 0.16.1 build (never 0.16.0).
@@ -475,7 +475,7 @@ and superseded issues cleaned. Record: [SESSION-2026-10-22.md](SESSION-2026-10-2
 
 1. After the merge: Rule merge merges #207 within its 20 min patience or the next cron; read the
    RULE_MERGE line on the next run.
-2. W15g signing split ([SIGNING-SPLIT.md](../SIGNING-SPLIT.md)).
+2. W15g signing split ([SIGNING-SPLIT.md](SIGNING-SPLIT.md)).
 3. Combo planner (MX 2.2.4 + MightyMich, ES File + rushiranpise VIP, Telegram vs HushTelegram)
    and ceiling memory for LinkedIn step-downs.
 4. Facebook: owner installs the newest 0.16.1 build (never 0.16.0).
@@ -1126,3 +1126,45 @@ CI, publication and phone tests are separate states.
 - Onboarding checker: a malformed `overrides.extra_bundles` gives a named problem instead of a crash (test added).
 - Truecaller "shadow receipt not verified" (#186): absent from the W16w T1 logs; closed.
 - Cloud Shell cleanup (owner, 29 Oct): [record](CLOUDSHELL-CLEANUP-2026-10-29.md).
+
+
+## Moved from OPEN-WORK.md in packet W17a (31 October 2026), verbatim
+
+### Done in W16y-a (30 October 2026)
+
+- Owner actions completed: `TDL_BACKUP` was deleted, secret scanning and push protection were enabled, and the merged CCleaner branch was deleted. The old Cloud Shell username stays in history because rewriting it would break 43 release tags.
+- Wrong call 110 was fixed: the second store now receives `${RVER:-$version}` even when the first download fails.
+- The unused `apply_choices.py`, `chooser.py` and `community_diff.py` utilities and the dead chooser branch in `selection_writer.py` were removed; the removal and restore record is [REMOVED-2026-10.md](REMOVED-2026-10.md).
+- The closed `CANDIDATES-2026-10-08.md` scout moved from onboarding to [history](CANDIDATES-2026-10-08.md), with inbound links repaired.
+
+### Done in W15g (31 October 2026)
+
+- Signing split built: Patch without key or write token (unsigned APK, `--unsigned` probed first), Sign with the release key and first-party code only (`src/build/sign_apk.py`), Publish with the write token and no key ([HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md)). Closed in W16z: the owner installed the split-signed Telegram over the current one and it works (31 Oct).
+
+### Next: W16z (owner, 31 Oct 2026)
+
+- Portal: one freshness row (patch bundle age plus last built; the 180-day limit only near or over it); one `N patches` fold instead of count plus toggle; CCleaner card with its icon and `Coming soon` (drop the release-history line: no CCleaner release was published); one `Open Needs you` link with the reply words on the Watch tab; no repeated links.
+- Issues and PRs: two issue forms (owner action, verified bug) and a small label set; note on #262 (closed after a green rerun; the root cause was fixed in W16v); track the follow-ups of #75 (PotHelper companion review), #78 (live source-preparation timing proof), #81 (documentation migration destination; likely the cross-repo mirror item) and the W16y-c pin-check read; #280 (Reddit refusal counted as a failure).
+- Housekeeping: delete `src/options/arandomhooman.json`, `src/options/bufferk.json` and the duplicate `docs/review/providers/hushtelegram-org.telegram.messenger.names` (restore points in the survey); retention prose to the code (3 releases, 3 Pages records, 7 days); closed session and handover records into `history/`; CI schedule wording; pin check weekly after an OK read; Council nemotron replacement after the Sunday probe.
+- File feature requests: W17 owner console (Pages builds issue-form links; the owner submits on GitHub; tests run for anyone, only the owner's submission makes a ready PR; merges stay with the owner; note field saved as a dated decision record, optional lesson flag) and Android Auto apps.
+
+### Done in W16y-c (31 October 2026)
+
+- W16y-b merged as #281 (`27adc7b4`, tree `c761f1c6`), RESULT OK. Telegram rahul9999xda built 14 of 14 on 13.1.1; the owner installed the smoke build and **signed in without the API error** (31 Oct). This packet publishes Telegram from rahul9999xda after the merge. The owner has not yet checked every patch on the phone.
+- Provider scan: bare names count as hosts only with a real public top-level domain (wrong call 118); the Amazon Music HOLD of 30 Oct was 22 code names, not hosts.
+- Pin check probe reads APKMirror the way the build does (store helper, lazily started), follows the build's own release-page and uploads-page lookup, and stops at the variant row with the pinned version code; it never asks for a download page or a file. Candidate `overrides.version_code` pins are checked too. Still manual and report-only until a live run shows OK lines.
+- Packet controller: a `git push` that fails with a transient server or network error is retried twice (30 s, 90 s); a rejection is never retried (the 30 Oct HTTP 500 stop).
+- The controller keeps scan evidence with the smoke logs; the owner probe reads the newest Pin store check, Retention preview and Batch Patch runs, so no separate collect command is needed.
+- Wrong calls 118 and 119 recorded. Wrong call 120 (W15g first smoke: signer drops directory and source-stamp entries) in HANDOVER-2026-10-31-W15g.md.
+
+### Done in W16y-b (30 October 2026)
+
+- Provider safety scan (`src/etc/provider_scan.py`, allowlist `src/etc/provider_scan_allowlist.json`): a nonpublishing Manual Patch with `scan` on compares the original and patched APK (permissions added, new hosts, new code red flags, new native libraries), runs ClamAV on the bundle and the patched APK, and looks up their sha256 on VirusTotal (repo secret `VT_API_KEY`, used only in that step; hashes only, no upload). It prints one `PROVIDER_SCAN ... verdict=PASS|HOLD|BLOCK` line and keeps `provider-scan.json` for 30 days. Publishing builds never run it. ClamAV and VirusTotal are credited in CREDITS.md.
+- Controllers: `SMOKE_SCAN` entries dispatch that scan smoke and record its line (always advisory).
+- Monthly watched-provider digest in Needs you (shown in the issue body on UTC days 1 to 7 of each month, collapsed); HushTelegram, HushGram and HushFacebook added as watch sources (`src/etc/extra-providers.json`). Nothing is adopted automatically.
+- Pin check probe (`pin-check.yml`, manual dispatch only, report-only): reads the store listing for targets with an exact build pin (Facebook and Instagram today), prints `PIN_STORE_OK`, `PIN_STORE_MISSING` or `PIN_STORE_UNKNOWN`, keeps evidence 30 days and never fails. Not scheduled yet (wrong call 115): the build reaches APKMirror through its browser helper, and plain reads were only tested against stubs. The controller dispatches it once after the merge; the weekly schedule follows with that evidence.
+- 180-day patch-age warning on every target (preflight enforces 180), shown on the status page and portal app cards; never blocks a build.
+- Weekly Council model report: the Sunday morning probe prints one `MODEL_OK` or `MODEL_MISSING` line per listed seat model; swaps stay PR-only.
+- Telegram survey: [TELEGRAM-SURVEY-2026-10-30.md](../TELEGRAM-SURVEY-2026-10-30.md). Owner, 30 Oct evening: non-Hush. rahul9999xda v1.17.0 is primary on 13.1.1 with 14 names (integrity bypass and a no-op left out); rushiranpise stays the fallback; HushTelegram on watch, its files kept ([onboarding/telegram.md](../onboarding/telegram.md)).
+- Amazon Music: De-Vanced v1.6.2 fixed its declared version; the W16y-a smoke built 26.36.1 with 5 of 5 chosen patches. The fail-closed note below is closed.
+- Workflow YAML contract and the Add app patch-age default (wrong calls 113 and 114, both caught before the commit). Review fixes: the scan never says PASS when ClamAV or VirusTotal did not answer, and flags a native library replaced under the same name; the Council model lines sit below the table.

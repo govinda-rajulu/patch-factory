@@ -205,7 +205,7 @@ esac
         workflow = (ROOT / ".github/workflows/manual-patch.yml").read_text()
         self.assertGreaterEqual(workflow.count("scan:"), 2)
         self.assertGreaterEqual(workflow.count("default: false"), 3)
-        self.assertIn("provider-scan-${{ inputs.target }}-${{ github.run_id }}", workflow)
+        self.assertIn("provider-scan-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}", workflow)
         self.assertIn("retention-days: 30", workflow)
         self.assertIn("sudo apt-get install -y clamav", workflow)
         scan_step = workflow.split("- name: Run provider safety scan", 1)[1].split("- name: Upload provider scan evidence", 1)[0]

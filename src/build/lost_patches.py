@@ -67,10 +67,6 @@ def write_ledger(root, rows):
     (root / LEDGER).write_text(''.join('\t'.join(r) + '\n' for r in rows), encoding='utf-8')
 
 
-def total_requested(root, t, winner):
-    return sum(len(lines(root / 'src/patches' / d / 'include-patches')) for _, _, d in bundles(root, t, winner))
-
-
 def prune(root, ident, winner, version, listing=coverage.listing_text):
     t = target(root, ident)
     jars = list(root.glob('morphe-desktop-*.jar'))

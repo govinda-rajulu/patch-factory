@@ -224,7 +224,7 @@ def signer_dropped(name):
 
 def compare(unsigned, signed):
     a, b = entries(unsigned), entries(signed)
-    kept = lambda n: not ai.SIGNATURE_FILE.fullmatch(n) and not signer_dropped(n)
+    kept = lambda n: not ai.is_signature_file(n) and not signer_dropped(n)
     plain_a = {n: {k: v for k, v in r.items() if k != 'offset'} for n, r in a.items() if kept(n)}
     plain_b = {n: {k: v for k, v in r.items() if k != 'offset'} for n, r in b.items() if kept(n)}
     appeared = sorted(n for n in b if signer_dropped(n))
@@ -237,8 +237,8 @@ def compare(unsigned, signed):
     ai.require([n for n in a if n in plain_a] == [n for n in b if n in plain_b], 'signing reordered entries')
     return {'entries_compared': len(plain_a),
             'dropped_by_signer': sorted(n for n in a if signer_dropped(n))[:50],
-            'signature_files': {'unsigned': sorted(n for n in a if ai.SIGNATURE_FILE.fullmatch(n))[:50],
-                                'signed': sorted(n for n in b if ai.SIGNATURE_FILE.fullmatch(n))[:50]},
+            'signature_files': {'unsigned': sorted(n for n in a if ai.is_signature_file(n))[:50],
+                                'signed': sorted(n for n in b if ai.is_signature_file(n))[:50]},
             'alignment': {'unsigned': alignment(a), 'signed': alignment(b)}}
 
 

@@ -28,17 +28,17 @@ without notice.
 | zai | Z.AI | `ZAI_API_KEY` |
 | groq | Groq (25,000-character ask/probe budget) | `GROQ_API_KEY` |
 
-This nine-seat, eight-provider roster is read from `src/council/seats.json`; the provider key
-mapping is in `src/council/council.py`. A seat without its key is skipped, never an error. A
+The nine-seat, eight-provider roster is read from `src/council/seats.json`; the provider key mapping is in
+`src/council/council.py`. The workflow skips a seat without its key and reports no error. A
 retired, busy or unreachable model falls through the seat's own models and then its configured
 backups on other providers when a key is available. An authentication or other terminal error
 still stops that seat. GitHub Models retired on 30 July 2026, so no seat uses it.
 
 ## Jobs
 
-- **PR review** (automatic on every pull request from this repository): each seat reviews the
+- **PR review** (automatic on same-repository pull requests, not forks or Dependabot): each review seat reviews the
   diff against AGENTS.md, OWNER.md and the matching lessons. Findings are merged by file and
-  line and shown with how many seats agree. One comment per PR, edited on each push.
+  line and shown with how many seats agree. The council posts one comment per PR and edits it on each push.
 - **Question** (Actions, Council, mode `question`): one patch or provider for one target.
   Rules run first, then the seats vote, then one table is posted on the chosen issue.
 - **Ask** (mode `ask`, input `question`, optional `target`): one factual question, answered
@@ -88,7 +88,7 @@ turn, and every review or audit finding must quote a line that really is in the 
 | Two thirds agree and nobody votes the opposite (adopt vs reject) | `lean` that vote, dissent shown |
 | Fewer than 3 valid votes, or a real split | `hold`: nothing changes and nothing is blocked |
 
-Splits never stall anything, because the council gates nothing. `hold` means "no advice yet".
+A split returns `hold` ("no advice yet"). It cannot stall work because the council does not gate anything.
 
 A vote whose reasons cite no file path, rule list, trusted document or supplied fact key is
 dropped before counting (status `DROPPED_UNCITED`) and the comment says how many were dropped.
@@ -128,7 +128,7 @@ in code and tested.
 
 This repository is public. Nothing here or in a council comment may contain keys, tokens,
 signing material, personal accounts, private chats, or anything unrelated to this project.
-Keys live only in repository secrets and reach only the council step. Free tiers may use
+Keys live only in repository secrets and reach only the council and onboarding-review steps that call models. Free tiers may use
 prompts to improve models; everything sent is already public in this repository.
 
 ## Onboarding review (8 Oct 2026, packet W1)

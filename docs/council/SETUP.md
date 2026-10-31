@@ -10,8 +10,7 @@ own page before relying on a number here. Keys live only in repository secrets
 
 ## Keys
 
-The seated providers are free-tier or optional free-model services; key availability and quotas can change. Everything the council sends is already public in this
-repository, so free-tier prompt use for training costs nothing private.
+The seated providers are free-tier or optional free-model services; key availability and quotas can change. The council sends only material already public in this repository. Free-tier prompt use for training therefore exposes no private project content.
 
 | Secret | Provider | Where to create it | Free limit (checked 23 Oct 2026) | Seats |
 |---|---|---|---|---|
@@ -85,8 +84,8 @@ spending the answer budget thinking (cut). Since W15h:
 | rotation | schedule, 03:17 and 15:17 UTC | none (desk issue in seats.json) | one audit shard per run; Monday morning triage, Sunday morning model probe; on the desk |
 | fix lane (W14) | inside every audit | none | one-line fixes that apply and parse, as artifact `council-fixes`; never pushed |
 
-Run heavy jobs one at a time. On 7 Oct 2026 eleven audit shards dispatched together ran the free
-tiers out (most seats busy); the schedule exists so that never happens again.
+The schedule runs heavy jobs one at a time to avoid another overload. On 7 Oct 2026, eleven
+audit shards were dispatched together and exhausted the free tiers; most seats were busy.
 
 Audit shards (`src/council/shards.json`): workflows, council, selection, build-shell,
 build-python, etc, portal, docs, tests-build, tests, rest. Each shard is split into parts of at
