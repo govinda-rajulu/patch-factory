@@ -343,8 +343,6 @@ class SdkReason(unittest.TestCase):
         self.assertIn('Fix: set max_app_version', text)
 
 
-if __name__ == '__main__':
-    unittest.main()
 
 
 class NoRunsYet(unittest.TestCase):
@@ -359,3 +357,22 @@ class NoRunsYet(unittest.TestCase):
     def test_headline_ref_names_the_file(self):
         ref = st.headline_ref({'name': 'Onboarding review', 'file': 'onboard-review.yml', 'url': 'u', 'last': None})
         self.assertEqual(ref['file'], 'onboard-review.yml')
+
+
+class SplitJobNames(unittest.TestCase):
+    """W15g: the Patch, Sign and Publish jobs of one app all belong to that app's row."""
+    def test_job_names_of_all_three_roles(self):
+        for name, ident in (('build (reddit) / Patch reddit', 'reddit'), ('build (reddit) / Sign reddit', 'reddit'),
+                            ('Publish truecaller-combo', 'truecaller-combo'), ('Sign youtube', 'youtube')):
+            self.assertEqual(st.JOB_RX.search(name)[1], ident)
+        for name in ('Signal reddit', 'build (x) / Release x', 'Resolve shadow dependencies (youtube)'):
+            self.assertIsNone(st.JOB_RX.search(name))
+
+    def test_new_steps_have_plain_words(self):
+        for step in ('Verify unsigned APK identity', 'Sign APK', 'Verify signed APK', 'Download the unsigned hand-off',
+                     'Download the signed hand-off', 'Place the hand-off', 'Check the hand-off (no secret)'):
+            self.assertIn(step, st.STEP)
+
+
+if __name__ == '__main__':
+    unittest.main()

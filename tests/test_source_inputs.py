@@ -163,8 +163,9 @@ class SourceContracts(unittest.TestCase):
         subprocess.run(['bash','src/build/selections.sh',self.ident,'legendsciber'],cwd=self.r,check=True,capture_output=True)
         fakebin=self.r/'fakebin';fakebin.mkdir()
         java=fakebin/'java';java.write_text('#!/bin/bash\ntouch PATCHER_REACHED\nexit 77\n');java.chmod(0o755)
-        env=dict(self.env,PATH=str(fakebin)+':'+os.environ['PATH'],PF_SOURCE_READY='true',
-                 PF_EXECUTION_OBSERVATION='true')
+        env={k:v for k,v in self.env.items() if not k.startswith('KEYSTORE')}
+        env.update(PATH=str(fakebin)+':'+os.environ['PATH'],PF_SOURCE_READY='true',
+                   PF_EXECUTION_OBSERVATION='true',PF_UNSIGNED='true')
         args=[sys.executable,'src/build/patch_target.py',self.ident,'legendsciber']
         good=subprocess.run(args,cwd=self.r,env=env,capture_output=True,text=True)
         self.assertEqual(good.returncode,77,good.stderr)
@@ -180,7 +181,7 @@ class SourceContracts(unittest.TestCase):
         (self.r/'src/build/utils.sh').write_text('mkdir -p release download\ngreen_log(){ :; }\nred_log(){ echo "$1"; }\nyellow_log(){ :; }\nget_patches_key(){ :; }\nget_apk(){ echo SECOND_FETCH; return 91; }\nget_apkpure(){ echo SECOND_FETCH; return 91; }\n')
         self.prepare();(self.r/'download').rename(self.r/'producer-download')
         fakebin=self.r/'fakebin';fakebin.mkdir()
-        py=fakebin/'python3';py.write_text('#!/bin/bash\n# W15b: a pinned package with an unreadable certificate now stops; this sandbox has no apksigner,\n# so the certificate check answers like the signer above (publisher_cert_contracts covers the rule).\ncase "$1" in\nsrc/build/publisher_cert.py) echo "PUBLISHER_CERT fake pinned OK"; exit 0;;\nesac\ncase "$1 $2" in\n"src/build/artifact_identity.py capture-signer") exit 0;;\n"src/build/artifact_identity.py capture-inputs") echo CAPTURE_BOUNDARY; exit 77;;\nesac\nexec '+sys.executable+' "$@"\n');py.chmod(0o755)
+        py=fakebin/'python3';py.write_text('#!/bin/bash\n# W15b: a pinned package with an unreadable certificate now stops; the fixture\n# supplies the reviewed publisher-certificate check (publisher_cert_contracts covers the rule).\ncase "$1" in\nsrc/build/publisher_cert.py) echo "PUBLISHER_CERT fake pinned OK"; exit 0;;\nesac\ncase "$1 $2" in\n"src/build/artifact_identity.py capture-inputs") echo CAPTURE_BOUNDARY; exit 77;;\nesac\nexec '+sys.executable+' "$@"\n');py.chmod(0o755)
         aapt=fakebin/'aapt2';aapt.write_text("#!/bin/bash\nif [ \"$2\" = packagename ]; then echo io.github.sds100.keymapper; else echo \"sdkVersion:'29'\"; fi\n");aapt.chmod(0o755)
         env=dict(self.env,PATH=str(fakebin)+':'+os.environ['PATH'],ANDROID_HOME=str(fakebin),PF_RESOLVED_READY='true',PF_SOURCE_READY='true')
         result=subprocess.run(['bash','src/build/build.sh',self.ident],cwd=self.r,env=env,capture_output=True,text=True,timeout=30)
@@ -416,7 +417,7 @@ class ConnectedObservationContracts(unittest.TestCase):
 
     def test_actual_consumed_key_contains_observed_runtime_and_unknown_on_drift(self):
         s = self.s
-        captured = s.capture()
+        captured = fixtures.capture_shadow_inputs(s)
         env = dict(s.env, PF_EXECUTION_OBSERVATION='true')
         with patch.object(execution, 'runtime', return_value={'fixture': 'before'}):
             execution.capture(s.r, 'keymapper', 'lain', env)
@@ -432,39 +433,99 @@ class ConnectedObservationContracts(unittest.TestCase):
 
     def test_missing_source_or_runtime_cannot_publish_a_new_receipt(self):
         s = self.s
-        api = s.verified()
-        for key in ['PF_SOURCE_REQUESTED', 'PF_EXECUTION_OBSERVATION']:
-            with self.subTest(key=key), self.assertRaises(ValueError):
-                shadow.publish_receipt(s.r, 'keymapper', dict(s.env, **{key:'true'}), api, api.upload)
-        self.assertEqual(len(api.rows), 1)  # Existing APK only, no new receipt asset.
+        root = s.r
+        captured = {"target": "keymapper"}
+        unsigned_sha = "a" * 64
+        evidence = root / "build-evidence" / "keymapper.json"
+        evidence.parent.mkdir(parents=True, exist_ok=True)
+        evidence.write_text(json.dumps({"inputs": captured, "signing_split": True,
+                                        "unsigned_output": {"sha256": unsigned_sha}}))
+        for missing in ("source", "runtime"):
+            with self.subTest(missing=missing):
+                material = {"execution": {"status": "UNKNOWN"} if missing == "runtime" else {"status": "KNOWN"}}
+                consumed = shadow.seal({
+                    "domain": shadow.DOMAIN, "schema": 1, "kind": "consumed", "target": "keymapper",
+                    "binding": "NO_PLAN", "material": material, "effective_sha256": shadow.sha(material),
+                    "resolution": {"status": "NOT_REQUESTED"},
+                    "source_resolution": {"status": "UNAVAILABLE" if missing == "source" else "NOT_REQUESTED"}})
+                draft = shadow.seal({"domain": shadow.DRAFT_DOMAIN, "schema": 1, "target": "keymapper",
+                                     "inputs_sha256": shadow.sha(captured), "unsigned_sha256": unsigned_sha,
+                                     "consumed": consumed})
+                draft_path = root / "shadow-evidence" / "keymapper-receipt-draft.json"
+                draft_path.parent.mkdir(parents=True, exist_ok=True)
+                draft_path.write_text(json.dumps(draft))
+                import build_identity, release_contract
+                with patch.object(release_contract, "verify", return_value={"suffix": "-b20261025000000000000000000000000"}), \
+                     patch.object(build_identity, "verify_run", return_value=None):
+                    with self.assertRaisesRegex(ValueError, "unavailable source/runtime evidence"):
+                        shadow.publish_receipt(root, "keymapper", s.env, upload=lambda *_: self.fail("receipt upload reached"))
+                self.assertFalse((root / "shadow-evidence" / shadow.receipt_name("keymapper")).exists())
 
     def test_source_extension_survives_existing_durable_reader_after_run_expiry(self):
+        import datetime
         import hashlib
-        import qualified_contracts
-        q = qualified_contracts.QualifiedContracts()
-        q.setUp()
-        self.addCleanup(q.doCleanups)
-        receipt = copy.deepcopy(q.receipt)
+        import build_identity
+        import qualified_baselines as qualified
+
+        ident = "keymapper"
+        repo, source_commit, run_id, attempt = "fixture/repo", "a" * 40, "12345", "2"
+        run = {"GITHUB_SHA": source_commit, "GITHUB_RUN_ID": run_id,
+               "GITHUB_RUN_ATTEMPT": attempt, "GITHUB_REPOSITORY": repo}
         snapshot = shadow.seal({
-            'domain':'patch-factory/prepared-source-subset/v1', 'schema':1,
-            'target':'keymapper',
-            'run':{'GITHUB_SHA':receipt['source_commit'],'GITHUB_RUN_ID':receipt['run_id'],
-                   'GITHUB_RUN_ATTEMPT':receipt['attempt'],'GITHUB_REPOSITORY':receipt['repository']},
-            'apk':{'bytes':1000100,'sha256':'a'*64}, 'limits':source.LIMITS})
-        receipt['prepared_source'] = snapshot
-        receipt = shadow.seal({k:v for k,v in receipt.items() if k != 'sha256'})
-        name = shadow.receipt_name('keymapper')
+            "domain": "patch-factory/prepared-source-subset/v1", "schema": 1,
+            "target": ident, "run": run, "apk": {"bytes": 1000100, "sha256": "c" * 64},
+            "limits": source.LIMITS})
+        suffix = build_identity.create({"GITHUB_RUN_ID": run_id, "GITHUB_RUN_ATTEMPT": attempt},
+                                       datetime.datetime(2026, 9, 18, tzinfo=datetime.timezone.utc))
+        tag = "key-mapper-v4.2.1" + suffix
+        receipt = shadow.seal({
+            "domain": shadow.RECEIPT_DOMAIN, "schema": 1, "target": ident, "repository": repo,
+            "publication": "confirmed", "source_commit": source_commit,
+            "run_id": run_id, "attempt": attempt, "tag": tag, "release_id": 77,
+            "effective_sha256": "a" * 64, "declaration_sha256": "b" * 64,
+            "apk": {"id": 88, "name": "key-mapper-v4.2.1-arm64-v8a.apk",
+                    "bytes": 1000100, "sha256": "d" * 64},
+            "eligibility": "REQUIRES_COMPLETED_SUCCESSFUL_RUN_AND_TARGET_JOB",
+            "limits": ["same-run recorded evidence, not an independent signature or trust anchor",
+                       "runtime/OS/container transitive dependencies incomplete"],
+            "prepared_source": snapshot})
         blob = input_recipe.canonical(receipt)
-        q.api.documents[name] = receipt
-        row = next(row for row in q.api.rows if row['name'] == name)
-        row.update(size=len(blob), digest='sha256:'+hashlib.sha256(blob).hexdigest())
-        q.qualify()
-        q.api.fail = '/actions/runs/'
-        q.api.calls.clear()
-        baseline, reason = shadow.latest_baseline(q.api,'keymapper','key-mapper')
-        self.assertEqual(reason,'VERIFIED_DURABLE_ACTIONS_RECORD')
-        self.assertEqual(source.receipt_snapshot(baseline),snapshot)
-        self.assertFalse(any('/actions/runs/' in path for path in q.api.calls))
+        receipt_asset = {"id": 321, "name": shadow.receipt_name(ident), "state": "uploaded",
+                         "size": len(blob), "digest": "sha256:" + hashlib.sha256(blob).hexdigest()}
+        proof = {"coverage": "complete", "jobs_checked": 3, "repository": repo,
+                 "run": {"id": int(run_id), "run_attempt": int(attempt), "head_sha": source_commit,
+                         "head_branch": "main", "status": "completed", "conclusion": "success"},
+                 "layout": "split", "jobs": []}
+        for index, (role, steps) in enumerate(shadow.SPLIT_JOBS, 1):
+            proof["jobs"].append({"id": index, "run_id": int(run_id), "run_attempt": int(attempt),
+                                  "head_sha": source_commit, "name": role + " " + ident,
+                                  "status": "completed", "conclusion": "success",
+                                  "steps": [{"name": step, "status": "completed", "conclusion": "success"}
+                                            for step in steps]})
+        qualified_doc = shadow.seal({
+            "domain": qualified.DOMAIN, "schema": 1, "repository": repo, "target": ident,
+            "workflow_path": ".github/workflows/manual-patch.yml", "receipt": receipt,
+            "proof": proof,
+            "receipt_asset": {key: receipt_asset[key] for key in ("id", "name", "size", "digest")},
+            "trust": "repository-actions-writer; not independent attestation"})
+        qualified_asset = {"id": 654, "name": qualified.name(ident), "state": "uploaded",
+                           "uploader": {"login": "github-actions[bot]", "type": "Bot"}}
+
+        class RetainedAssets:
+            def __init__(self, repository):
+                self.repo = repository
+            def asset(self, asset):
+                return qualified_doc if asset["name"] == qualified.name(ident) else receipt
+            def get(self, *_args, **_kwargs):
+                raise AssertionError("durable reader must not need an expired workflow-run lookup")
+
+        release = {"id": 77, "tag_name": tag, "draft": False, "prerelease": False,
+                   "published_at": "2026-09-18T08:00:00Z"}
+        with patch.object(qualified.shadow, "tag_commit", return_value=source_commit), \
+             patch.object(qualified.shadow, "confirmed_apk", return_value=[receipt_asset]):
+            retained = qualified.verify(RetainedAssets(repo), release, qualified_asset, ident)
+        self.assertEqual(source.receipt_snapshot(retained), snapshot)
+
 
 
 class SourceReportContracts(unittest.TestCase):

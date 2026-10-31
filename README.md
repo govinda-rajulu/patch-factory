@@ -40,8 +40,11 @@ UNKNOWN, not unchanged.
 
 ## How a build works
 
-1. Validate the enabled target and configuration before downloads and keystore
-   decoding in the workflow.
+1. Validate the enabled target and configuration before any download. Since W15g
+   (31 Oct 2026) a build is three jobs: **Patch** runs the provider's patches with no
+   signing key and no write token and writes an unsigned APK; **Sign** alone holds the
+   release key, runs only this repository's code and signs with `apksigner`; **Publish**
+   holds the write token and no key.
 2. Verify a supplied same-run dependency packet when available; otherwise use
    the existing validated resolver. The patcher intentionally tracks latest
    stable. Elect one candidate and load ordered extra bundles separately.
@@ -52,7 +55,11 @@ UNKNOWN, not unchanged.
    Android API. Enforce the target's current version ceiling and source contract.
    A missing link is not permission to substitute the store's latest version.
 5. Apply the configured selections and compare requested versus applied names.
-   Verify finished APK identity, native payloads and the configured CI signer.
+   Verify the unsigned APK's identity and native payloads. The Sign job checks the
+   hand-off is this run's exact file, checks the keystore holds the pinned certificate
+   (`src/build/ci-signer.json`), signs with the schemes the patcher used (v2 only for
+   minimum SDK 24 and up, else v1, v2 and v3; never v4), and proves every non-signature
+   entry is byte-identical and the alignment kept.
 6. Validate the exact release handoff before publication. Save build evidence
    and shadow comparisons separately; advisory shadow output is not a build gate.
 7. Publish a new tag/asset identity only when the workflow's publication

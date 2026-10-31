@@ -17,6 +17,25 @@ import shadow_inputs as shadow
 import input_recipe
 
 
+def capture_shadow_inputs(shadow_fixture, request_resolution=False):
+    """Capture the common shadow fixture using the committed public signer pin, not a local key."""
+    fixture = shadow_fixture.f
+    root = fixture.r
+    for name in ('morphe-desktop-fixture.jar', 'APKEditor.jar', '09-lain.mpp', 'download/key-mapper.apk'):
+        fixture.put(name, 'fixture')
+    fixture.put('.requested', 'lain\tUnlock Premium\n')
+    for args in (["git", "init", "-q"], ["git", "config", "user.name", "Fixture"],
+                 ["git", "config", "user.email", "fixture@example.invalid"],
+                 ["git", "add", "src/targets.json", "src/build/artifact_identity.py", "docs/obtainium.json"],
+                 ["git", "commit", "-qm", "fixture"]):
+        subprocess.run(args, cwd=root, check=True, capture_output=True)
+    env = {key: value for key, value in shadow_fixture.env.items() if not key.startswith("KEYSTORE")}
+    if request_resolution:
+        env.update(PF_RESOLVED_REQUESTED="true", PF_RESOLVED_READY="false")
+    fixtures.identity.capture_inputs(root, 'keymapper', 'lain', env)
+    return json.loads((root / '.build-inputs.json').read_text())
+
+
 class ResolvedContracts(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="pf-resolved-contract-")
@@ -395,7 +414,6 @@ class ResolvedContracts(unittest.TestCase):
         launcher.write_text(
             "#!/bin/bash\n"
             "case \"$1 $2\" in\n"
-            "  'src/build/artifact_identity.py capture-signer') exit 0 ;;\n"
             "  'src/build/github_patcher.py '*|'src/build/github_bundle.py '*|'src/build/extra_bundle.py '*) echo SECOND_FETCH_FORBIDDEN; exit 91 ;;\n"
             "esac\n"
             "exec " + sys.executable + " \"$@\"\n")
@@ -419,16 +437,16 @@ class ResolvedContracts(unittest.TestCase):
     def test_actual_input_capture_binds_resolved_bytes_before_patching(self):
         doc = self.prepare()
         resolved.install(self.r, self.ident, self.env)
-        cert = "a" * 64
         for name, data in (("APKEditor.jar", b"editor"),
                            ("download/key-mapper.apk", b"apk"),
                            (".requested", b"lain\tUnlock Premium\n")):
             p = self.r / name;p.parent.mkdir(parents=True, exist_ok=True);p.write_bytes(data)
-        (self.r / ".signer-before-build.json").write_text(json.dumps({"certificate_sha256": cert}))
         env = dict(self.env, PF_RESOLVED_REQUESTED="true", PF_RESOLVED_READY="true")
         fixtures.identity.capture_inputs(self.r, self.ident, doc["material"]["winner"], env)
         captured = json.loads((self.r / ".build-inputs.json").read_text())
         self.assertEqual(captured["resolution"]["status"], "MATCH")
+        self.assertEqual(captured["expected_certificate_sha256"], fixtures.identity.pinned_certificate(self.r))
+        self.assertFalse((self.r / ".signer-before-build.json").exists())
         (self.r / doc["material"]["bundles"][0]["slot"]).write_bytes(b"changed")
         with self.assertRaises(ValueError):
             fixtures.identity.capture_inputs(self.r, self.ident, doc["material"]["winner"], env)
@@ -437,7 +455,7 @@ class ResolvedContracts(unittest.TestCase):
         from shadow_contracts import ShadowContracts
         f = ShadowContracts();f.setUp()
         try:
-            captured = f.capture()
+            captured = capture_shadow_inputs(f, request_resolution=True)
             doc = shadow.realized(f.r, captured, dict(f.env, PF_RESOLVED_REQUESTED="true"))
             baseline = {"target": "keymapper", "effective_sha256": doc["effective_sha256"]}
             result = shadow.compare(doc, baseline, "VERIFIED")

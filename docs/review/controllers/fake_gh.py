@@ -5,7 +5,7 @@ Covers what packet.tmpl.py and src/etc/cleanup.py call: auth, branches, commits,
 check runs, Manual Patch dispatch/runs/jobs/logs, issues, deployments and their statuses,
 releases. Knobs in the state file: checks{name: conclusion}, extra_checks[], smoke{app:
 conclusion}, smoke_log{app: line}, issues{n: state}, pages_state, main, license{repo: spdx},
-flows{workflow file: conclusion}, smoke_extra{app: [lines]}, pages_rows[ids] with pages_status{id: state}, pulls[] (a seeded open pull request follows its branch). W13: provider dispatch input and run names (display_title),
+flows{workflow file: conclusion}, smoke_extra{app: [lines]}, no_sign_mark[app] (W15g: no Sign-job SIGNING_SPLIT_OK line), pages_rows[ids] with pages_status{id: state}, pulls[] (a seeded open pull request follows its branch). W13: provider dispatch input and run names (display_title),
 cleanup apply calls, and the pf-t1 flows (any workflow file, status.json, targets.json).
 W14: release_bodies{id: body} and release edits (PATCH --input); tidy_mangle makes an edit come back different.
 W15b: prs_as_issues[n]: issue n is a pull request (GET shows pull_request; PATCH with state_reason refused; PATCH pulls/n closes);
@@ -78,6 +78,10 @@ if a[:2] == ['run', 'view']:
             print('%s\tPatch apk\t2026-10-10T00:00:00.0Z %s' % (job, extra))
         print('%s\tPatch apk\t2026-10-10T00:00:00.1Z %s' % (job, line))
         print('%s\tPatch apk\t2026-10-10T00:00:00.2Z ATTEMPTS_OK %s: attempt 1 of 1, winner %s' % (job, t, won))
+        # W15g: the Sign job's proof line; no_sign_mark[] keys leave it out (the gate must STOP).
+        if key not in st.get('no_sign_mark', []):
+            sign = job.replace('Patch ' + t, 'Sign ' + t)
+            print('%s\tVerify signed APK\t2026-10-10T00:00:00.3Z SIGNING_SPLIT_OK %s signer=08480f664...d050 schemes=v2 entries=9 unsigned=aaaaaaaaaaaa signed=bbbbbbbbbbbb library16k=yes' % (sign, t))
     save(); sys.exit(0)
 assert a[0] == 'api', a
 while len(a) > 2 and a[1] == '-H': a = [a[0]] + a[3:]

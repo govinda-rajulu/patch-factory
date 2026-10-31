@@ -125,6 +125,31 @@ class QualifiedContracts(unittest.TestCase):
             with self.subTest(mutation=mutation), self.assertRaises(ValueError):
                 qualified.verify(self.api, self.release, self.asset(), "keymapper")
 
+    def test_split_proof_round_trips_and_rejects_mixed_or_tampered_layout(self):
+        self.api.job_layout = "split"
+        proof = {}
+        receipt_body = shadow.verify_receipt(
+            self.api, self.release, self.receipt, "keymapper", proof)
+        self.assertEqual(proof.get("layout"), "split")
+        self.assertNotIn("job", proof)
+        self.assertNotIn("steps", proof)
+        self.assertEqual(len(proof["jobs"]), len(shadow.SPLIT_JOBS))
+        qualified.verify_proof(proof, receipt_body, self.api.repo)
+
+        bad_proofs = []
+        missing_job = copy.deepcopy(proof)
+        missing_job["jobs"].pop(1)
+        bad_proofs.append(missing_job)
+        wrong_steps = copy.deepcopy(proof)
+        wrong_steps["jobs"][1]["steps"] = []
+        bad_proofs.append(wrong_steps)
+        mixed_legacy_key = copy.deepcopy(proof)
+        mixed_legacy_key["job"] = {"id": 88}
+        bad_proofs.append(mixed_legacy_key)
+        for bad in bad_proofs:
+            with self.subTest(proof=bad), self.assertRaises(ValueError):
+                qualified.verify_proof(bad, receipt_body, self.api.repo)
+
     def test_changed_apk_tag_original_receipt_or_asset_identity_still_refuses(self):
         self.qualify()
         old_commit = self.api.commit

@@ -88,6 +88,7 @@ PUBLISH_DISPATCH = ()  # (W16k) after the cleanup, dispatch ONE publishing Batch
 WATCH_DISPATCH = ()  # (W16n) workflow files dispatched once on main after the cleanup, not waited for
                      # (a green run closes its failing issue through Notify)
 DELETE_BRANCHES = ()  # (W16k) merged branches deleted after the merge ('packet/w16j', BRANCH); a miss is a NOTE
+SMOKE_REQUIRE = ()  # (W15g) marker lines every worked smoke must print, e.g. 'SIGNING_SPLIT_OK '
 SMOKES_PER_APP = 2  # (W16k) Manual Patch keeps one running and one pending run per app; a third is cancelled
 TIDY = False        # (W14) src/etc/release_tidy.py on the merge: preview, then apply with a backup in the logs
 MIRROR = None       # (W13) dict(repo, files, manifest, anchor, branch, title[, replaces]): copy files from the
@@ -556,9 +557,18 @@ def smoke():
         failed = [l.split('Z ', 1)[-1].strip()[:300] for l in text.splitlines() if 'ATTEMPT_FAILED ' in l and 'echo' not in l and 'print(' not in l]
         patch_failed = sorted({l.split('PATCH_FAILED ', 1)[1].strip()[:200] for l in text.splitlines()
                                if 'PATCH_FAILED ' in l and 'sed ' not in l and 'echo' not in l})
+        # W15g: SMOKE_REQUIRE names marker lines every worked smoke must print (SIGNING_SPLIT_OK: the
+        # Sign job signed with the pinned key and proved the payload unchanged).
+        # Only the Sign job's own log lines count ("Sign <app>\t<step>\t..."), so a line printed by
+        # provider code in the Patch job cannot stand in for it.
+        marks = {m: [l.split('Z ', 1)[-1].strip()[:300] for l in text.splitlines()
+                     if (l.startswith('Sign ' + app + '\t') or ('/ Sign ' + app + '\t') in l.split('\t', 1)[0] + '\t')
+                     and m in l and 'print(' not in l and 'echo' not in l]
+                 for m in globals().get('SMOKE_REQUIRE', ())}
         R['smoke'][t] = dict(run=r['id'], conclusion=r.get('conclusion'), url=r.get('html_url'), coverage=cov[:4],
                              lost=lost[:20], unavailable=doubt[:4], attempts=won[-1:], dropped=dropped[:20], failed=failed[:4],
-                             advisory=soft, patch_failed=patch_failed[:80], keep_going=t in SMOKE_KEEP_GOING)
+                             advisory=soft, patch_failed=patch_failed[:80], keep_going=t in SMOKE_KEEP_GOING,
+                             marks={m: v[-1:] for m, v in marks.items()})
         if t in globals().get('SMOKE_SCAN', ()):
             # W16y-b: the provider safety scan prints one PROVIDER_SCAN line (PASS, HOLD or BLOCK).
             scan = [l.split('Z ', 1)[-1].strip()[:300] for l in text.splitlines()
@@ -580,6 +590,8 @@ def smoke():
             why = 'run %s worked but the resolver %s' % (r['id'], 'could not read the listing: ' + doubt[0] if doubt else 'printed no COVERAGE line')
         elif provider and not any((', winner %s' % provider) in w for w in won):
             why = 'run %s worked but not with provider %s (%s)' % (r['id'], provider, (won or ['no ATTEMPTS_OK line'])[-1])
+        elif any(not v for v in marks.values()):
+            why = 'run %s worked but printed no %s line' % (r['id'], ', '.join(m.strip() for m, v in marks.items() if not v))
         if why and patch_failed:
             why += '; failing patches (%d): %s' % (len(patch_failed), ', '.join(patch_failed[:12]))
         if why and soft:
@@ -587,7 +599,8 @@ def smoke():
             continue
         if why:
             stop('smoke', '%s: %s. Nothing merged; the log is kept.' % (t, why))
-        say('smoke', 'OK', '%s: run %s worked; %s%s' % (t, r['id'], cov[-1], ('; dropped %d' % len(dropped)) if dropped else ''))
+        say('smoke', 'OK', '%s: run %s worked; %s%s%s' % (t, r['id'], cov[-1], ('; dropped %d' % len(dropped)) if dropped else '',
+                                                     ''.join('; ' + v[-1] for v in marks.values() if v)))
 
 
 def delete_branches():

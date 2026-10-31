@@ -25,7 +25,8 @@ fi
 if [ -e .source-fallback-receipt.json ] || [ -L .source-fallback-receipt.json ]; then
   echo "::error::fallback receipt already exists; use a fresh build checkout"; exit 1
 fi
-python3 src/build/artifact_identity.py capture-signer || exit 1
+# W15g: no signer capture here. The patch job holds no key; the Sign job checks the CI
+# certificate against src/build/ci-signer.json before it signs.
 
 # utils.sh is 29KB of upstream code written without `set -u`.
 # Scope strictness off around every call into it; our own logic stays strict.
@@ -35,7 +36,6 @@ source ./src/build/version_steps.sh
 
 version=""; lock_version=""; prefer_version=""; PF_APK_RAW_ONLY=0
 excludePatches=""; includePatches=""
-KEYSTORE_PASS="${KEYSTORE_PASS:-}"; KEYSTORE_ALIAS="${KEYSTORE_ALIAS:-}"
 
 # --- 1. target -------------------------------------------------------------
 T=$(jq -c --arg id "$ID" '.[] | select(.id==$id)' "$TARGETS")
@@ -319,6 +319,19 @@ fi
 python3 src/build/artifact_identity.py capture-inputs "$ID" "$WINNER" || exit 1
 
 # --- 6. patch, arm64-v8a is archs[0] ---------------------------------------
+# W15g: the patcher must offer --unsigned. Without it the build stops; it never falls back
+# to signing here (the release key exists only in the Sign job).
+PJAR=$(ls morphe-desktop-*.jar 2>/dev/null)
+if [ -z "$PJAR" ] || [ "$(printf '%s\n' "$PJAR" | wc -l)" -ne 1 ]; then
+  red_log "[-] expected exactly one patcher jar before patching"; exit 1
+fi
+# Morphe's patch command has no --help of its own, so the help text may come as a usage error
+# (non-zero exit); src/build/patcher_probe.py also reads the option from the jar's PatchCommand.
+PHELP=$(java -jar "$PJAR" patch --help 2>&1) || true
+if ! PVIA=$(python3 src/build/patcher_probe.py "$PJAR" <<<"$PHELP"); then
+  red_log "[-] UNSIGNED_UNSUPPORTED: $PJAR offers no --unsigned option - refusing (the patch job never signs)"; exit 1
+fi
+green_log "[+] patcher supports --unsigned (${PVIA#UNSIGNED_SUPPORTED via }): the APK is signed later, in the Sign job"
 # W16j: one PATCH_FAILED line per failing patch (the controller and Explore read them).
 : "${PF_TMP_DIR:=${RUNNER_TEMP:-/tmp}}"
 failed_patches() {

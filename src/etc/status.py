@@ -30,7 +30,8 @@ REPO = os.environ.get('PF_REPO') or 'govinda-rajulu/patch-factory'
 WEB = 'https://github.com/' + REPO
 MICROG = 'https://github.com/MorpheApp/MicroG-RE/releases'
 BUILD_FILES = ('.github/workflows/ci.yml', '.github/workflows/manual-patch.yml', '.github/workflows/batch-patch.yml')
-JOB_RX = re.compile(r'(?:^|/ )Patch ([a-z0-9][a-z0-9-]*)$')
+# W15g: one app's build is three jobs (Patch, Sign, Publish); any of them is that app's row.
+JOB_RX = re.compile(r'(?:^|/ )(?:Patch|Sign|Publish) ([a-z0-9][a-z0-9-]*)$')
 TAG_RX = re.compile(r'^([a-z0-9-]+)-v([0-9]+(?:\.[0-9]+)*)-b([0-9]+)$')
 MARKER = re.compile(r'(?m)^\[pf-release-v1\]: # "([A-Za-z0-9+/=]+)"[ \t]*$')
 TOKEN = re.compile(r'\b(?:gh[pousr]_[A-Za-z0-9_]{10,}|github_pat_[A-Za-z0-9_]{10,}|AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9_-]{20,})')
@@ -82,6 +83,13 @@ STEP = {
     'Verify release handoff (no publishing)': 'checking the release details',
     'Releasing APK files': 'publishing the release',
     'Decode keystore': 'loading the signing key',
+    'Verify unsigned APK identity': 'checking the patched APK is the right app (before signing)',
+    'Download the unsigned hand-off': 'collecting the patched APK from the Patch job (after a failure use Re-run all jobs)',
+    'Download the signed hand-off': 'collecting the signed APK from the Sign job (after a failure use Re-run all jobs)',
+    'Place the hand-off': 'checking the files handed over from the previous job',
+    'Check the hand-off (no secret)': 'checking the patched APK is from this run, byte for byte',
+    'Sign APK': 'signing the APK with the release key',
+    'Verify signed APK': 'checking the signature and that signing changed nothing else',
 }
 WORDS = {
     'success': 'Worked', 'failure': 'Failed', 'cancelled': 'Stopped (cancelled)', 'timed_out': 'Ran out of time',

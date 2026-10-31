@@ -91,14 +91,20 @@ def primary_view(t):
     return None
 
 
-def view(root, ident, name, original):
-    """Write src/targets.json with target ident pinned to candidate name and its overrides."""
+def view_text(original, ident, name):
+    """src/targets.json text with target ident pinned to candidate name and its overrides.
+    W15g: the Sign and Publish jobs recompute this to check the patch job's carried copy."""
     rows = json.loads(original)
     for t in rows:
         if t.get('id') == ident:
             c = next(x for x in t['candidates'] if x['name'] == name)
             t.update(preflight.effective(t, c))
-    (root / 'src/targets.json').write_text(json.dumps(rows, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+    return json.dumps(rows, indent=2, ensure_ascii=False) + '\n'
+
+
+def view(root, ident, name, original):
+    """Write src/targets.json with target ident pinned to candidate name and its overrides."""
+    (root / 'src/targets.json').write_text(view_text(original, ident, name), encoding='utf-8')
 
 
 def ensure_store_services(root, env):
@@ -178,6 +184,11 @@ def output(env, **fields):
 
 def main(argv, env=None, root=None):
     env = dict(os.environ if env is None else env)
+    # W15g: a signing secret in the patch job means the workflow split regressed; stop, never sign here.
+    leaked = sorted(k for k in env if k.startswith('KEYSTORE'))
+    if leaked:
+        print('::error::signing secret reached the patch job (%s); the release key belongs to the Sign job only' % ', '.join(leaked))
+        return 1
     root = Path(root or '.').resolve()
     if len(argv) != 1:
         print('usage: build_attempts.py TARGET_ID', file=sys.stderr)
@@ -215,7 +226,9 @@ def main(argv, env=None, root=None):
             print('::group::reset after failed attempt %d' % (n - 1))
             reset(root, keep, keep_dirs)
             print('::endgroup::')
+        # W15g: patching is unsigned and keyless (main() refused any KEYSTORE* variable above).
         e = dict(env)
+        e['PF_UNSIGNED'] = 'true'
         if e.get('PF_STORE_LAZY') == '1':
             e['PF_KEEP_STORE_SERVICES'] = '1'
         if name is not None:

@@ -255,22 +255,22 @@ class Repair(unittest.TestCase):
         publish = text.index('      - name: Releasing APK files')
         self.assertLess(gate, upload)
         self.assertLess(upload, publish)
-        block = text[upload:publish]
-        self.assertIn("if: success() && (!inputs.publish || github.ref != 'refs/heads/main')", block)
+        smoke = text.index('      - name: Nonpublishing smoke result')
+        self.assertIn("if: success() && (!inputs.publish || github.ref != 'refs/heads/main')", text[upload:smoke])
         from action_refs import same_reference
-        same_reference(block, (ROOT/'.github/workflows/validate.yml').read_text(), 'actions/upload-artifact')
-        self.assertIn('test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}', block)
-        # W16y-a: the APK is kept 1 day, its evidence 7 days, in two steps.
+        same_reference(text[upload:smoke], (ROOT/'.github/workflows/validate.yml').read_text(), 'actions/upload-artifact')
+        self.assertIn('test-apk-${{ inputs.target }}-${{ github.run_id }}-${{ github.run_attempt }}', text[upload:smoke])
+        # W16y-a: the APK is kept 1 day, its evidence 7 days, in two tightly-scoped steps.
         evidence = text.index('      - name: Save test evidence (not a release)')
         self.assertLess(upload, evidence)
-        apk, ev = text[upload:evidence], text[evidence:publish]
+        apk, ev = text[upload:evidence], text[evidence:smoke]
         self.assertIn('release/*.apk', apk)
         self.assertIn('retention-days: 1', apk)
         self.assertIn('build-evidence/${{ inputs.target }}.json', ev)
         self.assertIn('retention-days: 7', ev)
         self.assertIn('if-no-files-found: error', apk)
         for unsafe in ('src/', '**', 'always()', 'continue-on-error', 'keystore'):
-            self.assertNotIn(unsafe, block)
+            self.assertNotIn(unsafe, apk + ev)
 
     def test_action_upgrade_smoke_stays_inside_mandatory_readonly_validation(self):
         text = (ROOT/'.github/workflows/validate.yml').read_text()
@@ -1319,7 +1319,9 @@ transfer(){
             t=next(t for t in targets if t['id']==ident)
             c=next(c for c in t['candidates'] if c['name']=='ftl')
             self.prepare_bundles(t,c)
-            args=patcher.command(self.r,ident,'ftl',{'KEYSTORE_PASS':'fixture','KEYSTORE_ALIAS':'fixture'})
+            args=patcher.command(self.r,ident,'ftl',{'PF_UNSIGNED':'true','KEYSTORE_PASS':'fixture','KEYSTORE_ALIAS':'fixture'})
+            self.assertIn('--unsigned',args)
+            self.assertFalse(any(a.lower().startswith('--keystore') or 'password' in a.lower() for a in args))
             scopes={};current=None;i=args.index('patch')+1
             while i<args.index('--options-file'):
                 token=args[i]
@@ -1365,7 +1367,9 @@ transfer(){
                     (self.r / 'src/targets.json').write_text(json.dumps(view, indent=2) + '\n')
                     t = next(x for x in view if x['id'] == t['id'])
                     text = self.prepare_bundles(t, c)
-                    args = patcher.command(self.r, t['id'], c['name'], {'KEYSTORE_PASS': 'dummy', 'KEYSTORE_ALIAS': 'fixture'})
+                    args = patcher.command(self.r, t['id'], c['name'], {'PF_UNSIGNED': 'true'})
+                    self.assertIn('--unsigned', args)
+                    self.assertFalse(any(a.lower().startswith('--keystore') or 'password' in a.lower() for a in args))
                     sel = text.split('SEL=', 1)[1].strip()
                     first = sorted(self.r.glob('*.mpp'))[0]
                     old = ['-p', str(first)] + (['--exclusive'] if t.get('exclusive') else []) + shlex.split(sel)
@@ -1374,13 +1378,24 @@ transfer(){
                         return s.removeprefix(str(self.r) + '/').removeprefix('./')
                     self.assertEqual(list(map(norm, old)), list(map(norm, got)))
 
+    def test_patch_command_requires_unsigned_mode(self):
+        targets = json.loads((self.r / 'src/targets.json').read_text())
+        t = next(t for t in targets if t['id'] == 'keymapper'); c = t['candidates'][0]
+        self.prepare_bundles(t, c)
+        with self.assertRaisesRegex(ValueError, 'PF_UNSIGNED=true'):
+            patcher.command(self.r, t['id'], c['name'], {})
+
     def test_safe_argv_literal_shell_metacharacters(self):
         targets = json.loads((self.r / 'src/targets.json').read_text());t = next(t for t in targets if t['id'] == 'keymapper');c = t['candidates'][0]
         evil = '$(touch QUOTING_PROOF) "quoted"'
         self.put('src/patches/%s/include-patches' % c['patch_dir'], evil + '\n')  # W16j: whichever provider is primary
         self.prepare_bundles(t, c)
-        args = patcher.command(self.r, t['id'], c['name'], {'KEYSTORE_PASS': 'dummy password;$test', 'KEYSTORE_ALIAS': 'fixture'})
-        self.assertIn(evil, args);self.assertIn('--keystore-password=dummy password;$test', args)
+        args = patcher.command(self.r, t['id'], c['name'], {'PF_UNSIGNED': 'true', 'KEYSTORE_PASS': 'dummy password;$test', 'KEYSTORE_ALIAS': 'ALIAS_SENTINEL'})
+        self.assertIn(evil, args)  # Patch names remain literal argv entries; never evaluated by a shell.
+        self.assertIn('--unsigned', args)
+        self.assertFalse(any(a.lower().startswith('--keystore') or 'password' in a.lower() for a in args))
+        self.assertNotIn('dummy password;$test', args)
+        self.assertNotIn('ALIAS_SENTINEL', args)
         self.assertFalse((self.r / 'QUOTING_PROOF').exists())
 
     def test_build_rejects_patcher_failure_after_applied(self):
@@ -1389,13 +1404,33 @@ transfer(){
     def test_build_rejects_zero_applied(self):
         self.build_tail(0, '')
 
+    def test_build_stops_when_patcher_help_lacks_unsigned_before_patching(self):
+        self.make_apk()
+        self.put('morphe-desktop-fixture.jar', 'fixture')
+        self.put('.requested', 'fixture\tFixture patch\n')
+        source = (ROOT / 'src/build/build.sh').read_text()
+        tail = source[source.index('# --- 6. patch,'):]
+        setup = '''set -uo pipefail
+ green_log(){ echo "$1"; }; red_log(){ echo "$1"; }; yellow_log(){ echo "$1"; }
+ java(){ echo 'Patch usage: --force'; }
+ python3(){ if [ "$1" = src/build/patch_target.py ]; then touch PATCH_TARGET_REACHED; echo 'Filtering patches for com.fixture'; echo 'Applied: Fixture patch'; return 0; else command python3 "$@"; fi; }
+ APK_NAME=fixture; OPTS=fixture; PKG=com.fixture; EXCL=true; WANT_E=1; version=1.0; PREFIX=fixture; WINNER=fixture; ID=fixture
+ excludePatches=""; includePatches=""
+ '''
+        result = self.run_cmd(['bash', '-c', setup + tail])
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('UNSIGNED_UNSUPPORTED', result.stdout + result.stderr)
+        self.assertFalse((self.r / 'PATCH_TARGET_REACHED').exists())
+
     def test_build_tail_happy_path(self):
         self.make_apk()
+        self.put('morphe-desktop-fixture.jar', 'fixture')
         source = (ROOT / 'src/build/build.sh').read_text()
         tail = source[source.index('# --- 6. patch,'):]
         self.put('.requested', 'fixture\tFixture patch\n')
         setup = '''set -uo pipefail
 green_log(){ echo "$1"; }; red_log(){ echo "$1"; }; yellow_log(){ echo "$1"; }
+java(){ echo 'Patch usage: --unsigned'; }
 python3(){ if [ "$1" = src/build/patch_target.py ]; then echo 'Filtering patches for com.fixture'; echo 'Applied: Fixture patch'; return 0; elif [ "${2:-}" = input-version ]; then echo 1.0; else command python3 "$@"; fi; }
 apkanalyzer(){ echo 1.0; }
 export GITHUB_RUN_ID=12345 GITHUB_RUN_ATTEMPT=1
@@ -1415,8 +1450,10 @@ excludePatches=""; includePatches=""
         source = (ROOT / 'src/build/build.sh').read_text()
         tail = source[source.index('# --- 6. patch,'):]
         self.put('.requested', 'fixture\tFixture patch\n')
+        self.put('morphe-desktop-fixture.jar', 'fixture')
         setup = '''set -uo pipefail
 green_log(){ echo "$1"; }; red_log(){ echo "$1"; }; yellow_log(){ echo "$1"; }
+java(){ echo 'Patch usage: --unsigned'; }
 python3(){ if [ "$1" = src/build/patch_target.py ]; then echo 'Filtering patches for com.fixture'; echo '%s'; return %d; else command python3 "$@"; fi; }
 APK_NAME=fixture; OPTS=fixture; PKG=com.fixture; EXCL=true; WANT_E=1; version=1.0; PREFIX=fixture; WINNER=fixture; ID=fixture
 excludePatches=""; includePatches=""
@@ -1435,7 +1472,10 @@ excludePatches=""; includePatches=""
 
     def test_workflow_guards_exist(self):
         manual = (ROOT / '.github/workflows/manual-patch.yml').read_text()
-        self.assertIn("&& inputs.publish && github.ref == 'refs/heads/main'", manual)
+        self.assertIn("if: inputs.publish && github.ref == 'refs/heads/main'", manual)
+        patch_job, publish_job = manual.split('\n  publish:\n', 1)
+        self.assertIn("if: inputs.publish && github.ref == 'refs/heads/main'", publish_job)
+        self.assertIn('needs.patch.outputs.built_at', manual)
         self.assertIn('cancel-in-progress: false', manual)
         val = (ROOT / '.github/workflows/validate.yml').read_text()
         self.assertIn('  pull_request:', val)

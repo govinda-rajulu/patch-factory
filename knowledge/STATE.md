@@ -8,7 +8,13 @@ Start here: [KT-2026-10-28.md](../docs/review/KT-2026-10-28.md), then [OPEN-WORK
 
 patch-factory. Start from the PATCH-FACTORY-BUILDS skill, knowledge/STATE.md and the newest docs/review/HANDOVER-*.md; controller tools and the assistant sandbox notes are in docs/review/controllers/README.md. Use if/then launchers: one side effect per if/then with its own result line, never `a && b || c`. Get `git bundle --all` of main first; full suite before any handover. Start controllers with nohup and `tail --pid`.
 
-## W16y-c (31 Oct 2026, early IST): start here
+## W15g (31 Oct 2026, morning IST): start here
+
+- **W16y-c merged** as #282 (`901f3051`, tree `f690788d`), RESULT OK; Telegram published from rahul9999xda. Read docs/review/HANDOVER-2026-10-31-W15g.md.
+- **W15g signing split**: Patch (provider code, no key, read-only, unsigned APK), Sign (first-party `sign_apk.py`, keystore pin check, apksigner with the patcher's scheme rule, byte-identical payload proof), Publish (write token, no key). Gate: all 17 apps on the branch, then one Telegram publish and the owner's install-over phone test.
+- **Next**: W16z (shelves, portal freshness row, one patches fold, CCleaner Coming soon, Needs you link, issue templates, audit follow-ups), then the W17 owner console (Pages builds GitHub issue-form links; owner submits; only owner submissions make ready PRs; merges are the owner's). Android Auto is a feature request.
+
+## W16y-c (31 Oct 2026, early IST)
 
 - **W16y-b merged** as #281 (`27adc7b4`, tree `c761f1c6`), RESULT OK. Owner phone test 31 Oct: the Telegram rahul9999xda build signs in. Read docs/review/HANDOVER-2026-10-31-W16y-c.md.
 - **W16y-c**: publish Telegram from rahul9999xda after the merge; scan host fix (wrong call 118); pin check through the build's store reader, no downloads, still report-only; controller retries a transient push failure. Wrong calls through 119.
