@@ -211,17 +211,34 @@ def alignment(rows):
     return {'four_byte': not four, 'library_16k': not page, 'unaligned': (four + page)[:20]}
 
 
+# apksig (behind apksigner and Morphe's own signer) never writes ZIP directory entries or the
+# root source-stamp digest file unless it signs a stamp (DefaultApkSignerEngine output policy:
+# SKIP / OUTPUT_BY_ENGINE). W15g smokes 31 Oct 2026: 13 of 17 hand-offs had one or both and
+# stopped here. They may disappear when signed; they must never appear in the signed APK.
+SOURCE_STAMP_ENTRY = 'stamp-cert-sha256'
+
+
+def signer_dropped(name):
+    return name.endswith('/') or name == SOURCE_STAMP_ENTRY
+
+
 def compare(unsigned, signed):
     a, b = entries(unsigned), entries(signed)
-    plain_a = {n: {k: v for k, v in r.items() if k != 'offset'} for n, r in a.items() if not ai.SIGNATURE_FILE.fullmatch(n)}
-    plain_b = {n: {k: v for k, v in r.items() if k != 'offset'} for n, r in b.items() if not ai.SIGNATURE_FILE.fullmatch(n)}
-    ai.require(set(plain_a) == set(plain_b), 'signing added or removed a non-signature entry')
+    kept = lambda n: not ai.SIGNATURE_FILE.fullmatch(n) and not signer_dropped(n)
+    plain_a = {n: {k: v for k, v in r.items() if k != 'offset'} for n, r in a.items() if kept(n)}
+    plain_b = {n: {k: v for k, v in r.items() if k != 'offset'} for n, r in b.items() if kept(n)}
+    appeared = sorted(n for n in b if signer_dropped(n))
+    ai.require(not appeared, 'signing wrote a directory or source-stamp entry: ' + ', '.join(n[:120] for n in appeared[:5]))
+    removed, added = sorted(set(plain_a) - set(plain_b)), sorted(set(plain_b) - set(plain_a))
+    ai.require(not removed and not added, 'signing added or removed a non-signature entry (removed: %s; added: %s)' % (
+        ', '.join(n[:120] for n in removed[:5]) or 'none', ', '.join(n[:120] for n in added[:5]) or 'none'))
     changed = sorted(n for n in plain_a if plain_a[n] != plain_b[n])
     ai.require(not changed, 'signing changed entry bytes: ' + ', '.join(changed[:5]))
     ai.require([n for n in a if n in plain_a] == [n for n in b if n in plain_b], 'signing reordered entries')
     return {'entries_compared': len(plain_a),
-            'signature_files': {'unsigned': sorted(n for n in a if n not in plain_a)[:50],
-                                'signed': sorted(n for n in b if n not in plain_b)[:50]},
+            'dropped_by_signer': sorted(n for n in a if signer_dropped(n))[:50],
+            'signature_files': {'unsigned': sorted(n for n in a if ai.SIGNATURE_FILE.fullmatch(n))[:50],
+                                'signed': sorted(n for n in b if ai.SIGNATURE_FILE.fullmatch(n))[:50]},
             'alignment': {'unsigned': alignment(a), 'signed': alignment(b)}}
 
 

@@ -30,7 +30,7 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 - Pin check probe reads APKMirror the way the build does (store helper, lazily started), follows the build's own release-page and uploads-page lookup, and stops at the variant row with the pinned version code; it never asks for a download page or a file. Candidate `overrides.version_code` pins are checked too. Still manual and report-only until a live run shows OK lines.
 - Packet controller: a `git push` that fails with a transient server or network error is retried twice (30 s, 90 s); a rejection is never retried (the 30 Oct HTTP 500 stop).
 - The controller keeps scan evidence with the smoke logs; the owner probe reads the newest Pin store check, Retention preview and Batch Patch runs, so no separate collect command is needed.
-- Wrong calls 118 and 119 recorded.
+- Wrong calls 118 and 119 recorded. Wrong call 120 (W15g first smoke: signer drops directory and source-stamp entries) in HANDOVER-2026-10-31-W15g.md.
 
 ### Done in W16y-b (30 October 2026)
 

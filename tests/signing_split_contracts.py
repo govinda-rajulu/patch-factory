@@ -100,6 +100,16 @@ if sys.argv[1] == 'sign':
     out = args[args.index('--out') + 1]
     source = args[-1]
     shutil.copyfile(source, out)
+    # Like apksig (W15g smokes 31 Oct): directory entries and stamp-cert-sha256 are not written.
+    with zipfile.ZipFile(source) as old:
+        dropped = [i.filename for i in old.infolist() if i.filename.endswith('/') or i.filename == 'stamp-cert-sha256']
+    if dropped:
+        temp = out + '.drop'
+        with zipfile.ZipFile(out) as old, zipfile.ZipFile(temp, 'w') as new:
+            for item in old.infolist():
+                if item.filename not in dropped:
+                    new.writestr(item, old.read(item.filename))
+        os.replace(temp, out)
     if os.environ.get('FAKE_SIGN_MODE') == 'bad':
         temp = out + '.rewrite'
         with zipfile.ZipFile(out) as old, zipfile.ZipFile(temp, 'w') as new:
@@ -197,10 +207,10 @@ sys.stdout.buffer.write(base64.b64decode(os.environ['FAKE_CERT_B64']))
         evidence.write_text(json.dumps(report), encoding='utf-8')
         return report, apk
 
-    def create_verify_pair(self, min_sdk=24, signed_rows=None, signed_order=None):
+    def create_verify_pair(self, min_sdk=24, signed_rows=None, signed_order=None, unsigned_rows=None):
         unsigned = self.root / 'signing' / APK_NAME
         release = self.root / 'release' / APK_NAME
-        write_zip(unsigned, payload_rows(), page_align_so=True)
+        write_zip(unsigned, payload_rows() if unsigned_rows is None else unsigned_rows, page_align_so=True)
         records = payload_rows() if signed_rows is None else signed_rows
         if signed_order is not None:
             by_name = dict(records)
@@ -485,6 +495,36 @@ class VerifyContracts(unittest.TestCase):
         rows = payload_rows() + [('assets/added.bin', b'added')]
         self.h.create_verify_pair(signed_rows=rows)
         with self.assertRaisesRegex(ValueError, 'added or removed a non-signature entry'):
+            verify_with_env(self.root, self.h.env())
+
+    def test_verify_accepts_directory_and_source_stamp_entries_the_signer_drops(self):
+        # W15g live smokes 31 Oct: apksigner 37 left out stamp-cert-sha256 (12 apps) and
+        # directory entries (mxplayer lib/, instagram assets/); 13 of 17 stopped on this.
+        unsigned = [('lib/', b''), ('lib/arm64-v8a/', b'')] + payload_rows() + [('stamp-cert-sha256', b'stamp digest')]
+        self.h.create_verify_pair(unsigned_rows=unsigned)
+        report = verify_with_env(self.root, self.h.env())
+        self.assertEqual(report['signing']['dropped_by_signer'], ['lib/', 'lib/arm64-v8a/', 'stamp-cert-sha256'])
+        self.assertEqual(report['signing']['entries_compared'], 3)
+
+    def test_verify_refuses_source_stamp_written_by_signing(self):
+        self.h.create_verify_pair(signed_rows=payload_rows() + [('stamp-cert-sha256', b'new stamp')])
+        with self.assertRaisesRegex(ValueError, 'directory or source-stamp entry: stamp-cert-sha256'):
+            verify_with_env(self.root, self.h.env())
+
+    def test_verify_refuses_directory_written_by_signing(self):
+        self.h.create_verify_pair(signed_rows=[('assets/', b'')] + payload_rows())
+        with self.assertRaisesRegex(ValueError, 'directory or source-stamp entry: assets/'):
+            verify_with_env(self.root, self.h.env())
+
+    def test_verify_names_a_removed_payload_entry(self):
+        self.h.create_verify_pair(signed_rows=payload_rows()[1:])
+        with self.assertRaisesRegex(ValueError, r'removed: classes[.]dex; added: none'):
+            verify_with_env(self.root, self.h.env())
+
+    def test_only_the_root_source_stamp_file_may_disappear(self):
+        unsigned = payload_rows() + [('assets/stamp-cert-sha256', b'app data'), ('res/raw/timestamp.proto', b'proto')]
+        self.h.create_verify_pair(unsigned_rows=unsigned, signed_rows=payload_rows() + [('res/raw/timestamp.proto', b'proto')])
+        with self.assertRaisesRegex(ValueError, 'removed: assets/stamp-cert-sha256'):
             verify_with_env(self.root, self.h.env())
 
     def test_verify_refuses_reordered_non_signature_entries(self):
