@@ -1,6 +1,6 @@
 # Open work
 
-## Current checkpoint: 30 October 2026 (packets W16y-a and W16y-b)
+## Current checkpoint: 31 October 2026 (packet W16y-c; W16y-a and W16y-b merged 30 Oct)
 
 Every still-open item carried forward from the older checkpoints is listed once below. Closed,
 superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-ARCHIVE-2026-10.md).
@@ -11,6 +11,15 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 - Wrong call 110 was fixed: the second store now receives `${RVER:-$version}` even when the first download fails.
 - The unused `apply_choices.py`, `chooser.py` and `community_diff.py` utilities and the dead chooser branch in `selection_writer.py` were removed; the removal and restore record is [REMOVED-2026-10.md](history/REMOVED-2026-10.md).
 - The closed `CANDIDATES-2026-10-08.md` scout moved from onboarding to [history](history/CANDIDATES-2026-10-08.md), with inbound links repaired.
+
+### Done in W16y-c (31 October 2026)
+
+- W16y-b merged as #281 (`27adc7b4`, tree `c761f1c6`), RESULT OK. Telegram rahul9999xda built 14 of 14 on 13.1.1; the owner installed the smoke build and **signed in without the API error** (31 Oct). This packet publishes Telegram from rahul9999xda after the merge. The owner has not yet checked every patch on the phone.
+- Provider scan: bare names count as hosts only with a real public top-level domain (wrong call 118); the Amazon Music HOLD of 30 Oct was 22 code names, not hosts.
+- Pin check probe reads APKMirror the way the build does (store helper, lazily started), follows the build's own release-page and uploads-page lookup, and stops at the variant row with the pinned version code; it never asks for a download page or a file. Candidate `overrides.version_code` pins are checked too. Still manual and report-only until a live run shows OK lines.
+- Packet controller: a `git push` that fails with a transient server or network error is retried twice (30 s, 90 s); a rejection is never retried (the 30 Oct HTTP 500 stop).
+- The controller keeps scan evidence with the smoke logs; the owner probe reads the newest Pin store check, Retention preview and Batch Patch runs, so no separate collect command is needed.
+- Wrong calls 118 and 119 recorded.
 
 ### Done in W16y-b (30 October 2026)
 
@@ -26,7 +35,8 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 
 ### Next (after W16y-b)
 
-- **Owner:** phone test of the Telegram rahul9999xda smoke build (sign-in first). If sign-in fails with `API_ID_PUBLISHED_FLOOD`, the options are the owner patching HushTelegram on the phone with his own API ID, or approving `Bypass integrity check` (CONFIRM rule) in a later packet.
+- **Owner:** check the Telegram rahul9999xda patches on the phone (sign-in passed 31 Oct); report any patch that does nothing.
+- Read the post-merge pin check probe; schedule it weekly only when its lines are OK or a real MISSING.
 - Scan and pin-probe limits from the second review (LOW, recorded): the scan reads only the merged APK and loads each dex fully (fine on 16 GB runners); the pin probe's page parsing is heuristic and does not check Facebook's fallback `overrides.version_code`. Revisit with the first live evidence.
 - New-provider ready PR: discovery, then the scan smoke, then a green test build, then a ready pull request the owner merges. W16y-b ships the scan step only; the orchestration is not built.
 - Read the first runs: Council probe (Sunday 1 Nov morning), monthly digest (Needs you, 1 Nov), the post-merge pin check probe, retention preview (Monday 2 Nov). Then schedule the pin check weekly (reading pages the way the build does if plain reads are refused). Retention apply only with the owner's token, from 3 Nov.

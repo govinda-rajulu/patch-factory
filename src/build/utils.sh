@@ -12,19 +12,27 @@ if [[ -z "${PF_TMP_DIR:-}" ]]; then
   trap 'rm -rf -- "$PF_TMP_DIR"' EXIT
 fi
 
-mkdir ./release ./download
+# The build performs this setup when it needs APK tooling.  Read-only listing probes
+# source the same functions with PF_UTILS_NO_SETUP=1 so loading utils.sh cannot create
+# artifacts, download tooling, or make the user-agent probe.
+if [[ "${PF_UTILS_NO_SETUP:-0}" != "1" ]]; then
+  mkdir ./release ./download
 
-# HTML selector helper is checked into the repository; no downloaded parser is needed.
-#Setup APKEditor for install combine split apks
-bash ./src/build/tooling.sh apkeditor || exit 1
-APKEditor="./APKEditor.jar"
-#Find lastest user_agent
-user_agent=$(wget -qO- https://www.whatismybrowser.com/guides/the-latest-user-agent/firefox | tr '\n' ' ' | sed 's#</tr>#\n#g' | grep 'Firefox (Standard)' | sed -n 's/.*<span class="code">\([^<]*Android[^<]*\)<\/span>.*/\1/p') \
-|| user_agent=
-[ -z "$user_agent" ] && {
-  user_agent='Mozilla/5.0 (Android 16; Mobile; rv:146.0) Gecko/146.0 Firefox/146.0'
-  echo "[-] Can't found lastest user-agent"
-}
+  # HTML selector helper is checked into the repository; no downloaded parser is needed.
+  #Setup APKEditor for install combine split apks
+  bash ./src/build/tooling.sh apkeditor || exit 1
+  APKEditor="./APKEditor.jar"
+  #Find lastest user_agent
+  user_agent=$(wget -qO- https://www.whatismybrowser.com/guides/the-latest-user-agent/firefox | tr '\n' ' ' | sed 's#</tr>#\n#g' | grep 'Firefox (Standard)' | sed -n 's/.*<span class="code">\([^<]*Android[^<]*\)<\/span>.*/\1/p') \
+  || user_agent=
+  [ -z "$user_agent" ] && {
+    user_agent='Mozilla/5.0 (Android 16; Mobile; rv:146.0) Gecko/146.0 Firefox/146.0'
+    echo "[-] Can't found lastest user-agent"
+  }
+else
+  APKEditor="${APKEditor:-./APKEditor.jar}"
+  user_agent="${user_agent:-Mozilla/5.0 (Android 16; Mobile; rv:146.0) Gecko/146.0 Firefox/146.0}"
+fi
 
 #################################################
 
@@ -400,6 +408,26 @@ _FFS_FAILED=0
 
 _PF_STORE_SVC=0
 
+# Save only HTML responses requested by the read-only pin probe.  The hook is inert for
+# normal builds; the probe bounds each evidence file and never asks get_apk for a download.
+_pf_capture_html() {
+	local url=$1 n file
+	[[ -n "${PF_CAPTURE_DIR:-}" ]] || return 0
+	mkdir -p -- "$PF_CAPTURE_DIR" || return 1
+	PF_CAPTURE_SEQ=$(( ${PF_CAPTURE_SEQ:-0} + 1 ))
+	if [[ "$url" == */page/[0-9]*/\?* || "$url" == */page/[0-9]*/ ]]; then
+		local page
+		page=$(printf '%s' "$url" | sed -n 's#^.*/page/\([0-9][0-9]*\)/.*#\1#p')
+		file="$PF_CAPTURE_DIR/uploads-${page:-1}.html"
+	elif [[ "$url" == *-release/* || "$url" == *-release/ ]]; then
+		file="$PF_CAPTURE_DIR/release.html"
+	else
+		file=$(printf '%s/capture-%03d.html' "$PF_CAPTURE_DIR" "$PF_CAPTURE_SEQ")
+	fi
+
+printf '%s' "$html" | head -c "${PF_CAPTURE_MAX_BYTES:-2097152}" > "$file"
+}
+
 _cf_get() {
 	if declare -F pf_store_url_check >/dev/null 2>&1; then
 		pf_store_url_check "$1" || { red_log "[-] store URL failed HTTPS/host policy"; return 1; }
@@ -415,11 +443,20 @@ _cf_get() {
 		fi
 	fi
 	if [[ "$_FFS_FAILED" -eq 0 ]]; then
-		_fs_get "$@" && return 0
+		if _fs_get "$@"; then
+			declare -F _pf_capture_html >/dev/null 2>&1 && _pf_capture_html "$1"
+			return 0
+		fi
 		yellow_log "[!] FlareSolverr failed, falling back to CFB"
 		_FFS_FAILED=1
 	fi
-	_cfb_get "$@"
+	local cfb_rc=0
+	if _cfb_get "$@"; then
+		declare -F _pf_capture_html >/dev/null 2>&1 && _pf_capture_html "$1"
+	else
+		cfb_rc=$?
+	fi
+	return "$cfb_rc"
 }
 
 # wget exit codes (GNU wget manual, "Exit Status").
@@ -655,6 +692,27 @@ get_apk() {
 			return 1
 		fi
 	fi
+	fi
+	# Read-only pin probes stop after the same release-row extraction and picker.  In
+	# particular, do not fetch the variant page, download-button page, or final binary URL.
+	if [[ "${PF_PIN_CHECK_ONLY:-0}" == "1" ]]; then
+		local pin_row=""
+		if [[ -n "${PF_PIN_CODE:-}" ]]; then
+			pin_row=$(printf '%s\n' "$rows" | python3 -c '
+import re, sys
+code = sys.argv[1]
+for row in sys.stdin.read().splitlines():
+    if re.search(r"(?i)(?:version[ _-]?code|versionCode|\bcode\b)[^0-9]{0,40}" + re.escape(code) + r"(?![0-9])", row):
+        print(row)
+        break
+' "$PF_PIN_CODE")
+		fi
+		if [[ -z "$pin_row" ]]; then
+			red_log "[-] pinned version code ${PF_PIN_CODE:-?} not found in a release variant row"
+			return 2
+		fi
+		green_log "[+] pinned version code $PF_PIN_CODE found in release variant row"
+		return 0
 	fi
 	if [[ "$variant_page_loaded" == false ]]; then
 		variant_href=$(echo "$variant_href" | sed 's/&amp;/\&/g')

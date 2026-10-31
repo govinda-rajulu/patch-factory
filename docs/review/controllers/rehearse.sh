@@ -12,7 +12,32 @@ git -C "$W/origin.git" update-ref refs/heads/main "$B"
 for r in $(git -C "$W/origin.git" for-each-ref --format='%(refname)' refs/heads | grep -v '^refs/heads/main$'); do git -C "$W/origin.git" update-ref -d "$r"; done
 cp "$HERE/fake_gh.py" "$W/bin/gh"; chmod +x "$W/bin/gh"
 # cleanup.py reads tags with git ls-remote; answer with one tag, pass everything else to git.
-printf '#!/bin/bash\nif [ "$1" = ls-remote ] && [ "$2" = --tags ]; then printf "%%s\\trefs/tags/adguard-v1.0-b20260901\\n" 0000000000000000000000000000000000000001; exit 0; fi\nexec %s "$@"\n' "$(command -v git)" > "$W/bin/git"; chmod +x "$W/bin/git"
+cat > "$W/bin/git" <<EOF
+#!/bin/bash
+if [ "\$1" = ls-remote ] && [ "\$2" = --tags ]; then printf "%s\\trefs/tags/adguard-v1.0-b20260901\\n" 0000000000000000000000000000000000000001; exit 0; fi
+if [ "\$1" = push ]; then
+  python3 - "$W/state.json" <<'PY'
+import json, sys
+p = sys.argv[1]
+with open(p) as f: state = json.load(f)
+fails = state.get("push_fail", [])
+if fails:
+    value = str(fails.pop(0))
+    state["push_fail"] = fails
+    with open(p, "w") as f: json.dump(state, f)
+    if value.lower() in ("500", "502", "503", "504", "internal server error"):
+        print("remote: Internal Server Error", file=sys.stderr)
+    elif value.lower() in ("nff", "rejected", "non-fast-forward", "rejected non-fast-forward"):
+        print("! [rejected] non-fast-forward", file=sys.stderr)
+    else:
+        print(value, file=sys.stderr)
+    sys.exit(1)
+PY
+  rc=\$?; [ "\$rc" -eq 0 ] || exit "\$rc"
+fi
+exec "$(command -v git)" "\$@"
+EOF
+chmod +x "$W/bin/git"
 # PRIOR_TREE=TREE PRIOR_BRANCH=NAME: a packet already pushed (a commit of TREE on the fake main)
 # with an open pull request #900; the controller gets PF_PARENT and must fast-forward it.
 P=""; if [ -n "${PRIOR_TREE:-}" ]; then P=$(cd "$W/origin.git" && GIT_AUTHOR_NAME=g GIT_AUTHOR_EMAIL=g@x GIT_COMMITTER_NAME=g GIT_COMMITTER_EMAIL=g@x git commit-tree "$PRIOR_TREE" -p "$B" -m prior); git -C "$W/origin.git" update-ref "refs/heads/$PRIOR_BRANCH" "$P"; export PF_PARENT="$P"; fi
