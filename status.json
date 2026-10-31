@@ -1,0 +1,2322 @@
+{
+ "apps": [
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "adguard",
+   "label": "AdGuard",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212243887/job/124569979487",
+    "when": "2026-10-31T14:56:37Z",
+    "words": "Worked",
+    "workflow": "Manual adguard / publish=false"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212243887/job/124569979487",
+    "when": "2026-10-31T14:56:37Z",
+    "words": "Worked",
+    "workflow": "Manual adguard / publish=false"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 2,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 36906140,
+     "name": "adguard-v4.14.68-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/adguard-v4.14.68-b2026102800000000040744642663000001/adguard-v4.14.68-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 28,
+     "version": "9"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-28T18:31:53Z",
+    "tag": "adguard-v4.14.68-b2026102800000000040744642663000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/adguard-v4.14.68-b2026102800000000040744642663000001",
+    "version": "4.14.68"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "amazonmusic",
+   "label": "Amazon Music",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180021006/job/124476022449",
+    "when": "2026-10-31T07:21:31Z",
+    "words": "Worked",
+    "workflow": "Manual amazonmusic / rookieenough / publish=false"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180021006/job/124476022449",
+    "when": "2026-10-31T07:21:31Z",
+    "words": "Worked",
+    "workflow": "Manual amazonmusic / rookieenough / publish=false"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 1,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 180217563,
+     "name": "amazonmusic-v26.36.1-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/amazonmusic-v26.36.1-b2026102900000000040931823093000001/amazonmusic-v26.36.1-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 29,
+     "version": "10"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-29T18:37:36Z",
+    "tag": "amazonmusic-v26.36.1-b2026102900000000040931823093000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/amazonmusic-v26.36.1-b2026102900000000040931823093000001",
+    "version": "26.36.1"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "esfile",
+   "label": "ES File Explorer",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180022774/job/124475863294",
+    "when": "2026-10-31T07:20:38Z",
+    "words": "Worked",
+    "workflow": "Manual esfile / rushiranpise-fallback / publish=false"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180022774/job/124475863294",
+    "when": "2026-10-31T07:20:38Z",
+    "words": "Worked",
+    "workflow": "Manual esfile / rushiranpise-fallback / publish=false"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 1,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 61162232,
+     "name": "es-file-v4.4.3.7-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/es-file-v4.4.3.7-b2026102900000000040931823093000001/es-file-v4.4.3.7-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 19,
+     "version": "API 19"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-29T18:41:46Z",
+    "tag": "es-file-v4.4.3.7-b2026102900000000040931823093000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/es-file-v4.4.3.7-b2026102900000000040931823093000001",
+    "version": "4.4.3.7"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 30,
+    "version": "11"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "facebook",
+   "label": "Facebook",
+   "last_build": {
+    "age_days": 2,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40826158954/job/123290477034",
+    "when": "2026-10-29T06:00:47Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40826158954/job/123290477034",
+    "when": "2026-10-29T06:00:47Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 2,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 241833890,
+     "name": "facebook-v584.0.0.51.56-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/facebook-v584.0.0.51.56-b2026102900000000040826158954000001/facebook-v584.0.0.51.56-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 30,
+     "version": "11"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-29T06:00:30Z",
+    "tag": "facebook-v584.0.0.51.56-b2026102900000000040826158954000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/facebook-v584.0.0.51.56-b2026102900000000040826158954000001",
+    "version": "584.0.0.51.56"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "photos",
+   "label": "Google Photos",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41103704066/job/124239344790",
+    "when": "2026-10-30T18:28:36Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41103704066/job/124239344790",
+    "when": "2026-10-30T18:28:36Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": true,
+   "on_fallback": false,
+   "patch_age_days": 0,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 192783729,
+     "name": "gg-photos-v7.98.0.1001971222-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/gg-photos-v7.98.0.1001971222-b2026103000000000041103704066000001/gg-photos-v7.98.0.1001971222-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 24,
+     "version": "7.0"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-30T18:28:20Z",
+    "tag": "gg-photos-v7.98.0.1001971222-b2026103000000000041103704066000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/gg-photos-v7.98.0.1001971222-b2026103000000000041103704066000001",
+    "version": "7.98.0.1001971222"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "instagram",
+   "label": "Instagram",
+   "last_build": {
+    "age_days": 2,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40781553102/job/123144278622",
+    "when": "2026-10-28T22:42:07Z",
+    "words": "Worked",
+    "workflow": "Batch instagram,primevideo,linkedin,truecaller-combo / publish=true"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40781553102/job/123144278622",
+    "when": "2026-10-28T22:42:07Z",
+    "words": "Worked",
+    "workflow": "Batch instagram,primevideo,linkedin,truecaller-combo / publish=true"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 2,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 169114348,
+     "name": "instagram-v452.1.0.53.64-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/instagram-v452.1.0.53.64-b2026102800000000040781553102000001/instagram-v452.1.0.53.64-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 28,
+     "version": "9"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-28T22:41:51Z",
+    "tag": "instagram-v452.1.0.53.64-b2026102800000000040781553102000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/instagram-v452.1.0.53.64-b2026102800000000040781553102000001",
+    "version": "452.1.0.53.64"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "hotstar",
+   "label": "JioHotstar",
+   "last_build": {
+    "age_days": 2,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40780224266/job/123139797684",
+    "when": "2026-10-28T22:34:21Z",
+    "words": "Worked",
+    "workflow": "Batch youtube,ytmusic,adguard,photos,truecaller-combo,primevideo,esfile,faceboo…"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40780224266/job/123139797684",
+    "when": "2026-10-28T22:34:21Z",
+    "words": "Worked",
+    "workflow": "Batch youtube,ytmusic,adguard,photos,truecaller-combo,primevideo,esfile,faceboo…"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 6,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 74031608,
+     "name": "hotstar-v26.06.08.2-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/hotstar-v26.06.08.2-b2026102500000000040212870923000001/hotstar-v26.06.08.2-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 21,
+     "version": "5.0"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-25T16:46:50Z",
+    "tag": "hotstar-v26.06.08.2-b2026102500000000040212870923000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/hotstar-v26.06.08.2-b2026102500000000040212870923000001",
+    "version": "26.06.08.2"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "keymapper",
+   "label": "Key Mapper",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212241950/job/124570023274",
+    "when": "2026-10-31T14:56:37Z",
+    "words": "Worked",
+    "workflow": "Manual keymapper / publish=false / scan"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212241950/job/124570023274",
+    "when": "2026-10-31T14:56:37Z",
+    "words": "Worked",
+    "workflow": "Manual keymapper / publish=false / scan"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 6,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 10328239,
+     "name": "key-mapper-v4.5.0-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/key-mapper-v4.5.0-b2026102500000000040212870923000001/key-mapper-v4.5.0-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 29,
+     "version": "10"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-25T16:49:33Z",
+    "tag": "key-mapper-v4.5.0-b2026102500000000040212870923000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/key-mapper-v4.5.0-b2026102500000000040212870923000001",
+    "version": "4.5.0"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "linkedin",
+   "label": "LinkedIn",
+   "last_build": {
+    "age_days": 2,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40781553102/job/123144278443",
+    "when": "2026-10-28T22:42:18Z",
+    "words": "Worked",
+    "workflow": "Batch instagram,primevideo,linkedin,truecaller-combo / publish=true"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40781553102/job/123144278443",
+    "when": "2026-10-28T22:42:18Z",
+    "words": "Worked",
+    "workflow": "Batch instagram,primevideo,linkedin,truecaller-combo / publish=true"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 2,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 88485327,
+     "name": "linkedin-v4.1.1261-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/linkedin-v4.1.1261-b2026102800000000040781553102000001/linkedin-v4.1.1261-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 29,
+     "version": "10"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-28T22:42:10Z",
+    "tag": "linkedin-v4.1.1261-b2026102800000000040781553102000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/linkedin-v4.1.1261-b2026102800000000040781553102000001",
+    "version": "4.1.1261"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "edge",
+   "label": "Microsoft Edge",
+   "last_build": {
+    "age_days": 2,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40780224266/job/123139797611",
+    "when": "2026-10-28T22:32:27Z",
+    "words": "Worked",
+    "workflow": "Batch youtube,ytmusic,adguard,photos,truecaller-combo,primevideo,esfile,faceboo…"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40780224266/job/123139797611",
+    "when": "2026-10-28T22:32:27Z",
+    "words": "Worked",
+    "workflow": "Batch youtube,ytmusic,adguard,photos,truecaller-combo,primevideo,esfile,faceboo…"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 6,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 249751527,
+     "name": "edge-v152.0.4191.65-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/edge-v152.0.4191.65-b2026102500000000040212870923000001/edge-v152.0.4191.65-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 29,
+     "version": "10"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-25T16:44:27Z",
+    "tag": "edge-v152.0.4191.65-b2026102500000000040212870923000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/edge-v152.0.4191.65-b2026102500000000040212870923000001",
+    "version": "152.0.4191.65"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "mxplayer",
+   "label": "MX Player Pro",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180024048/job/124476015406",
+    "when": "2026-10-31T07:21:23Z",
+    "words": "Worked",
+    "workflow": "Manual mxplayer / publish=false"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180024048/job/124476015406",
+    "when": "2026-10-31T07:21:23Z",
+    "words": "Worked",
+    "workflow": "Manual mxplayer / publish=false"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 1,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 37162066,
+     "name": "mx-player-v1.93.4-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/mx-player-v1.93.4-b2026102900000000040931823093000001/mx-player-v1.93.4-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 21,
+     "version": "5.0"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-29T18:38:43Z",
+    "tag": "mx-player-v1.93.4-b2026102900000000040931823093000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/mx-player-v1.93.4-b2026102900000000040931823093000001",
+    "version": "1.93.4"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "primevideo",
+   "label": "Prime Video",
+   "last_build": {
+    "age_days": 2,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40781553102/job/123144278584",
+    "when": "2026-10-28T22:42:33Z",
+    "words": "Worked",
+    "workflow": "Batch instagram,primevideo,linkedin,truecaller-combo / publish=true"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40781553102/job/123144278584",
+    "when": "2026-10-28T22:42:33Z",
+    "words": "Worked",
+    "workflow": "Batch instagram,primevideo,linkedin,truecaller-combo / publish=true"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 2,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 175714929,
+     "name": "prime-video-v3.0.470.357-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/prime-video-v3.0.470.357-b2026102800000000040781553102000001/prime-video-v3.0.470.357-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 28,
+     "version": "9"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-28T22:42:22Z",
+    "tag": "prime-video-v3.0.470.357-b2026102800000000040781553102000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/prime-video-v3.0.470.357-b2026102800000000040781553102000001",
+    "version": "3.0.470.357"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "reddit",
+   "label": "Reddit",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "failure",
+    "step": "Releasing APK files",
+    "step_plain": "publishing the release",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41223774437/job/124604739753",
+    "when": "2026-10-31T17:22:07Z",
+    "why": [
+     "release contract: PUBLISH_REFUSED reddit: app 2026.40.0 is older than the published 2026.41.0; a phone cannot update to it and the shelf would show it as newest. Nothing was published."
+    ],
+    "words": "Failed",
+    "workflow": "2. Check new patch"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41223774437/job/124604739753",
+    "when": "2026-10-31T17:22:07Z",
+    "words": "Failed",
+    "workflow": "2. Check new patch"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 1,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 82982574,
+     "name": "reddit-v2026.41.0-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/reddit-v2026.41.0-b2026102900000000040931823093000001/reddit-v2026.41.0-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 29,
+     "version": "10"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-29T18:40:34Z",
+    "tag": "reddit-v2026.41.0-b2026102900000000040931823093000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/reddit-v2026.41.0-b2026102900000000040931823093000001",
+    "version": "2026.41.0"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "remoteatv",
+   "label": "Remote for Android TV",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218717243/job/124589312082",
+    "when": "2026-10-31T16:17:39Z",
+    "words": "Worked",
+    "workflow": "Manual remoteatv / publish=true"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218717243/job/124589312082",
+    "when": "2026-10-31T16:17:39Z",
+    "words": "Worked",
+    "workflow": "Manual remoteatv / publish=true"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 0,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 33414774,
+     "name": "remoteatv-v6.1.0-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/remoteatv-v6.1.0-b2026103100000000041218717243000001/remoteatv-v6.1.0-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 24,
+     "version": "7.0"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-31T16:17:34Z",
+    "tag": "remoteatv-v6.1.0-b2026103100000000041218717243000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/remoteatv-v6.1.0-b2026103100000000041218717243000001",
+    "version": "6.1.0"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "telegram",
+   "label": "Telegram",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180839861/job/124478374115",
+    "when": "2026-10-31T07:33:34Z",
+    "words": "Worked",
+    "workflow": "Batch telegram / publish=true"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180839861/job/124478374115",
+    "when": "2026-10-31T07:33:34Z",
+    "words": "Worked",
+    "workflow": "Batch telegram / publish=true"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 0,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 43390899,
+     "name": "telegram-v13.1.1-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/telegram-v13.1.1-b2026103100000000041180839861000001/telegram-v13.1.1-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 23,
+     "version": "6"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-31T07:33:25Z",
+    "tag": "telegram-v13.1.1-b2026103100000000041180839861000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/telegram-v13.1.1-b2026103100000000041180839861000001",
+    "version": "13.1.1"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "truecaller-combo",
+   "label": "Truecaller",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41103704066/job/124239344803",
+    "when": "2026-10-30T18:30:16Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41103704066/job/124239344803",
+    "when": "2026-10-30T18:30:16Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": false,
+   "on_fallback": false,
+   "patch_age_days": 0,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 109080888,
+     "name": "tc-combo-v26.41.5-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/tc-combo-v26.41.5-b2026103000000000041103704066000001/tc-combo-v26.41.5-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 29,
+     "version": "10"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-30T18:30:09Z",
+    "tag": "tc-combo-v26.41.5-b2026103000000000041103704066000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/tc-combo-v26.41.5-b2026103000000000041103704066000001",
+    "version": "26.41.5"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "youtube",
+   "label": "YouTube",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41223774437/job/124604712122",
+    "when": "2026-10-31T17:22:21Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41223774437/job/124604712122",
+    "when": "2026-10-31T17:22:21Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": true,
+   "on_fallback": false,
+   "patch_age_days": 0,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 126238049,
+     "name": "youtube-v21.44.528-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/youtube-morphe-v21.44.528-b2026103100000000041223774437000001/youtube-v21.44.528-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 29,
+     "version": "10"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-31T17:22:08Z",
+    "tag": "youtube-morphe-v21.44.528-b2026103100000000041223774437000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/youtube-morphe-v21.44.528-b2026103100000000041223774437000001",
+    "version": "21.44.528"
+   },
+   "release_known": true,
+   "tags": []
+  },
+  {
+   "android_cap": {
+    "api": 29,
+    "version": "10"
+   },
+   "cpu": "ARM64",
+   "fallback_provider": null,
+   "id": "ytmusic",
+   "label": "YouTube Music",
+   "last_build": {
+    "age_days": 0,
+    "old": false,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41223774437/job/124604728461",
+    "when": "2026-10-31T17:22:11Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "last_check": {
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41223774437/job/124604728461",
+    "when": "2026-10-31T17:22:11Z",
+    "words": "Worked",
+    "workflow": "2. Check new patch"
+   },
+   "max_patch_age_days": 180,
+   "needs_microg": true,
+   "on_fallback": false,
+   "patch_age_days": 0,
+   "patch_age_warning": null,
+   "release": {
+    "apk": {
+     "bytes": 83934625,
+     "name": "yt-music-v9.43.51-arm64-v8a.apk",
+     "url": "https://github.com/govinda-rajulu/patch-factory/releases/download/yt-music-v9.43.51-b2026103100000000041223774437000001/yt-music-v9.43.51-arm64-v8a.apk"
+    },
+    "coverage": null,
+    "fallback": null,
+    "min_android": {
+     "api": 26,
+     "version": "8.0"
+    },
+    "native": "arm64-v8a",
+    "published_at": "2026-10-31T17:22:03Z",
+    "tag": "yt-music-v9.43.51-b2026103100000000041223774437000001",
+    "url": "https://github.com/govinda-rajulu/patch-factory/releases/tag/yt-music-v9.43.51-b2026103100000000041223774437000001",
+    "version": "9.43.51"
+   },
+   "release_known": true,
+   "tags": []
+  }
+ ],
+ "generated_at": "2026-10-31T17:25:30Z",
+ "headline": {
+  "apps": [
+   "Reddit"
+  ],
+  "external": [],
+  "run_once_to_confirm": [],
+  "text": "1 app build(s) and 2 automation(s) need a look.",
+  "verdicts": [],
+  "workflows": [
+   "Dependabot Updates",
+   "Onboarding review"
+  ]
+ },
+ "issues": [
+  {
+   "number": 280,
+   "title": "Failing: 2. Check new patch",
+   "url": "https://github.com/govinda-rajulu/patch-factory/issues/280"
+  }
+ ],
+ "problems": [],
+ "repo": "govinda-rajulu/patch-factory",
+ "schema": 1,
+ "workflows": [
+  {
+   "file": "manual-patch.yml",
+   "last": {
+    "age_days": 0,
+    "event": "workflow_dispatch",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218717243",
+    "when": "2026-10-31T16:17:40Z",
+    "words": "Worked"
+   },
+   "name": "1. Manual Patch",
+   "purpose": "Builds one app on request.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218717243",
+     "when": "2026-10-31T16:17:40Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218521348",
+     "when": "2026-10-31T16:12:21Z",
+     "words": "Failed"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218041749",
+     "when": "2026-10-31T16:09:32Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212243887",
+     "when": "2026-10-31T14:56:37Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212241950",
+     "when": "2026-10-31T14:56:38Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/manual-patch.yml"
+  },
+  {
+   "file": "selection-watch.yml",
+   "last": {
+    "age_days": 0,
+    "event": "schedule",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41184326611",
+    "when": "2026-10-31T08:23:32Z",
+    "words": "Worked"
+   },
+   "name": "10. Selection watch",
+   "purpose": "Drops patch names providers stopped offering, lists new ones for you, digests provider releases.",
+   "recent": [
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41184326611",
+     "when": "2026-10-31T08:23:32Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41027165562",
+     "when": "2026-10-30T08:34:06Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40841825555",
+     "when": "2026-10-29T08:25:28Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40783099321",
+     "when": "2026-10-28T22:52:57Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40656051592",
+     "when": "2026-10-28T08:22:04Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/selection-watch.yml"
+  },
+  {
+   "file": "rule-merge.yml",
+   "last": {
+    "age_days": 0,
+    "event": "workflow_dispatch",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41193970153",
+    "when": "2026-10-31T10:44:38Z",
+    "words": "Worked"
+   },
+   "name": "11. Rule merge",
+   "purpose": "Rule merge: merges a Selection watch rule pull request only when every check, review and test build is green.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41193970153",
+     "when": "2026-10-31T10:44:38Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41192261893",
+     "when": "2026-10-31T10:19:20Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41157617885",
+     "when": "2026-10-31T01:55:42Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41124905607",
+     "when": "2026-10-30T20:41:02Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41124800833",
+     "when": "2026-10-30T20:40:34Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/rule-merge.yml"
+  },
+  {
+   "file": "ci.yml",
+   "last": {
+    "age_days": 0,
+    "apps": [
+     "reddit"
+    ],
+    "changed_since": false,
+    "event": "schedule",
+    "jobs": [
+     {
+      "name": "build (reddit) / Publish reddit",
+      "step": "Releasing APK files",
+      "step_plain": "publishing the release",
+      "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41223774437/job/124604739753",
+      "why": [
+       "release contract: PUBLISH_REFUSED reddit: app 2026.40.0 is older than the published 2026.41.0; a phone cannot update to it and the shelf would show it as newest. Nothing was published."
+      ]
+     }
+    ],
+    "old": false,
+    "per_app": true,
+    "pr_url": null,
+    "result": "failure",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41223774437",
+    "when": "2026-10-31T17:22:22Z",
+    "words": "Failed"
+   },
+   "name": "2. Check new patch",
+   "purpose": "Checks the patch providers for new releases and builds the apps that changed (one full run a day and one quick check, both on schedule).",
+   "recent": [
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41223774437",
+     "when": "2026-10-31T17:22:22Z",
+     "words": "Failed"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41174318367",
+     "when": "2026-10-31T05:57:14Z",
+     "words": "Failed"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41103704066",
+     "when": "2026-10-30T18:30:17Z",
+     "words": "Failed"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41011195629",
+     "when": "2026-10-30T06:02:39Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40931823093",
+     "when": "2026-10-29T18:42:38Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/ci.yml"
+  },
+  {
+   "file": "validate.yml",
+   "last": {
+    "age_days": 0,
+    "event": "push",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215364823",
+    "when": "2026-10-31T15:38:06Z",
+    "words": "Worked"
+   },
+   "name": "3. Validate",
+   "purpose": "Checks every change to the repository before it can be trusted.",
+   "recent": [
+    {
+     "event": "push",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215364823",
+     "when": "2026-10-31T15:38:06Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215001120",
+     "when": "2026-10-31T15:33:31Z",
+     "words": "Worked"
+    },
+    {
+     "event": "push",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212488470",
+     "when": "2026-10-31T15:00:29Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/validate.yml"
+  },
+  {
+   "file": "explore.yml",
+   "last": {
+    "age_days": 6,
+    "event": "workflow_dispatch",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40212657112",
+    "when": "2026-10-25T16:38:50Z",
+    "words": "Worked"
+   },
+   "name": "4. Explore patches",
+   "purpose": "Lists the patch names a provider offers.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40212657112",
+     "when": "2026-10-25T16:38:50Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40098316873",
+     "when": "2026-10-24T13:29:07Z",
+     "words": "Failed"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40098314553",
+     "when": "2026-10-24T13:29:06Z",
+     "words": "Failed"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40095006787",
+     "when": "2026-10-24T12:42:10Z",
+     "words": "Failed"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40095004781",
+     "when": "2026-10-24T12:42:05Z",
+     "words": "Failed"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/explore.yml"
+  },
+  {
+   "file": "add-target.yml",
+   "last": {
+    "age_days": 0,
+    "event": "workflow_dispatch",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41214979018",
+    "when": "2026-10-31T15:28:24Z",
+    "words": "Worked"
+   },
+   "name": "5. Add target",
+   "purpose": "Adds, changes, disables or removes an app; opens a pull request.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41214979018",
+     "when": "2026-10-31T15:28:24Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41214639381",
+     "when": "2026-10-31T15:23:46Z",
+     "words": "Failed"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40213413719",
+     "when": "2026-10-25T16:48:25Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/37982189110",
+     "when": "2026-10-09T19:43:51Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/32235289109",
+     "when": "2026-08-19T08:59:09Z",
+     "words": "Failed"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/add-target.yml"
+  },
+  {
+   "file": "agent-watch.yml",
+   "last": {
+    "age_days": 2,
+    "event": "workflow_dispatch",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40782760264",
+    "when": "2026-10-28T22:49:41Z",
+    "words": "Worked"
+   },
+   "name": "6. Provider watch",
+   "purpose": "Looks for new or changed patch releases.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40782760264",
+     "when": "2026-10-28T22:49:41Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40572092780",
+     "when": "2026-10-27T19:47:33Z",
+     "words": "Failed"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40479373830",
+     "when": "2026-10-27T09:16:30Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40443461549",
+     "when": "2026-10-27T03:19:53Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40410949929",
+     "when": "2026-10-26T22:16:05Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/agent-watch.yml"
+  },
+  {
+   "file": "watch.yml",
+   "last": {
+    "age_days": 0,
+    "event": "schedule",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180711598",
+    "when": "2026-10-31T07:29:12Z",
+    "words": "Worked"
+   },
+   "name": "7. Nightly watch",
+   "purpose": "One report on the repository and every provider.",
+   "recent": [
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180711598",
+     "when": "2026-10-31T07:29:12Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41021713094",
+     "when": "2026-10-30T07:43:29Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40836763241",
+     "when": "2026-10-29T07:40:01Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40783556387",
+     "when": "2026-10-28T22:56:07Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40649522527",
+     "when": "2026-10-28T07:22:37Z",
+     "words": "Failed"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/watch.yml"
+  },
+  {
+   "file": "community-watch.yml",
+   "last": {
+    "age_days": 2,
+    "event": "workflow_dispatch",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40782954957",
+    "when": "2026-10-28T22:50:37Z",
+    "words": "Worked"
+   },
+   "name": "8. Community watch",
+   "purpose": "Scans the community patch index for apps built here.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40782954957",
+     "when": "2026-10-28T22:50:37Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40572331423",
+     "when": "2026-10-27T19:48:27Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40479577628",
+     "when": "2026-10-27T09:17:13Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40443613908",
+     "when": "2026-10-27T03:20:48Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40411176258",
+     "when": "2026-10-26T22:17:02Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/community-watch.yml"
+  },
+  {
+   "file": "batch-patch.yml",
+   "last": {
+    "age_days": 0,
+    "event": "workflow_dispatch",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180839861",
+    "when": "2026-10-31T07:33:34Z",
+    "words": "Worked"
+   },
+   "name": "9. Batch Patch",
+   "purpose": "Builds several apps on request.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41180839861",
+     "when": "2026-10-31T07:33:34Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41158390145",
+     "when": "2026-10-31T02:08:52Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40781553102",
+     "when": "2026-10-28T22:42:34Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40780224266",
+     "when": "2026-10-28T22:37:58Z",
+     "words": "Failed"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40568961247",
+     "when": "2026-10-27T19:37:59Z",
+     "words": "Failed"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/batch-patch.yml"
+  },
+  {
+   "file": "codeql",
+   "last": {
+    "age_days": 0,
+    "event": "dynamic",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215364954",
+    "when": "2026-10-31T15:34:34Z",
+    "words": "Worked"
+   },
+   "name": "CodeQL",
+   "purpose": "",
+   "recent": [
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215364954",
+     "when": "2026-10-31T15:34:34Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41214999999",
+     "when": "2026-10-31T15:29:10Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212488565",
+     "when": "2026-10-31T14:58:44Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41211804241",
+     "when": "2026-10-31T14:49:04Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41194538659",
+     "when": "2026-10-31T10:54:17Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/codeql"
+  },
+  {
+   "file": "council.yml",
+   "last": {
+    "age_days": 0,
+    "event": "schedule",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41189363033",
+    "when": "2026-10-31T09:37:47Z",
+    "words": "Worked"
+   },
+   "name": "Council",
+   "purpose": "Agent council: scheduled audits posted on the council desk issue.",
+   "recent": [
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41189363033",
+     "when": "2026-10-31T09:37:47Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/council.yml"
+  },
+  {
+   "file": "dependabot-updates",
+   "last": {
+    "age_days": 4,
+    "changed_since": false,
+    "event": "dynamic",
+    "jobs": [
+     {
+      "name": "Dependabot",
+      "step": "Run Dependabot",
+      "step_plain": "Run Dependabot",
+      "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40382194260/job/121781078900",
+      "why": [
+       "Dependabot encountered an unexpected problem Error: fetching job details: missing response For more information see: https://github.com/govinda-rajulu/patch-factory/network/updates/1655959474 (write access to the repository is required to view the log)"
+      ]
+     }
+    ],
+    "old": false,
+    "pr_url": null,
+    "result": "failure",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40382194260",
+    "when": "2026-10-26T18:56:31Z",
+    "words": "Failed"
+   },
+   "name": "Dependabot Updates",
+   "purpose": "",
+   "recent": [
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40382194260",
+     "when": "2026-10-26T18:56:31Z",
+     "words": "Failed"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40087920156",
+     "when": "2026-10-24T10:59:10Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/39913360829",
+     "when": "2026-10-23T06:47:03Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/39480997973",
+     "when": "2026-10-20T19:11:43Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/39306501145",
+     "when": "2026-10-19T18:56:19Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/dependabot-updates"
+  },
+  {
+   "file": "update-graph",
+   "last": {
+    "age_days": 85,
+    "event": "dynamic",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/31195822661",
+    "when": "2026-08-07T16:05:53Z",
+    "words": "Worked"
+   },
+   "name": "Dependency Graph",
+   "purpose": "",
+   "recent": [
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/31195822661",
+     "when": "2026-08-07T16:05:53Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "cancelled",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/30760152783",
+     "when": "2026-08-03T18:01:06Z",
+     "words": "Stopped (cancelled)"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/update-graph"
+  },
+  {
+   "file": "keepalive.yml",
+   "last": {
+    "age_days": 30,
+    "event": "schedule",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/36853754209",
+    "when": "2026-10-01T11:11:08Z",
+    "words": "Worked"
+   },
+   "name": "Keepalive",
+   "purpose": "Keeps scheduled automations from being paused by GitHub.",
+   "recent": [
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/36853754209",
+     "when": "2026-10-01T11:11:08Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/33480424036",
+     "when": "2026-09-01T07:04:51Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/keepalive.yml"
+  },
+  {
+   "file": "mcp-scout.yml",
+   "last": {
+    "age_days": 4,
+    "event": "workflow_dispatch",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40444460398",
+    "when": "2026-10-27T03:32:01Z",
+    "words": "Worked"
+   },
+   "name": "MCP scout",
+   "purpose": "Manual only: finds unlisted community patch repositories for owner review.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40444460398",
+     "when": "2026-10-27T03:32:01Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40315496589",
+     "when": "2026-10-26T11:41:47Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40298683531",
+     "when": "2026-10-26T09:26:36Z",
+     "words": "Failed"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "failure",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40196050562",
+     "when": "2026-10-25T13:06:07Z",
+     "words": "Failed"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/mcp-scout.yml"
+  },
+  {
+   "file": "needs-you.yml",
+   "last": {
+    "age_days": 0,
+    "event": "schedule",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41193976082",
+    "when": "2026-10-31T10:44:52Z",
+    "words": "Worked"
+   },
+   "name": "Needs you",
+   "purpose": "Combines the five standing watch reports into one plain-language Needs you issue.",
+   "recent": [
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41193976082",
+     "when": "2026-10-31T10:44:52Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41046322485",
+     "when": "2026-10-30T11:12:12Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40864482396",
+     "when": "2026-10-29T11:19:49Z",
+     "words": "Worked"
+    },
+    {
+     "event": "issue_comment",
+     "pr_url": null,
+     "result": "skipped",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40796962431",
+     "when": "2026-10-29T00:53:34Z",
+     "words": "Skipped (nothing to do)"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40783691793",
+     "when": "2026-10-28T22:56:37Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/needs-you.yml"
+  },
+  {
+   "file": "notify-failure.yml",
+   "last": {
+    "age_days": 6,
+    "event": "workflow_run",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40212714468",
+    "when": "2026-10-25T16:39:28Z",
+    "words": "Worked"
+   },
+   "name": "Notify on failure",
+   "purpose": "Runs inside Status page data: opens one issue per failing automation and closes it on the next success.",
+   "recent": [
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40212714468",
+     "when": "2026-10-25T16:39:28Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40212676310",
+     "when": "2026-10-25T16:38:59Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40212676001",
+     "when": "2026-10-25T16:39:00Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40212598509",
+     "when": "2026-10-25T16:38:01Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40212589793",
+     "when": "2026-10-25T16:37:53Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/notify-failure.yml"
+  },
+  {
+   "file": "onboard-review.yml",
+   "last": {
+    "age_days": 0,
+    "changed_since": false,
+    "event": "workflow_dispatch",
+    "jobs": [
+     {
+      "name": "Agent review (required for onboarding)",
+      "step": "Convene the onboarding review",
+      "step_plain": "Convene the onboarding review",
+      "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215002664/job/124577638723",
+      "why": [
+       "ONBOARD_REVIEW_VERDICT: 3 of 6 counted verdicts say block"
+      ]
+     },
+     {
+      "name": "Wake Rule merge",
+      "step": null,
+      "step_plain": null,
+      "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215002664/job/124579484220",
+      "why": []
+     }
+    ],
+    "old": false,
+    "pr_url": "https://github.com/govinda-rajulu/patch-factory/pull/290",
+    "result": "cancelled",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215002664",
+    "when": "2026-10-31T15:36:18Z",
+    "words": "Stopped (cancelled)"
+   },
+   "name": "Onboarding review",
+   "purpose": "Agent review of every new app, provider or patch name.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": "https://github.com/govinda-rajulu/patch-factory/pull/290",
+     "result": "cancelled",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215002664",
+     "when": "2026-10-31T15:36:18Z",
+     "words": "Stopped (cancelled)"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/onboard-review.yml"
+  },
+  {
+   "file": "qualify-baselines.yml",
+   "last": {
+    "age_days": 0,
+    "event": "workflow_run",
+    "old": false,
+    "pr_url": null,
+    "result": "skipped",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41224213527",
+    "when": "2026-10-31T17:22:25Z",
+    "words": "Skipped (nothing to do)"
+   },
+   "name": "Qualify published shadow baselines",
+   "purpose": "Qualifies the build evidence of published releases once the whole build run worked.",
+   "recent": [
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "skipped",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41224213527",
+     "when": "2026-10-31T17:22:25Z",
+     "words": "Skipped (nothing to do)"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218979922",
+     "when": "2026-10-31T16:21:01Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "skipped",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218541495",
+     "when": "2026-10-31T16:12:33Z",
+     "words": "Skipped (nothing to do)"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41181087818",
+     "when": "2026-10-31T07:36:56Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "skipped",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41174599353",
+     "when": "2026-10-31T05:57:17Z",
+     "words": "Skipped (nothing to do)"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/qualify-baselines.yml"
+  },
+  {
+   "file": "repo-setup.yml",
+   "last": {
+    "age_days": 0,
+    "event": "push",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41194538380",
+    "when": "2026-10-31T10:53:11Z",
+    "words": "Worked"
+   },
+   "name": "Repo setup",
+   "purpose": "Applies the repository labels and files the planned feature requests once (runs when their files change).",
+   "recent": [
+    {
+     "event": "push",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41194538380",
+     "when": "2026-10-31T10:53:11Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/repo-setup.yml"
+  },
+  {
+   "file": "retention.yml",
+   "last": null,
+   "name": "Retention preview",
+   "purpose": "Retention preview: reports shelf cleanup and applies only an owner-confirmed token.",
+   "recent": [],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/retention.yml"
+  },
+  {
+   "file": "status.yml",
+   "last": {
+    "age_days": 0,
+    "event": "workflow_run",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218980092",
+    "when": "2026-10-31T16:21:16Z",
+    "words": "Worked"
+   },
+   "name": "Status page data",
+   "purpose": "Writes the data for this page.",
+   "recent": [
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "in_progress",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41224213419",
+     "when": "2026-10-31T17:22:36Z",
+     "words": "Running now"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218980092",
+     "when": "2026-10-31T16:21:16Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41218541468",
+     "when": "2026-10-31T16:16:20Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215009130",
+     "when": "2026-10-31T15:31:57Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_run",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41214653650",
+     "when": "2026-10-31T15:27:36Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/status.yml"
+  },
+  {
+   "file": "tooling-watch.yml",
+   "last": {
+    "age_days": 0,
+    "event": "schedule",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41193132054",
+    "when": "2026-10-31T10:32:22Z",
+    "words": "Worked"
+   },
+   "name": "Tooling watch",
+   "purpose": "Checks the pinned build tools for new versions, pre-releases included.",
+   "recent": [
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41193132054",
+     "when": "2026-10-31T10:32:22Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41044650828",
+     "when": "2026-10-30T10:58:48Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40862177597",
+     "when": "2026-10-29T11:02:10Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40783029199",
+     "when": "2026-10-28T22:51:02Z",
+     "words": "Worked"
+    },
+    {
+     "event": "schedule",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/40674570846",
+     "when": "2026-10-28T10:45:19Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/tooling-watch.yml"
+  },
+  {
+   "file": "pin-check.yml",
+   "last": {
+    "age_days": 0,
+    "event": "workflow_dispatch",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212571463",
+    "when": "2026-10-31T15:00:25Z",
+    "words": "Worked"
+   },
+   "name": "Weekly pin store check",
+   "purpose": "Pin store check (weekly, report-only): reads whether exact store build pins are still listed, without downloading an APK.",
+   "recent": [
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212571463",
+     "when": "2026-10-31T15:00:25Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41194578599",
+     "when": "2026-10-31T10:56:46Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41158386985",
+     "when": "2026-10-31T02:07:46Z",
+     "words": "Worked"
+    },
+    {
+     "event": "workflow_dispatch",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41125938876",
+     "when": "2026-10-30T20:47:18Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/pin-check.yml"
+  },
+  {
+   "file": "pages-build-deployment",
+   "last": {
+    "age_days": 0,
+    "event": "dynamic",
+    "old": false,
+    "pr_url": null,
+    "result": "success",
+    "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215364383",
+    "when": "2026-10-31T15:33:47Z",
+    "words": "Worked"
+   },
+   "name": "pages-build-deployment",
+   "purpose": "",
+   "recent": [
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41215364383",
+     "when": "2026-10-31T15:33:47Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41212488063",
+     "when": "2026-10-31T14:57:36Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41194538046",
+     "when": "2026-10-31T10:53:26Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41187060813",
+     "when": "2026-10-31T09:03:31Z",
+     "words": "Worked"
+    },
+    {
+     "event": "dynamic",
+     "pr_url": null,
+     "result": "success",
+     "url": "https://github.com/govinda-rajulu/patch-factory/actions/runs/41184413292",
+     "when": "2026-10-31T08:23:52Z",
+     "words": "Worked"
+    }
+   ],
+   "url": "https://github.com/govinda-rajulu/patch-factory/actions/workflows/pages-build-deployment"
+  }
+ ]
+}
