@@ -1,6 +1,6 @@
 # Open work
 
-## Current checkpoint: 31 October 2026 (packet W15g; W16y-c merged 31 Oct)
+## Current checkpoint: 31 October 2026 afternoon (W15g merged as #283; records packet W15g-close)
 
 Every still-open item carried forward from the older checkpoints is listed once below. Closed,
 superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-ARCHIVE-2026-10.md).
@@ -15,6 +15,28 @@ superseded and decided notes remain verbatim in [the archive](history/OPEN-WORK-
 ### Done in W15g (31 October 2026)
 
 - Signing split built: Patch without key or write token (unsigned APK, `--unsigned` probed first), Sign with the release key and first-party code only (`src/build/sign_apk.py`), Publish with the write token and no key ([HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md)). Open until the owner's phone test: install the post-merge Telegram over the current one.
+
+### W15g result and carry-forward (31 Oct 2026, afternoon)
+
+- Merged as #283 (`95be30da`); 17 of 17 smokes signed in the Sign job; Telegram published by the split jobs. Details: [HANDOVER-2026-10-31-W15g.md](HANDOVER-2026-10-31-W15g.md) (Result) and [w15g-close/README.md](w15g-close/README.md).
+- **Owner:** install the published Telegram over the current one (no uninstall) and confirm it opens signed in.
+- Pin check run 41158386985 (31 Oct) printed `PIN_STORE_MISSING` (version_code_not_listed) for Facebook, Facebook De-Vanced and Instagram, while the same day's smokes downloaded those exact pins from APKMirror: the probe's page reading is wrong, not the pins. Fix the probe before any weekly schedule.
+- LOW, for W16z: artifact names `build-evidence-<t>` and `provider-scan-<t>-<run>` carry no attempt (pre-existing; GitHub reruns are per attempt); the signature-file pattern differs from apksig on `META-INF/.SF` (empty base name) and lowercase `meta-inf/`; the release tag date comes from build end, not the job stamp (cosmetic; run and attempt are bound). Round 4 detail: [w15g-close/scenarios/SUMMARY.md](w15g-close/scenarios/SUMMARY.md).
+- Test lesson (wrong call 120): fake tools copy the real tool's output policy from its source; fixtures carry what store APKs carry (source stamp, directory entries).
+- Signature schemes: the split signs minimum SDK 23 apps with v1+v2+v3 (Telegram, MX Player, plus Hotstar and ES File); same certificate, so install-over is unaffected. The owner phone test on Telegram confirms it.
+- **Owner approval:** lesson proposals L115 (fakes copy the real tool's output policy) and L116 (probe an agent's fix on the real data path) in [w15g-close/LESSON-PROPOSALS.md](w15g-close/LESSON-PROPOSALS.md); append to docs/council/LESSONS.md on yes.
+- **Owner ask (31 Oct), not yet scheduled:** give some W16z housekeeping and triage work to the Council and other free agents as scored trial tasks (ask, audit, triage) to see how they perform; record scores in the session note.
+- Owner Cloud Shell after this records packet merges: the old `~/pf-w15g-combo-071f39d4.py`, `~/pf-sp.py` and the W15g launcher texts can go (both scripts are now in the repo); keep `~/work/run-logs`.
+- Wrong call 121 (close-out): the first close-out swept only the 31 Oct work; the owner's "check again" found the 28 to 30 Oct notes, the rehearsal tools, the scenario tests, the issue collector and two owner asks missing. All are in this packet now; a close-out sweeps every day of the chat.
+- From the close-out sweep of 28 to 30 Oct notes ([w15g-close/LEFTOVERS-AUDIT.md](w15g-close/LEFTOVERS-AUDIT.md)):
+  - Triage the Council desk (#154) report of a `safeLink` path-validation problem in the portal: confirm or close it in writing (a report, not proof).
+  - Storage: the 30 Oct artifact snapshot (capped at 2,000 artifacts) showed at least 36.9 GB, 92.5 percent of it `test-apk-*`. **Owner decision:** keep test APK artifacts 7 days, or cut to 2 or 3 days once phone tests always use Releases ([earlier/STORAGE-PLAN-2026-10-30.md](w15g-close/earlier/STORAGE-PLAN-2026-10-30.md)).
+  - **Owner decision:** the generic fallback-recovery proposal (a stale-fallback marker after 7 days; a newer primary may replace a fallback shelf only with a downgrade/uninstall warning; never an older fallback over a newer primary) ([earlier/TELEGRAM-FALLBACKS-2026-10-30.md](w15g-close/earlier/TELEGRAM-FALLBACKS-2026-10-30.md)).
+  - Fallback attempts: bounded attempt summaries with tests first, later a cached ELIGIBLE / INELIGIBLE / UNKNOWN check where UNKNOWN never skips a fallback; candidate order and caps unchanged ([earlier/AUTOMATION-MAP-2026-10-30.md](w15g-close/earlier/AUTOMATION-MAP-2026-10-30.md)).
+  - Council model catalogue watcher: the detailed safe design (free-pricing proof, bounded requests, PR-only) is in the same AUTOMATION-MAP note; build only if still wanted.
+  - `.gitignore`: decide whether to ignore `.pytest_cache/`.
+  - The 30 Oct historical credential and personal-data scan produced candidate hits only, no verdict: re-run it sanitized and record a disposition (never publish raw hits).
+  - W16w handover says 64 broken relative links, its review counted 65 changed destinations: clarify the wording.
 
 ### Next: W16z (owner, 31 Oct 2026)
 

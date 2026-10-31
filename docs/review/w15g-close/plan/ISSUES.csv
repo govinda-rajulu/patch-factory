@@ -1,0 +1,9 @@
+number,type,state,title,created,closed,author,labels,class,next_step
+27,issue,open,watch: repo and provider status,2026-08-25T16:54:37Z,,github-actions[bot],,BOT-NOISE,
+154,issue,open,Council desk,2026-10-07T08:31:19Z,,govinda-rajulu,,OWNER-ACTION,"Replace the missing NVIDIA/Nemotron Council model with a currently served model while preserving two models per seat, then record the Sunday probe result."
+182,issue,open,Selection watch,2026-10-10T14:09:52Z,,github-actions[bot],,BOT-NOISE,
+213,issue,open,provider watch,2026-10-22T17:03:46Z,,github-actions[bot],,BOT-NOISE,
+218,issue,open,Tooling watch,2026-10-23T04:34:05Z,,github-actions[bot],,BOT-NOISE,
+233,issue,open,Needs you,2026-10-24T12:03:34Z,,github-actions[bot],,OWNER-ACTION,Review the regenerated digest and reply with take/drop/hold decisions for only still-pending item or group IDs; do not repeat the 28 Oct calls already recorded in DECISIONS.json.
+276,issue,open,community: index changed for apps you build,2026-10-28T22:50:21Z,,github-actions[bot],,BOT-NOISE,
+280,issue,open,Failing: 2. Check new patch,2026-10-30T18:30:28Z,,github-actions[bot],,OWNER-ACTION,"Inspect run 41103704066 job 124239344603 startup/cancellation details (no failed step was recorded), then obtain a green main CI run before the notifier closes #280."
